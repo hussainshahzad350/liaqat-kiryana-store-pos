@@ -1,4 +1,4 @@
-// lib/screens/home/home_screen.dart - CORRECTED VERSION
+// lib/screens/home/home_screen.dart
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
@@ -27,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String currentTime = '';
   String currentDate = '';
   Timer? timer;
+  Timer? dataTimer;
 
   double todaySales = 0.0;
   List<Map<String, dynamic>> todayCustomers = [];
@@ -39,22 +40,26 @@ class _HomeScreenState extends State<HomeScreen> {
     _updateTime();
     _loadData();
 
+    // Update time every minute
     timer = Timer.periodic(const Duration(seconds: 60), (timer) {
-      _updateTime();
+      if (mounted) _updateTime();
     });
 
-    Timer.periodic(const Duration(seconds: 30), (timer) {
-      _loadData();
+    // Refresh dashboard data every 30 seconds
+    dataTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted) _loadData();
     });
   }
 
   @override
   void dispose() {
     timer?.cancel();
+    dataTimer?.cancel();
     super.dispose();
   }
 
   void _updateTime() {
+    if (!mounted) return;
     DateTime now = DateTime.now();
     int hour = now.hour % 12;
     if (hour == 0) hour = 12;
@@ -73,16 +78,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadData() async {
     try {
       final dbHelper = DatabaseHelper.instance;
-      final sales = await dbHelper.getTodaySales();
-      final customers = await dbHelper.getTodayCustomers();
-      final lowStock = await dbHelper.getLowStockItems();
-      final recent = await dbHelper.getRecentSales();
+      // Parallel execution for faster loading
+      final results = await Future.wait([
+        dbHelper.getTodaySales(),
+        dbHelper.getTodayCustomers(),
+        dbHelper.getLowStockItems(),
+        dbHelper.getRecentSales(),
+      ]);
+
+      if (!mounted) return;
 
       setState(() {
-        todaySales = sales;
-        todayCustomers = customers;
-        lowStockItems = lowStock;
-        recentSales = recent;
+        todaySales = results[0] as double;
+        todayCustomers = results[1] as List<Map<String, dynamic>>;
+        lowStockItems = results[2] as List<Map<String, dynamic>>;
+        recentSales = results[3] as List<Map<String, dynamic>>;
       });
     } catch (e) {
       print('Error loading data: $e');
@@ -95,19 +105,18 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: _buildNavigationDrawer(),
       body: Column(
         children: [
-          // ✅ FIXED: Top Bar with Generate Bill Button (Always Visible)
+          // Top Bar with Menu, Title, Time, and Bill Button
           Container(
-            height: 120, // Increased height for 2 rows
+            height: 120, // Height to accommodate two rows
             color: Colors.green[700],
             child: Column(
               children: [
-                // Row 1: Menu + Shop Name + Time
+                // Row 1: Menu + Title + Time
                 Container(
                   height: 70,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: [
-                      // Menu Button
                       Builder(
                         builder: (context) => IconButton(
                           icon: const Icon(Icons.menu, color: Colors.white, size: 28),
@@ -116,85 +125,48 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                         ),
                       ),
-
-                      // Shop Name
                       const Expanded(
                         child: Center(
                           child: Text(
                             'لياقت کريانہ اسٹور',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ),
                       ),
-
-                      // Time Box
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(
-                              currentTime,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              currentDate,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white.withOpacity(0.8),
-                              ),
-                            ),
+                            Text(currentTime, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                            Text(currentDate, style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.8))),
                           ],
                         ),
                       ),
                     ],
                   ),
                 ),
-
-                // Row 2: Generate Bill Button (TOP-LEFT PERMANENT)
+                // Row 2: Generate Bill Button
                 Container(
                   height: 50,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: [
-                      // ✅ TOP-LEFT PERMANENT BILL BUTTON
                       ElevatedButton.icon(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const SalesScreen()),
-                          );
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const SalesScreen())).then((_) => _loadData());
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.green[700],
                           elevation: 4,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         icon: const Icon(Icons.receipt_long, size: 20),
-                        label: const Text(
-                          'بل بنائيں',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        label: const Text('بل بنائيں', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -203,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Dashboard Content
+          // Dashboard Cards
           Expanded(
             child: RefreshIndicator(
               onRefresh: _loadData,
@@ -211,60 +183,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    // Today's Sales Card
+                    // Sales Card
                     Card(
                       elevation: 4,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.currency_rupee,
-                                    color: Colors.green,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Rs ${todaySales.toStringAsFixed(0)}',
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const Text(
-                                        'آج کی فروخت',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                              child: const Icon(Icons.currency_rupee, color: Colors.green, size: 24),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Rs ${todaySales.toStringAsFixed(0)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                  const Text('آج کی فروخت', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
 
-                    // Today's Customers Card
+                    // Customers Card
                     Card(
                       elevation: 4,
                       child: Padding(
@@ -276,101 +223,47 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.people,
-                                    color: Colors.blue,
-                                    size: 24,
-                                  ),
+                                  decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                  child: const Icon(Icons.people, color: Colors.blue, size: 24),
                                 ),
                                 const SizedBox(width: 12),
-                                Text(
-                                  'آج کے گاہک: ${todayCustomers.length}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                Text('آج کے گاہک: ${todayCustomers.length}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ],
                             ),
-
                             if (todayCustomers.isNotEmpty) ...[
                               const SizedBox(height: 12),
                               const Divider(),
                               const SizedBox(height: 8),
-
                               Table(
-                                columnWidths: const {
-                                  0: FlexColumnWidth(3),
-                                  1: FlexColumnWidth(2),
-                                },
+                                columnWidths: const {0: FlexColumnWidth(3), 1: FlexColumnWidth(2)},
                                 children: [
                                   const TableRow(
                                     decoration: BoxDecoration(color: Colors.grey),
                                     children: [
-                                      Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: Text(
-                                          'گاہک',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: Text(
-                                          'رقم',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
+                                      Padding(padding: EdgeInsets.all(8), child: Text('گاہک', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                                      Padding(padding: EdgeInsets.all(8), child: Text('رقم', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
                                     ],
                                   ),
                                   for (var customer in todayCustomers)
                                     TableRow(
                                       children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(8),
-                                          child: Text(
-                                            customer['name_urdu'] ?? customer['name_english'] ?? 'کيش',
-                                            style: const TextStyle(fontSize: 14),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(8),
-                                          child: Text(
-                                            'Rs ${(customer['total_amount'] as num?)?.toStringAsFixed(0) ?? '0'}',
-                                            style: const TextStyle(fontSize: 14),
-                                          ),
-                                        ),
+                                        Padding(padding: const EdgeInsets.all(8), child: Text(customer['name_urdu'] ?? customer['name_english'] ?? 'کيش', style: const TextStyle(fontSize: 14))),
+                                        Padding(padding: const EdgeInsets.all(8), child: Text('Rs ${(customer['total_amount'] as num?)?.toStringAsFixed(0) ?? '0'}', style: const TextStyle(fontSize: 14))),
                                       ],
                                     ),
                                 ],
                               ),
                             ] else ...[
                               const SizedBox(height: 12),
-                              const Center(
-                                child: Text(
-                                  'آج کوئی گاہک نہيں آيا',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ),
+                              const Center(child: Text('آج کوئی گاہک نہيں آيا', style: TextStyle(color: Colors.grey))),
                             ],
                           ],
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
 
-                    // Low Stock Alert Card
+                    // Low Stock Card
                     Card(
                       elevation: 4,
                       color: Colors.red[50],
@@ -383,117 +276,46 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.warning,
-                                    color: Colors.red,
-                                    size: 24,
-                                  ),
+                                  decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                  child: const Icon(Icons.warning, color: Colors.red, size: 24),
                                 ),
                                 const SizedBox(width: 12),
-                                Text(
-                                  'کم اسٹاک: ${lowStockItems.length}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red,
-                                  ),
-                                ),
+                                Text(' کم اسٹاک: ${lowStockItems.length}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
                               ],
                             ),
-
                             if (lowStockItems.isNotEmpty) ...[
                               const SizedBox(height: 12),
                               const Divider(color: Colors.red),
                               const SizedBox(height: 8),
-
                               Table(
-                                columnWidths: const {
-                                  0: FlexColumnWidth(3),
-                                  1: FlexColumnWidth(1),
-                                  2: FlexColumnWidth(1),
-                                },
+                                columnWidths: const {0: FlexColumnWidth(3), 1: FlexColumnWidth(1), 2: FlexColumnWidth(1)},
                                 children: [
                                   const TableRow(
                                     decoration: BoxDecoration(color: Colors.red),
                                     children: [
-                                      Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: Text(
-                                          'آئٹم',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: Text(
-                                          'موجوده',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: Text(
-                                          'ضرورت',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
+                                      Padding(padding: EdgeInsets.all(8), child: Text('آئٹم', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                                      Padding(padding: EdgeInsets.all(8), child: Text('موجوده', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                                      Padding(padding: EdgeInsets.all(8), child: Text('ضرورت', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
                                     ],
                                   ),
                                   for (var item in lowStockItems)
                                     TableRow(
                                       children: [
-                                        Padding(
-                                          padding: const EdgeInsets.all(8),
-                                          child: Text(
-                                            item['name_urdu'] ?? item['name_english'] ?? 'نامعلوم',
-                                            style: const TextStyle(fontSize: 14),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(8),
-                                          child: Text(
-                                            '${item['current_stock']}',
-                                            style: const TextStyle(fontSize: 14),
-                                          ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(8),
-                                          child: Text(
-                                            '${item['min_stock_alert']}',
-                                            style: const TextStyle(fontSize: 14),
-                                          ),
-                                        ),
+                                        Padding(padding: const EdgeInsets.all(8), child: Text(item['name_urdu'] ?? item['name_english'] ?? 'نامعلوم', style: const TextStyle(fontSize: 14))),
+                                        Padding(padding: const EdgeInsets.all(8), child: Text('${item['current_stock']}', style: const TextStyle(fontSize: 14))),
+                                        Padding(padding: const EdgeInsets.all(8), child: Text('${item['min_stock_alert']}', style: const TextStyle(fontSize: 14))),
                                       ],
                                     ),
                                 ],
                               ),
                             ] else ...[
                               const SizedBox(height: 12),
-                              const Center(
-                                child: Text(
-                                  'سب آئٹمز اسٹاک ميں ہيں',
-                                  style: TextStyle(color: Colors.green),
-                                ),
-                              ),
+                              const Center(child: Text('سب آئٹمز اسٹاک ميں ہيں', style: TextStyle(color: Colors.green))),
                             ],
                           ],
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
 
                     // Recent Sales Card
@@ -508,83 +330,40 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Icon(Icons.receipt, color: Colors.green),
                                 SizedBox(width: 8),
-                                Text(
-                                  'حاليہ فروخت',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                Text('حاليہ فروخت', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                               ],
                             ),
-
                             if (recentSales.isNotEmpty) ...[
                               const SizedBox(height: 12),
                               const Divider(),
                               const SizedBox(height: 8),
-
                               for (var sale in recentSales)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: Row(
                                     children: [
                                       Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          color: Colors.green.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            sale['bill_number']?.toString().replaceAll('SALE-', '') ?? '',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green,
-                                            ),
-                                          ),
-                                        ),
+                                        width: 40, height: 40,
+                                        decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                        child: Center(child: Text(sale['bill_number']?.toString().replaceAll('SALE-', '') ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(
-                                              sale['customer_name']?.toString() ?? 'کيش',
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                            Text(
-                                              sale['sale_time']?.toString() ?? '',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
+                                            Text(sale['customer_name']?.toString() ?? 'کيش', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                                            Text(sale['sale_time']?.toString().substring(0, 5) ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                           ],
                                         ),
                                       ),
-                                      Text(
-                                        'Rs ${(sale['grand_total'] as num?)?.toStringAsFixed(0) ?? '0'}',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                      Text('Rs ${(sale['grand_total'] as num?)?.toStringAsFixed(0) ?? '0'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),
                             ] else ...[
                               const SizedBox(height: 20),
-                              const Center(
-                                child: Text(
-                                  'ابھی تک کوئی فروخت نہيں ہوئی',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              ),
+                              const Center(child: Text('ابھی تک کوئی فروخت نہيں ہوئی', style: TextStyle(color: Colors.grey))),
                             ],
                           ],
                         ),
@@ -597,6 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+      floatingActionButton: null, // Removed duplicate floating button since we added it to the top bar
     );
   }
 
@@ -613,200 +393,88 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Icon(Icons.store, size: 60, color: Colors.white),
                 const SizedBox(height: 10),
-                const Text(
-                  'لياقت کريانہ اسٹور',
-                  style: TextStyle(
-                    fontSize: 22,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                const Text('لياقت کريانہ اسٹور', style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 5),
-                Text(
-                  'POS System v1.0',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
-                  ),
-                ),
+                Text('POS System v1.0', style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.8))),
               ],
             ),
           ),
-
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _buildDrawerItem(
-                  icon: Icons.dashboard,
-                  title: 'ہوم',
-                  onTap: () => Navigator.pop(context),
-                ),
-                _buildDrawerItem(
-                  icon: Icons.shopping_cart,
-                  title: 'فروخت / POS',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SalesScreen()),
-                    );
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.inventory,
-                  title: 'اسٹاک مينيجمنٹ',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const StockScreen()),
-                    );
-                  },
-                ),
+                _buildDrawerItem(icon: Icons.dashboard, title: 'ہوم', onTap: () => Navigator.pop(context)),
+                _buildDrawerItem(icon: Icons.shopping_cart, title: 'فروخت / POS', onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SalesScreen()));
+                }),
+                _buildDrawerItem(icon: Icons.inventory, title: 'اسٹاک مينيجمنٹ', onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const StockScreen()));
+                }),
                 ExpansionTile(
                   leading: const Icon(Icons.data_usage, color: Colors.green),
                   title: const Text('ماسٹر ڈيٹا'),
                   children: [
-                    ListTile(
-                      leading: const Icon(Icons.inventory, size: 20),
-                      title: const Text('آئٹمز'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ItemsScreen()),
-                        );
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.people, size: 20),
-                      title: const Text('کسٹمرز'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const CustomersScreen()),
-                        );
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.business, size: 20),
-                      title: const Text('سپلائرز'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SuppliersScreen()),
-                        );
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.category, size: 20),
-                      title: const Text('کیٹیگریز'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const CategoriesScreen()),
-                        );
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.square_foot, size: 20),
-                      title: const Text('یونٹس'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const UnitsScreen()),
-                        );
-                      },
-                    ),
+                    ListTile(leading: const Icon(Icons.inventory, size: 20), title: const Text('آئٹمز'), onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ItemsScreen()));
+                    }),
+                    ListTile(leading: const Icon(Icons.people, size: 20), title: const Text('کسٹمرز'), onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomersScreen()));
+                    }),
+                    ListTile(leading: const Icon(Icons.business, size: 20), title: const Text('سپلائرز'), onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const SuppliersScreen()));
+                    }),
+                    ListTile(leading: const Icon(Icons.category, size: 20), title: const Text('کیٹیگریز'), onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const CategoriesScreen()));
+                    }),
+                    ListTile(leading: const Icon(Icons.square_foot, size: 20), title: const Text('یونٹس'), onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const UnitsScreen()));
+                    }),
                   ],
                 ),
-                _buildDrawerItem(
-                  icon: Icons.analytics,
-                  title: 'رپورٹس',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ReportsScreen()),
-                    );
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.attach_money,
-                  title: 'کيش ليجر',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const CashLedgerScreen()),
-                    );
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.settings,
-                  title: 'سيٹنگز',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                    );
-                  },
-                ),
+                _buildDrawerItem(icon: Icons.analytics, title: 'رپورٹس', onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ReportsScreen()));
+                }),
+                _buildDrawerItem(icon: Icons.attach_money, title: 'کيش ليجر', onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const CashLedgerScreen()));
+                }),
+                _buildDrawerItem(icon: Icons.settings, title: 'سيٹنگز', onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
+                }),
                 const Divider(),
-                _buildDrawerItem(
-                  icon: Icons.info,
-                  title: 'ایپ کے بارے میں',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AboutScreen()),
-                    );
-                  },
-                ),
-                _buildDrawerItem(
-                  icon: Icons.logout,
-                  title: 'لاگ آؤٹ',
-                  color: Colors.red,
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, '/');
-                  },
-                ),
+                _buildDrawerItem(icon: Icons.info, title: 'ایپ کے بارے میں', onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutScreen()));
+                }),
+                _buildDrawerItem(icon: Icons.logout, title: 'لاگ آؤٹ', color: Colors.red, onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushReplacementNamed(context, '/');
+                }),
               ],
             ),
           ),
-
           Container(
             padding: const EdgeInsets.all(16),
-            child: Text(
-              '© 2024 Liaqat Kiryana Store',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
+            child: Text('© 2024 Liaqat Kiryana Store', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDrawerItem({
-    required IconData icon,
-    required String title,
-    Color? color,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildDrawerItem({required IconData icon, required String title, Color? color, required VoidCallback onTap}) {
     return ListTile(
       leading: Icon(icon, color: color ?? Colors.green[700]),
-      title: Text(
-        title,
-        style: TextStyle(fontSize: 16, color: color ?? Colors.grey[800]),
-      ),
+      title: Text(title, style: TextStyle(fontSize: 16, color: color ?? Colors.grey[800])),
       onTap: onTap,
     );
   }
