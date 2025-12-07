@@ -1,3 +1,4 @@
+// lib/screens/home/home_screen.dart - CORRECTED VERSION
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
@@ -91,64 +92,108 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: _buildNavigationDrawer(), // ✅ Navigation Drawer فعال
+      drawer: _buildNavigationDrawer(),
       body: Column(
         children: [
-          // Top Bar
+          // ✅ FIXED: Top Bar with Generate Bill Button (Always Visible)
           Container(
-            height: 70,
+            height: 120, // Increased height for 2 rows
             color: Colors.green[700],
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
+            child: Column(
               children: [
-                // Menu Button (Navigation Drawer کھولے)
-                Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu, color: Colors.white, size: 28),
-                    onPressed: () {
-                      Scaffold.of(context).openDrawer(); // ✅ Drawer کھولیں
-                    },
-                  ),
-                ),
-
-                // Shop Name
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      'لياقت کريانہ اسٹور',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Time Box
+                // Row 1: Menu + Shop Name + Time
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  height: 70,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
                     children: [
-                      Text(
-                        currentTime,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      // Menu Button
+                      Builder(
+                        builder: (context) => IconButton(
+                          icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+                          onPressed: () {
+                            Scaffold.of(context).openDrawer();
+                          },
                         ),
                       ),
-                      Text(
-                        currentDate,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withOpacity(0.8),
+
+                      // Shop Name
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'لياقت کريانہ اسٹور',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Time Box
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              currentTime,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              currentDate,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Row 2: Generate Bill Button (TOP-LEFT PERMANENT)
+                Container(
+                  height: 50,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      // ✅ TOP-LEFT PERMANENT BILL BUTTON
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SalesScreen()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.green[700],
+                          elevation: 4,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        icon: const Icon(Icons.receipt_long, size: 20),
+                        label: const Text(
+                          'بل بنائيں',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -166,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    // ✅ TODAY'S SALES CARD (واپس شامل)
+                    // Today's Sales Card
                     Card(
                       elevation: 4,
                       child: Padding(
@@ -219,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Today's Customers Card with Table
+                    // Today's Customers Card
                     Card(
                       elevation: 4,
                       child: Padding(
@@ -257,18 +302,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               const Divider(),
                               const SizedBox(height: 8),
 
-                              // Customers Table
                               Table(
                                 columnWidths: const {
                                   0: FlexColumnWidth(3),
                                   1: FlexColumnWidth(2),
                                 },
                                 children: [
-                                  // Table Header
                                   const TableRow(
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey,
-                                    ),
+                                    decoration: BoxDecoration(color: Colors.grey),
                                     children: [
                                       Padding(
                                         padding: EdgeInsets.all(8),
@@ -292,8 +333,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ],
                                   ),
-
-                                  // Table Rows
                                   for (var customer in todayCustomers)
                                     TableRow(
                                       children: [
@@ -307,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Padding(
                                           padding: const EdgeInsets.all(8),
                                           child: Text(
-                                            'Rs ${(customer['grand_total'] as num?)?.toStringAsFixed(0) ?? '0'}',
+                                            'Rs ${(customer['total_amount'] as num?)?.toStringAsFixed(0) ?? '0'}',
                                             style: const TextStyle(fontSize: 14),
                                           ),
                                         ),
@@ -331,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Low Stock Alert Card with Table
+                    // Low Stock Alert Card
                     Card(
                       elevation: 4,
                       color: Colors.red[50],
@@ -356,7 +395,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  ' کم اسٹاک: ${lowStockItems.length}',
+                                  'کم اسٹاک: ${lowStockItems.length}',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -371,7 +410,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               const Divider(color: Colors.red),
                               const SizedBox(height: 8),
 
-                              // Low Stock Table
                               Table(
                                 columnWidths: const {
                                   0: FlexColumnWidth(3),
@@ -379,11 +417,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   2: FlexColumnWidth(1),
                                 },
                                 children: [
-                                  // Table Header
                                   const TableRow(
-                                    decoration: BoxDecoration(
-                                      color: Colors.red,
-                                    ),
+                                    decoration: BoxDecoration(color: Colors.red),
                                     children: [
                                       Padding(
                                         padding: EdgeInsets.all(8),
@@ -417,8 +452,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ],
                                   ),
-
-                                  // Table Rows
                                   for (var item in lowStockItems)
                                     TableRow(
                                       children: [
@@ -482,8 +515,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                Spacer(),
-                                Text('سب ديکھيں'),
                               ],
                             ),
 
@@ -492,7 +523,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               const Divider(),
                               const SizedBox(height: 8),
 
-                              // Recent Sales List
                               for (var sale in recentSales)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 12),
@@ -528,7 +558,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                             ),
                                             Text(
-                                              sale['sale_time']?.toString().substring(0, 5) ?? '',
+                                              sale['sale_time']?.toString() ?? '',
                                               style: const TextStyle(
                                                 fontSize: 12,
                                                 color: Colors.grey,
@@ -567,57 +597,21 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-
-      // ✅ FIXED: Bill Button (Overlay Issue Solved)
-      floatingActionButton: Container(
-        margin: const EdgeInsets.only(left: 20, top: 90), // Correct position
-        child: FloatingActionButton.extended(
-          onPressed: () {
-            // Navigate to sales screen
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SalesScreen()),
-            );
-          },
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.green[700],
-          elevation: 6,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.green[700]!, width: 2),
-          ),
-          icon: const Icon(Icons.receipt_long, size: 24),
-          label: const Text(
-            'بل بنائيں',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
     );
   }
 
-  // ✅ Navigation Drawer بنانے کا function
   Widget _buildNavigationDrawer() {
     return Drawer(
       width: 280,
       child: Column(
         children: [
-          // Drawer Header
           Container(
             height: 180,
             color: Colors.green[700],
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.store,
-                  size: 60,
-                  color: Colors.white,
-                ),
+                const Icon(Icons.store, size: 60, color: Colors.white),
                 const SizedBox(height: 10),
                 const Text(
                   'لياقت کريانہ اسٹور',
@@ -639,47 +633,37 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Navigation List
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                // Home
                 _buildDrawerItem(
                   icon: Icons.dashboard,
                   title: 'ہوم',
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Already on home
-                  },
+                  onTap: () => Navigator.pop(context),
                 ),
                 _buildDrawerItem(
-                  icon: Icons.dashboard,
+                  icon: Icons.shopping_cart,
                   title: 'فروخت / POS',
                   onTap: () {
                     Navigator.pop(context);
-                    // Already on home
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const SalesScreen()),
                     );
                   },
                 ),
-                // Stock Management
                 _buildDrawerItem(
                   icon: Icons.inventory,
                   title: 'اسٹاک مينيجمنٹ',
                   onTap: () {
                     Navigator.pop(context);
-                    // Navigator.pushNamed(context, '/stock');
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const StockScreen()),
                     );
                   },
                 ),
-
-                // Master Data Expansion
                 ExpansionTile(
                   leading: const Icon(Icons.data_usage, color: Colors.green),
                   title: const Text('ماسٹر ڈيٹا'),
@@ -696,7 +680,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     ListTile(
-                      leading: const Icon(Icons.inventory, size: 20),
+                      leading: const Icon(Icons.people, size: 20),
                       title: const Text('کسٹمرز'),
                       onTap: () {
                         Navigator.pop(context);
@@ -722,7 +706,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: const Text('کیٹیگریز'),
                       onTap: () {
                         Navigator.pop(context);
-                        // Navigator.push(context, MaterialPageRoute(builder: (context) => CategoriesScreen()));
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const CategoriesScreen()),
@@ -734,7 +717,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: const Text('یونٹس'),
                       onTap: () {
                         Navigator.pop(context);
-                        // Navigator.push(context, MaterialPageRoute(builder: (context) => UnitsScreen()));
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const UnitsScreen()),
@@ -743,69 +725,54 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-
-                // Reports
                 _buildDrawerItem(
                   icon: Icons.analytics,
                   title: 'رپورٹس',
                   onTap: () {
                     Navigator.pop(context);
-                    // Navigator.pushNamed(context, '/reports');
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const ReportsScreen()),
                     );
                   },
                 ),
-
-                // Cash Ledger
                 _buildDrawerItem(
                   icon: Icons.attach_money,
                   title: 'کيش ليجر',
                   onTap: () {
                     Navigator.pop(context);
-                    // Navigator.pushNamed(context, '/cash-ledger');
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const CashLedgerScreen()),
                     );
                   },
                 ),
-
-                // Settings
                 _buildDrawerItem(
                   icon: Icons.settings,
                   title: 'سيٹنگز',
                   onTap: () {
                     Navigator.pop(context);
-                    // Navigator.pushNamed(context, '/settings');
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const SettingsScreen()),
                     );
                   },
                 ),
-
                 const Divider(),
-
-                // About
                 _buildDrawerItem(
                   icon: Icons.info,
-                  title: 'اينڈرول',
+                  title: 'ایپ کے بارے میں',
                   onTap: () {
                     Navigator.pop(context);
-                    // Navigator.pushNamed(context, '/about');
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AboutScreen()),
                     );
                   },
                 ),
-
-                // Logout
                 _buildDrawerItem(
                   icon: Icons.logout,
-                  title: 'الگ آؤٹ',
+                  title: 'لاگ آؤٹ',
                   color: Colors.red,
                   onTap: () {
                     Navigator.pop(context);
@@ -816,15 +783,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Footer
           Container(
             padding: const EdgeInsets.all(16),
             child: Text(
               '© 2024 Liaqat Kiryana Store',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ),
         ],
@@ -832,7 +795,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Drawer item helper function
   Widget _buildDrawerItem({
     required IconData icon,
     required String title,
@@ -843,10 +805,7 @@ class _HomeScreenState extends State<HomeScreen> {
       leading: Icon(icon, color: color ?? Colors.green[700]),
       title: Text(
         title,
-        style: TextStyle(
-          fontSize: 16,
-          color: color ?? Colors.grey[800],
-        ),
+        style: TextStyle(fontSize: 16, color: color ?? Colors.grey[800]),
       ),
       onTap: onTap,
     );
