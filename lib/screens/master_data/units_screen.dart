@@ -518,7 +518,7 @@ class _UnitDialogState extends State<UnitDialog> {
                   labelText: 'یونٹ کی قسم *',
                   border: OutlineInputBorder(),
                 ),
-                value: _selectedUnitType,
+                initialValue: _selectedUnitType,
                 items: const [
                   DropdownMenuItem(value: 'Weight', child: Text('وزن')),
                   DropdownMenuItem(value: 'Volume', child: Text('حجم')),
@@ -597,7 +597,7 @@ class _UnitDialogState extends State<UnitDialog> {
                     labelText: 'بنیادی یونٹ *',
                     border: OutlineInputBorder(),
                   ),
-                  value: _selectedBaseUnit,
+                  initialValue: _selectedBaseUnit,
                   items: const [
                     DropdownMenuItem(value: 'Kilogram', child: Text('کلوگرام')),
                     DropdownMenuItem(value: 'Liter', child: Text('لیٹر')),

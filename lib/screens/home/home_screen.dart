@@ -10,6 +10,10 @@ import '../stock/stock_screen.dart';
 import '../master_data/customers_screen.dart';
 import '../master_data/categories_screen.dart';
 import '../master_data/units_screen.dart';
+import '../reports/reports_screen.dart';
+import '../settings/settings_screen.dart';
+import '../cash_ledger/cash_ledger_screen.dart';
+import '../about/about_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -747,6 +751,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () {
                     Navigator.pop(context);
                     // Navigator.pushNamed(context, '/reports');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ReportsScreen()),
+                    );
                   },
                 ),
 
@@ -757,6 +765,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () {
                     Navigator.pop(context);
                     // Navigator.pushNamed(context, '/cash-ledger');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CashLedgerScreen()),
+                    );
                   },
                 ),
 
@@ -767,6 +779,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () {
                     Navigator.pop(context);
                     // Navigator.pushNamed(context, '/settings');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                    );
                   },
                 ),
 
@@ -779,6 +795,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () {
                     Navigator.pop(context);
                     // Navigator.pushNamed(context, '/about');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AboutScreen()),
+                    );
                   },
                 ),
 

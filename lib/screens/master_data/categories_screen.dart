@@ -396,7 +396,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
                     labelText: 'مین کیٹیگری',
                     border: OutlineInputBorder(),
                   ),
-                  value: _selectedParentCategory,
+                  initialValue: _selectedParentCategory,
                   items: const [
                     DropdownMenuItem(value: '1', child: Text('چاول')),
                     DropdownMenuItem(value: '2', child: Text('دالیں')),
