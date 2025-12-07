@@ -1,0 +1,50 @@
+name: liaqat_store
+description: Liaqat Kiryana Store POS System
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Database
+  sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.1
+  path: ^1.8.3
+  path_provider: ^2.1.1
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # UI & Utilities
+  intl: ^0.18.1
+  shared_preferences: ^2.2.2
+  
+  # File Handling
+  file_picker: ^5.3.3
+  
+  # Printing & PDF
+  printing: ^5.11.3
+  pdf: ^3.10.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  # Fonts
+  fonts:
+    - family: NooriNastaleeq
+      fonts:
+        - asset: assets/fonts/NooriNastaleeq.ttf
+  
+  # Assets
+  assets:
+    - assets/fonts/
+    - assets/images/
