@@ -160,7 +160,7 @@ class _SalesScreenState extends State<SalesScreen> {
     });
   }
 
-  // Quick Add Customer (Fixed & Verified)
+  // Quick Add Customer (FIXED LOGIC)
   void _showAddCustomerDialog() {
     final nameEngCtrl = TextEditingController();
     final nameUrduCtrl = TextEditingController();
@@ -187,38 +187,72 @@ class _SalesScreenState extends State<SalesScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green[700],
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
-              if (nameEngCtrl.text.isNotEmpty) {
-                try {
-                  final db = await DatabaseHelper.instance.database;
-                  
-                  final newCustomerData = {
-                    'name_english': nameEngCtrl.text,
-                    'name_urdu': nameUrduCtrl.text,
-                    'contact_primary': phoneCtrl.text,
-                    'address': addressCtrl.text,
-                    'credit_limit': double.tryParse(creditLimitCtrl.text) ?? 0.0,
-                    'outstanding_balance': 0.0,
-                    'is_active': 1,
-                    'created_at': DateTime.now().toIso8601String(),
-                  };
+              // ==== VALIDATION ====
+              if (nameEngCtrl.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('English Name is required')),
+                );
+                return;
+              }
+              if (phoneCtrl.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Phone Number is required')),
+                );
+                return;
+              }
 
-                  final id = await db.insert('customers', newCustomerData);
+              try {
+                final db = await DatabaseHelper.instance.database;
 
-                  final Map<String, dynamic> savedCustomer = {
-                    'id': id,
-                    ...newCustomerData
-                  };
-                  
-                  if (mounted) {
-                    _selectCustomer(savedCustomer);
-                    Navigator.pop(context); 
-                    _loadCustomers(); 
-                  }
-                } catch (e) {
-                  print("Error adding customer: $e");
+                final newCustomerData = {
+                  'name_english': nameEngCtrl.text.trim(),
+                  'name_urdu': nameUrduCtrl.text.trim(),
+                  'contact_primary': phoneCtrl.text.trim(),
+                  'address': addressCtrl.text.trim(),
+                  'credit_limit': double.tryParse(creditLimitCtrl.text) ?? 0.0,
+                  'outstanding_balance': 0.0,
+                  'is_active': 1,
+                  'created_at': DateTime.now().toIso8601String(),
+                };
+
+                // THESE TWO LINES ARE FOR DEBUGGING
+                print('Inserting customer data: $newCustomerData');
+                final int id = await db.insert('customers', newCustomerData);
+                print('Inserted customer ID: $id'); // You will see this in console if success
+
+                final Map<String, dynamic> savedCustomer = {
+                  'id': id,
+                  ...newCustomerData,
+                };
+
+                if (mounted) {
+                  _selectCustomer(savedCustomer);
+                  Navigator.of(context).pop(); // close dialog
+
+                  await _loadCustomers(); // refresh list
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Customer '${nameEngCtrl.text}' added & selected!"),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                 }
+              } catch (e, stackTrace) {
+                print('ERROR ADDING CUSTOMER: $e');
+                print(stackTrace);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to add customer: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             },
             child: const Text('Save & Select'),
@@ -432,13 +466,11 @@ class _SalesScreenState extends State<SalesScreen> {
 
     try {
       // 1. Generate Custom Bill Number (SB-000001)
-      // Fetch the last ID to determine next number
       final lastIdRes = await db.rawQuery('SELECT MAX(id) as max_id FROM sales');
       int nextId = 1;
       if (lastIdRes.isNotEmpty && lastIdRes.first['max_id'] != null) {
         nextId = (lastIdRes.first['max_id'] as int) + 1;
       }
-      // Format: SB-000001
       final billNo = 'SB-${nextId.toString().padLeft(6, '0')}';
 
       await db.transaction((txn) async {
@@ -557,12 +589,12 @@ class _SalesScreenState extends State<SalesScreen> {
             ]),
           ),
           
-          // Product Grid (Smaller & Bold)
+          // Product Grid (Smaller & Bold - 6 Columns)
           Expanded(
             flex: 6,
             child: GridView.builder(
               padding: const EdgeInsets.all(8),
-              // 6 Columns for compact view
+              // 6 Columns for compact view (4th size as compared to original)
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 6, childAspectRatio: 1.0, crossAxisSpacing: 5, mainAxisSpacing: 5),
               itemCount: products.length,
               itemBuilder: (context, index) {
@@ -580,7 +612,7 @@ class _SalesScreenState extends State<SalesScreen> {
             ),
           ),
           const Divider(thickness: 2),
-          // Recent Sales
+          // Recent Sales (Scrollable)
           Container(
             height: 200, color: Colors.white,
             child: Column(children: [
@@ -626,32 +658,32 @@ class _SalesScreenState extends State<SalesScreen> {
               itemBuilder: (context, index) {
                 final item = cartItems[index];
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), // Increased vertical padding
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), 
                   child: Row(children: [
                     // Item Name (Expanded)
                     Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(item['name_english'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis), // Bigger & Bold
+                      Text(item['name_english'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis), 
                       Text('Stock: ${item['current_stock']}', style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
                     ])),
                     
                     // Price Box (Bigger)
-                    SizedBox(width: 80, child: TextField( // Increased width
+                    SizedBox(width: 80, child: TextField( 
                       controller: item['priceCtrl'],
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
                       decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.all(8), border: OutlineInputBorder(), labelText: 'Price', labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), // Bold Text
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), 
                       onChanged: (_) => _updateCartItemFromField(index),
                     )),
                     const SizedBox(width: 8),
                     
                     // Qty Box (Bigger)
-                    SizedBox(width: 60, child: TextField( // Increased width
+                    SizedBox(width: 60, child: TextField( 
                       controller: item['qtyCtrl'],
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
                       decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.all(8), border: OutlineInputBorder(), labelText: 'Qty', labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), // Bold Text
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), 
                       onChanged: (_) => _updateCartItemFromField(index),
                     )),
                     const SizedBox(width: 8),
@@ -660,7 +692,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     SizedBox(width: 70, child: Text((item['total'] as double).toStringAsFixed(0), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
                     
                     // Delete Button
-                    InkWell(onTap: () => _removeCartItem(index), child: const Padding(padding: EdgeInsets.all(8.0), child: Icon(Icons.close, color: Colors.red, size: 24))), // Bigger Icon
+                    InkWell(onTap: () => _removeCartItem(index), child: const Padding(padding: EdgeInsets.all(8.0), child: Icon(Icons.close, color: Colors.red, size: 24))), 
                   ]),
                 );
               },

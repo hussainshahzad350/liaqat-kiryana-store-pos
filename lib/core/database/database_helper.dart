@@ -109,8 +109,10 @@ class DatabaseHelper {
         name_english TEXT NOT NULL,
         name_urdu TEXT,
         contact_primary TEXT,
+        address TEXT,
         credit_limit REAL DEFAULT 0,
         outstanding_balance REAL DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
