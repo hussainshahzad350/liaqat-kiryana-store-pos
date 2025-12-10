@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import '../utils/logger.dart';
 
 // Conditional import for FFI (Desktop support)
@@ -121,17 +119,19 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS sales (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        bill_number TEXT UNIQUE NOT NULL,
+        bill_number TEXT NOT NULL UNIQUE,
         customer_id INTEGER,
         sale_date TEXT NOT NULL,
         sale_time TEXT NOT NULL,
-        grand_total REAL NOT NULL,
-        cash_amount REAL DEFAULT 0,
-        bank_amount REAL DEFAULT 0,
-        credit_amount REAL DEFAULT 0,
-        total_paid REAL NOT NULL,
-        remaining_balance REAL DEFAULT 0,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        grand_total REAL NOT NULL DEFAULT 0.0,
+        cash_amount REAL NOT NULL DEFAULT 0.0,
+        bank_amount REAL NOT NULL DEFAULT 0.0,
+        credit_amount REAL NOT NULL DEFAULT 0.0,
+        total_paid REAL NOT NULL DEFAULT 0.0,
+        remaining_balance REAL NOT NULL DEFAULT 0.0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+        updated_at TEXT,
+        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
       )
     ''');
 

@@ -353,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(sale['customer_name']?.toString() ?? 'کيش', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                                            Text(sale['sale_time']?.toString().substring(0, 5) ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                            Text(sale['sale_time'] != null && (sale['sale_time'] as String).length >= 5? (sale['sale_time'] as String).substring(0, 5): sale['sale_time']?.toString() ?? '',style: const TextStyle(fontSize: 12, color: Colors.grey),),
                                           ],
                                         ),
                                       ),
