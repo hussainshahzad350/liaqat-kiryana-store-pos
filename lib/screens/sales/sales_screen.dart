@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:liaqat_store/l10n/app_localizations.dart';
+import '../../l10n/app_localizations.dart';
 import '../../core/database/database_helper.dart';
 
 class SalesScreen extends StatefulWidget {
@@ -91,7 +91,12 @@ String tr(String key) {
       case 'delete': return loc.delete;
       case 'saleCompleted': return loc.saleCompleted;
       case 'error': return loc.error;
+      case 'nameRequired': return loc.nameRequired;
+      case 'phoneRequired': return loc.phoneRequired;
+      case 'phoneExists': return loc.phoneExists;
+      case 'customerAdded': return loc.customerAdded;
       default: return key;
+      
     }
   }
 
@@ -273,13 +278,14 @@ String tr(String key) {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
             onPressed: () async {
+              // 1. Validation (Translated)
               if (nameEngCtrl.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('English Name is required')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('nameRequired'))));
                 return;
               }
               String phoneNumber = phoneCtrl.text.trim();
               if (phoneNumber.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Phone Number is required')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('phoneRequired'))));
                 return;
               }
 
@@ -287,8 +293,14 @@ String tr(String key) {
                 final db = await DatabaseHelper.instance.database;
                 final existingUser = await db.query('customers', where: 'contact_primary = ?', whereArgs: [phoneNumber]);
 
+                // 2. Check Exists (Translated)
                 if (existingUser.isNotEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Phone number "$phoneNumber" already exists!'), backgroundColor: Colors.red));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${tr('phoneExists')}: "$phoneNumber"'), 
+                      backgroundColor: Colors.red
+                    )
+                  );
                   return; 
                 }
 
@@ -310,7 +322,14 @@ String tr(String key) {
                   _selectCustomer(savedCustomer);
                   Navigator.of(context).pop();
                   await _loadCustomers();
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Customer '${nameEngCtrl.text}' added!"), backgroundColor: Colors.green));
+                  
+                  // 3. Success Message (Translated)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("${tr('customerAdded')}: '${nameEngCtrl.text}'"), 
+                      backgroundColor: Colors.green
+                    )
+                  );
                 }
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${tr('error')}: $e'), backgroundColor: Colors.red));

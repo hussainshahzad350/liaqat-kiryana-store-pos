@@ -1,5 +1,8 @@
+// lib/screens/settings/settings_screen.dart
+
 import 'package:flutter/material.dart';
-import '../../main.dart';
+import '../../l10n/app_localizations.dart';
+import '../../main.dart'; // 2. Import Main for Language Switching
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -25,19 +28,22 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    // Access localization
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('سیٹنگز'),
+        title: Text(loc.settings), 
         backgroundColor: Colors.teal[700],
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: const [
-            Tab(icon: Icon(Icons.store), text: 'شاپ پروفائل'),
-            Tab(icon: Icon(Icons.backup), text: 'بیک اپ'),
-            Tab(icon: Icon(Icons.receipt), text: 'رسید فارمیٹ'),
-            Tab(icon: Icon(Icons.settings), text: 'ترجیحات'),
-            Tab(icon: Icon(Icons.info), text: 'اينڈرول'),
+          tabs: [
+            Tab(icon: const Icon(Icons.store), text: loc.shopProfile),
+            Tab(icon: const Icon(Icons.backup), text: loc.backup),
+            Tab(icon: const Icon(Icons.receipt), text: loc.receiptFormat),
+            Tab(icon: const Icon(Icons.settings), text: loc.preferences),
+            Tab(icon: const Icon(Icons.info), text: loc.about),
           ],
         ),
       ),
@@ -55,12 +61,14 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
   }
 }
 
-// ==================== Shop Profile Tab ====================
+// ==================== 1. Shop Profile Tab ====================
 class ShopProfileTab extends StatelessWidget {
   const ShopProfileTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // Helper
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -70,7 +78,6 @@ class ShopProfileTab extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Shop Logo
                   const CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.teal,
@@ -82,13 +89,13 @@ class ShopProfileTab extends StatelessWidget {
                     children: [
                       ElevatedButton.icon(
                         icon: const Icon(Icons.image),
-                        label: const Text('لوگو تبدیل کریں'),
+                        label: Text(loc.changeLogo),
                         onPressed: () {},
                       ),
                       const SizedBox(width: 10),
                       OutlinedButton(
                         onPressed: () {},
-                        child: const Text('ہٹائیں'),
+                        child: Text(loc.remove),
                       ),
                     ],
                   ),
@@ -96,62 +103,59 @@ class ShopProfileTab extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Shop Details Form
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'دکان کی تفصیلات',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.shopDetails,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'دکان کا نام (اردو)',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: loc.shopNameUrdu,
+                      border: const OutlineInputBorder(),
                       hintText: 'لياقت کريانہ اسٹور',
                     ),
                     initialValue: 'لياقت کريانہ اسٹور',
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'Shop Name (English)',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: loc.shopNameEnglish,
+                      border: const OutlineInputBorder(),
                       hintText: 'Liaqat Kiryana Store',
                     ),
                     initialValue: 'Liaqat Kiryana Store',
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'پتہ',
-                      border: OutlineInputBorder(),
-                      hintText: 'شاپ نمبر 12، مین بازار، لاہور',
+                    decoration: InputDecoration(
+                      labelText: loc.address,
+                      border: const OutlineInputBorder(),
+                      hintText: 'Lahore, Pakistan',
                     ),
                     maxLines: 2,
-                    initialValue: 'شاپ نمبر 12، مین بازار، لاہور',
+                    initialValue: 'Lahore, Pakistan',
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'پرائمری فون *',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: '${loc.primaryPhone} *',
+                      border: const OutlineInputBorder(),
                       hintText: '0300-1234567',
                     ),
                     initialValue: '0300-1234567',
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'سیکنڈری فون',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: loc.secondaryPhone,
+                      border: const OutlineInputBorder(),
                       hintText: '042-1234567',
                     ),
                   ),
@@ -164,7 +168,7 @@ class ShopProfileTab extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Colors.teal[700],
                       ),
-                      child: const Text('تبدیلیاں محفوظ کریں'),
+                      child: Text(loc.saveChanges, style: const TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -177,62 +181,60 @@ class ShopProfileTab extends StatelessWidget {
   }
 }
 
-// ==================== Backup Tab ====================
+// ==================== 2. Backup Tab ====================
 class BackupTab extends StatelessWidget {
   const BackupTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Current Database Info
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'موجوده ڈیٹا بیس',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 10),
-                  ListTile(
-                    leading: Icon(Icons.storage, color: Colors.teal),
-                    title: Text('liaqat_store.db'),
-                    subtitle: Text('سائز: 45.2 MB'),
-                  ),
-                  ListTile(
-                    leading: Icon(Icons.history, color: Colors.teal),
-                    title: Text('آخری بیک اپ'),
-                    subtitle: Text('29 نومبر 2025, 10:30 PM'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Backup Actions
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'بیک اپ کے اختیارات',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.currentDatabase,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  ListTile(
+                    leading: const Icon(Icons.storage, color: Colors.teal),
+                    title: const Text('liaqat_store.db'),
+                    subtitle: Text('${loc.size}: 45.2 MB'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.history, color: Colors.teal),
+                    title: Text(loc.lastBackup),
+                    subtitle: const Text('29 Nov 2025, 10:30 PM'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    loc.backupOptions,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.backup),
-                      label: const Text('ابھی بیک اپ بنائیں'),
+                      label: Text(loc.createBackupNow, style: const TextStyle(color: Colors.white)),
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -245,7 +247,7 @@ class BackupTab extends StatelessWidget {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.usb),
-                      label: const Text('USB پر ایکسپورٹ کریں'),
+                      label: Text(loc.exportToUsb),
                       onPressed: () {},
                     ),
                   ),
@@ -254,7 +256,7 @@ class BackupTab extends StatelessWidget {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.download),
-                      label: const Text('USB سے امپورٹ کریں'),
+                      label: Text(loc.importFromUsb),
                       onPressed: () {},
                     ),
                   ),
@@ -262,54 +264,35 @@ class BackupTab extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Recent Backups
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'حالیہ بیک اپس',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.recentBackups,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  const BackupItem(
-                    fileName: 'liaqat_store_20251129_2230.db',
-                    date: '29 نومبر 2025',
-                    size: '45 MB',
-                  ),
-                  const BackupItem(
-                    fileName: 'liaqat_store_20251128_2200.db',
-                    date: '28 نومبر 2025',
-                    size: '44 MB',
-                  ),
-                  const BackupItem(
-                    fileName: 'liaqat_store_20251127_2200.db',
-                    date: '27 نومبر 2025',
-                    size: '43 MB',
-                  ),
+                  const BackupItem(fileName: 'store_20251129.db', date: '29 Nov 2025', size: '45 MB'),
+                  const BackupItem(fileName: 'store_20251128.db', date: '28 Nov 2025', size: '44 MB'),
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      OutlinedButton(
-                        onPressed: () {},
-                        child: const Text('فولڈر کھولیں'),
-                      ),
+                      OutlinedButton(onPressed: () {}, child: Text(loc.openFolder)),
                       const Spacer(),
                       ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                        child: const Text('بحال کریں'),
+                        child: Text(loc.restore, style: const TextStyle(color: Colors.white)),
                       ),
                       const SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        child: const Text('حذف کریں'),
+                        child: Text(loc.delete, style: const TextStyle(color: Colors.white)),
                       ),
                     ],
                   ),
@@ -323,49 +306,52 @@ class BackupTab extends StatelessWidget {
   }
 }
 
-// ==================== Receipt Format Tab ====================
+// ==================== 3. Receipt Tab ====================
 class ReceiptTab extends StatelessWidget {
   const ReceiptTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Receipt Options
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'رسید کے اختیارات',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.receiptOptions,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  const OptionSwitch(title: 'لوگو دکھائیں'),
-                  const OptionSwitch(title: 'دکان کا پتہ دکھائیں'),
-                  const OptionSwitch(title: 'فون نمبر دکھائیں'),
-                  const OptionSwitch(title: 'تاریخ اور وقت دکھائیں'),
-                  const OptionSwitch(title: 'کسٹمر کی تفصیل دکھائیں'),
-                  const OptionSwitch(title: 'پیمنٹ کی تفصیل دکھائیں'),
+                  OptionSwitch(title: loc.showLogo),
+                  OptionSwitch(title: loc.showShopAddress),
+                  OptionSwitch(title: loc.showPhone),
+                  OptionSwitch(title: loc.showDateTime),
+                  OptionSwitch(title: loc.showCustomerDetails),
+                  OptionSwitch(title: loc.showPaymentDetails),
                   const SizedBox(height: 10),
                   const Divider(),
                   const SizedBox(height: 10),
-                  const Text('فونٹ سائز'),
+                  Text(loc.fontSize),
                   DropdownButton(
-                    value: 'درمیانہ',
-                    items: const ['چھوٹا', 'درمیانہ', 'بڑا']
+                    value: 'Medium',
+                    isExpanded: true,
+                    items: const ['Small', 'Medium', 'Large']
                         .map((size) => DropdownMenuItem(value: size, child: Text(size)))
                         .toList(),
                     onChanged: (value) {},
                   ),
                   const SizedBox(height: 10),
-                  const Text('کاغذ کی چوڑائی'),
+                  Text(loc.paperWidth),
                   DropdownButton(
                     value: '58mm',
+                    isExpanded: true,
                     items: const ['58mm', '80mm', 'A4']
                         .map((width) => DropdownMenuItem(value: width, child: Text(width)))
                         .toList(),
@@ -375,30 +361,25 @@ class ReceiptTab extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Printer Configuration
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'پرنٹر سیٹنگز',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.printerSettings,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  const Text('پرنٹر کا انتخاب'),
+                  Text(loc.selectPrinter),
                   DropdownButton(
-                    value: 'USB تھرمل پرنٹر',
-                    items: const [
-                      'ڈیفالٹ پرنٹر',
-                      'USB تھرمل پرنٹر',
-                      'نیٹ ورک پرنٹر',
-                      'PDF پرنٹر'
-                    ].map((printer) => DropdownMenuItem(value: printer, child: Text(printer))).toList(),
+                    value: 'USB Thermal',
+                    isExpanded: true,
+                    items: const ['Default', 'USB Thermal', 'Network', 'PDF']
+                        .map((printer) => DropdownMenuItem(value: printer, child: Text(printer)))
+                        .toList(),
                     onChanged: (value) {},
                   ),
                   const SizedBox(height: 10),
@@ -406,64 +387,8 @@ class ReceiptTab extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.print),
-                      label: const Text('ٹیسٹ رسید پرنٹ کریں'),
+                      label: Text(loc.printTestReceipt),
                       onPressed: () {},
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Receipt Preview
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'رسید کا پیش نظارہ',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Column(
-                      children: [
-                        Text('لياقت کريانہ اسٹور', style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('LIAQAT KIRYANA STORE', style: TextStyle(fontSize: 12)),
-                        SizedBox(height: 10),
-                        Text('فون: 0300-1234567'),
-                        Text('پتہ: مین بازار، لاہور'),
-                        Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('بل نمبر: #2451'),
-                            Text('تاریخ: 30 نومبر 2025'),
-                          ],
-                        ),
-                        Divider(),
-                        Text('آئٹم  مقدار  قیمت  کل'),
-                        Divider(),
-                        Text('چاول 2KG 180 360'),
-                        Text('دال 1KG 200 200'),
-                        Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('کل:'),
-                            Text('Rs 560'),
-                          ],
-                        ),
-                      ],
                     ),
                   ),
                 ],
@@ -476,48 +401,42 @@ class ReceiptTab extends StatelessWidget {
   }
 }
 
-// ==================== Preferences Tab ====================
+// ==================== 4. Preferences Tab (Language Switch) ====================
 class PreferencesTab extends StatelessWidget {
   const PreferencesTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // 1. Get the current language code (en or ur)
-    final String currentLangCode = Localizations.localeOf(context).languageCode;
+    final loc = AppLocalizations.of(context)!;
     
-    // 2. Determine what to show in the dropdown based on the code
+    // Determine current dropdown value
+    final String currentLangCode = Localizations.localeOf(context).languageCode;
     String dropdownValue = currentLangCode == 'ur' ? 'اردو' : 'English';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Language & Region
+          // Language
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'زبان اور علاقہ',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.languageAndRegion,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  const Text('ایپ کی زبان'),
-                  
-                  // 3. The Working Dropdown
+                  Text(loc.appLanguage),
                   DropdownButton<String>(
                     value: dropdownValue,
                     isExpanded: true,
-                    // We only support these two options now
                     items: const ['اردو', 'English']
                         .map((lang) => DropdownMenuItem(value: lang, child: Text(lang)))
                         .toList(),
                     onChanged: (String? newValue) {
-                      if (newValue == null) return;
-                      
-                      // 4. Switch Logic
                       if (newValue == 'English') {
                         LiaqatStoreApp.setLocale(context, const Locale('en', ''));
                       } else {
@@ -525,18 +444,18 @@ class PreferencesTab extends StatelessWidget {
                       }
                     },
                   ),
-                  
                   const SizedBox(height: 10),
-                  const Text('تاریخ کا فارمیٹ'),
+                  Text(loc.dateFormat),
                   DropdownButton(
                     value: 'DD-MM-YYYY',
+                    isExpanded: true,
                     items: const ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD']
                         .map((format) => DropdownMenuItem(value: format, child: Text(format)))
                         .toList(),
                     onChanged: (value) {},
                   ),
                   const SizedBox(height: 10),
-                  const Text('کرنسی کا نشان'),
+                  Text(loc.currencySymbol),
                   Row(
                     children: [
                       Expanded(
@@ -548,10 +467,10 @@ class PreferencesTab extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: DropdownButton(
-                          value: 'پہلے',
-                          items: const [
-                            DropdownMenuItem(value: 'پہلے', child: Text('پہلے')),
-                            DropdownMenuItem(value: 'بعد میں', child: Text('بعد میں')),
+                          value: loc.before,
+                          items: [
+                             DropdownMenuItem(value: loc.before, child: Text(loc.before)),
+                             DropdownMenuItem(value: loc.after, child: Text(loc.after)),
                           ],
                           onChanged: null,
                         ),
@@ -562,77 +481,84 @@ class PreferencesTab extends StatelessWidget {
               ),
             ),
           ),
-
-          // ... (Rest of your PreferencesTab code remains the same: Security, Backup, etc.) ...
           const SizedBox(height: 20),
+          // Security
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'سیکورٹی',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.security,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  const OptionSwitch(title: 'شروع میں پاسورڈ ضروری ہے'),
+                  OptionSwitch(title: loc.requirePasswordStartup),
                   const SizedBox(height: 10),
                   TextFormField(
-                    decoration: const InputDecoration(
-                      labelText: 'پاسورڈ',
-                      suffixIcon: Icon(Icons.visibility_off),
+                    decoration: InputDecoration(
+                      labelText: loc.password,
+                      suffixIcon: const Icon(Icons.visibility_off),
                     ),
                     obscureText: true,
                   ),
                   const SizedBox(height: 10),
-                  const OptionSwitch(title: '5 منٹ کی غیر فعالیت کے بعد لاک کریں'),
+                  OptionSwitch(title: loc.lockAfter5Min),
                 ],
               ),
             ),
           ),
-          
           const SizedBox(height: 20),
-          // Auto Backup Card...
+          // Auto Backup
           Card(
-             child: Padding(
-               padding: const EdgeInsets.all(16),
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   const Text('آٹو بیک اپ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                   const SizedBox(height: 10),
-                   const OptionSwitch(title: 'آٹو بیک اپ فعال کریں'),
-                   const SizedBox(height: 10),
-                   const Text('فریکوئنسی'),
-                   DropdownButton(
-                     value: 'روزانہ',
-                     items: const ['روزانہ', 'ہفتہ وار', 'ماہانہ'].map((freq) => DropdownMenuItem(value: freq, child: Text(freq))).toList(),
-                     onChanged: (value) {},
-                   ),
-                 ],
-               ),
-             ),
-          ),
-
-          const SizedBox(height: 20),
-          // Notifications Card...
-          const Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('اطلاعات', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
-                  OptionSwitch(title: 'کم اسٹاک الرٹ'),
-                  OptionSwitch(title: 'دن بند کرنے کی یاددہانی'),
-                  OptionSwitch(title: 'بیک اپ کامیابی کی اطلاع'),
+                  Text(
+                    loc.autoBackup,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  OptionSwitch(title: loc.enableAutoBackup),
+                  const SizedBox(height: 10),
+                  Text(loc.frequency),
+                  DropdownButton(
+                    value: 'Daily',
+                    isExpanded: true,
+                    items: const ['Daily', 'Weekly', 'Monthly']
+                        .map((freq) => DropdownMenuItem(value: freq, child: Text(freq)))
+                        .toList(),
+                    onChanged: (value) {},
+                  ),
                 ],
               ),
             ),
           ),
-
+          const SizedBox(height: 20),
+          // Notifications
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    loc.notifications,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  OptionSwitch(title: loc.lowStockAlert),
+                  OptionSwitch(title: loc.dayCloseReminder),
+                  OptionSwitch(title: loc.backupSuccessNotify),
+                  OptionSwitch(title: loc.updateAvailableNotify),
+                  OptionSwitch(title: loc.soundEffects),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
@@ -642,7 +568,7 @@ class PreferencesTab extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: Colors.teal[700],
               ),
-              child: const Text('ترجیحات محفوظ کریں'),
+              child: Text(loc.savePreferences, style: const TextStyle(color: Colors.white)),
             ),
           ),
         ],
@@ -651,12 +577,14 @@ class PreferencesTab extends StatelessWidget {
   }
 }
 
-// ==================== About Tab ====================
+// ==================== 5. About Tab ====================
 class AboutTab extends StatelessWidget {
   const AboutTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -667,64 +595,55 @@ class AboutTab extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const Icon(
-                    Icons.store,
-                    size: 80,
-                    color: Colors.teal,
-                  ),
+                  const Icon(Icons.store, size: 80, color: Colors.teal),
                   const SizedBox(height: 10),
-                  const Text(
-                    'لياقت کريانہ اسٹور POS',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.appTitle,
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 5),
-                  const Text(
-                    'ورژن: 1.0.0 (بِلڈ 2025.11.30)',
-                    style: TextStyle(color: Colors.grey),
+                  Text(
+                    '${loc.version}: 1.0.0',
+                    style: const TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {},
-                    child: const Text('اپ ڈیٹس چیک کریں'),
+                    child: Text(loc.checkForUpdates),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    'توسیع کی گئی: آپ کی ڈیولپمنٹ ٹیم',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  Text(
+                    '${loc.developedBy}: Your Team',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // System Information
-          const Card(
+          // System Info
+          Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'سسٹم کی معلومات',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    loc.systemInfo,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 10),
-                  InfoItem(label: 'ڈیٹا بیس ورژن', value: '1.0'),
-                  InfoItem(label: 'کل آئٹمز', value: '145'),
-                  InfoItem(label: 'کل کسٹمرز', value: '45'),
-                  InfoItem(label: 'کل سپلائرز', value: '12'),
-                  InfoItem(label: 'کل فروخت', value: 'Rs 5,45,000'),
-                  InfoItem(label: 'ایپ اپ ٹائم', value: '15 دن، 2 گھنٹے'),
-                  InfoItem(label: 'آخری لاگ ان', value: 'آج، 08:00 AM'),
+                  const SizedBox(height: 10),
+                  InfoItem(label: loc.dbVersion, value: '1.0'),
+                  InfoItem(label: loc.totalItems, value: '145'),
+                  InfoItem(label: loc.totalCustomers, value: '45'), // Ensure key 'totalCustomers' exists or use generic
+                  InfoItem(label: loc.totalSuppliers, value: '12'),
+                  InfoItem(label: loc.appUptime, value: '15d 2h'),
+                  InfoItem(label: loc.lastLogin, value: 'Today 08:00 AM'),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
           // Maintenance
           Card(
             child: Padding(
@@ -732,49 +651,35 @@ class AboutTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'دیکھ بھال',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.maintenance,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      child: const Text('ڈیٹا بیس مرمت کریں'),
-                    ),
+                    child: OutlinedButton(onPressed: () {}, child: Text(loc.repairDb)),
                   ),
                   const SizedBox(height: 5),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      child: const Text('پرانا ڈیٹا محفوظ کریں'),
-                    ),
+                    child: OutlinedButton(onPressed: () {}, child: Text(loc.archiveOldData)),
                   ),
                   const SizedBox(height: 5),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      child: const Text('کیش صاف کریں'),
-                    ),
+                    child: OutlinedButton(onPressed: () {}, child: Text(loc.clearCache)),
                   ),
                   const SizedBox(height: 5),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      child: const Text('لاگز دیکھیں'),
-                    ),
+                    child: OutlinedButton(onPressed: () {}, child: Text(loc.viewLogs)),
                   ),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
           // Support
           Card(
             child: Padding(
@@ -782,43 +687,38 @@ class AboutTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'سپورٹ',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  Text(
+                    loc.support,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  const ListTile(
-                    leading: Icon(Icons.email),
-                    title: Text('ای میل'),
-                    subtitle: Text('support@liaqatkiryanastore.com'),
+                  ListTile(
+                    leading: const Icon(Icons.email),
+                    title: Text(loc.email),
+                    subtitle: const Text('support@liaqatkiryanastore.com'),
                   ),
-                  const ListTile(
-                    leading: Icon(Icons.phone),
-                    title: Text('فون'),
-                    subtitle: Text('0300-1234567 (ایکسٹنشن 2)'),
+                  ListTile(
+                    leading: const Icon(Icons.phone),
+                    title: Text(loc.phone),
+                    subtitle: const Text('0300-1234567'),
                   ),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      child: const Text('آن لائن گائیڈ دیکھیں'),
-                    ),
+                    child: OutlinedButton(onPressed: () {}, child: Text(loc.viewOnlineGuide)),
                   ),
                 ],
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
-          // Copyright
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.grey[50],
-            child: const Center(
+            child: Center(
               child: Text(
-                '© 2025 لياقت کريانہ اسٹور۔ تمام حقوق محفوظ ہیں۔',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                '© 2025 ${loc.appTitle}. ${loc.allRightsReserved}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -856,14 +756,8 @@ class BackupItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    fileName,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  Text(
-                    date,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
+                  Text(fileName, style: const TextStyle(fontSize: 14)),
+                  Text(date, style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
             ),
@@ -904,10 +798,7 @@ class InfoItem extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(label)),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
     );

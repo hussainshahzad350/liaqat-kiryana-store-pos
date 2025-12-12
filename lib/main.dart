@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:liaqat_store/l10n/app_localizations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Added for persistence
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'l10n/app_localizations.dart';
 
 
 void main() async {

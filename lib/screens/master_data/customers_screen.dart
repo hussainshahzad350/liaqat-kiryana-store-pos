@@ -1,8 +1,9 @@
-// lib/screens/customers/customer_screen.dart
+// lib/screens/master_data/customers_screen.dart
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import '../../core/database/database_helper.dart';
+import '../../l10n/app_localizations.dart'; // ✅ Correct Import Path
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -45,9 +46,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
 
     // 2. Fetch Archived Summary (Count & Total Balance)
-    // We use SUM() to avoid fetching all archived rows just for the total
     final archivedSummary = await db.rawQuery(
-        'SELECT COUNT(*) as count, SUM(outstanding_balance) as total_bal FROM customers WHERE is_active = 0');
+      'SELECT COUNT(*) as count, SUM(outstanding_balance) as total_bal FROM customers WHERE is_active = 0');
     
     int archivedCount = (archivedSummary.first['count'] as int?) ?? 0;
     double archivedBal = (archivedSummary.first['total_bal'] as num? ?? 0.0).toDouble();
@@ -59,6 +59,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     }
 
     // 4. Update State
+    if (!mounted) return;
     setState(() {
       customers = activeResult;
       filteredCustomers = activeResult;
@@ -66,202 +67,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
       totalCustomers = activeResult.length;
       totalArchived = archivedCount;
       
-      // Breakdown
       activeOutstanding = activeBal;
       archivedOutstanding = archivedBal;
       totalOutstanding = activeBal + archivedBal; // The Grand Total
     });
   }
 
-  // Updated Archive Logic with Warning
-  Future<void> _archiveCustomer(int id, String name, bool isArchiving, double balance) async {
-    String actionWord = isArchiving ? 'Archive' : 'Restore';
-    
-    // Custom Warning Message
-    Widget content;
-    if (isArchiving && balance != 0) {
-      content = Text.rich(
-        TextSpan(
-          children: [
-            const TextSpan(text: 'This customer still owes '),
-            TextSpan(
-              text: 'RS ${balance.toStringAsFixed(0)}', 
-              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)
-            ),
-            const TextSpan(text: '.\n\nArchiving them will hide them, but the debt will '),
-            const TextSpan(text: 'REMAIN ', style: TextStyle(fontWeight: FontWeight.bold)),
-            const TextSpan(text: 'in your total business receivables.'),
-          ]
-        )
-      );
-    } else {
-      content = Text('Do you want to $actionWord this customer?');
-    }
-
-    bool? confirm = await showDialog(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: Text('$actionWord Customer?'),
-        content: content,
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(c, false),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(c, true),
-              child: Text(actionWord,
-                  style: const TextStyle(color: Colors.green))),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      final db = await DatabaseHelper.instance.database;
-      await db.update(
-        'customers',
-        {'is_active': isArchiving ? 0 : 1},
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-      _loadCustomers();
-
-      // Logic for refreshing Archive Dialog if we are restoring
-      if (!isArchiving) {
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context); // Close the stale archive list
-          _showArchivedListDialog(); // Open fresh archive list
-        }
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Customer $actionWord Successful')));
-    }
-  }
-
-  Future<void> _addCustomer(String nameEng, String nameUrdu, String phone, String address, double limit) async {
-    if (nameEng.isEmpty) return;
-    try {
-      final db = await DatabaseHelper.instance.database;
-      await db.insert('customers', {
-        'name_english': nameEng,
-        'name_urdu': nameUrdu,
-        'contact_primary': phone,
-        'address': address,
-        'credit_limit': limit,
-        'outstanding_balance': 0.0, // New customers start with 0
-        'is_active': 1,
-      });
-      _loadCustomers(); // Refresh list
-      Navigator.pop(context); // Close dialog
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Customer Added Successfully'), backgroundColor: Colors.green));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
-  Future<void> _updateCustomer(
-      int id, String phone, String address, double limit) async {
-    try {
-      final db = await DatabaseHelper.instance.database;
-      await db.update(
-        'customers',
-        {
-          'contact_primary': phone,
-          'address': address,
-          'credit_limit': limit,
-        },
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-      _loadCustomers();
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Customer Updated Successfully'),
-          backgroundColor: Colors.green));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
-    }
-  }
-
-  Future<void> _deleteCustomer(int id, String name, double balance) async {
-    final db = await DatabaseHelper.instance.database;
-
-    // 1. CHECK FOR SALES HISTORY
-    final result = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM sales WHERE customer_id = ?',
-      [id]
-    );
-    int saleCount = (result.first['count'] as int?) ?? 0;
-
-    // 2. CHECK FOR OUTSTANDING BALANCE
-    bool hasMoneyInvolved = balance != 0;
-
-    if (saleCount > 0 || hasMoneyInvolved) {
-      if (mounted) Navigator.pop(context); 
-      
-      String reason = "";
-      if (saleCount > 0) reason += "• Has $saleCount sales records.\n";
-      if (hasMoneyInvolved) reason += "• Balance is not 0 (RS ${balance.toStringAsFixed(0)}).";
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text("Cannot Delete"),
-          content: Text(
-            "Customer '$name' cannot be deleted because:\n\n"
-            "$reason\n\n"
-            "Deleting them would corrupt your financial reports.\n"
-            "Please 'Archive' them instead."
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx), 
-              child: const Text("OK")
-            )
-          ],
-        ),
-      );
-    } else {
-      bool? confirm = await showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text("Delete Customer?"),
-          content: Text(
-            "Are you sure you want to permanently delete '$name'?\n\n"
-            "This action cannot be undone."
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false), 
-              child: const Text("Cancel")
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true), 
-              child: const Text("Delete", style: TextStyle(color: Colors.red))
-            ),
-          ],
-        ),
-      );
-
-      if (confirm == true) {
-        await db.delete('customers', where: 'id = ?', whereArgs: [id]);
-        
-        if (mounted) {
-           Navigator.pop(context); // Close Edit Dialog
-           _loadCustomers(); // Refresh list
-           ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(
-               content: Text('Customer deleted successfully'), 
-               backgroundColor: Colors.red
-             )
-           );
-        }
-      }
-    }
-  }
-
+  // --- Filter Logic (Linked to UI) ---
   void _filterList(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -278,84 +90,213 @@ class _CustomersScreenState extends State<CustomersScreen> {
     });
   }
 
-  // --- Dialogs ---
+  // --- Core CRUD Logic (Translated) ---
 
-  Future<void> _showArchivedListDialog() async {
-    final db = await DatabaseHelper.instance.database;
-    final archivedList = await db.query(
-      'customers',
-      where: 'is_active = ?',
-      whereArgs: [0],
-      orderBy: 'name_english ASC',
-    );
-
-    // Calculate total for just this list
-    double archivedListTotal = 0.0;
-    for(var c in archivedList) {
-      archivedListTotal += (c['outstanding_balance'] as num? ?? 0.0).toDouble();
+  Future<void> _addCustomer(String nameEng, String nameUrdu, String phone, String address, double limit) async {
+    final loc = AppLocalizations.of(context)!;
+    if (nameEng.isEmpty) return;
+    try {
+      final db = await DatabaseHelper.instance.database;
+      await db.insert('customers', {
+        'name_english': nameEng,
+        'name_urdu': nameUrdu,
+        'contact_primary': phone,
+        'address': address,
+        'credit_limit': limit,
+        'outstanding_balance': 0.0, // New customers start with 0
+        'is_active': 1,
+      });
+      
+      if (!mounted) return;
+      _loadCustomers(); // Refresh list
+      Navigator.pop(context); // Close dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loc.customerAddedSuccess), backgroundColor: Colors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
     }
+  }
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        final size = MediaQuery.of(context).size;
-        
-        return AlertDialog(
-          title: const Text("Archived Customers"),
-          contentPadding: const EdgeInsets.all(10),
-          content: SizedBox(
-            width: size.width * 0.9,
-            height: size.height * 0.7, // Slightly taller to fit header
-            child: Column(
-              children: [
-                // Header showing Total Archived Debt
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[100],
-                    borderRadius: BorderRadius.circular(8)
-                  ),
-                  child: Column(
-                    children: [
-                      Text("Total Archived Outstanding", style: TextStyle(fontSize: 12, color: Colors.grey[800])),
-                      const SizedBox(height: 4),
-                      Text(
-                        "RS ${archivedListTotal.toStringAsFixed(0)}",
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
-                      )
-                    ],
-                  ),
-                ),
+  Future<void> _updateCustomer(
+      int id, String phone, String address, double limit) async {
+    final loc = AppLocalizations.of(context)!;
+    try {
+      final db = await DatabaseHelper.instance.database;
+      await db.update(
+        'customers',
+        {
+          'contact_primary': phone,
+          'address': address,
+          'credit_limit': limit,
+        },
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      
+      if (!mounted) return;
+      _loadCustomers();
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(loc.customerUpdatedSuccess),
+          backgroundColor: Colors.green));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${loc.error}: $e'), backgroundColor: Colors.red));
+    }
+  }
 
-                // The List
-                Expanded(
-                  child: archivedList.isEmpty
-                    ? const Center(child: Text("No archived customers."))
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: archivedList.length,
-                        itemBuilder: (ctx, i) {
-                          final customer = archivedList[i];
-                          return _buildCustomerCard(customer, isArchived: true);
-                        },
-                      ),
-                ),
-              ],
-            ),
+  // FIX: Logic updated to call generated functions instead of replaceFirst
+  Future<void> _deleteCustomer(int id, String name, double balance) async {
+    final loc = AppLocalizations.of(context)!;
+    final db = await DatabaseHelper.instance.database;
+
+    // 1. CHECK FOR SALES HISTORY
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM sales WHERE customer_id = ?',
+      [id]
+    );
+    int saleCount = (result.first['count'] as int?) ?? 0;
+
+    // 2. CHECK FOR OUTSTANDING BALANCE
+    bool hasMoneyInvolved = balance != 0;
+
+    if (saleCount > 0 || hasMoneyInvolved) {
+      if (mounted) Navigator.pop(context); // Close edit dialog
+      
+      String reason = "";
+      // FIX: Call generated function: loc.deleteWarningSales(count)
+      if (saleCount > 0) reason += "${loc.deleteWarningSales(saleCount.toString())}\n";
+      if (hasMoneyInvolved) reason += "${loc.deleteWarningBalance(balance.toStringAsFixed(0))}.";
+
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(loc.cannotDeleteTitle),
+          content: Text(
+            "${loc.customer} '$name' ${loc.cannotDeleteReason}:\n\n"
+            "$reason\n\n"
+            "${loc.deleteWarningReason}\n"
+            "${loc.deleteWarningArchive}"
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Close")),
+              onPressed: () => Navigator.pop(ctx), 
+              child: Text(loc.ok)
+            )
           ],
+        ),
+      );
+    } else {
+      bool? confirm = await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(loc.deleteCustomerTitle),
+          // FIX: Call generated function: loc.deleteCustomerWarning(name)
+          content: Text(
+            "${loc.deleteCustomerWarning(name)}\n\n${loc.deleteWarningReason}"
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false), 
+              child: Text(loc.cancel)
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true), 
+              child: Text(loc.deleteAction, style: const TextStyle(color: Colors.red))
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        final db = await DatabaseHelper.instance.database;
+        await db.delete('customers', where: 'id = ?', whereArgs: [id]);
+        
+        if (!mounted) return;
+        Navigator.pop(context); // Close Edit Dialog
+        _loadCustomers(); // Refresh list
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(loc.customerDeleted), 
+            backgroundColor: Colors.red
+          )
         );
-      },
+      }
+    }
+  }
+  
+  // Updated Archive Logic (Translated + preserving detailed logic)
+  Future<void> _archiveCustomer(int id, String name, bool isArchiving, double balance) async {
+    final loc = AppLocalizations.of(context)!;
+    
+    String actionWord = isArchiving ? loc.archiveAction : loc.restoreAction;
+    String title = isArchiving ? loc.archiveCustomerTitle : loc.restoreCustomerTitle;
+    
+    // Custom Warning Message Content
+    Widget content;
+    if (isArchiving && balance != 0) {
+      content = Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: "${loc.archiveConfirmMsg}\n\n"),
+            TextSpan(text: "RS ${balance.toStringAsFixed(0)} ${loc.old} ${loc.balanceAging} ${loc.willBeArchived}.", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+          ]
+        )
+      );
+    } else {
+      content = Text('${loc.doYouWantTo} $actionWord ${loc.thisCustomer}');
+    }
+
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(title.replaceFirst('?', '')),
+        content: content,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: Text(loc.cancel)
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: Text(actionWord, style: TextStyle(color: isArchiving ? Colors.red : Colors.green)),
+          ),
+        ],
+      ),
     );
+
+    if (confirm == true) {
+      final db = await DatabaseHelper.instance.database;
+      await db.update(
+        'customers',
+        {'is_active': isArchiving ? 0 : 1},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      
+      if (!mounted) return;
+      _loadCustomers(); // Refresh list
+      
+      // If restoring, close the archived list dialog
+      if (!isArchiving) {
+        if (Navigator.canPop(context)) { 
+          Navigator.pop(context); 
+          _showArchivedListDialog(); // Re-open fresh list to show restoration
+        }
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(isArchiving ? loc.customerArchived : loc.customerRestored)));
+    }
   }
 
+  // --- Dialogs (Translated) ---
+
   void _showAddDialog() {
+    final loc = AppLocalizations.of(context)!;
     final nameEngCtrl = TextEditingController();
     final nameUrduCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
@@ -365,34 +306,34 @@ class _CustomersScreenState extends State<CustomersScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add New Customer'),
+        title: Text(loc.addNewCustomer), // Translated
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameEngCtrl,
-                decoration: const InputDecoration(labelText: 'Name (English) *', prefixIcon: Icon(Icons.person)),
+                decoration: InputDecoration(labelText: loc.nameEnglish, prefixIcon: const Icon(Icons.person)),
               ),
               TextField(
                 controller: nameUrduCtrl,
-                decoration: const InputDecoration(labelText: 'Name (Urdu)', prefixIcon: Icon(Icons.translate)),
+                decoration: InputDecoration(labelText: loc.nameUrdu, prefixIcon: const Icon(Icons.translate)),
               ),
               TextField(
                 controller: phoneCtrl,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Phone Number', prefixIcon: Icon(Icons.phone)),
+                decoration: InputDecoration(labelText: loc.phoneNum, prefixIcon: const Icon(Icons.phone)),
               ),
               TextField(
                 controller: addressCtrl,
-                decoration: const InputDecoration(labelText: 'Address', prefixIcon: Icon(Icons.location_on)),
+                decoration: InputDecoration(labelText: loc.address, prefixIcon: const Icon(Icons.location_on)),
               ),
               TextField(
                 controller: creditLimitCtrl,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                    labelText: 'Credit Limit',
-                    prefixIcon: Padding(
+                decoration: InputDecoration(
+                    labelText: loc.creditLimit,
+                    prefixIcon: const Padding(
                       padding: EdgeInsets.all(14.0),
                       child: Text("RS", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     ),
@@ -402,11 +343,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)), // Translated
           ElevatedButton(
             onPressed: () {
               if (nameEngCtrl.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name (English) is required')));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.customerNameRequired))); // Translated
                 return;
               }
               _addCustomer(
@@ -417,7 +358,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   double.tryParse(creditLimitCtrl.text) ?? 0.0
               );
             },
-            child: const Text('Save'),
+            child: Text(loc.save), // Translated
           ),
         ],
       ),
@@ -425,6 +366,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   void _showEditDialog(Map<String, dynamic> customer) {
+    final loc = AppLocalizations.of(context)!;
     final nameEngCtrl = TextEditingController(text: customer['name_english']?.toString() ?? '');
     final nameUrduCtrl = TextEditingController(text: customer['name_urdu']?.toString() ?? '');
     final phoneCtrl = TextEditingController(text: customer['contact_primary']?.toString() ?? '');
@@ -438,10 +380,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Edit Customer'),
+            Text(loc.editCustomer), // Translated
             IconButton(
               icon: const Icon(Icons.delete_forever, color: Colors.red),
-              tooltip: "Delete Customer",
+              tooltip: loc.deleteAction,
               onPressed: () {
                 double currentBalance = (customer['outstanding_balance'] as num? ?? 0.0).toDouble();
                 _deleteCustomer(
@@ -463,13 +405,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   TextField(
                     controller: nameEngCtrl,
                     enabled: false,
-                    decoration: const InputDecoration(labelText: 'Name (English)', contentPadding: EdgeInsets.all(10), border: InputBorder.none),
+                    decoration: InputDecoration(labelText: loc.nameEnglish, contentPadding: const EdgeInsets.all(10), border: InputBorder.none),
                   ),
                   const Divider(height: 1),
                   TextField(
                     controller: nameUrduCtrl,
                     enabled: false,
-                    decoration: const InputDecoration(labelText: 'Name (Urdu)', contentPadding: EdgeInsets.all(10), border: InputBorder.none),
+                    decoration: InputDecoration(labelText: loc.nameUrdu, contentPadding: const EdgeInsets.all(10), border: InputBorder.none),
                   ),
                 ]),
               ),
@@ -477,29 +419,29 @@ class _CustomersScreenState extends State<CustomersScreen> {
               TextField(
                 controller: phoneCtrl,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Phone Number', prefixIcon: Icon(Icons.phone, size: 18)),
+                decoration: InputDecoration(labelText: loc.phoneNum, prefixIcon: const Icon(Icons.phone, size: 18)),
               ),
               TextField(
                 controller: addressCtrl,
-                decoration: const InputDecoration(labelText: 'Address', prefixIcon: Icon(Icons.location_on, size: 18)),
+                decoration: InputDecoration(labelText: loc.address, prefixIcon: const Icon(Icons.location_on, size: 18)),
               ),
               TextField(
                 controller: creditLimitCtrl,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                    labelText: 'Credit Limit',
-                    prefixIcon: Padding(
+                decoration: InputDecoration(
+                    labelText: loc.creditLimit,
+                    prefixIcon: const Padding(
                       padding: EdgeInsets.all(14.0),
                       child: Text("RS", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                     ),
-                    prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                 ),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
           ElevatedButton(
             onPressed: () {
               _updateCustomer(
@@ -508,23 +450,105 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   addressCtrl.text,
                   double.tryParse(creditLimitCtrl.text) ?? 0.0);
             },
-            child: const Text('Update'),
+            child: Text(loc.update),
           ),
         ],
       ),
     );
   }
 
+  Future<void> _showArchivedListDialog() async {
+    final loc = AppLocalizations.of(context)!;
+    final db = await DatabaseHelper.instance.database;
+    final archivedList = await db.query(
+      'customers',
+      where: 'is_active = ?',
+      whereArgs: [0],
+      orderBy: 'name_english ASC',
+    );
+
+    // Calculate total for just this list
+    double archivedListTotal = 0.0;
+    for(var c in archivedList) {
+      archivedListTotal += (c['outstanding_balance'] as num? ?? 0.0).toDouble();
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        final size = MediaQuery.of(context).size;
+        
+        return AlertDialog(
+          title: Text(loc.archived),
+          contentPadding: const EdgeInsets.all(10),
+          content: SizedBox(
+            width: size.width * 0.9,
+            height: size.height * 0.7, 
+            child: Column(
+              children: [
+                // Header showing Total Archived Debt (Translated)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[100],
+                    borderRadius: BorderRadius.circular(8)
+                  ),
+                  child: Column(
+                    children: [
+                      Text(loc.receivableArchived, style: TextStyle(fontSize: 12, color: Colors.grey[800])),
+                      const SizedBox(height: 4),
+                      Text(
+                        "RS ${archivedListTotal.toStringAsFixed(0)}",
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                      )
+                    ],
+                  ),
+                ),
+
+                // The List
+                Expanded(
+                  child: archivedList.isEmpty
+                    ? Center(child: Text("${loc.no} ${loc.archived} ${loc.customers}.")) 
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: archivedList.length,
+                        itemBuilder: (ctx, i) {
+                          final customer = archivedList[i];
+                          return _buildCustomerCard(customer, isArchived: true);
+                        },
+                      ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(loc.cancel)), 
+          ],
+        );
+      },
+    );
+  }
+
+  // --- Helper Widgets ---
+
   Widget _buildCustomerCard(Map<String, dynamic> customer, {bool isArchived = false}) {
+    final loc = AppLocalizations.of(context)!;
+    
     String nameUrdu = customer['name_urdu']?.toString() ?? '';
     String nameEnglish = customer['name_english']?.toString() ?? '';
     String displayName = (nameUrdu.isNotEmpty) ? nameUrdu : nameEnglish;
 
-    String address = customer['address']?.toString() ?? 'No Address';
-    String phone = customer['contact_primary']?.toString() ?? 'No Phone';
+    String address = customer['address']?.toString() ?? loc.address;
+    String phone = customer['contact_primary']?.toString() ?? loc.phone;
     String limit = (customer['credit_limit'] ?? 0).toString();
 
-    String details = "$nameEnglish | $phone | $address | Limit: $limit";
+    String details = "$nameEnglish | $phone | ${loc.address}: $address | ${loc.creditLimit}: $limit";
     double balance = (customer['outstanding_balance'] as num? ?? 0.0).toDouble();
 
     return Card(
@@ -586,10 +610,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   icon: Icon(
                     isArchived ? Icons.restore : Icons.archive,
                     size: 18,
-                    color: isArchived ? Colors.green : Colors.red,
+                    color: isArchived ? Colors.green : Colors.red, 
                   ),
                   onPressed: () {
-                    // Update Archive Call to pass name and balance
                     _archiveCustomer(
                       customer['id'] as int, 
                       displayName,
@@ -606,14 +629,83 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
+  Widget _buildSummaryCard(
+      String title, String value, IconData icon, Color bgColor,
+      {VoidCallback? onTap, String? subtitle}) {
+    // FIX: Using final loc inside build methods
+    // ignore: unused_local_variable
+    final loc = AppLocalizations.of(context)!;
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+              color: onTap != null ? bgColor : Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(10),
+              border: onTap != null
+                  ? Border.all(color: Colors.white, width: 2)
+                  : null),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                      child: Text(title,
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: onTap != null ? Colors.white : Colors.grey[800]),
+                          overflow: TextOverflow.ellipsis)),
+                  Icon(icon, size: 14, color: onTap != null ? Colors.white : Colors.grey[800]),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Text(
+                value,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: onTap != null ? Colors.white : Colors.black87),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 10, color: onTap != null ? Colors.white70 : Colors.grey[800]),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ]
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // FIX: This method was missing, causing the 'Missing concrete implementation' error
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // Access localization
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text('Customer Management'),
+        title: Text(loc.customersManagement), // Translated
         backgroundColor: Colors.green[700],
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.archive, color: Colors.white), 
+            tooltip: loc.archived,
+            onPressed: _showArchivedListDialog // Linked to dialog
+          ),
+        ]
       ),
       body: Column(
         children: [
@@ -624,27 +716,27 @@ class _CustomersScreenState extends State<CustomersScreen> {
             child: Row(
               children: [
                 _buildSummaryCard(
-                    'Active',
+                    loc.active, // Translated
                     totalCustomers.toString(),
                     Icons.people,
                     Colors.white,
                     onTap: null),
                 const SizedBox(width: 8),
                 _buildSummaryCard(
-                    'Receivable',
-                    totalOutstanding.toStringAsFixed(0), // Grand Total
+                    loc.receivableTotal, // Translated
+                    totalOutstanding.toStringAsFixed(0),
                     Icons.account_balance_wallet,
                     Colors.white,
-                    // Pass the breakdown string here
-                    subtitle: "Active: ${activeOutstanding.toStringAsFixed(0)} + Archived: ${archivedOutstanding.toStringAsFixed(0)}",
+                    // FIX: Use translated keys for subtitle content
+                    subtitle: "${loc.active}: ${activeOutstanding.toStringAsFixed(0)} + ${loc.archived}: ${archivedOutstanding.toStringAsFixed(0)}",
                     onTap: null),
                 const SizedBox(width: 8),
                 _buildSummaryCard(
-                    'Archived',
+                    loc.archived, // Translated
                     totalArchived.toString(),
                     Icons.archive,
                     Colors.orange[100]!,
-                    onTap: _showArchivedListDialog),
+                    onTap: _showArchivedListDialog), // Linked to dialog
               ],
             ),
           ),
@@ -654,9 +746,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
             padding: const EdgeInsets.all(10),
             child: TextField(
               controller: searchController,
-              onChanged: _filterList,
+              onChanged: _filterList, // Linked to filter
               decoration: InputDecoration(
-                hintText: 'Search by Name or Phone...',
+                hintText: loc.searchCustomerHint, // Translated
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
@@ -682,68 +774,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
         ],
       ),
-        floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green[700],
-        onPressed: _showAddDialog,
-        child: const Icon(Icons.add, color: Colors.white), // This connects the button to your function!
-      ),
-    );
-  }
-
-  // Helper for Summary Cards (Updated for Subtitle)
-  Widget _buildSummaryCard(
-      String title, String value, IconData icon, Color bg,
-      {VoidCallback? onTap, String? subtitle}) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-              color: onTap != null ? bg : Colors.white.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(10),
-              border: onTap != null
-                  ? Border.all(color: Colors.white, width: 2)
-                  : null),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                      child: Text(title,
-                          style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[800]),
-                          overflow: TextOverflow.ellipsis)),
-                  Icon(icon, size: 14, color: Colors.grey[800]),
-                ],
-              ),
-              const SizedBox(height: 5),
-              Text(
-                value,
-                style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              // Show subtitle if provided (for Receivable breakdown)
-              if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 10, color: Colors.grey[800]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ]
-            ],
-          ),
-        ),
+        onPressed: _showAddDialog, // Linked to add dialog
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
