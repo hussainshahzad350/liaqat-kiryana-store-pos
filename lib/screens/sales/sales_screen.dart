@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:liaqat_store/l10n/app_localizations.dart';
 import '../../core/database/database_helper.dart';
 
 class SalesScreen extends StatefulWidget {
@@ -41,6 +42,59 @@ class _SalesScreenState extends State<SalesScreen> {
   // --- Settings ---
   bool isSoundOn = true;
 
+  // This helper makes your code cleaner
+String tr(String key) {
+    // This fetches the actual Urdu/English text based on the user's choice
+    final loc = AppLocalizations.of(context)!;
+    
+    switch (key) {
+      case 'posTitle': return loc.posTitle;
+      case 'searchItemHint': return loc.searchItemHint;
+      case 'searchCustomerHint': return loc.searchCustomerHint;
+      case 'walkInCustomer': return loc.walkInCustomer;
+      case 'cartEmpty': return loc.cartEmpty;
+      case 'totalItems': return loc.totalItems;
+      case 'subtotal': return loc.subtotal;
+      case 'prevBalance': return loc.prevBalance;
+      case 'grandTotal': return loc.grandTotal;
+      case 'checkoutButton': return loc.checkoutButton;
+      case 'recentSales': return loc.recentSales;
+      case 'billTotal': return loc.billTotal;
+      case 'paymentLabel': return loc.paymentLabel;
+      case 'cashInput': return loc.cashInput;
+      case 'bankInput': return loc.bankInput;
+      case 'creditInput': return loc.creditInput;
+      case 'confirmSale': return loc.confirmSale;
+      case 'cancel': return loc.cancel;
+      case 'clearCartTitle': return loc.clearCartTitle;
+      case 'clearCartMsg': return loc.clearCartMsg;
+      case 'clearAll': return loc.clearAll;
+      case 'unsavedTitle': return loc.unsavedTitle;
+      case 'unsavedMsg': return loc.unsavedMsg;
+      case 'exit': return loc.exit;
+      case 'addNewCustomer': return loc.addNewCustomer;
+      case 'nameEnglish': return loc.nameEnglish;
+      case 'nameUrdu': return loc.nameUrdu;
+      case 'phoneNum': return loc.phoneNum;
+      case 'address': return loc.address;
+      case 'creditLimit': return loc.creditLimit;
+      case 'saveSelect': return loc.saveSelect;
+      case 'price': return loc.price;
+      case 'qty': return loc.qty;
+      case 'stock': return loc.stock;
+      case 'currBal': return loc.currBal;
+      case 'changeReturn': return loc.changeReturn;
+      case 'insufficientPayment': return loc.insufficientPayment;
+      case 'paymentMatch': return loc.paymentMatch;
+      case 'deleteBillTitle': return loc.deleteBillTitle;
+      case 'deleteBillMsg': return loc.deleteBillMsg;
+      case 'delete': return loc.delete;
+      case 'saleCompleted': return loc.saleCompleted;
+      case 'error': return loc.error;
+      default: return key;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -64,16 +118,16 @@ class _SalesScreenState extends State<SalesScreen> {
       final bool? shouldExit = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Unsaved Items'),
-          content: const Text('There are items in cart. Are you sure you want to exit without checkout?'),
+          title: Text(tr('unsavedTitle')),
+          content: Text(tr('unsavedMsg')),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(tr('cancel')),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Exit', style: TextStyle(color: Colors.red)),
+              child: Text(tr('exit'), style: const TextStyle(color: Colors.red)),
             ),
           ],
         ),
@@ -125,9 +179,9 @@ class _SalesScreenState extends State<SalesScreen> {
         s.cash_amount, 
         s.bank_amount, 
         s.credit_amount,
-        s.total_paid,          -- NEW
-        s.remaining_balance,   -- NEW
-        COALESCE(c.name_english, 'Walk-in') as customer_name,
+        s.total_paid,
+        s.remaining_balance,
+        COALESCE(c.name_english, '${tr('walkInCustomer')}') as customer_name,
         c.outstanding_balance as customer_balance
       FROM sales s
       LEFT JOIN customers c ON s.customer_id = c.id
@@ -201,86 +255,43 @@ class _SalesScreenState extends State<SalesScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add New Customer'),
+        title: Text(tr('addNewCustomer')),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                  controller: nameEngCtrl,
-                  decoration:
-                      const InputDecoration(labelText: 'Name (English)*')),
-              TextField(
-                  controller: nameUrduCtrl,
-                  decoration: const InputDecoration(labelText: 'Name (Urdu)')),
-              TextField(
-                  controller: phoneCtrl,
-                  keyboardType: TextInputType.phone,
-                  decoration:
-                      const InputDecoration(labelText: 'Phone Number*')),
-              TextField(
-                  controller: addressCtrl,
-                  decoration: const InputDecoration(labelText: 'Address')),
-              TextField(
-                  controller: creditLimitCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Credit Limit')),
+              TextField(controller: nameEngCtrl, decoration: InputDecoration(labelText: tr('nameEnglish'))),
+              TextField(controller: nameUrduCtrl, decoration: InputDecoration(labelText: tr('nameUrdu'))),
+              TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: tr('phoneNum'))),
+              TextField(controller: addressCtrl, decoration: InputDecoration(labelText: tr('address'))),
+              TextField(controller: creditLimitCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: tr('creditLimit'))),
             ],
           ),
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('cancel'))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[700],
-              foregroundColor: Colors.white,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
             onPressed: () async {
-              // 1. Basic Validation
               if (nameEngCtrl.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('English Name is required')),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('English Name is required')));
                 return;
               }
               String phoneNumber = phoneCtrl.text.trim();
               if (phoneNumber.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Phone Number is required')),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Phone Number is required')));
                 return;
               }
 
               try {
                 final db = await DatabaseHelper.instance.database;
-
-                // ---------------------------------------------------------
-                // 2. CHECK FOR DUPLICATE PHONE NUMBER (New Logic)
-                // ---------------------------------------------------------
-                final existingUser = await db.query(
-                  'customers',
-                  where: 'contact_primary = ?',
-                  whereArgs: [phoneNumber],
-                );
+                final existingUser = await db.query('customers', where: 'contact_primary = ?', whereArgs: [phoneNumber]);
 
                 if (existingUser.isNotEmpty) {
-                  // Warning: Phone number exists
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'Phone number "$phoneNumber" already exists! Please use a different number.'),
-                      backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
-                  // Prevent saving
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Phone number "$phoneNumber" already exists!'), backgroundColor: Colors.red));
                   return; 
                 }
-                // ---------------------------------------------------------
 
-                // 3. Prepare Data
                 final newCustomerData = {
                   'name_english': nameEngCtrl.text.trim(),
                   'name_urdu': nameUrduCtrl.text.trim(),
@@ -292,37 +303,20 @@ class _SalesScreenState extends State<SalesScreen> {
                   'created_at': DateTime.now().toIso8601String(),
                 };
 
-                // 4. Insert into Database
                 final int id = await db.insert('customers', newCustomerData);
-
-                final Map<String, dynamic> savedCustomer = {
-                  'id': id,
-                  ...newCustomerData,
-                };
+                final Map<String, dynamic> savedCustomer = {'id': id, ...newCustomerData};
 
                 if (mounted) {
                   _selectCustomer(savedCustomer);
                   Navigator.of(context).pop();
-                  await _loadCustomers(); // Refresh list
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          "Customer '${nameEngCtrl.text}' added & selected!"),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  await _loadCustomers();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Customer '${nameEngCtrl.text}' added!"), backgroundColor: Colors.green));
                 }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Failed to add customer: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${tr('error')}: $e'), backgroundColor: Colors.red));
               }
             },
-            child: const Text('Save & Select'),
+            child: Text(tr('saveSelect')),
           ),
         ],
       ),
@@ -399,19 +393,19 @@ class _SalesScreenState extends State<SalesScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear Cart?'),
-        content: const Text('This will remove all items from cart.'),
+        title: Text(tr('clearCartTitle')),
+        content: Text(tr('clearCartMsg')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(tr('cancel')),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _performClearCart();
             },
-            child: const Text('Clear All', style: TextStyle(color: Colors.red)),
+            child: Text(tr('clearAll'), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -438,7 +432,7 @@ class _SalesScreenState extends State<SalesScreen> {
     previousBalance = selectedCustomerMap?['outstanding_balance'] ?? 0.0;
   }
 
-  // --- NEW SIMPLIFIED CHECKOUT DIALOG ---
+  // --- NEW SIMPLIFIED CHECKOUT DIALOG (LOCALIZED) ---
   void _showCheckoutDialog() {
     if (cartItems.isEmpty) return;
     
@@ -446,12 +440,10 @@ class _SalesScreenState extends State<SalesScreen> {
     double billTotal = grandTotal;
     double oldBalance = previousBalance;
     
-    // Payment controllers
     final cashCtrl = TextEditingController();
     final bankCtrl = TextEditingController();
     final creditCtrl = TextEditingController();
     
-    // Pre-fill for registered customer (full credit by default)
     if (isRegistered) {
       creditCtrl.text = billTotal.toStringAsFixed(0);
     }
@@ -472,10 +464,8 @@ class _SalesScreenState extends State<SalesScreen> {
             bool isValid = false;
             
             if (isRegistered) {
-              // Registered: Must equal exactly
               isValid = (totalPayment == billTotal);
             } else {
-              // Walk-in: Must be >= bill
               isValid = (cash + bank) >= billTotal;
               if (isValid) {
                 change = (cash + bank) - billTotal;
@@ -487,12 +477,11 @@ class _SalesScreenState extends State<SalesScreen> {
               title: Container(
                 color: Colors.green[700], 
                 padding: const EdgeInsets.all(12), 
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.shopping_cart, color: Colors.white),
-                    SizedBox(width: 10),
-                    Text('Checkout', 
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Icon(Icons.shopping_cart, color: Colors.white),
+                    const SizedBox(width: 10),
+                    Text(tr('checkoutButton'), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 )
               ),
@@ -506,64 +495,49 @@ class _SalesScreenState extends State<SalesScreen> {
                     children: [
                       // Customer Info
                       if (isRegistered) ...[
-                        Text('Customer: ${selectedCustomerMap!['name_english']}', 
+                        Text('${tr('searchCustomerHint')}: ${selectedCustomerMap!['name_english']}', 
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 5),
                         Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.orange[50],
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.orange[200]!)
-                          ),
+                          decoration: BoxDecoration(color: Colors.orange[50], borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.orange[200]!)),
                           child: Row(
                             children: [
                               const Icon(Icons.info_outline, size: 16, color: Colors.orange),
                               const SizedBox(width: 5),
-                              Text('Previous Balance: Rs ${oldBalance.toStringAsFixed(0)}',
-                                style: const TextStyle(fontSize: 13)),
+                              Text('${tr('prevBalance')}: Rs ${oldBalance.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13)),
                             ],
                           ),
                         ),
                         const Divider(height: 20),
                       ],
                       
-                      // Bill Total
-                      _row('Bill Total', 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18),
+                      _row(tr('billTotal'), 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18),
                       const Divider(),
                       const SizedBox(height: 10),
-                      
-                      // Payment Section
-                      const Text('Payment:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(tr('paymentLabel'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(height: 10),
                       
-                      // Cash Input
-                      _input('Cash', cashCtrl, (v) {
+                      _input(tr('cashInput'), cashCtrl, (v) {
                         setDialogState(() {
                           if (isRegistered) {
-                            // Auto-calculate credit
                             double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
                             creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
                           }
                         });
                       }),
                       
-                      // Bank Input
-                      _input('Bank Transfer', bankCtrl, (v) {
+                      _input(tr('bankInput'), bankCtrl, (v) {
                         setDialogState(() {
                           if (isRegistered) {
-                            // Auto-calculate credit
                             double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
                             creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
                           }
                         });
                       }),
                       
-                      // Credit Input (Only for Registered)
                       if (isRegistered)
-                        _input('Credit (Udhar)', creditCtrl, (v) {
-                          setDialogState(() {});
-                        }, enabled: false), // Disabled, auto-calculated
+                        _input(tr('creditInput'), creditCtrl, (v) { setDialogState(() {}); }, enabled: false),
                       
                       const Divider(thickness: 2, height: 30),
                       
@@ -582,26 +556,18 @@ class _SalesScreenState extends State<SalesScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text('Total Payment:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                Text('Rs ${totalPayment.toStringAsFixed(0)}', 
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text('Rs ${totalPayment.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                               ],
                             ),
                             const SizedBox(height: 5),
                             if (isRegistered) ...[
                               Row(
                                 children: [
-                                  Icon(isValid ? Icons.check_circle : Icons.cancel, 
-                                    size: 16, 
-                                    color: isValid ? Colors.green : Colors.red),
+                                  Icon(isValid ? Icons.check_circle : Icons.cancel, size: 16, color: isValid ? Colors.green : Colors.red),
                                   const SizedBox(width: 5),
                                   Text(
-                                    isValid 
-                                      ? 'Payment matches bill total ✓' 
-                                      : 'Payment must equal Rs ${billTotal.toStringAsFixed(0)}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isValid ? Colors.green[700] : Colors.red[700]
-                                    ),
+                                    isValid ? tr('paymentMatch') : tr('insufficientPayment'),
+                                    style: TextStyle(fontSize: 12, color: isValid ? Colors.green[700] : Colors.red[700]),
                                   ),
                                 ],
                               ),
@@ -610,14 +576,13 @@ class _SalesScreenState extends State<SalesScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text('Change Return:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    Text('Rs ${change.toStringAsFixed(0)}', 
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green[700])),
+                                    Text(tr('changeReturn'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    Text('Rs ${change.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green[700])),
                                   ],
                                 ),
                               if (!isValid)
                                 Text(
-                                  'Insufficient payment (Need Rs ${(billTotal - totalPayment).toStringAsFixed(0)} more)',
+                                  '${tr('insufficientPayment')} (Need Rs ${(billTotal - totalPayment).toStringAsFixed(0)})',
                                   style: const TextStyle(fontSize: 12, color: Colors.red),
                                 ),
                             ],
@@ -629,10 +594,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context), 
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey))
-                ),
+                TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('cancel'), style: const TextStyle(color: Colors.grey))),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isValid ? Colors.green[700] : Colors.grey,
@@ -642,7 +604,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     Navigator.pop(context);
                     _processSale(cash, bank, isRegistered ? credit : 0.0);
                   } : null,
-                  child: const Text('CONFIRM SALE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text(tr('confirmSale'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -670,10 +632,7 @@ class _SalesScreenState extends State<SalesScreen> {
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          SizedBox(
-            width: 130,
-            child: Text(label, style: const TextStyle(fontSize: 14)),
-          ),
+          SizedBox(width: 130, child: Text(label, style: const TextStyle(fontSize: 14))),
           Expanded(
             child: TextField(
               controller: ctrl,
@@ -687,10 +646,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 filled: !enabled,
                 fillColor: enabled ? null : Colors.grey[200],
               ), 
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: enabled ? Colors.black : Colors.grey[600],
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, color: enabled ? Colors.black : Colors.grey[600]),
               onChanged: onChanged,
             ),
           ),
@@ -699,18 +655,15 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  // --- Process Sale (Simplified) ---
+  // --- Process Sale ---
   Future<void> _processSale(double cash, double bank, double credit) async {
     final db = await DatabaseHelper.instance.database;
     final now = DateTime.now();
 
-    // 1. Calculate new Table 2 fields
     double totalPaid = cash + bank;
     double remainingBalance = grandTotal - totalPaid; 
-    // Note: In your logic, remainingBalance will be equal to 'credit'
 
     try {
-      // Generate Bill Number
       final lastIdRes = await db.rawQuery('SELECT MAX(id) as max_id FROM sales');
       int nextId = 1;
       if (lastIdRes.isNotEmpty && lastIdRes.first['max_id'] != null) {
@@ -718,7 +671,6 @@ class _SalesScreenState extends State<SalesScreen> {
       }
       String billNo = 'SB-${nextId.toString().padLeft(6, '0')}';
       
-      // Insert Sale
       int saleId = await db.insert('sales', {
         'bill_number': billNo,
         'customer_id': selectedCustomerId,
@@ -728,16 +680,11 @@ class _SalesScreenState extends State<SalesScreen> {
         'cash_amount': cash,
         'bank_amount': bank,
         'credit_amount': credit,
-        
-        // --- NEW FIELDS FROM TABLE 2 ---
         'total_paid': totalPaid,
         'remaining_balance': remainingBalance,
-        // -------------------------------
-
         'created_at': now.toIso8601String(),
       });
       
-      // Insert Items & Update Stock
       await db.transaction((txn) async {
         for (var item in cartItems) {
           await txn.insert('sale_items', {
@@ -749,14 +696,12 @@ class _SalesScreenState extends State<SalesScreen> {
             'created_at': now.toIso8601String()
           });
           
-          // Deduct Stock
           await txn.rawUpdate(
             'UPDATE products SET current_stock = current_stock - ? WHERE id = ?',
             [item['quantity'], item['id']]
           );
         }
         
-        // Update Customer Balance (if registered)
         if (selectedCustomerId != null && credit > 0) {
           await txn.rawUpdate(
             'UPDATE customers SET outstanding_balance = outstanding_balance + ? WHERE id = ?',
@@ -768,21 +713,11 @@ class _SalesScreenState extends State<SalesScreen> {
       _performClearCart();
       await _refreshAllData();
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Sale Completed! Bill: $billNo'),
-          backgroundColor: Colors.green,
-        )
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${tr('saleCompleted')} $billNo'), backgroundColor: Colors.green));
       
     } catch (e) {
       print('Error processing sale: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        )
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${tr('error')}: $e'), backgroundColor: Colors.red));
     }
   }
 
@@ -791,17 +726,14 @@ class _SalesScreenState extends State<SalesScreen> {
     bool? confirm = await showDialog(
       context: context, 
       builder: (c) => AlertDialog(
-        title: const Text('Delete Bill?'), 
-        content: const Text('This will restore stock and adjust customer balance.'), 
+        title: Text(tr('deleteBillTitle')), 
+        content: Text(tr('deleteBillMsg')), 
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false), 
-            child: const Text('No')
-          ), 
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('No')), 
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red), 
             onPressed: () => Navigator.pop(c, true), 
-            child: const Text('Delete', style: TextStyle(color: Colors.white))
+            child: Text(tr('delete'), style: const TextStyle(color: Colors.white))
           )
         ]
       )
@@ -819,7 +751,6 @@ class _SalesScreenState extends State<SalesScreen> {
       final itemsRes = await db.query('sale_items', where: 'sale_id = ?', whereArgs: [id]);
 
       await db.transaction((txn) async {
-        // Restore stock
         for (var item in itemsRes) {
           await txn.rawUpdate(
             'UPDATE products SET current_stock = current_stock + ? WHERE id = ?', 
@@ -827,7 +758,6 @@ class _SalesScreenState extends State<SalesScreen> {
           );
         }
         
-        // Reverse customer balance
         double credit = (sale['credit_amount'] as num?)?.toDouble() ?? 0.0;
         if (sale['customer_id'] != null && credit > 0) {
           await txn.rawUpdate(
@@ -836,46 +766,39 @@ class _SalesScreenState extends State<SalesScreen> {
           );
         }
         
-        // Delete records
         await txn.delete('sale_items', where: 'sale_id = ?', whereArgs: [id]);
         await txn.delete('sales', where: 'id = ?', whereArgs: [id]);
       });
 
       await _refreshAllData();
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bill deleted successfully'), backgroundColor: Colors.green)
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bill deleted successfully'), backgroundColor: Colors.green));
       
     } catch (e) { 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting bill: $e'), backgroundColor: Colors.red)
-      ); 
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${tr('error')}: $e'), backgroundColor: Colors.red)); 
     }
   }
 
-  // --- UI Structure ---
+  // --- REFACTORED BUILD METHOD (RTL FIXES) ---
   @override
   Widget build(BuildContext context) {
+    // Determine if RTL is active for specific conditional logic if needed
+    final bool isRTL = Directionality.of(context) == TextDirection.rtl;
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('POS Terminal'),
+          title: Text(tr('posTitle')), 
           backgroundColor: Colors.green[700],
           actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh), 
-              onPressed: _refreshAllData
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_sweep), 
-              onPressed: _clearCart
-            ),
+            IconButton(icon: const Icon(Icons.refresh), onPressed: _refreshAllData), 
+            IconButton(icon: const Icon(Icons.delete_sweep), onPressed: _clearCart), 
           ]
         ),
         body: Row(children: [
-          // LEFT PANEL (60%)
+          // ------------------------------------------------------------------
+          // LEFT PANEL (Item Grid) 
+          // ------------------------------------------------------------------
           Expanded(flex: 6, child: Column(children: [
             // Item Search
             Padding(
@@ -884,7 +807,8 @@ class _SalesScreenState extends State<SalesScreen> {
                 TextField(
                   controller: productSearchController,
                   decoration: InputDecoration(
-                    hintText: 'Search Item / Scan Barcode', 
+                    hintText: tr('searchItemHint'), 
+                    // Prefix Icon logic handled automatically by Flutter's Start position
                     prefixIcon: const Icon(Icons.search), 
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
                     filled: true, 
@@ -948,39 +872,13 @@ class _SalesScreenState extends State<SalesScreen> {
                           children: [
                             Text(
                               product['name_urdu'] ?? '', 
-                              style: const TextStyle(
-                                fontSize: 12, 
-                                fontFamily: 'NooriNastaleeq', 
-                                fontWeight: FontWeight.bold
-                              ), 
+                              style: const TextStyle(fontSize: 12, fontFamily: 'NooriNastaleeq', fontWeight: FontWeight.bold), 
                               maxLines: 1, 
                               overflow: TextOverflow.ellipsis
                             ),
-                            Text(
-                              product['name_english'] ?? '', 
-                              maxLines: 1, 
-                              overflow: TextOverflow.ellipsis, 
-                              style: const TextStyle(
-                                fontSize: 10, 
-                                fontWeight: FontWeight.bold
-                              )
-                            ),
-                            Text(
-                              'Rs ${product['sale_price']}', 
-                              style: const TextStyle(
-                                color: Colors.green, 
-                                fontWeight: FontWeight.bold, 
-                                fontSize: 12
-                              )
-                            ),
-                            Text(
-                              'Stk:${product['current_stock']}', 
-                              style: const TextStyle(
-                                fontSize: 9, 
-                                color: Colors.grey, 
-                                fontWeight: FontWeight.bold
-                              )
-                            ),
+                            Text(product['name_english'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text('Rs ${product['sale_price']}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                            Text('${tr('stock')}:${product['current_stock']}', style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
                           ]
                         )
                       ),
@@ -999,7 +897,9 @@ class _SalesScreenState extends State<SalesScreen> {
                   padding: const EdgeInsets.all(8), 
                   color: Colors.grey[200], 
                   width: double.infinity, 
-                  child: const Text('Recent Sales', style: TextStyle(fontWeight: FontWeight.bold))
+                  // RTL Fix: centerLeft -> centerStart
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(tr('recentSales'), style: const TextStyle(fontWeight: FontWeight.bold))
                 ),
                 Expanded(
                   child: ListView.separated(
@@ -1015,7 +915,7 @@ class _SalesScreenState extends State<SalesScreen> {
                           backgroundColor: Colors.green[100], 
                           child: Text('${index+1}', style: const TextStyle(fontSize: 10))
                         ),
-                        title: Text(sale['customer_name'] ?? 'Walk-in', style: const TextStyle(fontSize: 13)),
+                        title: Text(sale['customer_name'] ?? tr('walkInCustomer'), style: const TextStyle(fontSize: 13)),
                         subtitle: Text('${sale['bill_number']}', style: const TextStyle(fontSize: 10)),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min, 
@@ -1034,14 +934,18 @@ class _SalesScreenState extends State<SalesScreen> {
               ]),
             ),
           ])),
-          // RIGHT PANEL (40%)
+
+          // ------------------------------------------------------------------
+          // RIGHT PANEL (Cart & Customer)
+          // ------------------------------------------------------------------
           Expanded(flex: 4, child: Container(
             decoration: BoxDecoration(
               color: Colors.grey[50], 
-              border: Border(left: BorderSide(color: Colors.grey[300]!))
+              // RTL Fix: Border(left:...) -> BorderDirectional(start:...)
+              border: BorderDirectional(start: BorderSide(color: Colors.grey[300]!))
             ),
             child: Column(children: [
-              // Customer Search
+              // Customer Search Panel
               Container(
                 padding: const EdgeInsets.all(8), 
                 color: Colors.white, 
@@ -1051,7 +955,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       child: TextField(
                         controller: customerSearchController,
                         decoration: InputDecoration(
-                          labelText: 'Search Customer', 
+                          labelText: tr('searchCustomerHint'), 
                           prefixIcon: const Icon(Icons.person_search), 
                           suffixIcon: selectedCustomerId != null ? IconButton(
                             icon: const Icon(Icons.clear), 
@@ -1102,7 +1006,7 @@ class _SalesScreenState extends State<SalesScreen> {
                             dense: true, 
                             title: Text(c['name_english'] ?? 'Unknown'), 
                             subtitle: Text('${c['contact_primary'] ?? ''}'), 
-                            trailing: Text('Bal: ${c['outstanding_balance']}'), 
+                            trailing: Text('${tr('currBal')}: ${c['outstanding_balance']}'), 
                             onTap: () => _selectCustomer(c)
                           ); 
                         }
@@ -1111,16 +1015,17 @@ class _SalesScreenState extends State<SalesScreen> {
                 ]),
               ),
               const Divider(height: 1),
+              
               // Cart List
               Expanded(
                 child: cartItems.isEmpty 
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.shopping_cart, size: 50, color: Colors.grey),
-                          SizedBox(height: 10),
-                          Text('Cart Empty', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                          const Icon(Icons.shopping_cart, size: 50, color: Colors.grey),
+                          const SizedBox(height: 10),
+                          Text(tr('cartEmpty'), style: const TextStyle(color: Colors.grey, fontSize: 16)),
                         ],
                       ),
                     )
@@ -1130,22 +1035,23 @@ class _SalesScreenState extends State<SalesScreen> {
                       itemBuilder: (context, index) {
                         final item = cartItems[index];
                         return Container(
+                          // RTL Fix: padding only(left) would be bad. symmetric is safe.
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), 
                           child: Row(children: [
                             // Item Name
                             Expanded(
                               flex: 3, 
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start, 
+                                crossAxisAlignment: CrossAxisAlignment.start, // Auto-flips for RTL
                                 children: [
                                   Text(
-                                    item['name_english'], 
+                                    isRTL && item['name_urdu'] != null ? item['name_urdu'] : item['name_english'], 
                                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), 
                                     maxLines: 1, 
                                     overflow: TextOverflow.ellipsis
                                   ), 
                                   Text(
-                                    'Stock: ${item['current_stock']}', 
+                                    '${tr('stock')}: ${item['current_stock']}', 
                                     style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)
                                   ),
                                 ]
@@ -1159,12 +1065,12 @@ class _SalesScreenState extends State<SalesScreen> {
                                 controller: item['priceCtrl'],
                                 keyboardType: TextInputType.number,
                                 textAlign: TextAlign.center,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   isDense: true, 
-                                  contentPadding: EdgeInsets.all(8), 
-                                  border: OutlineInputBorder(), 
-                                  labelText: 'Price', 
-                                  labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
+                                  contentPadding: const EdgeInsets.all(8), 
+                                  border: const OutlineInputBorder(), 
+                                  labelText: tr('price'), 
+                                  labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
                                 ),
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), 
                                 onChanged: (_) => _updateCartItemFromField(index),
@@ -1179,12 +1085,12 @@ class _SalesScreenState extends State<SalesScreen> {
                                 controller: item['qtyCtrl'],
                                 keyboardType: TextInputType.number,
                                 textAlign: TextAlign.center,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   isDense: true, 
-                                  contentPadding: EdgeInsets.all(8), 
-                                  border: OutlineInputBorder(), 
-                                  labelText: 'Qty', 
-                                  labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
+                                  contentPadding: const EdgeInsets.all(8), 
+                                  border: const OutlineInputBorder(), 
+                                  labelText: tr('qty'), 
+                                  labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
                                 ),
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), 
                                 onChanged: (_) => _updateCartItemFromField(index),
@@ -1197,7 +1103,7 @@ class _SalesScreenState extends State<SalesScreen> {
                               width: 70, 
                               child: Text(
                                 (item['total'] as double).toStringAsFixed(0), 
-                                textAlign: TextAlign.right, 
+                                textAlign: TextAlign.end, // RTL Fix: right -> end
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
                               )
                             ),
@@ -1215,7 +1121,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       },
                     )
               ),
-              // Totals
+              // Totals Section
               Container(
                 padding: const EdgeInsets.all(12), 
                 color: Colors.white, 
@@ -1223,14 +1129,14 @@ class _SalesScreenState extends State<SalesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
-                      const Text('Total Items'), 
+                      Text(tr('totalItems')), 
                       Text('${cartItems.length}')
                     ]
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
-                      const Text('Subtotal'), 
+                      Text(tr('subtotal')), 
                       Text('Rs ${subtotal.toStringAsFixed(0)}')
                     ]
                   ),
@@ -1238,7 +1144,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                       children: [
-                        const Text('Prev Balance', style: TextStyle(color: Colors.orange, fontSize: 12)), 
+                        Text(tr('prevBalance'), style: const TextStyle(color: Colors.orange, fontSize: 12)), 
                         Text('Rs ${previousBalance.toStringAsFixed(0)}', style: const TextStyle(color: Colors.orange, fontSize: 12))
                       ]
                     ),
@@ -1246,7 +1152,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
-                      const Text('Grand Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), 
+                      Text(tr('grandTotal'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), 
                       Text(
                         'Rs ${grandTotal.toStringAsFixed(0)}', 
                         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)
@@ -1262,9 +1168,9 @@ class _SalesScreenState extends State<SalesScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green[700]
                       ), 
-                      child: const Text(
-                        'CHECKOUT', 
-                        style: TextStyle(
+                      child: Text(
+                        tr('checkoutButton'), 
+                        style: const TextStyle(
                           fontSize: 16, 
                           fontWeight: FontWeight.bold, 
                           color: Colors.white
