@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart'; // ✅ Import Localizations
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -24,24 +25,30 @@ class _StockScreenState extends State<StockScreen> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('اسٹاک مينيجمنٹ'),
+        title: Text(localizations.stockManagement), // ✅ Localized
         backgroundColor: Colors.green[700],
+        foregroundColor: Colors.white,
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          tabs: [
             Tab(
-              icon: Icon(Icons.shopping_cart),
-              text: 'خریداری',
+              icon: const Icon(Icons.shopping_cart),
+              text: localizations.purchase, // ✅ Localized
             ),
             Tab(
-              icon: Icon(Icons.remove_shopping_cart),
-              text: 'فروخت',
+              icon: const Icon(Icons.remove_shopping_cart),
+              text: localizations.sales, // ✅ Localized
             ),
             Tab(
-              icon: Icon(Icons.inventory),
-              text: 'اسٹاک ویو',
+              icon: const Icon(Icons.inventory),
+              text: localizations.stockView, // ✅ Localized
             ),
           ],
         ),
@@ -64,14 +71,16 @@ class PurchaseTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'نئی خریداری',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Text(
+            localizations.newPurchase, // ✅ Localized
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
           
@@ -82,17 +91,17 @@ class PurchaseTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('سپلائر منتخب کریں'),
+                  Text(localizations.selectSupplier), // ✅ Localized
                   const SizedBox(height: 10),
                   DropdownButtonFormField(
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'سپلائر چنیں',
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      hintText: localizations.chooseSupplier, // ✅ Localized
                     ),
                     items: [
-                      'علی ٹریڈرز',
-                      'سامی اسٹور',
-                      'رحیم مارٹ',
+                      'Ali Traders',
+                      'Sami Store',
+                      'Raheem Mart',
                     ].map((supplier) {
                       return DropdownMenuItem(
                         value: supplier,
@@ -117,14 +126,14 @@ class PurchaseTab extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Text(
-                        'آئٹمز',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        localizations.items, // ✅ Localized
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const Spacer(),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.add),
-                        label: const Text('آئٹم شامل کریں'),
+                        label: Text(localizations.addItem), // ✅ Localized
                         onPressed: () {},
                       ),
                     ],
@@ -134,25 +143,25 @@ class PurchaseTab extends StatelessWidget {
                   
                   // Items Table
                   Table(
-                    children: const [
+                    children: [
                       TableRow(
-                        decoration: BoxDecoration(color: Colors.grey),
+                        decoration: const BoxDecoration(color: Colors.grey),
                         children: [
                           Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Text('آئٹم', style: TextStyle(fontWeight: FontWeight.bold)),
+                            padding: const EdgeInsets.all(8),
+                            child: Text(localizations.item, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                           ),
                           Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Text('مقدار', style: TextStyle(fontWeight: FontWeight.bold)),
+                            padding: const EdgeInsets.all(8),
+                            child: Text(localizations.quantity, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                           ),
                           Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Text('قیمت', style: TextStyle(fontWeight: FontWeight.bold)),
+                            padding: const EdgeInsets.all(8),
+                            child: Text(localizations.price, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                           ),
                           Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Text('کل', style: TextStyle(fontWeight: FontWeight.bold)),
+                            padding: const EdgeInsets.all(8),
+                            child: Text(localizations.total, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                           ),
                         ],
                       ),
@@ -166,33 +175,33 @@ class PurchaseTab extends StatelessWidget {
           const SizedBox(height: 20),
           
           // Additional Charges
-          const Card(
+          Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'اضافی اخراجات',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    localizations.additionalCharges, // ✅ Localized
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           decoration: InputDecoration(
-                            labelText: 'ٹرانسپورٹ',
+                            labelText: localizations.transport, // ✅ Localized
                             prefixText: 'Rs ',
                           ),
                           keyboardType: TextInputType.number,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
                           decoration: InputDecoration(
-                            labelText: 'مزدوری',
+                            labelText: localizations.labor, // ✅ Localized
                             prefixText: 'Rs ',
                           ),
                           keyboardType: TextInputType.number,
@@ -216,9 +225,9 @@ class PurchaseTab extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: Colors.green[700],
               ),
-              child: const Text(
-                'خریداری محفوظ کریں',
-                style: TextStyle(fontSize: 16),
+              child: Text(
+                localizations.savePurchase, // ✅ Localized
+                style: const TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
           ),
@@ -234,6 +243,8 @@ class SalesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -244,21 +255,21 @@ class SalesTab extends StatelessWidget {
             color: Colors.blue,
           ),
           const SizedBox(height: 20),
-          const Text(
-            'فروخت کا ریکارڈ',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          Text(
+            localizations.salesRecord, // ✅ Localized
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'یہاں آپ کی تمام فروخت نظر آئے گی',
-            style: TextStyle(color: Colors.grey),
+          Text(
+            localizations.salesHistoryNote, // ✅ Localized
+            style: const TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 30),
           ElevatedButton(
             onPressed: () {
               Navigator.pushNamed(context, '/sales');
             },
-            child: const Text('نئی فروخت کریں'),
+            child: Text(localizations.newSale), // ✅ Localized
           ),
         ],
       ),
@@ -272,6 +283,8 @@ class StockViewTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -283,7 +296,7 @@ class StockViewTab extends StatelessWidget {
               Expanded(
                 child: TextField(
                   decoration: InputDecoration(
-                    labelText: 'اسٹاک تلاش کریں',
+                    labelText: localizations.searchStock, // ✅ Localized
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -311,16 +324,16 @@ class StockViewTab extends StatelessWidget {
               Expanded(
                 child: Card(
                   color: Colors.green[50],
-                  child: const Padding(
-                    padding: EdgeInsets.all(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         Text(
-                          'کل آئٹمز',
-                          style: TextStyle(color: Colors.green),
+                          localizations.totalItems, // ✅ Localized
+                          style: const TextStyle(color: Colors.green),
                         ),
-                        SizedBox(height: 5),
-                        Text(
+                        const SizedBox(height: 5),
+                        const Text(
                           '145',
                           style: TextStyle(
                             fontSize: 24,
@@ -337,16 +350,16 @@ class StockViewTab extends StatelessWidget {
               Expanded(
                 child: Card(
                   color: Colors.blue[50],
-                  child: const Padding(
-                    padding: EdgeInsets.all(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
                         Text(
-                          'اسٹاک ویلیو',
-                          style: TextStyle(color: Colors.blue),
+                          localizations.stockValue, // ✅ Localized
+                          style: const TextStyle(color: Colors.blue),
                         ),
-                        SizedBox(height: 5),
-                        Text(
+                        const SizedBox(height: 5),
+                        const Text(
                           'Rs 450,000',
                           style: TextStyle(
                             fontSize: 20,
@@ -371,51 +384,29 @@ class StockViewTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'اسٹاک کی تفصیل',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    localizations.stockDetails, // ✅ Localized
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('آئٹم')),
-                        DataColumn(label: Text('موجوده')),
-                        DataColumn(label: Text('یونٹ')),
-                        DataColumn(label: Text('قیمت')),
-                        DataColumn(label: Text('کل')),
-                        DataColumn(label: Text('عمل')),
+                      columns: [
+                        DataColumn(label: Text(localizations.item)),
+                        DataColumn(label: Text(localizations.current)),
+                        DataColumn(label: Text(localizations.unit)),
+                        DataColumn(label: Text(localizations.price)),
+                        DataColumn(label: Text(localizations.total)),
+                        DataColumn(label: Text(localizations.action)),
                       ],
                       rows: [
                         DataRow(cells: [
-                          const DataCell(Text('چاول')),
-                          const DataCell(Text('50 KG')),
+                          const DataCell(Text('Rice')),
+                          const DataCell(Text('50')),
                           const DataCell(Text('KG')),
                           const DataCell(Text('Rs 180')),
                           const DataCell(Text('Rs 9,000')),
-                          DataCell(IconButton(
-                            icon: const Icon(Icons.edit, size: 18),
-                            onPressed: () {},
-                          )),
-                        ]),
-                        DataRow(cells: [
-                          const DataCell(Text('چینی')),
-                          const DataCell(Text('30 KG')),
-                          const DataCell(Text('KG')),
-                          const DataCell(Text('Rs 120')),
-                          const DataCell(Text('Rs 3,600')),
-                          DataCell(IconButton(
-                            icon: const Icon(Icons.edit, size: 18),
-                            onPressed: () {},
-                          )),
-                        ]),
-                        DataRow(cells: [
-                          const DataCell(Text('تیل')),
-                          const DataCell(Text('20 لیٹر')),
-                          const DataCell(Text('لیٹر')),
-                          const DataCell(Text('Rs 320')),
-                          const DataCell(Text('Rs 6,400')),
                           DataCell(IconButton(
                             icon: const Icon(Icons.edit, size: 18),
                             onPressed: () {},
@@ -437,7 +428,7 @@ class StockViewTab extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text('اسٹاک ایڈجسٹ کریں'),
+                  label: Text(localizations.adjustStock), // ✅ Localized
                   onPressed: () {},
                 ),
               ),
@@ -445,7 +436,7 @@ class StockViewTab extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.download),
-                  label: const Text('رپورٹ ڈاؤنلوڈ کریں'),
+                  label: Text(localizations.downloadReport), // ✅ Localized
                   onPressed: () {},
                 ),
               ),

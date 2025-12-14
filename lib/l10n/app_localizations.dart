@@ -1736,11 +1736,473 @@ abstract class AppLocalizations {
   /// **'Archive'**
   String get archiveAction;
 
+  /// No description provided for @customerCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Card ID'**
+  String get customerCard;
+
+  /// No description provided for @generateCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate ID'**
+  String get generateCard;
+
+  /// No description provided for @viewBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'View/Print Barcode'**
+  String get viewBarcode;
+
   /// No description provided for @cannotDeleteReason.
   ///
   /// In en, this message translates to:
   /// **'Cannot delete customer with existing sales or non-zero balance.'**
   String get cannotDeleteReason;
+
+  /// No description provided for @printReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Receipt'**
+  String get printReceipt;
+
+  /// No description provided for @savePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as PDF'**
+  String get savePdf;
+
+  /// No description provided for @cancelBillAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Bill'**
+  String get cancelBillAction;
+
+  /// No description provided for @billCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill cancelled and stock restored.'**
+  String get billCancelled;
+
+  /// No description provided for @voided.
+  ///
+  /// In en, this message translates to:
+  /// **'VOIDED'**
+  String get voided;
+
+  /// No description provided for @none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get none;
+
+  /// No description provided for @printCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Card'**
+  String get printCard;
+
+  /// No description provided for @customerPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get customerPhoto;
+
+  /// No description provided for @saveAndPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Print'**
+  String get saveAndPrint;
+
+  /// No description provided for @tapToPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add photo'**
+  String get tapToPick;
+
+  /// No description provided for @camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get camera;
+
+  /// No description provided for @gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get gallery;
+
+  /// No description provided for @adminAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Access'**
+  String get adminAccess;
+
+  /// No description provided for @sale.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale'**
+  String get sale;
+
+  /// No description provided for @itemsNeedReordering.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items need reordering.'**
+  String itemsNeedReordering(Object count);
+
+  /// No description provided for @quickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get quickActions;
+
+  /// No description provided for @newSale.
+  ///
+  /// In en, this message translates to:
+  /// **'New Sale'**
+  String get newSale;
+
+  /// No description provided for @viewReports.
+  ///
+  /// In en, this message translates to:
+  /// **'View Reports'**
+  String get viewReports;
+
+  /// No description provided for @manageStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Stock'**
+  String get manageStock;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
+
+  /// No description provided for @unknownBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Bill'**
+  String get unknownBill;
+
+  /// No description provided for @copyright.
+  ///
+  /// In en, this message translates to:
+  /// **'© 2024 Liaqat Kiryana Store'**
+  String get copyright;
+
+  /// No description provided for @tapToSeeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see details'**
+  String get tapToSeeDetails;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get loading;
+
+  /// No description provided for @mon.
+  ///
+  /// In en, this message translates to:
+  /// **'Monday'**
+  String get mon;
+
+  /// No description provided for @tue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuesday'**
+  String get tue;
+
+  /// No description provided for @wed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wednesday'**
+  String get wed;
+
+  /// No description provided for @thu.
+  ///
+  /// In en, this message translates to:
+  /// **'Thursday'**
+  String get thu;
+
+  /// No description provided for @fri.
+  ///
+  /// In en, this message translates to:
+  /// **'Friday'**
+  String get fri;
+
+  /// No description provided for @sat.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturday'**
+  String get sat;
+
+  /// No description provided for @sun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sunday'**
+  String get sun;
+
+  /// No description provided for @jan.
+  ///
+  /// In en, this message translates to:
+  /// **'January'**
+  String get jan;
+
+  /// No description provided for @feb.
+  ///
+  /// In en, this message translates to:
+  /// **'February'**
+  String get feb;
+
+  /// No description provided for @mar.
+  ///
+  /// In en, this message translates to:
+  /// **'March'**
+  String get mar;
+
+  /// No description provided for @apr.
+  ///
+  /// In en, this message translates to:
+  /// **'April'**
+  String get apr;
+
+  /// No description provided for @may.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get may;
+
+  /// No description provided for @jun.
+  ///
+  /// In en, this message translates to:
+  /// **'June'**
+  String get jun;
+
+  /// No description provided for @jul.
+  ///
+  /// In en, this message translates to:
+  /// **'July'**
+  String get jul;
+
+  /// No description provided for @aug.
+  ///
+  /// In en, this message translates to:
+  /// **'August'**
+  String get aug;
+
+  /// No description provided for @sep.
+  ///
+  /// In en, this message translates to:
+  /// **'September'**
+  String get sep;
+
+  /// No description provided for @oct.
+  ///
+  /// In en, this message translates to:
+  /// **'October'**
+  String get oct;
+
+  /// No description provided for @nov.
+  ///
+  /// In en, this message translates to:
+  /// **'November'**
+  String get nov;
+
+  /// No description provided for @dec.
+  ///
+  /// In en, this message translates to:
+  /// **'December'**
+  String get dec;
+
+  /// No description provided for @currentBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Bill'**
+  String get currentBill;
+
+  /// No description provided for @billSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill Saved Successfully'**
+  String get billSaved;
+
+  /// No description provided for @checkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get checkout;
+
+  /// No description provided for @discount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get discount;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @confirmDeleteItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this item?'**
+  String get confirmDeleteItem;
+
+  /// No description provided for @unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknown;
+
+  /// No description provided for @salesHistoryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your sales history will appear here'**
+  String get salesHistoryNote;
+
+  /// No description provided for @suppliersManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Suppliers Management'**
+  String get suppliersManagement;
+
+  /// No description provided for @addSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Supplier'**
+  String get addSupplier;
+
+  /// No description provided for @editSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Supplier'**
+  String get editSupplier;
+
+  /// No description provided for @noSuppliersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No suppliers found'**
+  String get noSuppliersFound;
+
+  /// No description provided for @supplierAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier added successfully'**
+  String get supplierAdded;
+
+  /// No description provided for @supplierUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier updated successfully'**
+  String get supplierUpdated;
+
+  /// No description provided for @supplierDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier deleted successfully'**
+  String get supplierDeleted;
+
+  /// No description provided for @confirmDeleteSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this supplier?'**
+  String get confirmDeleteSupplier;
+
+  /// No description provided for @balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get balance;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date'**
+  String get selectDate;
+
+  /// No description provided for @thisWeekVsLast.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week vs Last Week'**
+  String get thisWeekVsLast;
+
+  /// No description provided for @thisYearVsLast.
+  ///
+  /// In en, this message translates to:
+  /// **'This Year vs Last Year'**
+  String get thisYearVsLast;
+
+  /// No description provided for @avgDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Daily'**
+  String get avgDaily;
+
+  /// No description provided for @graphPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Graph will appear here'**
+  String get graphPlaceholder;
+
+  /// No description provided for @printReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Report'**
+  String get printReport;
+
+  /// No description provided for @date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get date;
+
+  /// No description provided for @billNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill No'**
+  String get billNo;
+
+  /// No description provided for @expenseDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses Details'**
+  String get expenseDetails;
+
+  /// No description provided for @purchaseHistoryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Your purchase history will appear here'**
+  String get purchaseHistoryNote;
+
+  /// No description provided for @topCustomersBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Customers Balance'**
+  String get topCustomersBalance;
+
+  /// No description provided for @daysOld.
+  ///
+  /// In en, this message translates to:
+  /// **'days old'**
+  String get daysOld;
+
+  /// No description provided for @totalStockValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Stock Value'**
+  String get totalStockValue;
+
+  /// No description provided for @stockByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock by Category'**
+  String get stockByCategory;
 }
 
 class _AppLocalizationsDelegate

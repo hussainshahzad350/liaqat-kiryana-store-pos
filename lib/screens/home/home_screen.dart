@@ -3,6 +3,8 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // ✅ Added for dynamic date formatting
+import '../../l10n/app_localizations.dart'; // ✅ Added Localizations import
 import '../../core/database/database_helper.dart';
 import '../master_data/items_screen.dart';
 import '../master_data/suppliers_screen.dart';
@@ -37,7 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _updateTime();
+    // Note: We cannot call _updateTime() here immediately if it depends on context for localization
+    // It will be called by the timer or didChangeDependencies.
     _loadData();
 
     // Update time every minute
@@ -52,6 +55,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // ✅ Initialize time immediately when context/dependencies are available
+    _updateTime();
+  }
+
+  @override
   void dispose() {
     timer?.cancel();
     dataTimer?.cancel();
@@ -61,17 +71,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void _updateTime() {
     if (!mounted) return;
     DateTime now = DateTime.now();
-    int hour = now.hour % 12;
-    if (hour == 0) hour = 12;
-    String minute = now.minute.toString().padLeft(2, '0');
-    String amPm = now.hour >= 12 ? 'PM' : 'AM';
-
-    List<String> urduDays = ['اتوار', 'پير', 'منگل', 'بدھ', 'جمعرات', 'جمعہ', 'ہفتہ'];
-    List<String> urduMonths = ['جنوری', 'فروری', 'مارچ', 'اپريل', 'مئی', 'جون', 'جوالئی', 'اگست', 'ستمبر', 'اکتوبر', 'نومبر', 'دسمبر'];
-
+    
+    // ✅ FIXED: Use DateFormat with the current locale (context)
+    // This removes the hardcoded Urdu arrays and supports both English and Urdu automatically.
+    final localeCode = Localizations.localeOf(context).languageCode;
+    
     setState(() {
-      currentTime = '$hour:$minute $amPm';
-      currentDate = '${urduDays[now.weekday % 7]} ${now.day} ${urduMonths[now.month - 1]} ${now.year}';
+      currentTime = DateFormat.jm(localeCode).format(now); // e.g., 5:30 PM
+      currentDate = DateFormat.yMMMMEEEEd(localeCode).format(now); // e.g., Sunday, January 14, 2024
     });
   }
 
@@ -101,8 +108,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Helper for accessing translations
+    final localizations = AppLocalizations.of(context)!;
+
     return Scaffold(
-      drawer: _buildNavigationDrawer(),
+      drawer: _buildNavigationDrawer(localizations),
       body: Column(
         children: [
           // Top Bar with Menu, Title, Time, and Bill Button
@@ -125,11 +135,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                         ),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Center(
+                          // ✅ UPDATED: Use localized App Title
                           child: Text(
-                            'لياقت کريانہ اسٹور',
-                            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                            localizations.appTitle,
+                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),
@@ -166,7 +178,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         icon: const Icon(Icons.receipt_long, size: 20),
-                        label: const Text('بل بنائيں', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        // ✅ UPDATED: Use localized 'Generate Bill'
+                        label: Text(localizations.generateBill, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -201,7 +214,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('Rs ${todaySales.toStringAsFixed(0)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                                  const Text('آج کی فروخت', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                                  // ✅ UPDATED: Use localized 'Today's Sales'
+                                  Text(localizations.todaySales, style: const TextStyle(fontSize: 14, color: Colors.grey)),
                                 ],
                               ),
                             ),
@@ -227,7 +241,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: const Icon(Icons.people, color: Colors.blue, size: 24),
                                 ),
                                 const SizedBox(width: 12),
-                                Text('آج کے گاہک: ${todayCustomers.length}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                // ✅ UPDATED: Localized 'Today's Customers'
+                                Text('${localizations.todayCustomers}: ${todayCustomers.length}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ],
                             ),
                             if (todayCustomers.isNotEmpty) ...[
@@ -237,17 +252,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               Table(
                                 columnWidths: const {0: FlexColumnWidth(3), 1: FlexColumnWidth(2)},
                                 children: [
-                                  const TableRow(
-                                    decoration: BoxDecoration(color: Colors.grey),
+                                  TableRow(
+                                    decoration: const BoxDecoration(color: Colors.grey),
                                     children: [
-                                      Padding(padding: EdgeInsets.all(8), child: Text('گاہک', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                                      Padding(padding: EdgeInsets.all(8), child: Text('رقم', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                                      // ✅ UPDATED: Localized headers
+                                      Padding(padding: const EdgeInsets.all(8), child: Text(localizations.customer, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                                      Padding(padding: const EdgeInsets.all(8), child: Text(localizations.amount, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
                                     ],
                                   ),
                                   for (var customer in todayCustomers)
                                     TableRow(
                                       children: [
-                                        Padding(padding: const EdgeInsets.all(8), child: Text(customer['name_urdu'] ?? customer['name_english'] ?? 'کيش', style: const TextStyle(fontSize: 14))),
+                                        // Shows Urdu name if available, else English
+                                        Padding(padding: const EdgeInsets.all(8), child: Text(customer['name_urdu'] ?? customer['name_english'] ?? 'Unknown', style: const TextStyle(fontSize: 14))),
                                         Padding(padding: const EdgeInsets.all(8), child: Text('Rs ${(customer['total_amount'] as num?)?.toStringAsFixed(0) ?? '0'}', style: const TextStyle(fontSize: 14))),
                                       ],
                                     ),
@@ -255,7 +272,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ] else ...[
                               const SizedBox(height: 12),
-                              const Center(child: Text('آج کوئی گاہک نہيں آيا', style: TextStyle(color: Colors.grey))),
+                              // ✅ UPDATED: Localized 'No customers'
+                              Center(child: Text(localizations.noCustomersToday, style: const TextStyle(color: Colors.grey))),
                             ],
                           ],
                         ),
@@ -280,7 +298,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: const Icon(Icons.warning, color: Colors.red, size: 24),
                                 ),
                                 const SizedBox(width: 12),
-                                Text(' کم اسٹاک: ${lowStockItems.length}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+                                // ✅ UPDATED: Localized 'Low Stock'
+                                Text(' ${localizations.lowStock}: ${lowStockItems.length}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
                               ],
                             ),
                             if (lowStockItems.isNotEmpty) ...[
@@ -290,18 +309,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               Table(
                                 columnWidths: const {0: FlexColumnWidth(3), 1: FlexColumnWidth(1), 2: FlexColumnWidth(1)},
                                 children: [
-                                  const TableRow(
-                                    decoration: BoxDecoration(color: Colors.red),
+                                  TableRow(
+                                    decoration: const BoxDecoration(color: Colors.red),
                                     children: [
-                                      Padding(padding: EdgeInsets.all(8), child: Text('آئٹم', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                                      Padding(padding: EdgeInsets.all(8), child: Text('موجوده', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                                      Padding(padding: EdgeInsets.all(8), child: Text('ضرورت', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                                      // ✅ UPDATED: Localized headers
+                                      Padding(padding: const EdgeInsets.all(8), child: Text(localizations.item, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                                      Padding(padding: const EdgeInsets.all(8), child: Text(localizations.current, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                                      Padding(padding: const EdgeInsets.all(8), child: Text(localizations.required, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
                                     ],
                                   ),
                                   for (var item in lowStockItems)
                                     TableRow(
                                       children: [
-                                        Padding(padding: const EdgeInsets.all(8), child: Text(item['name_urdu'] ?? item['name_english'] ?? 'نامعلوم', style: const TextStyle(fontSize: 14))),
+                                        Padding(padding: const EdgeInsets.all(8), child: Text(item['name_urdu'] ?? item['name_english'] ?? 'Unknown', style: const TextStyle(fontSize: 14))),
                                         Padding(padding: const EdgeInsets.all(8), child: Text('${item['current_stock']}', style: const TextStyle(fontSize: 14))),
                                         Padding(padding: const EdgeInsets.all(8), child: Text('${item['min_stock_alert']}', style: const TextStyle(fontSize: 14))),
                                       ],
@@ -310,7 +330,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ] else ...[
                               const SizedBox(height: 12),
-                              const Center(child: Text('سب آئٹمز اسٹاک ميں ہيں', style: TextStyle(color: Colors.green))),
+                              // ✅ UPDATED: Localized 'All in stock'
+                              Center(child: Text(localizations.allStockAvailable, style: const TextStyle(color: Colors.green))),
                             ],
                           ],
                         ),
@@ -326,11 +347,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(Icons.receipt, color: Colors.green),
-                                SizedBox(width: 8),
-                                Text('حاليہ فروخت', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                const Icon(Icons.receipt, color: Colors.green),
+                                const SizedBox(width: 8),
+                                // ✅ UPDATED: Localized 'Recent Sales'
+                                Text(localizations.recentSales, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                               ],
                             ),
                             if (recentSales.isNotEmpty) ...[
@@ -352,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text(sale['customer_name']?.toString() ?? 'کيش', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                                            Text(sale['customer_name']?.toString() ?? 'Cash', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                                             Text(sale['sale_time'] != null && (sale['sale_time'] as String).length >= 5? (sale['sale_time'] as String).substring(0, 5): sale['sale_time']?.toString() ?? '',style: const TextStyle(fontSize: 12, color: Colors.grey),),
                                           ],
                                         ),
@@ -363,7 +385,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                             ] else ...[
                               const SizedBox(height: 20),
-                              const Center(child: Text('ابھی تک کوئی فروخت نہيں ہوئی', style: TextStyle(color: Colors.grey))),
+                              // ✅ UPDATED: Localized 'No sales yet'
+                              Center(child: Text(localizations.noSalesYet, style: const TextStyle(color: Colors.grey))),
                             ],
                           ],
                         ),
@@ -376,11 +399,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: null, // Removed duplicate floating button since we added it to the top bar
+      floatingActionButton: null,
     );
   }
 
-  Widget _buildNavigationDrawer() {
+  Widget _buildNavigationDrawer(AppLocalizations localizations) {
     return Drawer(
       width: 280,
       child: Column(
@@ -393,9 +416,11 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Icon(Icons.store, size: 60, color: Colors.white),
                 const SizedBox(height: 10),
-                const Text('لياقت کريانہ اسٹور', style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+                // ✅ UPDATED: Localized App Title
+                Text(localizations.appTitle, style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 5),
-                Text('POS System v1.0', style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.8))),
+                // ✅ UPDATED: Localized Version
+                Text(localizations.posVersion, style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.8))),
               ],
             ),
           ),
@@ -403,59 +428,60 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _buildDrawerItem(icon: Icons.dashboard, title: 'ہوم', onTap: () => Navigator.pop(context)),
-                _buildDrawerItem(icon: Icons.shopping_cart, title: 'فروخت / POS', onTap: () {
+                // ✅ UPDATED: All Drawer items use localizations keys
+                _buildDrawerItem(icon: Icons.dashboard, title: localizations.home, onTap: () => Navigator.pop(context)),
+                _buildDrawerItem(icon: Icons.shopping_cart, title: localizations.salesPos, onTap: () {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const SalesScreen()));
                 }),
-                _buildDrawerItem(icon: Icons.inventory, title: 'اسٹاک مينيجمنٹ', onTap: () {
+                _buildDrawerItem(icon: Icons.inventory, title: localizations.stockManagement, onTap: () {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const StockScreen()));
                 }),
                 ExpansionTile(
                   leading: const Icon(Icons.data_usage, color: Colors.green),
-                  title: const Text('ماسٹر ڈيٹا'),
+                  title: Text(localizations.masterData),
                   children: [
-                    ListTile(leading: const Icon(Icons.inventory, size: 20), title: const Text('آئٹمز'), onTap: () {
+                    ListTile(leading: const Icon(Icons.inventory, size: 20), title: Text(localizations.items), onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const ItemsScreen()));
                     }),
-                    ListTile(leading: const Icon(Icons.people, size: 20), title: const Text('کسٹمرز'), onTap: () {
+                    ListTile(leading: const Icon(Icons.people, size: 20), title: Text(localizations.customers), onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomersScreen()));
                     }),
-                    ListTile(leading: const Icon(Icons.business, size: 20), title: const Text('سپلائرز'), onTap: () {
+                    ListTile(leading: const Icon(Icons.business, size: 20), title: Text(localizations.suppliers), onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const SuppliersScreen()));
                     }),
-                    ListTile(leading: const Icon(Icons.category, size: 20), title: const Text('کیٹیگریز'), onTap: () {
+                    ListTile(leading: const Icon(Icons.category, size: 20), title: Text(localizations.categories), onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const CategoriesScreen()));
                     }),
-                    ListTile(leading: const Icon(Icons.square_foot, size: 20), title: const Text('یونٹس'), onTap: () {
+                    ListTile(leading: const Icon(Icons.square_foot, size: 20), title: Text(localizations.units), onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const UnitsScreen()));
                     }),
                   ],
                 ),
-                _buildDrawerItem(icon: Icons.analytics, title: 'رپورٹس', onTap: () {
+                _buildDrawerItem(icon: Icons.analytics, title: localizations.reports, onTap: () {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const ReportsScreen()));
                 }),
-                _buildDrawerItem(icon: Icons.attach_money, title: 'کيش ليجر', onTap: () {
+                _buildDrawerItem(icon: Icons.attach_money, title: localizations.cashLedger, onTap: () {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const CashLedgerScreen()));
                 }),
-                _buildDrawerItem(icon: Icons.settings, title: 'سيٹنگز', onTap: () {
+                _buildDrawerItem(icon: Icons.settings, title: localizations.settings, onTap: () {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
                 }),
                 const Divider(),
-                _buildDrawerItem(icon: Icons.info, title: 'ایپ کے بارے میں', onTap: () {
+                _buildDrawerItem(icon: Icons.info, title: localizations.aboutApp, onTap: () {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutScreen()));
                 }),
-                _buildDrawerItem(icon: Icons.logout, title: 'لاگ آؤٹ', color: Colors.red, onTap: () {
+                _buildDrawerItem(icon: Icons.logout, title: localizations.logout, color: Colors.red, onTap: () {
                   Navigator.pop(context);
                   Navigator.pushReplacementNamed(context, '/');
                 }),

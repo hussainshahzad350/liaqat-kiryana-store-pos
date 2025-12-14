@@ -838,6 +838,240 @@ class AppLocalizationsUr extends AppLocalizations {
   String get archiveAction => 'آرکائیو';
 
   @override
+  String get customerCard => 'گاہک کارڈ آئی ڈی';
+
+  @override
+  String get generateCard => 'آئی ڈی بنائیں';
+
+  @override
+  String get viewBarcode => 'بارکوڈ دیکھیں/پرنٹ کریں';
+
+  @override
   String get cannotDeleteReason =>
       'موجودہ فروخت یا غیر صفر بیلنس والے کسٹمر کو حذف نہیں کیا جا سکتا۔';
+
+  @override
+  String get printReceipt => 'رسید پرنٹ کریں';
+
+  @override
+  String get savePdf => 'PDF محفوظ کریں';
+
+  @override
+  String get cancelBillAction => 'بل منسوخ کریں';
+
+  @override
+  String get billCancelled => 'بل منسوخ کر دیا گیا اور اسٹاک بحال کر دیا گیا';
+
+  @override
+  String get voided => 'منسوخ شدہ';
+
+  @override
+  String get none => 'کوئی نہیں';
+
+  @override
+  String get printCard => 'کارڈ پرنٹ کریں';
+
+  @override
+  String get customerPhoto => 'تصویر';
+
+  @override
+  String get saveAndPrint => 'محفوظ اور پرنٹ کریں';
+
+  @override
+  String get tapToPick => 'تصویر شامل کریں';
+
+  @override
+  String get camera => 'کیمرہ';
+
+  @override
+  String get gallery => 'گیلری';
+
+  @override
+  String get adminAccess => 'ایڈمن ایکسس';
+
+  @override
+  String get sale => 'سیلز (فروخت)';
+
+  @override
+  String itemsNeedReordering(Object count) {
+    return '$count آئٹمز ختم ہونے والے ہیں۔';
+  }
+
+  @override
+  String get quickActions => 'فوری ایکشن';
+
+  @override
+  String get newSale => 'نئی سیل';
+
+  @override
+  String get viewReports => 'رپورٹس دیکھیں';
+
+  @override
+  String get manageStock => 'اسٹاک مینیج کریں';
+
+  @override
+  String get viewAll => 'سب دیکھیں';
+
+  @override
+  String get unknownBill => 'نامعلوم بل';
+
+  @override
+  String get copyright => '© 2024 لیاقت کریانہ سٹور';
+
+  @override
+  String get tapToSeeDetails => 'تفصیلات دیکھنے کے لیے کلک کریں';
+
+  @override
+  String get loading => 'لوڈ ہو رہا ہے';
+
+  @override
+  String get mon => 'سوموار';
+
+  @override
+  String get tue => 'منگل';
+
+  @override
+  String get wed => 'بدھ';
+
+  @override
+  String get thu => 'جمعرات';
+
+  @override
+  String get fri => 'جمعہ';
+
+  @override
+  String get sat => 'ہفتہ';
+
+  @override
+  String get sun => 'اتوار';
+
+  @override
+  String get jan => 'جنوری';
+
+  @override
+  String get feb => 'فروری';
+
+  @override
+  String get mar => 'مارچ';
+
+  @override
+  String get apr => 'اپریل';
+
+  @override
+  String get may => 'مئی';
+
+  @override
+  String get jun => 'جون';
+
+  @override
+  String get jul => 'جولائی';
+
+  @override
+  String get aug => 'اگست';
+
+  @override
+  String get sep => 'ستمبر';
+
+  @override
+  String get oct => 'اکتوبر';
+
+  @override
+  String get nov => 'نومبر';
+
+  @override
+  String get dec => 'دسمبر';
+
+  @override
+  String get currentBill => 'موجودہ بل';
+
+  @override
+  String get billSaved => 'بل کامیابی سے محفوظ ہو گیا';
+
+  @override
+  String get checkout => 'چیک آؤٹ';
+
+  @override
+  String get discount => 'رعایت';
+
+  @override
+  String get confirm => 'تصدیق';
+
+  @override
+  String get confirmDeleteItem => 'کیا آپ واقعی اس آئٹم کو حذف کرنا چاہتے ہيں؟';
+
+  @override
+  String get unknown => 'نامعلوم';
+
+  @override
+  String get salesHistoryNote => 'یہاں آپ کی تمام فروخت نظر آئے گی';
+
+  @override
+  String get suppliersManagement => 'سپلائرز مينيجمنٹ';
+
+  @override
+  String get addSupplier => 'سپلائر شامل کریں';
+
+  @override
+  String get editSupplier => 'سپلائر میں ترمیم کریں';
+
+  @override
+  String get noSuppliersFound => 'کوئی سپلائر نہیں ملا';
+
+  @override
+  String get supplierAdded => 'سپلائر کامیابی سے شامل ہو گیا';
+
+  @override
+  String get supplierUpdated => 'سپلائر کامیابی سے اپڈیٹ ہو گیا';
+
+  @override
+  String get supplierDeleted => 'سپلائر کامیابی سے حذف ہو گیا';
+
+  @override
+  String get confirmDeleteSupplier =>
+      'کیا آپ واقعی اس سپلائر کو حذف کرنا چاہتے ہیں؟';
+
+  @override
+  String get balance => 'بیلنس';
+
+  @override
+  String get selectDate => 'تاریخ کا انتخاب';
+
+  @override
+  String get thisWeekVsLast => 'اس ہفتہ بمقابلہ پچھلے ہفتہ';
+
+  @override
+  String get thisYearVsLast => 'اس سال بمقابلہ پچھلے سال';
+
+  @override
+  String get avgDaily => 'اوسط روزانہ';
+
+  @override
+  String get graphPlaceholder => 'یہاں فروخت کا گراف آئے گا';
+
+  @override
+  String get printReport => 'پرنٹ کریں';
+
+  @override
+  String get date => 'تاریخ';
+
+  @override
+  String get billNo => 'بل نمبر';
+
+  @override
+  String get expenseDetails => 'اخراجات کی تفصیل';
+
+  @override
+  String get purchaseHistoryNote => 'یہاں آپ کی تمام خریداری نظر آئے گی';
+
+  @override
+  String get topCustomersBalance => 'سب سے زیادہ بیلنس والے کسٹمرز';
+
+  @override
+  String get daysOld => 'دن پرانا';
+
+  @override
+  String get totalStockValue => 'کل اسٹاک ویلیو';
+
+  @override
+  String get stockByCategory => 'کیٹیگری کے لحاظ سے اسٹاک';
 }

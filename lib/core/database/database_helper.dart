@@ -147,6 +147,20 @@ class DatabaseHelper {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
+
+    // 7. Suppliers
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS suppliers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name_english TEXT NOT NULL,
+        name_urdu TEXT,
+        contact_primary TEXT,
+        address TEXT,
+        outstanding_balance REAL DEFAULT 0,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
   }
 
   Future<void> _insertSampleData(Database db) async {
@@ -173,9 +187,6 @@ class DatabaseHelper {
       }
 
       // Products
-      // ... (Keep your product insertions here, but add conflictAlgorithm: ConflictAlgorithm.ignore)
-      // I've shortened this for brevity, but apply this pattern to all inserts below:
-      
       await db.insert('products', {
         'item_code': 'PRD001',
         'name_urdu': 'چاول سپر باسمتی',
@@ -188,8 +199,6 @@ class DatabaseHelper {
         'sale_price': 180,
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      // ... Insert other products ...
-
       // Customers
       await db.insert('customers', {
         'name_english': 'Ali Khan',
@@ -198,8 +207,6 @@ class DatabaseHelper {
         'credit_limit': 10000,
         'outstanding_balance': 2500,
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
-
-      // ... Insert other customers ...
 
       AppLogger.db('Sample data inserted (or skipped if duplicates found)');
     } catch (e) {
@@ -298,6 +305,88 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.rawQuery('SELECT COUNT(*) as count FROM customers');
     return (result.first['count'] as int?) ?? 0;
+  }
+
+  // --- 🆕 NEW METHODS FOR SALES SCREEN 🆕 ---
+
+  Future<List<Map<String, dynamic>>> getAllItems() async {
+    try {
+      final db = await database;
+      // Fetch products to be shown in POS
+      return await db.query('products', orderBy: 'name_english ASC');
+    } catch (e) {
+      AppLogger.error('Error getting items: $e', tag: 'DB');
+      return [];
+    }
+  }
+
+  // Alias for consistent naming if SalesScreen calls getCustomers()
+  Future<List<Map<String, dynamic>>> getCustomers() async {
+    return await getAllCustomers();
+  }
+
+  Future<void> createSale(Map<String, dynamic> saleData) async {
+    final db = await database;
+    
+    // Generate a simple Bill Number (e.g., SALE-20240501-120101)
+    final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[^0-9]'), '').substring(0, 14);
+    final billNumber = 'SALE-$timestamp';
+
+    try {
+      await db.transaction((txn) async {
+        // 1. Insert into Sales Table
+        final saleId = await txn.insert('sales', {
+          'bill_number': billNumber,
+          'customer_id': saleData['customer_id'],
+          'sale_date': DateTime.now().toIso8601String(),
+          'sale_time': DateTime.now().toIso8601String().split('T')[1].substring(0, 5), // HH:MM
+          'grand_total': saleData['grand_total'],
+          'discount': saleData['discount'] ?? 0.0,
+          'total_paid': saleData['grand_total'], // Assuming full payment for now
+          'remaining_balance': 0.0,
+          // 'cash_amount': saleData['grand_total'], // Uncomment if you track payment types
+        });
+
+        // 2. Insert Sale Items & Update Stock
+        final items = saleData['items'] as List<Map<String, dynamic>>;
+        
+        for (var item in items) {
+          // Add to sale_items
+          await txn.insert('sale_items', {
+            'sale_id': saleId,
+            'product_id': item['id'],
+            'quantity_sold': item['quantity'],
+            'unit_price': item['sale_price'],
+            'total_price': item['total'],
+          });
+
+          // Deduct Stock from Products
+          // We read the current stock first to ensure accuracy inside transaction
+          final productResult = await txn.query(
+            'products', 
+            columns: ['current_stock'], 
+            where: 'id = ?', 
+            whereArgs: [item['id']]
+          );
+
+          if (productResult.isNotEmpty) {
+            final currentStock = (productResult.first['current_stock'] as num).toDouble();
+            final newStock = currentStock - (item['quantity'] as num).toDouble();
+            
+            await txn.update(
+              'products',
+              {'current_stock': newStock},
+              where: 'id = ?',
+              whereArgs: [item['id']],
+            );
+          }
+        }
+      });
+      AppLogger.info('Sale created successfully: $billNumber', tag: 'DB');
+    } catch (e) {
+      AppLogger.error('Error creating sale: $e', tag: 'DB');
+      throw Exception('Failed to process sale');
+    }
   }
 
   Future<void> close() async {

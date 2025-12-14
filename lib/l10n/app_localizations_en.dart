@@ -840,6 +840,240 @@ class AppLocalizationsEn extends AppLocalizations {
   String get archiveAction => 'Archive';
 
   @override
+  String get customerCard => 'Customer Card ID';
+
+  @override
+  String get generateCard => 'Generate ID';
+
+  @override
+  String get viewBarcode => 'View/Print Barcode';
+
+  @override
   String get cannotDeleteReason =>
       'Cannot delete customer with existing sales or non-zero balance.';
+
+  @override
+  String get printReceipt => 'Print Receipt';
+
+  @override
+  String get savePdf => 'Save as PDF';
+
+  @override
+  String get cancelBillAction => 'Cancel Bill';
+
+  @override
+  String get billCancelled => 'Bill cancelled and stock restored.';
+
+  @override
+  String get voided => 'VOIDED';
+
+  @override
+  String get none => 'None';
+
+  @override
+  String get printCard => 'Print Card';
+
+  @override
+  String get customerPhoto => 'Photo';
+
+  @override
+  String get saveAndPrint => 'Save & Print';
+
+  @override
+  String get tapToPick => 'Tap to add photo';
+
+  @override
+  String get camera => 'Camera';
+
+  @override
+  String get gallery => 'Gallery';
+
+  @override
+  String get adminAccess => 'Admin Access';
+
+  @override
+  String get sale => 'Sale';
+
+  @override
+  String itemsNeedReordering(Object count) {
+    return '$count items need reordering.';
+  }
+
+  @override
+  String get quickActions => 'Quick Actions';
+
+  @override
+  String get newSale => 'New Sale';
+
+  @override
+  String get viewReports => 'View Reports';
+
+  @override
+  String get manageStock => 'Manage Stock';
+
+  @override
+  String get viewAll => 'View All';
+
+  @override
+  String get unknownBill => 'Unknown Bill';
+
+  @override
+  String get copyright => '© 2024 Liaqat Kiryana Store';
+
+  @override
+  String get tapToSeeDetails => 'Tap to see details';
+
+  @override
+  String get loading => 'Loading';
+
+  @override
+  String get mon => 'Monday';
+
+  @override
+  String get tue => 'Tuesday';
+
+  @override
+  String get wed => 'Wednesday';
+
+  @override
+  String get thu => 'Thursday';
+
+  @override
+  String get fri => 'Friday';
+
+  @override
+  String get sat => 'Saturday';
+
+  @override
+  String get sun => 'Sunday';
+
+  @override
+  String get jan => 'January';
+
+  @override
+  String get feb => 'February';
+
+  @override
+  String get mar => 'March';
+
+  @override
+  String get apr => 'April';
+
+  @override
+  String get may => 'May';
+
+  @override
+  String get jun => 'June';
+
+  @override
+  String get jul => 'July';
+
+  @override
+  String get aug => 'August';
+
+  @override
+  String get sep => 'September';
+
+  @override
+  String get oct => 'October';
+
+  @override
+  String get nov => 'November';
+
+  @override
+  String get dec => 'December';
+
+  @override
+  String get currentBill => 'Current Bill';
+
+  @override
+  String get billSaved => 'Bill Saved Successfully';
+
+  @override
+  String get checkout => 'Checkout';
+
+  @override
+  String get discount => 'Discount';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get confirmDeleteItem => 'Are you sure you want to delete this item?';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String get salesHistoryNote => 'Your sales history will appear here';
+
+  @override
+  String get suppliersManagement => 'Suppliers Management';
+
+  @override
+  String get addSupplier => 'Add Supplier';
+
+  @override
+  String get editSupplier => 'Edit Supplier';
+
+  @override
+  String get noSuppliersFound => 'No suppliers found';
+
+  @override
+  String get supplierAdded => 'Supplier added successfully';
+
+  @override
+  String get supplierUpdated => 'Supplier updated successfully';
+
+  @override
+  String get supplierDeleted => 'Supplier deleted successfully';
+
+  @override
+  String get confirmDeleteSupplier =>
+      'Are you sure you want to delete this supplier?';
+
+  @override
+  String get balance => 'Balance';
+
+  @override
+  String get selectDate => 'Select Date';
+
+  @override
+  String get thisWeekVsLast => 'This Week vs Last Week';
+
+  @override
+  String get thisYearVsLast => 'This Year vs Last Year';
+
+  @override
+  String get avgDaily => 'Avg Daily';
+
+  @override
+  String get graphPlaceholder => 'Sales Graph will appear here';
+
+  @override
+  String get printReport => 'Print Report';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get billNo => 'Bill No';
+
+  @override
+  String get expenseDetails => 'Expenses Details';
+
+  @override
+  String get purchaseHistoryNote => 'Your purchase history will appear here';
+
+  @override
+  String get topCustomersBalance => 'Top Customers Balance';
+
+  @override
+  String get daysOld => 'days old';
+
+  @override
+  String get totalStockValue => 'Total Stock Value';
+
+  @override
+  String get stockByCategory => 'Stock by Category';
 }

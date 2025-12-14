@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -24,19 +25,24 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('رپورٹس'),
+        title: Text(loc.reports),
         backgroundColor: Colors.purple[700],
+        foregroundColor: Colors.white,
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: const [
-            Tab(icon: Icon(Icons.shopping_bag), text: 'فروخت'),
-            Tab(icon: Icon(Icons.trending_up), text: 'منافع'),
-            Tab(icon: Icon(Icons.shopping_cart), text: 'خریداری'),
-            Tab(icon: Icon(Icons.people), text: 'کسٹمر بیلنس'),
-            Tab(icon: Icon(Icons.inventory), text: 'اسٹاک'),
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          tabs: [
+            Tab(icon: const Icon(Icons.shopping_bag), text: loc.sales),
+            Tab(icon: const Icon(Icons.trending_up), text: loc.profit),
+            Tab(icon: const Icon(Icons.shopping_cart), text: loc.purchase),
+            Tab(icon: const Icon(Icons.people), text: loc.customerBalance),
+            Tab(icon: const Icon(Icons.inventory), text: loc.stock),
           ],
         ),
       ),
@@ -60,6 +66,8 @@ class SalesReportTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -71,35 +79,35 @@ class SalesReportTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'تاریخ کا انتخاب',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  Text(
+                    loc.selectDate,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
-                          decoration: const InputDecoration(
-                            labelText: 'شروع تاریخ',
-                            suffixIcon: Icon(Icons.calendar_today),
+                          decoration: InputDecoration(
+                            labelText: loc.startDate,
+                            suffixIcon: const Icon(Icons.calendar_today),
                           ),
                           onTap: () {
-                            // Date picker
+                            // Date picker logic
                           },
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Text('سے', style: TextStyle(fontSize: 18)),
+                      Text(loc.to, style: const TextStyle(fontSize: 18)),
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
-                          decoration: const InputDecoration(
-                            labelText: 'اختتام تاریخ',
-                            suffixIcon: Icon(Icons.calendar_today),
+                          decoration: InputDecoration(
+                            labelText: loc.endDate,
+                            suffixIcon: const Icon(Icons.calendar_today),
                           ),
                           onTap: () {
-                            // Date picker
+                            // Date picker logic
                           },
                         ),
                       ),
@@ -109,14 +117,14 @@ class SalesReportTab extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: DropdownButtonFormField(
-                          decoration: const InputDecoration(
-                            labelText: 'مقابلہ',
+                        child: DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            labelText: loc.comparison,
                           ),
                           items: [
-                            'اس مہینہ بمقابلہ پچھلے مہینہ',
-                            'اس ہفتہ بمقابلہ پچھلے ہفتہ',
-                            'اس سال بمقابلہ پچھلے سال',
+                            loc.thisMonthVsLast,
+                            loc.thisWeekVsLast,
+                            loc.thisYearVsLast,
                           ].map((item) {
                             return DropdownMenuItem(
                               value: item,
@@ -136,29 +144,29 @@ class SalesReportTab extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Summary Cards
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: SummaryCard(
-                  title: 'کل فروخت',
+                  title: loc.totalSales,
                   value: 'Rs 154,200',
                   color: Colors.green,
                   icon: Icons.currency_rupee,
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(
                 child: SummaryCard(
-                  title: 'اوسط روزانہ',
+                  title: loc.avgDaily,
                   value: 'Rs 5,140',
                   color: Colors.blue,
                   icon: Icons.trending_up,
                 ),
               ),
-              SizedBox(width: 10),
+              const SizedBox(width: 10),
               Expanded(
                 child: SummaryCard(
-                  title: 'کل بل',
+                  title: loc.totalBills,
                   value: '245',
                   color: Colors.orange,
                   icon: Icons.receipt,
@@ -169,25 +177,25 @@ class SalesReportTab extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // Sales Chart
+          // Sales Chart Placeholder
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'فروخت کا گراف',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  Text(
+                    loc.salesGraph,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
                   Container(
                     height: 200,
                     color: Colors.grey[100],
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'یہاں فروخت کا گراف آئے گا',
-                        style: TextStyle(color: Colors.grey),
+                        loc.graphPlaceholder,
+                        style: const TextStyle(color: Colors.grey),
                       ),
                     ),
                   ),
@@ -207,20 +215,20 @@ class SalesReportTab extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Text(
-                        'تفصیلی فروخت',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      Text(
+                        loc.detailedSales,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.download),
                         onPressed: () {},
-                        tooltip: 'ڈاؤنلوڈ کریں',
+                        tooltip: loc.downloadReport,
                       ),
                       IconButton(
                         icon: const Icon(Icons.print),
                         onPressed: () {},
-                        tooltip: 'پرنٹ کریں',
+                        tooltip: loc.printReport,
                       ),
                     ],
                   ),
@@ -228,40 +236,22 @@ class SalesReportTab extends StatelessWidget {
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
-                      columns: const [
-                        DataColumn(label: Text('تاریخ')),
-                        DataColumn(label: Text('بل نمبر')),
-                        DataColumn(label: Text('کسٹمر')),
-                        DataColumn(label: Text('کل')),
-                        DataColumn(label: Text('کیش')),
-                        DataColumn(label: Text('بینک')),
-                        DataColumn(label: Text('کریڈٹ')),
+                      columns: [
+                        DataColumn(label: Text(loc.date)),
+                        DataColumn(label: Text(loc.billNo)),
+                        DataColumn(label: Text(loc.customer)),
+                        DataColumn(label: Text(loc.total)),
+                        DataColumn(label: Text(loc.cash)),
+                        DataColumn(label: Text(loc.bank)),
+                        DataColumn(label: Text(loc.credit)),
                       ],
                       rows: const [
                         DataRow(cells: [
                           DataCell(Text('01 Dec')),
                           DataCell(Text('#2451')),
-                          DataCell(Text('علی خان')),
+                          DataCell(Text('Ali Khan')),
                           DataCell(Text('Rs 5,200')),
                           DataCell(Text('Rs 3,200')),
-                          DataCell(Text('Rs 1,000')),
-                          DataCell(Text('Rs 1,000')),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('30 Nov')),
-                          DataCell(Text('#2450')),
-                          DataCell(Text('کیش')),
-                          DataCell(Text('Rs 3,800')),
-                          DataCell(Text('Rs 3,800')),
-                          DataCell(Text('Rs 0')),
-                          DataCell(Text('Rs 0')),
-                        ]),
-                        DataRow(cells: [
-                          DataCell(Text('29 Nov')),
-                          DataCell(Text('#2449')),
-                          DataCell(Text('سامی')),
-                          DataCell(Text('Rs 4,500')),
-                          DataCell(Text('Rs 2,500')),
                           DataCell(Text('Rs 1,000')),
                           DataCell(Text('Rs 1,000')),
                         ]),
@@ -284,62 +274,64 @@ class ProfitReportTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           // Profit Summary
-          const Card(
+          Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   Text(
-                    'منافع کا خلاصہ',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    loc.profitSummary,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
                         child: ProfitCard(
-                          title: 'کل فروخت',
+                          title: loc.totalSales,
                           value: 'Rs 154,200',
                           color: Colors.green,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: ProfitCard(
-                          title: 'کل لاگت',
+                          title: loc.totalCost,
                           value: 'Rs 120,000',
                           color: Colors.red,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: ProfitCard(
-                          title: 'خالص منافع',
+                          title: loc.netProfit,
                           value: 'Rs 34,200',
                           color: Colors.blue,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
                         child: ProfitCard(
-                          title: 'منافع فیصد',
+                          title: loc.profitPercentage,
                           value: '22.2%',
                           color: Colors.purple,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: ProfitCard(
-                          title: 'اوسط منافع فی بل',
+                          title: loc.avgProfitPerBill,
                           value: 'Rs 140',
                           color: Colors.orange,
                         ),
@@ -354,53 +346,24 @@ class ProfitReportTab extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Expenses Breakdown
-          const Card(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'اخراجات کی تفصیل',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  SizedBox(height: 10),
-                  ExpenseItem(name: 'خریداری لاگت', amount: 'Rs 120,000', percentage: '78%'),
-                  ExpenseItem(name: 'ٹرانسپورٹ', amount: 'Rs 5,000', percentage: '3.2%'),
-                  ExpenseItem(name: 'مزدوری', amount: 'Rs 3,000', percentage: '1.9%'),
-                  ExpenseItem(name: 'دیگر اخراجات', amount: 'Rs 2,000', percentage: '1.3%'),
-                  SizedBox(height: 10),
-                  Divider(),
-                  ExpenseItem(name: 'کل اخراجات', amount: 'Rs 130,000', percentage: '84.4%'),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Monthly Profit Chart
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'ماہانہ منافع',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  Text(
+                    loc.expenseDetails,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
-                  Container(
-                    height: 150,
-                    color: Colors.grey[100],
-                    child: const Center(
-                      child: Text(
-                        'ماہانہ منافع کا گراف',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  ),
+                  ExpenseItem(name: loc.purchaseCost, amount: 'Rs 120,000', percentage: '78%'),
+                  ExpenseItem(name: loc.transport, amount: 'Rs 5,000', percentage: '3.2%'),
+                  ExpenseItem(name: loc.labor, amount: 'Rs 3,000', percentage: '1.9%'),
+                  ExpenseItem(name: loc.otherExpenses, amount: 'Rs 2,000', percentage: '1.3%'),
+                  const SizedBox(height: 10),
+                  const Divider(),
+                  ExpenseItem(name: loc.totalExpenses, amount: 'Rs 130,000', percentage: '84.4%'),
                 ],
               ),
             ),
@@ -417,30 +380,28 @@ class PurchaseReportTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.shopping_cart,
-            size: 100,
-            color: Colors.blue,
-          ),
+          const Icon(Icons.shopping_cart, size: 100, color: Colors.blue),
           const SizedBox(height: 20),
-          const Text(
-            'خریداری رپورٹ',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          Text(
+            loc.purchaseReport,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          const Text(
-            'یہاں آپ کی تمام خریداری نظر آئے گی',
-            style: TextStyle(color: Colors.grey),
+          Text(
+            loc.purchaseHistoryNote,
+            style: const TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 30),
           ElevatedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.download),
-            label: const Text('رپورٹ ڈاؤنلوڈ کریں'),
+            label: Text(loc.downloadReport),
           ),
         ],
       ),
@@ -454,44 +415,46 @@ class CustomerReportTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SingleChildScrollView(
-      padding: EdgeInsets.all(16),
+    final loc = AppLocalizations.of(context)!;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           // Outstanding Summary
           Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   Text(
-                    'کسٹمر بیلنس کا خلاصہ',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    loc.customerBalanceSummary,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
                         child: SummaryCard(
-                          title: 'کل بیلنس',
+                          title: loc.totalBalance,
                           value: 'Rs 45,200',
                           color: Colors.red,
                           icon: Icons.money_off,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: SummaryCard(
-                          title: 'کسٹمرز',
+                          title: loc.customers,
                           value: '24',
                           color: Colors.blue,
                           icon: Icons.people,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: SummaryCard(
-                          title: 'اوسط بیلنس',
+                          title: loc.avgBalance,
                           value: 'Rs 1,883',
                           color: Colors.orange,
                           icon: Icons.calculate,
@@ -504,63 +467,51 @@ class CustomerReportTab extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           // Aging Analysis
           Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'بیلنس ایجنگ',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    loc.balanceAging,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  SizedBox(height: 10),
-                  AgingItem(days: '0-30 دن', amount: 'Rs 25,000', color: Colors.green),
-                  AgingItem(days: '31-60 دن', amount: 'Rs 12,000', color: Colors.yellow),
-                  AgingItem(days: '61-90 دن', amount: 'Rs 5,200', color: Colors.orange),
-                  AgingItem(days: '90+ دن', amount: 'Rs 3,000', color: Colors.red),
-                  SizedBox(height: 10),
-                  Divider(),
-                  AgingItem(days: 'کل', amount: 'Rs 45,200', color: Colors.blue),
+                  const SizedBox(height: 10),
+                  AgingItem(days: '0-30 ${loc.days}', amount: 'Rs 25,000', color: Colors.green),
+                  AgingItem(days: '31-60 ${loc.days}', amount: 'Rs 12,000', color: Colors.yellow),
+                  AgingItem(days: '61-90 ${loc.days}', amount: 'Rs 5,200', color: Colors.orange),
+                  AgingItem(days: '90+ ${loc.days}', amount: 'Rs 3,000', color: Colors.red),
+                  const SizedBox(height: 10),
+                  const Divider(),
+                  AgingItem(days: loc.total, amount: 'Rs 45,200', color: Colors.blue),
                 ],
               ),
             ),
           ),
 
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
 
           // Top Customers
           Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'سب سے زیادہ بیلنس والے کسٹمرز',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    loc.topCustomersBalance,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   CustomerBalanceItem(
-                    name: 'علی خان',
+                    name: 'Ali Khan',
                     balance: 'Rs 12,500',
                     phone: '0300-1111111',
-                    days: '15 دن',
-                  ),
-                  CustomerBalanceItem(
-                    name: 'سامی احمد',
-                    balance: 'Rs 8,200',
-                    phone: '0321-2222222',
-                    days: '8 دن',
-                  ),
-                  CustomerBalanceItem(
-                    name: 'رحیم ڈیپو',
-                    balance: 'Rs 6,500',
-                    phone: '0333-3333333',
-                    days: '25 دن',
+                    days: '15 ${loc.daysOld}',
                   ),
                 ],
               ),
@@ -578,44 +529,46 @@ class StockReportTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           // Stock Value Summary
-          const Card(
+          Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   Text(
-                    'اسٹاک ویلیو کا خلاصہ',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    loc.stockValueSummary,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
                         child: SummaryCard(
-                          title: 'کل اسٹاک ویلیو',
+                          title: loc.totalStockValue,
                           value: 'Rs 450,000',
                           color: Colors.green,
                           icon: Icons.warehouse,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: SummaryCard(
-                          title: 'کل آئٹمز',
+                          title: loc.totalItems,
                           value: '145',
                           color: Colors.blue,
                           icon: Icons.inventory,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: SummaryCard(
-                          title: 'اوسط قیمت',
+                          title: loc.avgPrice,
                           value: 'Rs 3,103',
                           color: Colors.orange,
                           icon: Icons.calculate,
@@ -631,40 +584,22 @@ class StockReportTab extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Category-wise Stock
-          const Card(
+          Card(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'کیٹیگری کے لحاظ سے اسٹاک',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    loc.stockByCategory,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
-                  SizedBox(height: 10),
-                  StockCategoryItem(
-                    category: 'چاول',
+                  const SizedBox(height: 10),
+                  const StockCategoryItem(
+                    category: 'Rice',
                     value: 'Rs 150,000',
                     items: '12',
                     percentage: '33%',
-                  ),
-                  StockCategoryItem(
-                    category: 'دالیں',
-                    value: 'Rs 85,000',
-                    items: '18',
-                    percentage: '19%',
-                  ),
-                  StockCategoryItem(
-                    category: 'تیل اور گھی',
-                    value: 'Rs 75,000',
-                    items: '8',
-                    percentage: '17%',
-                  ),
-                  StockCategoryItem(
-                    category: 'مصالحے',
-                    value: 'Rs 65,000',
-                    items: '25',
-                    percentage: '14%',
                   ),
                 ],
               ),
@@ -685,9 +620,9 @@ class StockReportTab extends StatelessWidget {
                     children: [
                       const Icon(Icons.warning, color: Colors.red),
                       const SizedBox(width: 8),
-                      const Text(
-                        'کم اسٹاک آئٹمز',
-                        style: TextStyle(
+                      Text(
+                        loc.lowStockItems,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: Colors.red,
@@ -697,28 +632,16 @@ class StockReportTab extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        child: const Text('مکمل رپورٹ'),
+                        child: Text(loc.fullReport),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
                   const LowStockItem(
-                    name: 'چاول',
+                    name: 'Rice',
                     current: '5 KG',
                     min: '50 KG',
                     difference: '-45 KG',
-                  ),
-                  const LowStockItem(
-                    name: 'چینی',
-                    current: '8 KG',
-                    min: '30 KG',
-                    difference: '-22 KG',
-                  ),
-                  const LowStockItem(
-                    name: 'تیل',
-                    current: '3 لیٹر',
-                    min: '20 لیٹر',
-                    difference: '-17 لیٹر',
                   ),
                 ],
               ),
@@ -763,18 +686,9 @@ class SummaryCard extends StatelessWidget {
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey), textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -802,19 +716,9 @@ class ProfitCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
+            Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
             const SizedBox(height: 4),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 12),
-            ),
+            Text(title, style: const TextStyle(fontSize: 12), textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -840,17 +744,12 @@ class ExpenseItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Expanded(
-            child: Text(name),
-          ),
+          Expanded(child: Text(name)),
           Text(amount),
           const SizedBox(width: 20),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(4),
-            ),
+            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(4)),
             child: Text(percentage),
           ),
         ],
@@ -877,22 +776,10 @@ class AgingItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
+          Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
           const SizedBox(width: 10),
-          Expanded(
-            child: Text(days),
-          ),
-          Text(
-            amount,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          Expanded(child: Text(days)),
+          Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -922,47 +809,25 @@ class CustomerBalanceItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Icon(Icons.person, color: Colors.red, size: 20),
-              ),
+              width: 40, height: 40,
+              decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+              child: const Center(child: Icon(Icons.person, color: Colors.red, size: 20)),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    phone,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
+                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(phone, style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  balance,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-                Text(
-                  '$days پرانا',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
+                Text(balance, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+                Text(days, style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ],
             ),
           ],
@@ -988,23 +853,19 @@ class StockCategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Expanded(
-            child: Text(category),
-          ),
-          Text('$items آئٹمز'),
+          Expanded(child: Text(category)),
+          Text('$items ${loc.items}'),
           const SizedBox(width: 20),
           Text(value),
           const SizedBox(width: 20),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(4),
-            ),
+            decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(4)),
             child: Text(percentage),
           ),
         ],
@@ -1029,6 +890,7 @@ class LowStockItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       color: Colors.white,
@@ -1038,24 +900,16 @@ class LowStockItem extends StatelessWidget {
           children: [
             const Icon(Icons.warning, size: 16, color: Colors.red),
             const SizedBox(width: 8),
-            Expanded(
-              child: Text(name),
-            ),
+            Expanded(child: Text(name)),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('موجودہ: $current'),
-                Text('ضرورت: $min'),
+                Text('${loc.current}: $current'),
+                Text('${loc.required}: $min'),
               ],
             ),
             const SizedBox(width: 12),
-            Text(
-              difference,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.red,
-              ),
-            ),
+            Text(difference, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
           ],
         ),
       ),

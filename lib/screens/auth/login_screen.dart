@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart'; // Import the localizations delegate
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,6 +22,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Helper to access localizations easier
+    final localizations = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center( 
@@ -37,15 +41,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Icon(Icons.store, size: 80, color: Colors.green[700]),
                   const SizedBox(height: 20),
-                  Text('لیاقت کریانہ اسٹور', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green[700])),
+                  // UPDATED: Use localized app title
+                  Text(
+                    localizations.appTitle, 
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green[700]),
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 5),
-                  Text('POS System', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+                  // UPDATED: Use localized POS system label
+                  Text(
+                    localizations.posSystem, 
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  ),
                   const SizedBox(height: 30),
                   TextField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
-                      labelText: 'پاسورڈ',
+                      // UPDATED: Use localized password label
+                      labelText: localizations.password,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
@@ -72,11 +86,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      child: const Text('لاگ ان', style: TextStyle(fontSize: 18)),
+                      // UPDATED: Use localized Login button text
+                      child: Text(localizations.login, style: const TextStyle(fontSize: 18)),
                     ),
                   ),
                   const SizedBox(height: 15),
-                  TextButton(onPressed: () {}, child: const Text('پاسورڈ بھول گئے؟')),
+                  // UPDATED: Use localized Forgot Password text
+                  TextButton(
+                    onPressed: () {}, 
+                    child: Text(localizations.forgotPassword),
+                  ),
                 ],
               ),
             ),
