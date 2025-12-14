@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
-import '../../main.dart'; // 2. Import Main for Language Switching
+import '../../main.dart'; 
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -28,7 +28,6 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    // Access localization
     final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
@@ -67,7 +66,7 @@ class ShopProfileTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!; // Helper
+    final loc = AppLocalizations.of(context)!;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -130,17 +129,17 @@ class ShopProfileTab extends StatelessWidget {
                       border: const OutlineInputBorder(),
                       hintText: 'Liaqat Kiryana Store',
                     ),
-                    initialValue: 'Liaqat Kiryana Store',
+                    initialValue: loc.shopNamePlaceholder, // Localized
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: loc.address,
                       border: const OutlineInputBorder(),
-                      hintText: 'Lahore, Pakistan',
+                      hintText: loc.addressPlaceholder, // Localized
                     ),
                     maxLines: 2,
-                    initialValue: 'Lahore, Pakistan',
+                    initialValue: loc.addressPlaceholder,
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
@@ -188,6 +187,8 @@ class BackupTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final now = DateTime.now();
+    final dateStr = "${now.day}-${now.month}-${now.year}";
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -212,7 +213,7 @@ class BackupTab extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.history, color: Colors.teal),
                     title: Text(loc.lastBackup),
-                    subtitle: const Text('29 Nov 2025, 10:30 PM'),
+                    subtitle: Text('$dateStr, 10:30 PM'),
                   ),
                 ],
               ),
@@ -276,8 +277,7 @@ class BackupTab extends StatelessWidget {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  const BackupItem(fileName: 'store_20251129.db', date: '29 Nov 2025', size: '45 MB'),
-                  const BackupItem(fileName: 'store_20251128.db', date: '28 Nov 2025', size: '44 MB'),
+                  BackupItem(fileName: 'store_$dateStr.db', date: dateStr, size: '45 MB'),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -339,22 +339,27 @@ class ReceiptTab extends StatelessWidget {
                   const Divider(),
                   const SizedBox(height: 10),
                   Text(loc.fontSize),
-                  DropdownButton(
+                  // Fix: Localized Dropdown Display
+                  DropdownButton<String>(
                     value: 'Medium',
                     isExpanded: true,
-                    items: const ['Small', 'Medium', 'Large']
-                        .map((size) => DropdownMenuItem(value: size, child: Text(size)))
-                        .toList(),
+                    items: [
+                      DropdownMenuItem(value: 'Small', child: Text(loc.small)),
+                      DropdownMenuItem(value: 'Medium', child: Text(loc.medium)),
+                      DropdownMenuItem(value: 'Large', child: Text(loc.large)),
+                    ],
                     onChanged: (value) {},
                   ),
                   const SizedBox(height: 10),
                   Text(loc.paperWidth),
-                  DropdownButton(
+                  DropdownButton<String>(
                     value: '58mm',
                     isExpanded: true,
-                    items: const ['58mm', '80mm', 'A4']
-                        .map((width) => DropdownMenuItem(value: width, child: Text(width)))
-                        .toList(),
+                    items: [
+                      DropdownMenuItem(value: '58mm', child: Text(loc.paper58)),
+                      DropdownMenuItem(value: '80mm', child: Text(loc.paper80)),
+                      DropdownMenuItem(value: 'A4', child: Text(loc.paperA4)),
+                    ],
                     onChanged: (value) {},
                   ),
                 ],
@@ -374,12 +379,15 @@ class ReceiptTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(loc.selectPrinter),
-                  DropdownButton(
+                  DropdownButton<String>(
                     value: 'USB Thermal',
                     isExpanded: true,
-                    items: const ['Default', 'USB Thermal', 'Network', 'PDF']
-                        .map((printer) => DropdownMenuItem(value: printer, child: Text(printer)))
-                        .toList(),
+                    items: [
+                      DropdownMenuItem(value: 'Default', child: Text(loc.printerDefault)),
+                      DropdownMenuItem(value: 'USB Thermal', child: Text(loc.printerUsb)),
+                      DropdownMenuItem(value: 'Network', child: Text(loc.printerNetwork)),
+                      DropdownMenuItem(value: 'PDF', child: Text(loc.printerPdf)),
+                    ],
                     onChanged: (value) {},
                   ),
                   const SizedBox(height: 10),
@@ -401,7 +409,7 @@ class ReceiptTab extends StatelessWidget {
   }
 }
 
-// ==================== 4. Preferences Tab (Language Switch) ====================
+// ==================== 4. Preferences Tab ====================
 class PreferencesTab extends StatelessWidget {
   const PreferencesTab({super.key});
 
@@ -409,7 +417,6 @@ class PreferencesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     
-    // Determine current dropdown value
     final String currentLangCode = Localizations.localeOf(context).languageCode;
     String dropdownValue = currentLangCode == 'ur' ? 'اردو' : 'English';
 
@@ -525,12 +532,15 @@ class PreferencesTab extends StatelessWidget {
                   OptionSwitch(title: loc.enableAutoBackup),
                   const SizedBox(height: 10),
                   Text(loc.frequency),
-                  DropdownButton(
+                  // Fix: Localized Dropdown
+                  DropdownButton<String>(
                     value: 'Daily',
                     isExpanded: true,
-                    items: const ['Daily', 'Weekly', 'Monthly']
-                        .map((freq) => DropdownMenuItem(value: freq, child: Text(freq)))
-                        .toList(),
+                    items: [
+                      DropdownMenuItem(value: 'Daily', child: Text(loc.daily)),
+                      DropdownMenuItem(value: 'Weekly', child: Text(loc.weekly)),
+                      DropdownMenuItem(value: 'Monthly', child: Text(loc.monthly)),
+                    ],
                     onChanged: (value) {},
                   ),
                 ],
@@ -613,7 +623,7 @@ class AboutTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '${loc.developedBy}: Your Team',
+                    '${loc.developedBy}: Smart Khata Technologies',
                     style: const TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],
@@ -635,7 +645,7 @@ class AboutTab extends StatelessWidget {
                   const SizedBox(height: 10),
                   InfoItem(label: loc.dbVersion, value: '1.0'),
                   InfoItem(label: loc.totalItems, value: '145'),
-                  InfoItem(label: loc.totalCustomers, value: '45'), // Ensure key 'totalCustomers' exists or use generic
+                  InfoItem(label: loc.totalCustomers, value: '45'),
                   InfoItem(label: loc.totalSuppliers, value: '12'),
                   InfoItem(label: loc.appUptime, value: '15d 2h'),
                   InfoItem(label: loc.lastLogin, value: 'Today 08:00 AM'),
@@ -695,12 +705,12 @@ class AboutTab extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.email),
                     title: Text(loc.email),
-                    subtitle: const Text('support@liaqatkiryanastore.com'),
+                    subtitle: const Text('hussainshahzad350@gmail.com'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.phone),
                     title: Text(loc.phone),
-                    subtitle: const Text('0300-1234567'),
+                    subtitle: const Text('0310-4523235'),
                   ),
                   SizedBox(
                     width: double.infinity,
@@ -716,7 +726,7 @@ class AboutTab extends StatelessWidget {
             color: Colors.grey[50],
             child: Center(
               child: Text(
-                '© 2025 ${loc.appTitle}. ${loc.allRightsReserved}',
+                '© ${DateTime.now().year} ${loc.appTitle}. ${loc.allRightsReserved}',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),

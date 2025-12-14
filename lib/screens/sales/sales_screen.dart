@@ -42,64 +42,6 @@ class _SalesScreenState extends State<SalesScreen> {
   // --- Settings ---
   bool isSoundOn = true;
 
-  // This helper makes your code cleaner
-String tr(String key) {
-    // This fetches the actual Urdu/English text based on the user's choice
-    final loc = AppLocalizations.of(context)!;
-    
-    switch (key) {
-      case 'posTitle': return loc.posTitle;
-      case 'searchItemHint': return loc.searchItemHint;
-      case 'searchCustomerHint': return loc.searchCustomerHint;
-      case 'walkInCustomer': return loc.walkInCustomer;
-      case 'cartEmpty': return loc.cartEmpty;
-      case 'totalItems': return loc.totalItems;
-      case 'subtotal': return loc.subtotal;
-      case 'prevBalance': return loc.prevBalance;
-      case 'grandTotal': return loc.grandTotal;
-      case 'checkoutButton': return loc.checkoutButton;
-      case 'recentSales': return loc.recentSales;
-      case 'billTotal': return loc.billTotal;
-      case 'paymentLabel': return loc.paymentLabel;
-      case 'cashInput': return loc.cashInput;
-      case 'bankInput': return loc.bankInput;
-      case 'creditInput': return loc.creditInput;
-      case 'confirmSale': return loc.confirmSale;
-      case 'cancel': return loc.cancel;
-      case 'clearCartTitle': return loc.clearCartTitle;
-      case 'clearCartMsg': return loc.clearCartMsg;
-      case 'clearAll': return loc.clearAll;
-      case 'unsavedTitle': return loc.unsavedTitle;
-      case 'unsavedMsg': return loc.unsavedMsg;
-      case 'exit': return loc.exit;
-      case 'addNewCustomer': return loc.addNewCustomer;
-      case 'nameEnglish': return loc.nameEnglish;
-      case 'nameUrdu': return loc.nameUrdu;
-      case 'phoneNum': return loc.phoneNum;
-      case 'address': return loc.address;
-      case 'creditLimit': return loc.creditLimit;
-      case 'saveSelect': return loc.saveSelect;
-      case 'price': return loc.price;
-      case 'qty': return loc.qty;
-      case 'stock': return loc.stock;
-      case 'currBal': return loc.currBal;
-      case 'changeReturn': return loc.changeReturn;
-      case 'insufficientPayment': return loc.insufficientPayment;
-      case 'paymentMatch': return loc.paymentMatch;
-      case 'deleteBillTitle': return loc.deleteBillTitle;
-      case 'deleteBillMsg': return loc.deleteBillMsg;
-      case 'delete': return loc.delete;
-      case 'saleCompleted': return loc.saleCompleted;
-      case 'error': return loc.error;
-      case 'nameRequired': return loc.nameRequired;
-      case 'phoneRequired': return loc.phoneRequired;
-      case 'phoneExists': return loc.phoneExists;
-      case 'customerAdded': return loc.customerAdded;
-      default: return key;
-      
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -119,20 +61,23 @@ String tr(String key) {
 
   // --- WillPopScope for back button warning ---
   Future<bool> _onWillPop() async {
+    // Access localization directly
+    final loc = AppLocalizations.of(context)!;
+
     if (cartItems.isNotEmpty) {
       final bool? shouldExit = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(tr('unsavedTitle')),
-          content: Text(tr('unsavedMsg')),
+          title: Text(loc.unsavedTitle),
+          content: Text(loc.unsavedMsg),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text(tr('cancel')),
+              child: Text(loc.cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text(tr('exit'), style: const TextStyle(color: Colors.red)),
+              child: Text(loc.exit, style: const TextStyle(color: Colors.red)),
             ),
           ],
         ),
@@ -174,7 +119,11 @@ String tr(String key) {
   }
 
   Future<void> _loadRecentSales() async {
+    if (!mounted) return;
+    final loc = AppLocalizations.of(context)!;
     final db = await DatabaseHelper.instance.database;
+    
+    // Note: We inject the translated "Walk-in Customer" string into the query result if name is null
     final result = await db.rawQuery('''
       SELECT 
         s.id, 
@@ -186,7 +135,7 @@ String tr(String key) {
         s.credit_amount,
         s.total_paid,
         s.remaining_balance,
-        COALESCE(c.name_english, '${tr('walkInCustomer')}') as customer_name,
+        COALESCE(c.name_english, '${loc.walkInCustomer}') as customer_name,
         c.outstanding_balance as customer_balance
       FROM sales s
       LEFT JOIN customers c ON s.customer_id = c.id
@@ -251,6 +200,8 @@ String tr(String key) {
 
   // Quick Add Customer
   void _showAddCustomerDialog() {
+    final loc = AppLocalizations.of(context)!;
+    
     final nameEngCtrl = TextEditingController();
     final nameUrduCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
@@ -260,32 +211,32 @@ String tr(String key) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(tr('addNewCustomer')),
+        title: Text(loc.addNewCustomer),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameEngCtrl, decoration: InputDecoration(labelText: tr('nameEnglish'))),
-              TextField(controller: nameUrduCtrl, decoration: InputDecoration(labelText: tr('nameUrdu'))),
-              TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: tr('phoneNum'))),
-              TextField(controller: addressCtrl, decoration: InputDecoration(labelText: tr('address'))),
-              TextField(controller: creditLimitCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: tr('creditLimit'))),
+              TextField(controller: nameEngCtrl, decoration: InputDecoration(labelText: loc.nameEnglish)),
+              TextField(controller: nameUrduCtrl, decoration: InputDecoration(labelText: loc.nameUrdu)),
+              TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: loc.phoneNum)),
+              TextField(controller: addressCtrl, decoration: InputDecoration(labelText: loc.address)),
+              TextField(controller: creditLimitCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: loc.creditLimit)),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('cancel'))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
             onPressed: () async {
-              // 1. Validation (Translated)
+              // 1. Validation 
               if (nameEngCtrl.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('nameRequired'))));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.nameRequired)));
                 return;
               }
               String phoneNumber = phoneCtrl.text.trim();
               if (phoneNumber.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('phoneRequired'))));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.phoneRequired)));
                 return;
               }
 
@@ -293,11 +244,11 @@ String tr(String key) {
                 final db = await DatabaseHelper.instance.database;
                 final existingUser = await db.query('customers', where: 'contact_primary = ?', whereArgs: [phoneNumber]);
 
-                // 2. Check Exists (Translated)
+                // 2. Check Exists
                 if (existingUser.isNotEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${tr('phoneExists')}: "$phoneNumber"'), 
+                      content: Text('${loc.phoneExists}: "$phoneNumber"'), 
                       backgroundColor: Colors.red
                     )
                   );
@@ -323,19 +274,19 @@ String tr(String key) {
                   Navigator.of(context).pop();
                   await _loadCustomers();
                   
-                  // 3. Success Message (Translated)
+                  // 3. Success Message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("${tr('customerAdded')}: '${nameEngCtrl.text}'"), 
+                      content: Text("${loc.customerAdded}: '${nameEngCtrl.text}'"), 
                       backgroundColor: Colors.green
                     )
                   );
                 }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${tr('error')}: $e'), backgroundColor: Colors.red));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e'), backgroundColor: Colors.red));
               }
             },
-            child: Text(tr('saveSelect')),
+            child: Text(loc.saveSelect),
           ),
         ],
       ),
@@ -407,24 +358,26 @@ String tr(String key) {
   }
 
   void _clearCart() {
+    final loc = AppLocalizations.of(context)!;
+
     if (cartItems.isEmpty) return;
     
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(tr('clearCartTitle')),
-        content: Text(tr('clearCartMsg')),
+        title: Text(loc.clearCartTitle),
+        content: Text(loc.clearCartMsg),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(tr('cancel')),
+            child: Text(loc.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _performClearCart();
             },
-            child: Text(tr('clearAll'), style: const TextStyle(color: Colors.red)),
+            child: Text(loc.clearAll, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -455,6 +408,8 @@ String tr(String key) {
   void _showCheckoutDialog() {
     if (cartItems.isEmpty) return;
     
+    final loc = AppLocalizations.of(context)!;
+    
     bool isRegistered = selectedCustomerId != null;
     double billTotal = grandTotal;
     double oldBalance = previousBalance;
@@ -476,9 +431,9 @@ String tr(String key) {
             
             double cash = double.tryParse(cashCtrl.text) ?? 0.0;
             double bank = double.tryParse(bankCtrl.text) ?? 0.0;
-            double credit = double.tryParse(creditCtrl.text) ?? 0.0;
+            // double credit = double.tryParse(creditCtrl.text) ?? 0.0; // Unused variable warning fix
             
-            double totalPayment = cash + bank + (isRegistered ? credit : 0);
+            double totalPayment = cash + bank + (isRegistered ? (double.tryParse(creditCtrl.text) ?? 0.0) : 0);
             double change = 0.0;
             bool isValid = false;
             
@@ -500,7 +455,7 @@ String tr(String key) {
                   children: [
                     const Icon(Icons.shopping_cart, color: Colors.white),
                     const SizedBox(width: 10),
-                    Text(tr('checkoutButton'), style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(loc.checkoutButton, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 )
               ),
@@ -514,7 +469,7 @@ String tr(String key) {
                     children: [
                       // Customer Info
                       if (isRegistered) ...[
-                        Text('${tr('searchCustomerHint')}: ${selectedCustomerMap!['name_english']}', 
+                        Text('${loc.searchCustomerHint}: ${selectedCustomerMap!['name_english']}', 
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 5),
                         Container(
@@ -524,20 +479,20 @@ String tr(String key) {
                             children: [
                               const Icon(Icons.info_outline, size: 16, color: Colors.orange),
                               const SizedBox(width: 5),
-                              Text('${tr('prevBalance')}: Rs ${oldBalance.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13)),
+                              Text('${loc.prevBalance}: Rs ${oldBalance.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13)),
                             ],
                           ),
                         ),
                         const Divider(height: 20),
                       ],
                       
-                      _row(tr('billTotal'), 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18),
+                      _row(loc.billTotal, 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18),
                       const Divider(),
                       const SizedBox(height: 10),
-                      Text(tr('paymentLabel'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(loc.paymentLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(height: 10),
                       
-                      _input(tr('cashInput'), cashCtrl, (v) {
+                      _input(loc.cashInput, cashCtrl, (v) {
                         setDialogState(() {
                           if (isRegistered) {
                             double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
@@ -546,7 +501,7 @@ String tr(String key) {
                         });
                       }),
                       
-                      _input(tr('bankInput'), bankCtrl, (v) {
+                      _input(loc.bankInput, bankCtrl, (v) {
                         setDialogState(() {
                           if (isRegistered) {
                             double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
@@ -556,7 +511,7 @@ String tr(String key) {
                       }),
                       
                       if (isRegistered)
-                        _input(tr('creditInput'), creditCtrl, (v) { setDialogState(() {}); }, enabled: false),
+                        _input(loc.creditInput, creditCtrl, (v) { setDialogState(() {}); }, enabled: false),
                       
                       const Divider(thickness: 2, height: 30),
                       
@@ -585,7 +540,7 @@ String tr(String key) {
                                   Icon(isValid ? Icons.check_circle : Icons.cancel, size: 16, color: isValid ? Colors.green : Colors.red),
                                   const SizedBox(width: 5),
                                   Text(
-                                    isValid ? tr('paymentMatch') : tr('insufficientPayment'),
+                                    isValid ? loc.paymentMatch : loc.insufficientPayment,
                                     style: TextStyle(fontSize: 12, color: isValid ? Colors.green[700] : Colors.red[700]),
                                   ),
                                 ],
@@ -595,13 +550,13 @@ String tr(String key) {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(tr('changeReturn'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    Text(loc.changeReturn, style: const TextStyle(fontWeight: FontWeight.bold)),
                                     Text('Rs ${change.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green[700])),
                                   ],
                                 ),
                               if (!isValid)
                                 Text(
-                                  '${tr('insufficientPayment')} (Need Rs ${(billTotal - totalPayment).toStringAsFixed(0)})',
+                                  '${loc.insufficientPayment} (Need Rs ${(billTotal - totalPayment).toStringAsFixed(0)})',
                                   style: const TextStyle(fontSize: 12, color: Colors.red),
                                 ),
                             ],
@@ -613,7 +568,7 @@ String tr(String key) {
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: Text(tr('cancel'), style: const TextStyle(color: Colors.grey))),
+                TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel, style: const TextStyle(color: Colors.grey))),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isValid ? Colors.green[700] : Colors.grey,
@@ -621,9 +576,9 @@ String tr(String key) {
                   ),
                   onPressed: isValid ? () {
                     Navigator.pop(context);
-                    _processSale(cash, bank, isRegistered ? credit : 0.0);
+                    _processSale(cash, bank, isRegistered ? (double.tryParse(creditCtrl.text) ?? 0.0) : 0.0);
                   } : null,
-                  child: Text(tr('confirmSale'), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: Text(loc.confirmSale, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             );
@@ -676,83 +631,65 @@ String tr(String key) {
 
   // --- Process Sale ---
   Future<void> _processSale(double cash, double bank, double credit) async {
-    final db = await DatabaseHelper.instance.database;
-    final now = DateTime.now();
+    final loc = AppLocalizations.of(context)!;
+    
+    // 1. Prepare Data
+    final Map<String, dynamic> saleData = {
+      'customer_id': selectedCustomerId,
+      'grand_total': grandTotal,
+      'discount': 0.0,
+      
+      // FIX: Pass the Payment Breakdown
+      'cash_amount': cash,
+      'bank_amount': bank,
+      // We don't necessarily need 'credit' input here because 
+      // the DB will calculate (Total - Cash - Bank). 
+      // But passing it is fine for record keeping.
+      'credit_amount': credit, 
 
-    double totalPaid = cash + bank;
-    double remainingBalance = grandTotal - totalPaid; 
+      'items': cartItems.map((item) {
+         return {
+           'id': item['id'],
+           'quantity': item['quantity'],
+           'sale_price': item['unit_price'],
+           'total': item['total'],
+         };
+      }).toList(),
+    };
 
     try {
-      final lastIdRes = await db.rawQuery('SELECT MAX(id) as max_id FROM sales');
-      int nextId = 1;
-      if (lastIdRes.isNotEmpty && lastIdRes.first['max_id'] != null) {
-        nextId = (lastIdRes.first['max_id'] as int) + 1;
-      }
-      String billNo = 'SB-${nextId.toString().padLeft(6, '0')}';
-      
-      int saleId = await db.insert('sales', {
-        'bill_number': billNo,
-        'customer_id': selectedCustomerId,
-        'sale_date': now.toIso8601String().split('T')[0],
-        'sale_time': '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-        'grand_total': grandTotal,
-        'cash_amount': cash,
-        'bank_amount': bank,
-        'credit_amount': credit,
-        'total_paid': totalPaid,
-        'remaining_balance': remainingBalance,
-        'created_at': now.toIso8601String(),
-      });
-      
-      await db.transaction((txn) async {
-        for (var item in cartItems) {
-          await txn.insert('sale_items', {
-            'sale_id': saleId,
-            'product_id': item['id'],
-            'quantity_sold': item['quantity'],
-            'unit_price': item['unit_price'],
-            'total_price': item['total'],
-            'created_at': now.toIso8601String()
-          });
-          
-          await txn.rawUpdate(
-            'UPDATE products SET current_stock = current_stock - ? WHERE id = ?',
-            [item['quantity'], item['id']]
-          );
-        }
-        
-        if (selectedCustomerId != null && credit > 0) {
-          await txn.rawUpdate(
-            'UPDATE customers SET outstanding_balance = outstanding_balance + ? WHERE id = ?',
-            [credit, selectedCustomerId]
-          );
-        }
-      });
+      await DatabaseHelper.instance.createSale(saleData);
       
       _performClearCart();
       await _refreshAllData();
       
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${tr('saleCompleted')} $billNo'), backgroundColor: Colors.green));
-      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.saleCompleted), backgroundColor: Colors.green));
+      }
     } catch (e) {
       print('Error processing sale: $e');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${tr('error')}: $e'), backgroundColor: Colors.red));
+      if (mounted) {
+        final cleanError = e.toString().replaceAll("Exception: ", "");
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $cleanError'), backgroundColor: Colors.red));
+      }
     }
   }
 
   // --- Delete Sale ---
   Future<void> _deleteSale(int id, String billNumber) async {
+    final loc = AppLocalizations.of(context)!;
+    
     bool? confirm = await showDialog(
       context: context, 
       builder: (c) => AlertDialog(
-        title: Text(tr('deleteBillTitle')), 
-        content: Text(tr('deleteBillMsg')), 
+        title: Text(loc.deleteBillTitle), 
+        content: Text(loc.deleteBillMsg), 
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('No')), 
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(loc.cancel)), // Use loc.cancel
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red), 
             onPressed: () => Navigator.pop(c, true), 
-            child: Text(tr('delete'), style: const TextStyle(color: Colors.white))
+            child: Text(loc.delete, style: const TextStyle(color: Colors.white))
           )
         ]
       )
@@ -770,6 +707,7 @@ String tr(String key) {
       final itemsRes = await db.query('sale_items', where: 'sale_id = ?', whereArgs: [id]);
 
       await db.transaction((txn) async {
+        // 1. Restore Stock
         for (var item in itemsRes) {
           await txn.rawUpdate(
             'UPDATE products SET current_stock = current_stock + ? WHERE id = ?', 
@@ -777,29 +715,34 @@ String tr(String key) {
           );
         }
         
-        double credit = (sale['credit_amount'] as num?)?.toDouble() ?? 0.0;
-        if (sale['customer_id'] != null && credit > 0) {
+        // 2. Restore Customer Balance (THE FIX)
+        double remaining = (sale['remaining_balance'] as num?)?.toDouble() ?? 0.0;
+        if (sale['customer_id'] != null && remaining > 0) {
           await txn.rawUpdate(
             'UPDATE customers SET outstanding_balance = outstanding_balance - ? WHERE id = ?', 
-            [credit, sale['customer_id']]
+            [remaining, sale['customer_id']]
           );
         }
         
+        // 3. Delete Records
         await txn.delete('sale_items', where: 'sale_id = ?', whereArgs: [id]);
         await txn.delete('sales', where: 'id = ?', whereArgs: [id]);
       });
 
       await _refreshAllData();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bill deleted successfully'), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.bill} $billNumber ${loc.deletedSuccessfully}'), backgroundColor: Colors.green));
       
     } catch (e) { 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${tr('error')}: $e'), backgroundColor: Colors.red)); 
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e'), backgroundColor: Colors.red)); 
     }
   }
 
   // --- REFACTORED BUILD METHOD (RTL FIXES) ---
   @override
   Widget build(BuildContext context) {
+    // 1. Initialize Localization Helper
+    final loc = AppLocalizations.of(context)!;
+    
     // Determine if RTL is active for specific conditional logic if needed
     final bool isRTL = Directionality.of(context) == TextDirection.rtl;
 
@@ -807,7 +750,7 @@ String tr(String key) {
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(tr('posTitle')), 
+          title: Text(loc.posTitle), 
           backgroundColor: Colors.green[700],
           actions: [
             IconButton(icon: const Icon(Icons.refresh), onPressed: _refreshAllData), 
@@ -826,7 +769,7 @@ String tr(String key) {
                 TextField(
                   controller: productSearchController,
                   decoration: InputDecoration(
-                    hintText: tr('searchItemHint'), 
+                    hintText: loc.searchItemHint, 
                     // Prefix Icon logic handled automatically by Flutter's Start position
                     prefixIcon: const Icon(Icons.search), 
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
@@ -897,7 +840,7 @@ String tr(String key) {
                             ),
                             Text(product['name_english'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                             Text('Rs ${product['sale_price']}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
-                            Text('${tr('stock')}:${product['current_stock']}', style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+                            Text('${loc.stock}:${product['current_stock']}', style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
                           ]
                         )
                       ),
@@ -918,7 +861,7 @@ String tr(String key) {
                   width: double.infinity, 
                   // RTL Fix: centerLeft -> centerStart
                   alignment: AlignmentDirectional.centerStart,
-                  child: Text(tr('recentSales'), style: const TextStyle(fontWeight: FontWeight.bold))
+                  child: Text(loc.recentSales, style: const TextStyle(fontWeight: FontWeight.bold))
                 ),
                 Expanded(
                   child: ListView.separated(
@@ -934,7 +877,7 @@ String tr(String key) {
                           backgroundColor: Colors.green[100], 
                           child: Text('${index+1}', style: const TextStyle(fontSize: 10))
                         ),
-                        title: Text(sale['customer_name'] ?? tr('walkInCustomer'), style: const TextStyle(fontSize: 13)),
+                        title: Text(sale['customer_name'] ?? loc.walkInCustomer, style: const TextStyle(fontSize: 13)),
                         subtitle: Text('${sale['bill_number']}', style: const TextStyle(fontSize: 10)),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min, 
@@ -974,7 +917,7 @@ String tr(String key) {
                       child: TextField(
                         controller: customerSearchController,
                         decoration: InputDecoration(
-                          labelText: tr('searchCustomerHint'), 
+                          labelText: loc.searchCustomerHint, 
                           prefixIcon: const Icon(Icons.person_search), 
                           suffixIcon: selectedCustomerId != null ? IconButton(
                             icon: const Icon(Icons.clear), 
@@ -1025,7 +968,7 @@ String tr(String key) {
                             dense: true, 
                             title: Text(c['name_english'] ?? 'Unknown'), 
                             subtitle: Text('${c['contact_primary'] ?? ''}'), 
-                            trailing: Text('${tr('currBal')}: ${c['outstanding_balance']}'), 
+                            trailing: Text('${loc.currBal}: ${c['outstanding_balance']}'), 
                             onTap: () => _selectCustomer(c)
                           ); 
                         }
@@ -1044,7 +987,7 @@ String tr(String key) {
                         children: [
                           const Icon(Icons.shopping_cart, size: 50, color: Colors.grey),
                           const SizedBox(height: 10),
-                          Text(tr('cartEmpty'), style: const TextStyle(color: Colors.grey, fontSize: 16)),
+                          Text(loc.cartEmpty, style: const TextStyle(color: Colors.grey, fontSize: 16)),
                         ],
                       ),
                     )
@@ -1070,7 +1013,7 @@ String tr(String key) {
                                     overflow: TextOverflow.ellipsis
                                   ), 
                                   Text(
-                                    '${tr('stock')}: ${item['current_stock']}', 
+                                    '${loc.stock}: ${item['current_stock']}', 
                                     style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)
                                   ),
                                 ]
@@ -1088,7 +1031,7 @@ String tr(String key) {
                                   isDense: true, 
                                   contentPadding: const EdgeInsets.all(8), 
                                   border: const OutlineInputBorder(), 
-                                  labelText: tr('price'), 
+                                  labelText: loc.price, 
                                   labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
                                 ),
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), 
@@ -1108,7 +1051,7 @@ String tr(String key) {
                                   isDense: true, 
                                   contentPadding: const EdgeInsets.all(8), 
                                   border: const OutlineInputBorder(), 
-                                  labelText: tr('qty'), 
+                                  labelText: loc.qty, 
                                   labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
                                 ),
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), 
@@ -1148,14 +1091,14 @@ String tr(String key) {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
-                      Text(tr('totalItems')), 
+                      Text(loc.totalItems), 
                       Text('${cartItems.length}')
                     ]
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
-                      Text(tr('subtotal')), 
+                      Text(loc.subtotal), 
                       Text('Rs ${subtotal.toStringAsFixed(0)}')
                     ]
                   ),
@@ -1163,7 +1106,7 @@ String tr(String key) {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                       children: [
-                        Text(tr('prevBalance'), style: const TextStyle(color: Colors.orange, fontSize: 12)), 
+                        Text(loc.prevBalance, style: const TextStyle(color: Colors.orange, fontSize: 12)), 
                         Text('Rs ${previousBalance.toStringAsFixed(0)}', style: const TextStyle(color: Colors.orange, fontSize: 12))
                       ]
                     ),
@@ -1171,7 +1114,7 @@ String tr(String key) {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
-                      Text(tr('grandTotal'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), 
+                      Text(loc.grandTotal, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), 
                       Text(
                         'Rs ${grandTotal.toStringAsFixed(0)}', 
                         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)
@@ -1188,7 +1131,7 @@ String tr(String key) {
                         backgroundColor: Colors.green[700]
                       ), 
                       child: Text(
-                        tr('checkoutButton'), 
+                        loc.checkoutButton, 
                         style: const TextStyle(
                           fontSize: 16, 
                           fontWeight: FontWeight.bold, 

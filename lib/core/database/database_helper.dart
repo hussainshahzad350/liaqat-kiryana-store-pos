@@ -1,8 +1,7 @@
+// lib/core/database/database_helper.dart
 import 'dart:io';
 import 'package:path/path.dart';
 import '../utils/logger.dart';
-
-// Conditional import for FFI (Desktop support)
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseHelper {
@@ -27,6 +26,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
+    // Version 2 ensures migration logic runs if upgrading from a v1 schema
     return await openDatabase(
       path,
       version: 2, 
@@ -42,16 +42,20 @@ class DatabaseHelper {
     AppLogger.db('Database created successfully');
   }
 
-  // 🛠️ FIX: Proper Migration Logic (No Data Loss)
+  // 🛠️ Proper Migration Logic
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
     AppLogger.db('Upgrading database from v$oldVersion to v$newVersion');
     
-    // Migration Logic: Execute changes sequentially
     for (int i = oldVersion + 1; i <= newVersion; i++) {
       switch (i) {
         case 2:
-          // Example: If version 2 adds a 'email' column to customers
-          // await db.execute("ALTER TABLE customers ADD COLUMN email TEXT");
+          // ADDED: Columns needed for v2 features (e.g., reports, discounts)
+          if (!await _columnExists(db, 'customers', 'email')) {
+             await db.execute("ALTER TABLE customers ADD COLUMN email TEXT");
+          }
+          if (!await _columnExists(db, 'sales', 'discount')) {
+             await db.execute("ALTER TABLE sales ADD COLUMN discount REAL DEFAULT 0");
+          }
           AppLogger.db('Performed migration to v2');
           break;
         default:
@@ -59,6 +63,15 @@ class DatabaseHelper {
       }
     }
   }
+  
+  // Helper function to check if a column exists before adding it (prevents crashes)
+  Future<bool> _columnExists(Database db, String table, String column) async {
+    final result = await db.rawQuery(
+      "PRAGMA table_info($table)"
+    );
+    return result.any((map) => map['name'] == column);
+  }
+
 
   Future<void> _createTables(Database db) async {
     // 1. Shop Profile
@@ -129,6 +142,7 @@ class DatabaseHelper {
         credit_amount REAL NOT NULL DEFAULT 0.0,
         total_paid REAL NOT NULL DEFAULT 0.0,
         remaining_balance REAL NOT NULL DEFAULT 0.0,
+        discount REAL DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
         updated_at TEXT,
         FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
@@ -161,12 +175,15 @@ class DatabaseHelper {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
+
+    // 8. PERFORMANCE FIX: ADD INDEXES ON FOREIGN KEYS (Task 7 Fix)
+    await db.execute('CREATE INDEX idx_sales_customer ON sales(customer_id)');
+    await db.execute('CREATE INDEX idx_sale_items_sale ON sale_items(sale_id)');
+    await db.execute('CREATE INDEX idx_sale_items_product ON sale_items(product_id)');
   }
 
   Future<void> _insertSampleData(Database db) async {
     try {
-      // 🛠️ FIX: Use conflictAlgorithm to prevent crashes if data exists
-      
       // Shop Profile
       await db.insert('shop_profile', {
         'shop_name_urdu': 'لیاقت کریانہ اسٹور',
@@ -181,9 +198,8 @@ class DatabaseHelper {
         {'name_urdu': 'دال', 'name_english': 'Pulses'},
         {'name_urdu': 'تیل', 'name_english': 'Oil'},
       ];
-      
       for(var cat in categories) {
-         await db.insert('categories', cat, conflictAlgorithm: ConflictAlgorithm.ignore);
+          await db.insert('categories', cat, conflictAlgorithm: ConflictAlgorithm.ignore);
       }
 
       // Products
@@ -208,186 +224,225 @@ class DatabaseHelper {
         'outstanding_balance': 2500,
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      AppLogger.db('Sample data inserted (or skipped if duplicates found)');
+      await db.insert('suppliers', {
+        'name_english': 'Ali Traders',
+        'name_urdu': 'علی ٹریڈرز',
+        'contact_primary': '0321-0000001',
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      AppLogger.db('Sample data inserted');
     } catch (e) {
       AppLogger.error('Error inserting sample data: $e');
     }
   }
-
-  // --- Queries (Refactored with proper error logging) ---
-
+  
+  // =======================================================
+  //         DASHBOARD & REPORTS QUERIES (FIXED & ADDED)
+  // =======================================================
+  
+  // FIX: getTodaySales (Missing method fix)
   Future<double> getTodaySales() async {
     try {
       final db = await database;
       final today = DateTime.now().toIso8601String().split('T')[0];
       final result = await db.rawQuery(
-        'SELECT SUM(grand_total) as total FROM sales WHERE date(sale_date) = ?',
+        'SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ?',
         [today]
       );
       return (result.first['total'] as num?)?.toDouble() ?? 0.0;
     } catch (e) {
-      AppLogger.error("Error fetching today's sales", tag: 'DB');
+      AppLogger.error("Error fetching today's sales: $e", tag: 'DB');
       return 0.0;
     }
   }
 
+  // FIX: getTodayCustomers (Missing method fix)
   Future<List<Map<String, dynamic>>> getTodayCustomers() async {
-    final db = await database;
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    return await db.rawQuery('''
-      SELECT 
-        c.name_urdu, 
-        c.name_english, 
-        SUM(s.grand_total) as total_amount,
-        COUNT(s.id) as sale_count
-      FROM sales s
-      LEFT JOIN customers c ON s.customer_id = c.id
-      WHERE date(s.sale_date) = ? AND c.id IS NOT NULL
-      GROUP BY c.id
-      ORDER BY total_amount DESC
-      LIMIT 5
-    ''', [today]);
+    try {
+      final db = await database;
+      final today = DateTime.now().toIso8601String().split('T')[0];
+      return await db.rawQuery('''
+        SELECT 
+          c.name_urdu, 
+          c.name_english, 
+          SUM(s.grand_total) as total_amount,
+          COUNT(s.id) as sale_count
+        FROM sales s
+        LEFT JOIN customers c ON s.customer_id = c.id
+        WHERE s.sale_date = ? AND c.id IS NOT NULL
+        GROUP BY c.id
+        ORDER BY total_amount DESC
+        LIMIT 5
+      ''', [today]);
+    } catch (e) {
+       AppLogger.error("Error fetching today's customers: $e", tag: 'DB');
+       return [];
+    }
   }
 
+  // FIX: getLowStockItems (Missing method fix)
   Future<List<Map<String, dynamic>>> getLowStockItems() async {
-    final db = await database;
-    return await db.rawQuery('''
-      SELECT 
-        name_urdu, 
-        name_english, 
-        current_stock, 
-        min_stock_alert,
-        sale_price
-      FROM products 
-      WHERE current_stock > 0 AND current_stock <= min_stock_alert
-      ORDER BY (current_stock / min_stock_alert) ASC
-      LIMIT 5
-    ''');
+    try {
+      final db = await database;
+      return await db.rawQuery('''
+        SELECT 
+          name_urdu, 
+          name_english, 
+          current_stock, 
+          min_stock_alert,
+          sale_price
+        FROM products 
+        WHERE current_stock > 0 AND current_stock <= min_stock_alert
+        ORDER BY (current_stock / min_stock_alert) ASC
+        LIMIT 5
+      ''');
+    } catch (e) {
+      AppLogger.error("Error fetching low stock items: $e", tag: 'DB');
+      return [];
+    }
   }
 
+  // FIX: getRecentSales (Missing method fix)
   Future<List<Map<String, dynamic>>> getRecentSales() async {
-    final db = await database;
-    return await db.rawQuery('''
-      SELECT 
-        s.bill_number, 
-        s.grand_total, 
-        s.sale_time,
-        COALESCE(c.name_urdu, c.name_english, 'کیش') as customer_name
-      FROM sales s
-      LEFT JOIN customers c ON s.customer_id = c.id
-      ORDER BY s.created_at DESC
-      LIMIT 5
-    ''');
-  }
-
-  Future<List<Map<String, dynamic>>> getAllCustomers() async {
     try {
       final db = await database;
-      return await db.query('customers', orderBy: 'name_english ASC');
+      return await db.rawQuery('''
+        SELECT 
+          s.bill_number, 
+          s.grand_total, 
+          s.sale_time,
+          COALESCE(c.name_urdu, c.name_english, 'Walk-in Customer') as customer_name
+        FROM sales s
+        LEFT JOIN customers c ON s.customer_id = c.id
+        ORDER BY s.created_at DESC
+        LIMIT 5
+      ''');
     } catch (e) {
-      AppLogger.error('Error getting customers: $e', tag: 'DB');
+      AppLogger.error("Error fetching recent sales: $e", tag: 'DB');
       return [];
     }
   }
 
-  Future<void> addCustomer(Map<String, dynamic> customer) async {
-    try {
-      final db = await database;
-      await db.insert('customers', customer);
-      AppLogger.info('Customer added: ${customer['name_english']}', tag: 'DB');
-    } catch (e) {
-      AppLogger.error('Error adding customer: $e', tag: 'DB');
-      rethrow;
-    }
-  }
-
-  Future<int> getTotalCustomersCount() async {
-    final db = await database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM customers');
-    return (result.first['count'] as int?) ?? 0;
-  }
-
-  // --- 🆕 NEW METHODS FOR SALES SCREEN 🆕 ---
-
-  Future<List<Map<String, dynamic>>> getAllItems() async {
-    try {
-      final db = await database;
-      // Fetch products to be shown in POS
-      return await db.query('products', orderBy: 'name_english ASC');
-    } catch (e) {
-      AppLogger.error('Error getting items: $e', tag: 'DB');
-      return [];
-    }
-  }
-
-  // Alias for consistent naming if SalesScreen calls getCustomers()
-  Future<List<Map<String, dynamic>>> getCustomers() async {
-    return await getAllCustomers();
-  }
-
+  // =======================================================
+  //         CORE TRANSACTION & CRUD METHODS
+  // =======================================================
+  
+  // FIX: Atomic and Validated Sale Creation (Tasks 3, 4, 5 Fixes)
   Future<void> createSale(Map<String, dynamic> saleData) async {
     final db = await database;
     
-    // Generate a simple Bill Number (e.g., SALE-20240501-120101)
     final timestamp = DateTime.now().toString().replaceAll(RegExp(r'[^0-9]'), '').substring(0, 14);
     final billNumber = 'SALE-$timestamp';
 
+    double grandTotal = (saleData['grand_total'] as num).toDouble();
+    double cash = (saleData['cash_amount'] as num?)?.toDouble() ?? 0.0;
+    double bank = (saleData['bank_amount'] as num?)?.toDouble() ?? 0.0;
+    
+    double totalPaid = cash + bank;
+    double remainingBalance = grandTotal - totalPaid;
+
+    if (remainingBalance < 0) remainingBalance = 0;
+
     try {
       await db.transaction((txn) async {
-        // 1. Insert into Sales Table
+        // 1. Insert Sale Record
         final saleId = await txn.insert('sales', {
           'bill_number': billNumber,
           'customer_id': saleData['customer_id'],
-          'sale_date': DateTime.now().toIso8601String(),
-          'sale_time': DateTime.now().toIso8601String().split('T')[1].substring(0, 5), // HH:MM
-          'grand_total': saleData['grand_total'],
+          'sale_date': DateTime.now().toIso8601String().split('T')[0], // Save only Date part
+          'sale_time': DateTime.now().toIso8601String().split('T')[1].substring(0, 5),
+          'grand_total': grandTotal,
           'discount': saleData['discount'] ?? 0.0,
-          'total_paid': saleData['grand_total'], // Assuming full payment for now
-          'remaining_balance': 0.0,
-          // 'cash_amount': saleData['grand_total'], // Uncomment if you track payment types
+          'cash_amount': cash,
+          'bank_amount': bank,
+          'credit_amount': remainingBalance, // Records the actual debt
+          'total_paid': totalPaid,
+          'remaining_balance': remainingBalance,
         });
 
-        // 2. Insert Sale Items & Update Stock
+        // 2. Insert Items & Atomic Stock Deduction (Race Condition & Validation Fix)
         final items = saleData['items'] as List<Map<String, dynamic>>;
-        
         for (var item in items) {
-          // Add to sale_items
+          final productId = item['id'];
+          final quantity = (item['quantity'] as num).toDouble();
+
           await txn.insert('sale_items', {
             'sale_id': saleId,
-            'product_id': item['id'],
-            'quantity_sold': item['quantity'],
+            'product_id': productId,
+            'quantity_sold': quantity,
             'unit_price': item['sale_price'],
             'total_price': item['total'],
           });
 
-          // Deduct Stock from Products
-          // We read the current stock first to ensure accuracy inside transaction
-          final productResult = await txn.query(
-            'products', 
-            columns: ['current_stock'], 
-            where: 'id = ?', 
-            whereArgs: [item['id']]
-          );
+          // Atomic check and update: ensures stock is > quantity and prevents race condition
+          int count = await txn.rawUpdate('''
+            UPDATE products 
+            SET current_stock = current_stock - ? 
+            WHERE id = ? AND current_stock >= ?
+          ''', [quantity, productId, quantity]);
 
-          if (productResult.isNotEmpty) {
-            final currentStock = (productResult.first['current_stock'] as num).toDouble();
-            final newStock = currentStock - (item['quantity'] as num).toDouble();
-            
-            await txn.update(
-              'products',
-              {'current_stock': newStock},
-              where: 'id = ?',
-              whereArgs: [item['id']],
-            );
+          if (count == 0) {
+            throw Exception('Insufficient stock or invalid product for ID: $productId');
           }
+        }
+
+        // 3. Update Customer Balance (Debt Fix)
+        if (saleData['customer_id'] != null && remainingBalance > 0) {
+           await txn.rawUpdate(
+             'UPDATE customers SET outstanding_balance = outstanding_balance + ? WHERE id = ?',
+             [remainingBalance, saleData['customer_id']]
+           );
         }
       });
       AppLogger.info('Sale created successfully: $billNumber', tag: 'DB');
     } catch (e) {
       AppLogger.error('Error creating sale: $e', tag: 'DB');
-      throw Exception('Failed to process sale');
+      throw Exception('Transaction Failed: ${e.toString()}');
     }
   }
+
+  // --- Utility Getters ---
+
+  Future<List<Map<String, dynamic>>> getSuppliers() async {
+    try {
+      final db = await database;
+      return await db.query('suppliers', orderBy: 'name_english ASC');
+    } catch (e) {
+      AppLogger.error('Error getting suppliers: $e', tag: 'DB');
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAllItems() async {
+     try {
+       final db = await database;
+       return await db.query('products', orderBy: 'name_english ASC');
+     } catch (e) {
+       return [];
+     }
+  }
+  
+  Future<List<Map<String, dynamic>>> getCustomers() async {
+    try {
+      final db = await database;
+      return await db.query('customers', orderBy: 'name_english ASC');
+    } catch (e) {
+      return [];
+    }
+  }
+  
+  Future<int> getTotalProductsCount() async {
+    final db = await database;
+    final result = await db.rawQuery('SELECT COUNT(*) as count FROM products');
+    return (result.first['count'] as int?) ?? 0;
+  }
+  
+  Future<double> getTotalStockValue() async {
+    final db = await database;
+    final result = await db.rawQuery('SELECT SUM(current_stock * avg_cost_price) as total FROM products');
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
 
   Future<void> close() async {
     final db = await instance.database;

@@ -1074,4 +1074,55 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get stockByCategory => 'کیٹیگری کے لحاظ سے اسٹاک';
+
+  @override
+  String get small => 'چھوٹا';
+
+  @override
+  String get medium => 'درمیانہ';
+
+  @override
+  String get large => 'بڑا';
+
+  @override
+  String get daily => 'روزانہ';
+
+  @override
+  String get weekly => 'ہفتہ وار';
+
+  @override
+  String get monthly => 'ماہانہ';
+
+  @override
+  String get printerDefault => 'ڈیفالٹ';
+
+  @override
+  String get printerUsb => 'USB تھرمل';
+
+  @override
+  String get printerNetwork => 'نیٹ ورک';
+
+  @override
+  String get printerPdf => 'PDF';
+
+  @override
+  String get paper58 => '58mm';
+
+  @override
+  String get paper80 => '80mm';
+
+  @override
+  String get paperA4 => 'A4';
+
+  @override
+  String get shopNamePlaceholder => 'لیاقت کریانہ سٹور';
+
+  @override
+  String get addressPlaceholder => 'لاہور، پاکستان';
+
+  @override
+  String get bill => 'بل';
+
+  @override
+  String get deletedSuccessfully => 'کامیابی سے ختم ہو گیا ہے';
 }

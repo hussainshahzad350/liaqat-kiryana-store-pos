@@ -367,5 +367,22 @@
   "topCustomersBalance": "سب سے زیادہ بیلنس والے کسٹمرز",
   "daysOld": "دن پرانا",
   "totalStockValue": "کل اسٹاک ویلیو",
-  "stockByCategory": "کیٹیگری کے لحاظ سے اسٹاک"
+  "stockByCategory": "کیٹیگری کے لحاظ سے اسٹاک",
+  "small": "چھوٹا",
+  "medium": "درمیانہ",
+  "large": "بڑا",
+  "daily": "روزانہ",
+  "weekly": "ہفتہ وار",
+  "monthly": "ماہانہ",
+  "printerDefault": "ڈیفالٹ",
+  "printerUsb": "USB تھرمل",
+  "printerNetwork": "نیٹ ورک",
+  "printerPdf": "PDF",
+  "paper58": "58mm",
+  "paper80": "80mm",
+  "paperA4": "A4",
+  "shopNamePlaceholder": "لیاقت کریانہ سٹور",
+  "addressPlaceholder": "لاہور، پاکستان",
+  "bill": "بل",
+  "deletedSuccessfully": "کامیابی سے ختم ہو گیا ہے"
 }

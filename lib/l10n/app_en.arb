@@ -369,5 +369,22 @@
   "topCustomersBalance": "Top Customers Balance",
   "daysOld": "days old",
   "totalStockValue": "Total Stock Value",
-  "stockByCategory": "Stock by Category"
+  "stockByCategory": "Stock by Category",
+  "small": "Small",
+  "medium": "Medium",
+  "large": "Large",
+  "daily": "Daily",
+  "weekly": "Weekly",
+  "monthly": "Monthly",
+  "printerDefault": "Default",
+  "printerUsb": "USB Thermal",
+  "printerNetwork": "Network",
+  "printerPdf": "PDF",
+  "paper58": "58mm",
+  "paper80": "80mm",
+  "paperA4": "A4",
+  "shopNamePlaceholder": "Liaqat Kiryana Store",
+  "addressPlaceholder": "Lahore, Pakistan",
+  "bill": "Bill",
+  "deletedSuccessfully": "Deleted Successfully"
 }

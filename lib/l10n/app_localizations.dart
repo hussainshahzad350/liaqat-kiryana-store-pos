@@ -2203,6 +2203,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stock by Category'**
   String get stockByCategory;
+
+  /// No description provided for @small.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get small;
+
+  /// No description provided for @medium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get medium;
+
+  /// No description provided for @large.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get large;
+
+  /// No description provided for @daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get daily;
+
+  /// No description provided for @weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get weekly;
+
+  /// No description provided for @monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get monthly;
+
+  /// No description provided for @printerDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get printerDefault;
+
+  /// No description provided for @printerUsb.
+  ///
+  /// In en, this message translates to:
+  /// **'USB Thermal'**
+  String get printerUsb;
+
+  /// No description provided for @printerNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get printerNetwork;
+
+  /// No description provided for @printerPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get printerPdf;
+
+  /// No description provided for @paper58.
+  ///
+  /// In en, this message translates to:
+  /// **'58mm'**
+  String get paper58;
+
+  /// No description provided for @paper80.
+  ///
+  /// In en, this message translates to:
+  /// **'80mm'**
+  String get paper80;
+
+  /// No description provided for @paperA4.
+  ///
+  /// In en, this message translates to:
+  /// **'A4'**
+  String get paperA4;
+
+  /// No description provided for @shopNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Liaqat Kiryana Store'**
+  String get shopNamePlaceholder;
+
+  /// No description provided for @addressPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Lahore, Pakistan'**
+  String get addressPlaceholder;
+
+  /// No description provided for @bill.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill'**
+  String get bill;
+
+  /// No description provided for @deletedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted Successfully'**
+  String get deletedSuccessfully;
 }
 
 class _AppLocalizationsDelegate

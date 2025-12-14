@@ -1076,4 +1076,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stockByCategory => 'Stock by Category';
+
+  @override
+  String get small => 'Small';
+
+  @override
+  String get medium => 'Medium';
+
+  @override
+  String get large => 'Large';
+
+  @override
+  String get daily => 'Daily';
+
+  @override
+  String get weekly => 'Weekly';
+
+  @override
+  String get monthly => 'Monthly';
+
+  @override
+  String get printerDefault => 'Default';
+
+  @override
+  String get printerUsb => 'USB Thermal';
+
+  @override
+  String get printerNetwork => 'Network';
+
+  @override
+  String get printerPdf => 'PDF';
+
+  @override
+  String get paper58 => '58mm';
+
+  @override
+  String get paper80 => '80mm';
+
+  @override
+  String get paperA4 => 'A4';
+
+  @override
+  String get shopNamePlaceholder => 'Liaqat Kiryana Store';
+
+  @override
+  String get addressPlaceholder => 'Lahore, Pakistan';
+
+  @override
+  String get bill => 'Bill';
+
+  @override
+  String get deletedSuccessfully => 'Deleted Successfully';
 }
