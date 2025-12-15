@@ -1141,4 +1141,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorProcessingSale(Object error) {
     return 'Error processing sale: $error';
   }
+
+  @override
+  String get newCashIn => 'New Cash In';
+
+  @override
+  String get newCashOut => 'New Cash Out';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get remarks => 'Remarks';
+
+  @override
+  String get currentBalance => 'Current Balance';
+
+  @override
+  String get noData => 'No Data';
+
+  @override
+  String get cashIn => 'Cash In';
+
+  @override
+  String get cashOut => 'Cash Out';
 }

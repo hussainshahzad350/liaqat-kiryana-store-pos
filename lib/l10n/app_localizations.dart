@@ -2329,6 +2329,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error processing sale: {error}'**
   String errorProcessingSale(Object error);
+
+  /// No description provided for @newCashIn.
+  ///
+  /// In en, this message translates to:
+  /// **'New Cash In'**
+  String get newCashIn;
+
+  /// No description provided for @newCashOut.
+  ///
+  /// In en, this message translates to:
+  /// **'New Cash Out'**
+  String get newCashOut;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @remarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Remarks'**
+  String get remarks;
+
+  /// No description provided for @currentBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Balance'**
+  String get currentBalance;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No Data'**
+  String get noData;
+
+  /// No description provided for @cashIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash In'**
+  String get cashIn;
+
+  /// No description provided for @cashOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Out'**
+  String get cashOut;
 }
 
 class _AppLocalizationsDelegate

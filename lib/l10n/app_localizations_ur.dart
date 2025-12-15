@@ -1139,4 +1139,28 @@ class AppLocalizationsUr extends AppLocalizations {
   String errorProcessingSale(Object error) {
     return 'فروخت کے عمل میں خرابی: $error';
   }
+
+  @override
+  String get newCashIn => 'نیا کیش ان';
+
+  @override
+  String get newCashOut => 'نیا کیش آؤٹ';
+
+  @override
+  String get description => 'تفصیل';
+
+  @override
+  String get remarks => 'تبصرے';
+
+  @override
+  String get currentBalance => 'موجودہ بیلنس';
+
+  @override
+  String get noData => 'کوئی ڈیٹا نہیں ملا';
+
+  @override
+  String get cashIn => 'کیش ان';
+
+  @override
+  String get cashOut => 'کیش آؤٹ';
 }

@@ -388,5 +388,13 @@
   "endOfList": "فہرست کا اختتام",
   "noCustomersFound": "کوئی گاہک نہیں ملا",
   "search": "تلاش کریں",
-  "errorProcessingSale": "فروخت کے عمل میں خرابی: {error}"
+  "errorProcessingSale": "فروخت کے عمل میں خرابی: {error}",
+  "newCashIn": "نیا کیش ان",
+  "newCashOut": "نیا کیش آؤٹ",
+  "description": "تفصیل",
+  "remarks": "تبصرے",
+  "currentBalance": "موجودہ بیلنس",
+  "noData": "کوئی ڈیٹا نہیں ملا",
+  "cashIn": "کیش ان",
+  "cashOut": "کیش آؤٹ"
 }

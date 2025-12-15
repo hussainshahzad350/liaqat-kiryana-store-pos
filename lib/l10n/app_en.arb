@@ -390,5 +390,13 @@
   "endOfList": "End of List",
   "noCustomersFound": "No customers found",
   "search": "Search",
-  "errorProcessingSale": "Error processing sale: {error}"
+  "errorProcessingSale": "Error processing sale: {error}",
+  "newCashIn": "New Cash In",
+  "newCashOut": "New Cash Out",
+  "description": "Description",
+  "remarks": "Remarks",
+  "currentBalance": "Current Balance",
+  "noData": "No Data",
+  "cashIn": "Cash In",
+  "cashOut": "Cash Out"
 }

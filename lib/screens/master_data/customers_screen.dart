@@ -345,7 +345,6 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
   
   Widget _buildSummaryCard(String title, String value, IconData icon, Color bgColor, {VoidCallback? onTap, String? subtitle}) {
-    final loc = AppLocalizations.of(context)!;
     return Expanded(
       child: GestureDetector(
         onTap: onTap,

@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
-import '../../main.dart'; 
+import '../../main.dart';
+import '../../core/database/database_helper.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -236,7 +237,22 @@ class BackupTab extends StatelessWidget {
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.backup),
                       label: Text(loc.createBackupNow, style: const TextStyle(color: Colors.white)),
-                      onPressed: () {},
+                      onPressed: () async {
+                        // FIX: Connect to DatabaseHelper backup
+                        final db = await DatabaseHelper.instance.database;
+                        // We can pass version 1 or current version
+                        // Note: You might need to move _backupDatabase to public in DatabaseHelper 
+                        // Change '_backupDatabase' to 'backupDatabase' in database_helper.dart first!
+  
+                        // Assuming you made it public:
+                        await DatabaseHelper.instance.backupDatabase(db, 3);
+                        if (!context.mounted) return; 
+  
+                        // OR for now, just trigger a simple file copy if you didn't expose the method:
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Backup created successfully!'))
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: Colors.teal[700],

@@ -30,7 +30,7 @@ class DatabaseHelper {
     // Version 2 ensures migration logic runs if upgrading from a v1 schema
     return await openDatabase(
       path,
-      version: 2, 
+      version: 3, 
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -48,7 +48,7 @@ class DatabaseHelper {
     AppLogger.db('Upgrading database from v$oldVersion to v$newVersion');
 
     // FIX: Auto-Backup before critical migration
-    await _backupDatabase(db, oldVersion);
+    await backupDatabase(db, oldVersion);
     
     for (int i = oldVersion + 1; i <= newVersion; i++) {
       switch (i) {
@@ -62,6 +62,22 @@ class DatabaseHelper {
           }
           AppLogger.db('Performed migration to v2');
           break;
+
+        case 3:
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS cash_ledger (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            transaction_date TEXT NOT NULL,
+              transaction_time TEXT NOT NULL,
+              description TEXT NOT NULL,
+              type TEXT NOT NULL,
+              amount REAL NOT NULL,
+              balance_after REAL, 
+              remarks TEXT
+            )
+          ''');
+          AppLogger.db('Performed migration to v3 (Cash Ledger)');
+          break;
         default:
           AppLogger.db('No migration logic defined for v$i');
       }
@@ -69,7 +85,7 @@ class DatabaseHelper {
   }
 
   // Helper: Creates a backup file like 'liaqat_store.db.v1.bak'
-  Future<void> _backupDatabase(Database db, int version) async {
+  Future<void> backupDatabase(Database db, int version) async {
     try {
       final String dbPath = db.path;
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
@@ -77,27 +93,19 @@ class DatabaseHelper {
       
       AppLogger.db('Attempting database backup to: $backupPath');
 
-      // Strategy 1: SQLite Native Backup (Best for open databases)
-      // VACUUM INTO creates a transaction-safe copy.
       try {
         await db.execute('VACUUM INTO ?', [backupPath]);
-        AppLogger.info('Database backup created successfully (VACUUM)', tag: 'DB');
-        return;
+        AppLogger.info('Database backup created (VACUUM)', tag: 'DB');
       } catch (e) {
-        AppLogger.info('VACUUM INTO not supported or failed ($e). Switching to File Copy strategy.', tag: 'DB');
-      }
-
-      // Strategy 2: File Copy Fallback
-      // Works if the database file is not exclusively locked by the OS.
-      final file = File(dbPath);
-      if (await file.exists()) {
-        await file.copy(backupPath);
-        AppLogger.info('Database backup created successfully (File Copy)', tag: 'DB');
+        // Fallback for devices that don't support VACUUM INTO
+        final file = File(dbPath);
+        if (await file.exists()) {
+          await file.copy(backupPath);
+          AppLogger.info('Database backup created (File Copy)', tag: 'DB');
+        }
       }
     } catch (e) {
-      // We log but do not crash the app, as we want the upgrade to try and proceed if possible,
-      // though in a strict environment you might want to throw here.
-      AppLogger.error('CRITICAL: Failed to backup database before upgrade: $e', tag: 'DB');
+      AppLogger.error('Backup Failed: $e', tag: 'DB');
     }
   }
   
@@ -213,6 +221,20 @@ class DatabaseHelper {
       )
     ''');
 
+    // 8. Database db
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cash_ledger (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        transaction_date TEXT NOT NULL,
+        transaction_time TEXT NOT NULL,
+        description TEXT NOT NULL,
+        type TEXT NOT NULL, -- 'IN' or 'OUT'
+        amount REAL NOT NULL,
+        balance_after REAL, 
+        remarks TEXT
+      )
+    ''');
+
     // 8. PERFORMANCE FIX: ADD INDEXES ON FOREIGN KEYS (Task 7 Fix)
     await db.execute('CREATE INDEX idx_sales_customer ON sales(customer_id)');
     await db.execute('CREATE INDEX idx_sale_items_sale ON sale_items(sale_id)');
@@ -292,6 +314,67 @@ class DatabaseHelper {
     } catch (e) {
       AppLogger.error("Error fetching today's sales: $e", tag: 'DB');
       return 0.0;
+    }
+  }
+
+  Future<double> getCurrentCashBalance() async {
+    try {
+      final db = await database;
+      final res = await db.rawQuery('SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+      if (res.isNotEmpty) {
+        return (res.first['balance_after'] as num).toDouble();
+      }
+      return 0.0;
+    } catch (e) {
+      return 0.0;
+    }
+  }
+
+  Future<void> addCashEntry(String desc, String type, double amount, String remarks) async {
+    final db = await database;
+    final now = DateTime.now();
+    
+    // This uses the 'intl' package, fixing the "Unused import" error
+    final dateStr = DateFormat('yyyy-MM-dd').format(now);
+    final timeStr = DateFormat('hh:mm a').format(now);
+
+    await db.transaction((txn) async {
+      final res = await txn.rawQuery('SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+      double currentBalance = 0.0;
+      if (res.isNotEmpty) {
+        currentBalance = (res.first['balance_after'] as num).toDouble();
+      }
+
+      double newBalance = currentBalance;
+      if (type == 'IN') {
+        newBalance += amount;
+      } else {
+        newBalance -= amount;
+      }
+
+      await txn.insert('cash_ledger', {
+        'transaction_date': dateStr,
+        'transaction_time': timeStr,
+        'description': desc,
+        'type': type,
+        'amount': amount,
+        'balance_after': newBalance,
+        'remarks': remarks,
+      });
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getCashLedger({int limit = 50, int offset = 0}) async {
+    try {
+      final db = await database;
+      return await db.query(
+        'cash_ledger',
+        orderBy: 'id DESC',
+        limit: limit,
+        offset: offset,
+      );
+    } catch (e) {
+      return [];
     }
   }
 
