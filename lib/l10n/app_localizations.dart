@@ -2305,6 +2305,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deleted Successfully'**
   String get deletedSuccessfully;
+
+  /// No description provided for @endOfList.
+  ///
+  /// In en, this message translates to:
+  /// **'End of List'**
+  String get endOfList;
+
+  /// No description provided for @noCustomersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found'**
+  String get noCustomersFound;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @errorProcessingSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Error processing sale: {error}'**
+  String errorProcessingSale(Object error);
 }
 
 class _AppLocalizationsDelegate

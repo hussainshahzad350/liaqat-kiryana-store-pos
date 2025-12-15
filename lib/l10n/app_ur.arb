@@ -384,5 +384,9 @@
   "shopNamePlaceholder": "لیاقت کریانہ سٹور",
   "addressPlaceholder": "لاہور، پاکستان",
   "bill": "بل",
-  "deletedSuccessfully": "کامیابی سے ختم ہو گیا ہے"
+  "deletedSuccessfully": "کامیابی سے ختم ہو گیا ہے",
+  "endOfList": "فہرست کا اختتام",
+  "noCustomersFound": "کوئی گاہک نہیں ملا",
+  "search": "تلاش کریں",
+  "errorProcessingSale": "فروخت کے عمل میں خرابی: {error}"
 }

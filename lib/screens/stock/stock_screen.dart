@@ -1,4 +1,6 @@
 // lib/screens/stock/stock_screen.dart
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/database/database_helper.dart';
@@ -51,14 +53,14 @@ class _StockScreenState extends State<StockScreen> with SingleTickerProviderStat
         children: const [
           PurchaseTab(),
           SalesTab(),
-          StockViewTab(),
+          StockViewTab(), // NOW FIXED & DYNAMIC
         ],
       ),
     );
   }
 }
 
-// ==================== Purchase Tab (Refactored) ====================
+// ==================== Purchase Tab ====================
 class PurchaseTab extends StatefulWidget {
   const PurchaseTab({super.key});
 
@@ -77,6 +79,8 @@ class _PurchaseTabState extends State<PurchaseTab> {
   }
 
   Future<void> _loadSuppliers() async {
+    // Note: If you have thousands of suppliers, this dropdown should strictly 
+    // be replaced with a Searchable Dialog. For <500 suppliers, this is fine.
     final data = await DatabaseHelper.instance.getSuppliers();
     if (mounted) {
       setState(() {
@@ -100,7 +104,6 @@ class _PurchaseTabState extends State<PurchaseTab> {
           ),
           const SizedBox(height: 20),
           
-          // Supplier Selection (Dynamic)
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -126,7 +129,6 @@ class _PurchaseTabState extends State<PurchaseTab> {
                         _selectedSupplierId = value;
                       });
                     },
-                    // If list is empty, show a disabled item
                     disabledHint: Text(loc.noSuppliersFound), 
                   ),
                 ],
@@ -136,7 +138,7 @@ class _PurchaseTabState extends State<PurchaseTab> {
           
           const SizedBox(height: 20),
           
-          // Items List (Placeholder for future functionality)
+          // Placeholder for future Items/Cart logic
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -175,31 +177,10 @@ class _PurchaseTabState extends State<PurchaseTab> {
           ),
           
           const SizedBox(height: 20),
-          // Additional Charges
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(loc.additionalCharges, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(child: TextField(decoration: InputDecoration(labelText: loc.transport, prefixText: 'Rs '))),
-                      const SizedBox(width: 10),
-                      Expanded(child: TextField(decoration: InputDecoration(labelText: loc.labor, prefixText: 'Rs '))),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 30),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {}, // Save Logic to be implemented
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: Colors.green[700],
@@ -240,82 +221,280 @@ class SalesTab extends StatelessWidget {
   }
 }
 
-// ==================== Stock View Tab ====================
-class StockViewTab extends StatelessWidget {
+// ==================== Stock View Tab (FIXED) ====================
+class StockViewTab extends StatefulWidget {
   const StockViewTab({super.key});
+
+  @override
+  State<StockViewTab> createState() => _StockViewTabState();
+}
+
+class _StockViewTabState extends State<StockViewTab> {
+  // Pagination State
+  List<Map<String, dynamic>> items = [];
+  bool _isFirstLoadRunning = true;
+  bool _hasNextPage = true;
+  bool _isLoadMoreRunning = false;
+  int _page = 0;
+  final int _limit = 20;
+
+  // Stats State
+  int _totalItemsCount = 0;
+  double _totalStockValue = 0.0;
+
+  late ScrollController _scrollController;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController()..addListener(_scrollListener);
+    _loadStats();
+    _firstLoad();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.extentAfter < 200 &&
+        !_isFirstLoadRunning &&
+        !_isLoadMoreRunning &&
+        _hasNextPage) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _loadStats() async {
+    final count = await DatabaseHelper.instance.getTotalProductsCount();
+    final value = await DatabaseHelper.instance.getTotalStockValue();
+    if (mounted) {
+      setState(() {
+        _totalItemsCount = count;
+        _totalStockValue = value;
+      });
+    }
+  }
+
+  Future<void> _firstLoad() async {
+    setState(() {
+      _isFirstLoadRunning = true;
+      _page = 0;
+      _hasNextPage = true;
+      items = [];
+    });
+
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final query = _searchController.text.trim();
+      
+      List<Map<String, dynamic>> result;
+      
+      if (query.isNotEmpty) {
+        result = await db.query(
+          'products',
+          where: 'name_english LIKE ? OR name_urdu LIKE ?',
+          whereArgs: ['%$query%', '%$query%'],
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: 0,
+        );
+      } else {
+        result = await db.query(
+          'products',
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: 0,
+        );
+      }
+
+      if (!mounted) return;
+      setState(() {
+        items = result;
+        _isFirstLoadRunning = false;
+        if (result.length < _limit) _hasNextPage = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isFirstLoadRunning = false);
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isLoadMoreRunning || !_hasNextPage) return;
+    setState(() => _isLoadMoreRunning = true);
+
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final query = _searchController.text.trim();
+      _page++;
+      final offset = _page * _limit;
+
+      List<Map<String, dynamic>> result;
+      if (query.isNotEmpty) {
+        result = await db.query(
+          'products',
+          where: 'name_english LIKE ? OR name_urdu LIKE ?',
+          whereArgs: ['%$query%', '%$query%'],
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: offset,
+        );
+      } else {
+        result = await db.query(
+          'products',
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: offset,
+        );
+      }
+
+      if (!mounted) return;
+      setState(() {
+        if (result.isNotEmpty) {
+          items.addAll(result);
+        } else {
+          _hasNextPage = false;
+        }
+        if (result.length < _limit) _hasNextPage = false;
+        _isLoadMoreRunning = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isLoadMoreRunning = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
-    // TODO: Dynamic Data for Stock View (Task 3.2)
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.all(10),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Search
+          // 1. Search Bar
+          TextField(
+            controller: _searchController,
+            onChanged: (val) => _firstLoad(),
+            decoration: InputDecoration(
+              labelText: loc.searchStock,
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // 2. Summary Cards
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  decoration: InputDecoration(
-                    labelText: loc.searchStock,
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                child: Card(
+                  color: Colors.green[50],
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Text(loc.totalItems, style: TextStyle(color: Colors.green[800], fontSize: 12)),
+                        Text(
+                          '$_totalItemsCount',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green[900]),
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
-              IconButton(icon: const Icon(Icons.filter_list), onPressed: () {}),
-              IconButton(icon: const Icon(Icons.print), onPressed: () {}),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // Summary
-          Row(
-            children: [
-              Expanded(child: Card(color: Colors.green[50], child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [Text(loc.totalItems, style: const TextStyle(color: Colors.green)), const Text('145', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green))])))),
-              const SizedBox(width: 10),
-              Expanded(child: Card(color: Colors.blue[50], child: Padding(padding: const EdgeInsets.all(16), child: Column(children: [Text(loc.stockValue, style: const TextStyle(color: Colors.blue)), const Text('Rs 450,000', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue))])))),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // Table
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(loc.stockDetails, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columns: [
-                        DataColumn(label: Text(loc.item)),
-                        DataColumn(label: Text(loc.current)),
-                        DataColumn(label: Text(loc.unit)),
-                        DataColumn(label: Text(loc.price)),
-                        DataColumn(label: Text(loc.total)),
-                        DataColumn(label: Text(loc.action)),
-                      ],
-                      rows: [
-                        DataRow(cells: [
-                          const DataCell(Text('Rice')),
-                          const DataCell(Text('50')),
-                          const DataCell(Text('KG')),
-                          const DataCell(Text('Rs 180')),
-                          const DataCell(Text('Rs 9,000')),
-                          DataCell(IconButton(icon: const Icon(Icons.edit, size: 18), onPressed: () {})),
-                        ]),
+              Expanded(
+                child: Card(
+                  color: Colors.blue[50],
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Text(loc.stockValue, style: TextStyle(color: Colors.blue[800], fontSize: 12)),
+                        Text(
+                          'Rs ${_totalStockValue.toStringAsFixed(0)}',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue[900]),
+                        )
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // 3. Paginated List
+          Expanded(
+            child: _isFirstLoadRunning
+                ? const Center(child: CircularProgressIndicator())
+                : items.isEmpty
+                    ? Center(child: Text(loc.noItemsFound))
+                    : Column(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final item = items[index];
+                                final stock = (item['current_stock'] as num?)?.toDouble() ?? 0.0;
+                                final minStock = (item['min_stock_alert'] as num?)?.toDouble() ?? 10.0;
+                                final price = (item['sale_price'] as num?)?.toDouble() ?? 0.0;
+                                final totalVal = stock * price; // Or cost price if available
+
+                                // Highlight low stock
+                                final isLow = stock <= minStock;
+
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(vertical: 4),
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                      side: isLow ? const BorderSide(color: Colors.red, width: 1) : BorderSide.none,
+                                      borderRadius: BorderRadius.circular(8)),
+                                  child: ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                                    title: Text(
+                                      item['name_english'] ?? item['name_urdu'] ?? 'Unknown',
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Text(
+                                      '${loc.price}: $price | ${loc.total}: ${totalVal.toStringAsFixed(0)}',
+                                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                    ),
+                                    trailing: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: isLow ? Colors.red[100] : Colors.green[100],
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: Text(
+                                        '$stock ${item['unit_type'] ?? ''}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: isLow ? Colors.red[900] : Colors.green[900],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          if (_isLoadMoreRunning)
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                        ],
+                      ),
           ),
         ],
       ),

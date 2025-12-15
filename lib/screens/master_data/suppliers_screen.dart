@@ -1,3 +1,4 @@
+// lib/screens/master_data/suppliers_screen.dart
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
@@ -12,29 +13,136 @@ class SuppliersScreen extends StatefulWidget {
 }
 
 class _SuppliersScreenState extends State<SuppliersScreen> {
+  // Pagination State
   List<Map<String, dynamic>> suppliers = [];
-  bool isLoading = true;
+  bool _isFirstLoadRunning = true;
+  bool _hasNextPage = true;
+  bool _isLoadMoreRunning = false;
+  int _page = 0;
+  final int _limit = 20;
+
+  late ScrollController _scrollController;
+  final TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadSuppliers();
+    _scrollController = ScrollController()..addListener(_scrollListener);
+    _firstLoad();
   }
 
-  Future<void> _loadSuppliers() async {
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.extentAfter < 200 &&
+        !_isFirstLoadRunning &&
+        !_isLoadMoreRunning &&
+        _hasNextPage) {
+      _loadMore();
+    }
+  }
+
+  // --- Data Loading ---
+
+  Future<void> _firstLoad() async {
+    setState(() {
+      _isFirstLoadRunning = true;
+      _page = 0;
+      _hasNextPage = true;
+      suppliers = [];
+    });
+
     try {
       final db = await DatabaseHelper.instance.database;
-      final result = await db.query('suppliers', orderBy: 'name_english ASC');
+      final query = searchController.text.trim();
       
+      List<Map<String, dynamic>> result;
+      
+      if (query.isNotEmpty) {
+        result = await db.query(
+          'suppliers',
+          where: 'name_english LIKE ? OR name_urdu LIKE ? OR contact_primary LIKE ?',
+          whereArgs: ['%$query%', '%$query%', '%$query%'],
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: 0,
+        );
+      } else {
+        result = await db.query(
+          'suppliers',
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: 0,
+        );
+      }
+
       if (!mounted) return;
       setState(() {
         suppliers = result;
-        isLoading = false;
+        _isFirstLoadRunning = false;
+        if (result.length < _limit) _hasNextPage = false;
       });
     } catch (e) {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) setState(() => _isFirstLoadRunning = false);
     }
   }
+
+  Future<void> _loadMore() async {
+    if (_isLoadMoreRunning || !_hasNextPage) return;
+    setState(() => _isLoadMoreRunning = true);
+
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final query = searchController.text.trim();
+      _page++;
+      final offset = _page * _limit;
+
+      List<Map<String, dynamic>> result;
+      
+      if (query.isNotEmpty) {
+        result = await db.query(
+          'suppliers',
+          where: 'name_english LIKE ? OR name_urdu LIKE ? OR contact_primary LIKE ?',
+          whereArgs: ['%$query%', '%$query%', '%$query%'],
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: offset,
+        );
+      } else {
+        result = await db.query(
+          'suppliers',
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: offset,
+        );
+      }
+
+      if (!mounted) return;
+      setState(() {
+        if (result.isNotEmpty) {
+          suppliers.addAll(result);
+        } else {
+          _hasNextPage = false;
+        }
+        if (result.length < _limit) _hasNextPage = false;
+        _isLoadMoreRunning = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isLoadMoreRunning = false);
+    }
+  }
+
+  Future<void> _refreshList() async {
+    await _firstLoad();
+  }
+
+  // --- CRUD Operations ---
 
   Future<void> _addSupplier(String nameEng, String nameUrdu, String phone, String address, double balance) async {
     final loc = AppLocalizations.of(context)!;
@@ -53,7 +161,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
       if (!mounted) return;
       Navigator.pop(context);
-      _loadSuppliers();
+      _refreshList(); // Reload list to show new item
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierAdded), backgroundColor: Colors.green));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
@@ -79,7 +187,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
       if (!mounted) return;
       Navigator.pop(context);
-      _loadSuppliers();
+      _refreshList(); // Reload list
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierUpdated), backgroundColor: Colors.green));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
@@ -110,7 +218,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         await db.delete('suppliers', where: 'id = ?', whereArgs: [id]);
         
         if (!mounted) return;
-        _loadSuppliers();
+        _refreshList(); // Reload list
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierDeleted), backgroundColor: Colors.red));
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
@@ -206,51 +314,85 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         backgroundColor: Colors.blue[700],
         foregroundColor: Colors.white,
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : suppliers.isEmpty
-              ? Center(child: Text(loc.noSuppliersFound))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(10),
-                  itemCount: suppliers.length,
-                  itemBuilder: (context, index) {
-                    final supplier = suppliers[index];
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blue[100],
-                          child: const Icon(Icons.business, color: Colors.blue),
+      body: Column(
+        children: [
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: TextField(
+              controller: searchController,
+              onChanged: (val) => _firstLoad(),
+              decoration: InputDecoration(
+                hintText: loc.search, // Ensure you have this key or use 'Search...'
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+              ),
+            ),
+          ),
+          
+          // List
+          Expanded(
+            child: _isFirstLoadRunning
+              ? const Center(child: CircularProgressIndicator())
+              : suppliers.isEmpty
+                  ? Center(child: Text(loc.noSuppliersFound))
+                  : Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.all(10),
+                            itemCount: suppliers.length,
+                            itemBuilder: (context, index) {
+                              final supplier = suppliers[index];
+                              return Card(
+                                elevation: 3,
+                                margin: const EdgeInsets.only(bottom: 10),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: Colors.blue[100],
+                                    child: const Icon(Icons.business, color: Colors.blue),
+                                  ),
+                                  title: Text(
+                                    supplier['name_urdu'] ?? supplier['name_english'] ?? 'Unknown',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('${loc.phoneNum}: ${supplier['contact_primary'] ?? '-'}'),
+                                      Text('${loc.balance}: ${supplier['outstanding_balance'] ?? 0}'),
+                                    ],
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.blue),
+                                        onPressed: () => _showSupplierDialog(supplier: supplier),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () => _deleteSupplier(supplier['id']),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                        title: Text(
-                          supplier['name_urdu'] ?? supplier['name_english'],
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('${loc.phoneNum}: ${supplier['contact_primary'] ?? '-'}'),
-                            Text('${loc.balance}: ${supplier['outstanding_balance'] ?? 0}'),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => _showSupplierDialog(supplier: supplier),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteSupplier(supplier['id']),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                        if (_isLoadMoreRunning)
+                           const Padding(
+                             padding: EdgeInsets.all(8.0),
+                             child: Center(child: CircularProgressIndicator()),
+                           ),
+                      ],
+                    ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showSupplierDialog(),
         backgroundColor: Colors.blue[700],

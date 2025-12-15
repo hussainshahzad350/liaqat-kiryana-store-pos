@@ -1127,4 +1127,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deletedSuccessfully => 'Deleted Successfully';
+
+  @override
+  String get endOfList => 'End of List';
+
+  @override
+  String get noCustomersFound => 'No customers found';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String errorProcessingSale(Object error) {
+    return 'Error processing sale: $error';
+  }
 }

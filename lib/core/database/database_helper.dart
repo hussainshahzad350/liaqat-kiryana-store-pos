@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 import '../utils/logger.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:intl/intl.dart'; //
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
@@ -42,9 +43,12 @@ class DatabaseHelper {
     AppLogger.db('Database created successfully');
   }
 
-  // 🛠️ Proper Migration Logic
+  // 🛠️ Proper Migration Logic with Auto-Backup
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
     AppLogger.db('Upgrading database from v$oldVersion to v$newVersion');
+
+    // FIX: Auto-Backup before critical migration
+    await _backupDatabase(db, oldVersion);
     
     for (int i = oldVersion + 1; i <= newVersion; i++) {
       switch (i) {
@@ -61,6 +65,39 @@ class DatabaseHelper {
         default:
           AppLogger.db('No migration logic defined for v$i');
       }
+    }
+  }
+
+  // Helper: Creates a backup file like 'liaqat_store.db.v1.bak'
+  Future<void> _backupDatabase(Database db, int version) async {
+    try {
+      final String dbPath = db.path;
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String backupPath = '$dbPath.v$version.$timestamp.bak';
+      
+      AppLogger.db('Attempting database backup to: $backupPath');
+
+      // Strategy 1: SQLite Native Backup (Best for open databases)
+      // VACUUM INTO creates a transaction-safe copy.
+      try {
+        await db.execute('VACUUM INTO ?', [backupPath]);
+        AppLogger.info('Database backup created successfully (VACUUM)', tag: 'DB');
+        return;
+      } catch (e) {
+        AppLogger.info('VACUUM INTO not supported or failed ($e). Switching to File Copy strategy.', tag: 'DB');
+      }
+
+      // Strategy 2: File Copy Fallback
+      // Works if the database file is not exclusively locked by the OS.
+      final file = File(dbPath);
+      if (await file.exists()) {
+        await file.copy(backupPath);
+        AppLogger.info('Database backup created successfully (File Copy)', tag: 'DB');
+      }
+    } catch (e) {
+      // We log but do not crash the app, as we want the upgrade to try and proceed if possible,
+      // though in a strict environment you might want to throw here.
+      AppLogger.error('CRITICAL: Failed to backup database before upgrade: $e', tag: 'DB');
     }
   }
   
@@ -244,7 +281,9 @@ class DatabaseHelper {
   Future<double> getTodaySales() async {
     try {
       final db = await database;
-      final today = DateTime.now().toIso8601String().split('T')[0];
+      // FIX: Use DateFormat for reliable date string
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      
       final result = await db.rawQuery(
         'SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ?',
         [today]
@@ -260,7 +299,9 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getTodayCustomers() async {
     try {
       final db = await database;
-      final today = DateTime.now().toIso8601String().split('T')[0];
+      // FIX: Use DateFormat
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      
       return await db.rawQuery('''
         SELECT 
           c.name_urdu, 
@@ -350,8 +391,8 @@ class DatabaseHelper {
     final String mm = now.month.toString().padLeft(2, '0'); // e.g., '12'
 
     // sale_date and sale_time logic
-    final String saleDate = now.toIso8601String().split('T')[0];
-    final String saleTime = now.toIso8601String().split('T')[1].substring(0, 5);
+    final String saleDate = DateFormat('yyyy-MM-dd').format(now);
+    final String saleTime = DateFormat('HH:mm').format(now);
 
     try {
       await db.transaction((txn) async {
@@ -439,6 +480,70 @@ class DatabaseHelper {
   }
 
   // --- Utility Getters ---
+
+  Future<Map<String, dynamic>> getDashboardData() async {
+    final db = await database;
+    final batch = db.batch();
+    
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    // 1. Today's Sales Total
+    batch.rawQuery('SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ?', [today]);
+
+    // 2. Today's Top Customers
+    batch.rawQuery('''
+        SELECT 
+          c.name_urdu, 
+          c.name_english, 
+          SUM(s.grand_total) as total_amount,
+          COUNT(s.id) as sale_count
+        FROM sales s
+        LEFT JOIN customers c ON s.customer_id = c.id
+        WHERE s.sale_date = ? AND c.id IS NOT NULL
+        GROUP BY c.id
+        ORDER BY total_amount DESC
+        LIMIT 5
+    ''', [today]);
+
+    // 3. Low Stock Items
+    batch.rawQuery('''
+        SELECT 
+          name_urdu, 
+          name_english, 
+          current_stock, 
+          min_stock_alert,
+          sale_price
+        FROM products 
+        WHERE current_stock > 0 AND current_stock <= min_stock_alert
+        ORDER BY (current_stock / min_stock_alert) ASC
+        LIMIT 5
+    ''');
+
+    // 4. Recent Sales
+    batch.rawQuery('''
+        SELECT 
+          s.bill_number, 
+          s.grand_total, 
+          s.sale_time,
+          COALESCE(c.name_urdu, c.name_english, 'Walk-in Customer') as customer_name
+        FROM sales s
+        LEFT JOIN customers c ON s.customer_id = c.id
+        ORDER BY s.created_at DESC
+        LIMIT 5
+    ''');
+
+    final results = await batch.commit();
+
+    // Parse results safely
+    return {
+      'todaySales': (results[0] as List).isNotEmpty 
+          ? ((results[0] as List).first['total'] as num?)?.toDouble() ?? 0.0 
+          : 0.0,
+      'todayCustomers': (results[1] as List).map((e) => e as Map<String, dynamic>).toList(),
+      'lowStockItems': (results[2] as List).map((e) => e as Map<String, dynamic>).toList(),
+      'recentSales': (results[3] as List).map((e) => e as Map<String, dynamic>).toList(),
+    };
+  }
 
   Future<List<Map<String, dynamic>>> getSuppliers() async {
     try {

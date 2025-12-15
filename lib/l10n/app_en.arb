@@ -386,5 +386,9 @@
   "shopNamePlaceholder": "Liaqat Kiryana Store",
   "addressPlaceholder": "Lahore, Pakistan",
   "bill": "Bill",
-  "deletedSuccessfully": "Deleted Successfully"
+  "deletedSuccessfully": "Deleted Successfully",
+  "endOfList": "End of List",
+  "noCustomersFound": "No customers found",
+  "search": "Search",
+  "errorProcessingSale": "Error processing sale: {error}"
 }

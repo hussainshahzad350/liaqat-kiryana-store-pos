@@ -1125,4 +1125,18 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get deletedSuccessfully => 'کامیابی سے ختم ہو گیا ہے';
+
+  @override
+  String get endOfList => 'فہرست کا اختتام';
+
+  @override
+  String get noCustomersFound => 'کوئی گاہک نہیں ملا';
+
+  @override
+  String get search => 'تلاش کریں';
+
+  @override
+  String errorProcessingSale(Object error) {
+    return 'فروخت کے عمل میں خرابی: $error';
+  }
 }

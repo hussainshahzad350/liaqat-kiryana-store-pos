@@ -638,15 +638,9 @@ class _SalesScreenState extends State<SalesScreen> {
       'customer_id': selectedCustomerId,
       'grand_total': grandTotal,
       'discount': 0.0,
-      
-      // FIX: Pass the Payment Breakdown
       'cash_amount': cash,
       'bank_amount': bank,
-      // We don't necessarily need 'credit' input here because 
-      // the DB will calculate (Total - Cash - Bank). 
-      // But passing it is fine for record keeping.
       'credit_amount': credit, 
-
       'items': cartItems.map((item) {
          return {
            'id': item['id'],
@@ -658,19 +652,32 @@ class _SalesScreenState extends State<SalesScreen> {
     };
 
     try {
+      // FIX: Critical Transaction Scope (Issue #10)
+      // We await the DB transaction. If it fails (e.g. Stock < 0), 
+      // it throws an Exception, causing execution to jump to 'catch'.
       await DatabaseHelper.instance.createSale(saleData);
       
+      // FIX: Only clear cart AFTER a strictly successful transaction
       _performClearCart();
+      
       await _refreshAllData();
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.saleCompleted), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loc.saleCompleted), backgroundColor: Colors.green)
+        );
       }
     } catch (e) {
+      // FIX: Error Recovery
+      // The cart is explicitly NOT cleared here.
+      // The user remains on the screen with their items and can retry or modify the cart.
       print('Error processing sale: $e');
       if (mounted) {
         final cleanError = e.toString().replaceAll("Exception: ", "");
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $cleanError'), backgroundColor: Colors.red));
+        // FIX: Use localized error message with parameter
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loc.errorProcessingSale(cleanError)), backgroundColor: Colors.red) // Uses {error} placeholder
+        );
       }
     }
   }

@@ -1,8 +1,9 @@
+// lib/screens/master_data/items_screen.dart
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
 import '../../core/database/database_helper.dart';
-import '../../l10n/app_localizations.dart'; // ✅ Imported Localizations
+import '../../l10n/app_localizations.dart';
 
 class ItemsScreen extends StatefulWidget {
   const ItemsScreen({super.key});
@@ -12,45 +13,151 @@ class ItemsScreen extends StatefulWidget {
 }
 
 class _ItemsScreenState extends State<ItemsScreen> {
+  // Pagination & Data State
   List<Map<String, dynamic>> items = [];
-  bool isLoading = true;
+  bool _isFirstLoadRunning = true;
+  bool _hasNextPage = true;
+  bool _isLoadMoreRunning = false;
+  int _page = 0;
+  final int _limit = 20;
+
+  late ScrollController _scrollController;
   final TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadItems();
+    _scrollController = ScrollController()..addListener(_scrollListener);
+    _firstLoad();
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
     searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadItems() async {
+  void _scrollListener() {
+    if (_scrollController.position.extentAfter < 200 && // Load when near bottom
+        !_isFirstLoadRunning &&
+        !_isLoadMoreRunning &&
+        _hasNextPage) {
+      _loadMoreItems();
+    }
+  }
+
+  // --- Data Loading Logic ---
+
+  Future<void> _firstLoad() async {
+    setState(() {
+      _isFirstLoadRunning = true;
+      _page = 0;
+      _hasNextPage = true;
+      items = [];
+    });
+
     try {
       final db = await DatabaseHelper.instance.database;
-      final result = await db.query('products', orderBy: 'name_english ASC');
+      final String searchQuery = searchController.text.trim();
       
+      List<Map<String, dynamic>> result;
+      
+      if (searchQuery.isNotEmpty) {
+        // FIX: DB-Side Search for Scalability
+        result = await db.query(
+          'products',
+          where: 'name_english LIKE ? OR name_urdu LIKE ?',
+          whereArgs: ['%$searchQuery%', '%$searchQuery%'],
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: 0,
+        );
+      } else {
+        // FIX: Pagination (Limit/Offset)
+        result = await db.query(
+          'products',
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: 0,
+        );
+      }
+
       if (!mounted) return;
-      
+
       setState(() {
         items = result;
-        isLoading = false;
+        _isFirstLoadRunning = false;
+        // If we got fewer items than limit, no more pages exist
+        if (result.length < _limit) {
+          _hasNextPage = false;
+        }
       });
     } catch (e) {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) setState(() => _isFirstLoadRunning = false);
+    }
+  }
+
+  Future<void> _loadMoreItems() async {
+    if (_isLoadMoreRunning || !_hasNextPage) return;
+
+    setState(() => _isLoadMoreRunning = true);
+
+    try {
+      final db = await DatabaseHelper.instance.database;
+      final String searchQuery = searchController.text.trim();
+      _page += 1; // Increment page for offset calculation
+      final int offset = _page * _limit;
+
+      List<Map<String, dynamic>> result;
+      
+      if (searchQuery.isNotEmpty) {
+        result = await db.query(
+          'products',
+          where: 'name_english LIKE ? OR name_urdu LIKE ?',
+          whereArgs: ['%$searchQuery%', '%$searchQuery%'],
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: offset,
+        );
+      } else {
+        result = await db.query(
+          'products',
+          orderBy: 'name_english ASC',
+          limit: _limit,
+          offset: offset,
+        );
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        if (result.isNotEmpty) {
+          items.addAll(result);
+        } else {
+          _hasNextPage = false;
+        }
+        
+        // If strictly less than limit, end reached
+        if (result.length < _limit) {
+          _hasNextPage = false;
+        }
+        
+        _isLoadMoreRunning = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _isLoadMoreRunning = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!; // ✅ Localization helper
+    final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations.itemsManagement), // ✅ Localized Title
+        title: Text(localizations.itemsManagement),
         backgroundColor: Colors.green[700],
         foregroundColor: Colors.white,
         actions: [
@@ -59,54 +166,79 @@ class _ItemsScreenState extends State<ItemsScreen> {
       ),
       body: Column(
         children: [
+          // Search Bar
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
               controller: searchController,
+              onChanged: (value) {
+                // Debouncing could be added here for performance
+                _firstLoad(); 
+              },
               decoration: InputDecoration(
-                labelText: localizations.searchItem, // ✅ Localized Label
+                labelText: localizations.searchItem,
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () {
                     searchController.clear();
-                    _loadItems();
+                    _firstLoad();
                   },
                 ),
               ),
             ),
           ),
+          
+          // List
           Expanded(
-            child: isLoading
+            child: _isFirstLoadRunning
                 ? const Center(child: CircularProgressIndicator())
                 : items.isEmpty
-                    ? Center(child: Text(localizations.noItemsFound)) // ✅ Localized
-                    : ListView.builder(
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          final item = items[index];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                            child: ListTile(
-                              leading: Container(
-                                width: 40, height: 40,
-                                decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                                child: const Center(child: Icon(Icons.inventory, color: Colors.green)),
-                              ),
-                              title: Text(item['name_urdu'] ?? item['name_english'] ?? localizations.unknown, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              // ✅ Localized Subtitle (Stock | Price)
-                              subtitle: Text('${localizations.stock}: ${item['current_stock']} | ${localizations.price}: ${item['sale_price']}'),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showEditItemDialog(item)),
-                                  IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _deleteItem(item['id'])),
-                                ],
-                              ),
+                    ? Center(child: Text(localizations.noItemsFound))
+                    : Column(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                              controller: _scrollController, // Attach Controller
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final item = items[index];
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  child: ListTile(
+                                    leading: Container(
+                                      width: 40, height: 40,
+                                      decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                      child: const Center(child: Icon(Icons.inventory, color: Colors.green)),
+                                    ),
+                                    title: Text(item['name_urdu'] ?? item['name_english'] ?? localizations.unknown, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    subtitle: Text('${localizations.stock}: ${item['current_stock']} | ${localizations.price}: ${item['sale_price']}'),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showEditItemDialog(item)),
+                                        IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _deleteItem(item['id'])),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
+                          ),
+                          // Bottom Loading Indicator
+                          if (_isLoadMoreRunning)
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                          // End of List Message
+                          if (!_hasNextPage && items.isNotEmpty)
+                             Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Center(child: Text(localizations.endOfList, style: const TextStyle(color: Colors.grey))),
+                            ),
+                        ],
                       ),
           ),
         ],
@@ -119,6 +251,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
   }
 
+  // ... [Dialog methods _showAddItemDialog, _showEditItemDialog, _deleteItem remain unchanged] ...
+  
+  // (Include previous helper methods here for complete file)
   void _showAddItemDialog() {
     final localizations = AppLocalizations.of(context)!;
     final nameEngController = TextEditingController();
@@ -129,7 +264,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(localizations.addItem), // ✅ Localized
+        title: Text(localizations.addItem),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -160,10 +295,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 
                 if (!mounted) return;
                 Navigator.pop(context);
-                _loadItems();
+                _firstLoad(); // Refresh list
               }
             },
-            child: Text(localizations.save), // ✅ Localized
+            child: Text(localizations.save),
           ),
         ],
       ),
@@ -180,7 +315,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(localizations.editItem), // ✅ Localized
+        title: Text(localizations.editItem),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -214,9 +349,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
               
               if (!mounted) return;
               Navigator.pop(context);
-              _loadItems();
+              _firstLoad(); // Refresh
             },
-            child: Text(localizations.update), // ✅ Localized
+            child: Text(localizations.update),
           ),
         ],
       ),
@@ -249,7 +384,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         
         if (!mounted) return;
 
-        _loadItems();
+        _firstLoad();
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizations.itemDeleted)));
       } catch (e) {
         if (!mounted) return;
