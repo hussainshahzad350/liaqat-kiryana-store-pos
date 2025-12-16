@@ -59,6 +59,13 @@ class _SalesScreenState extends State<SalesScreen> {
     super.dispose();
   }
 
+  @override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  // ✅ FIXED: Load recent sales when returning to screen
+  _loadRecentSales();
+}
+
   // --- WillPopScope for back button warning ---
   Future<bool> _onWillPop() async {
     // Access localization directly
@@ -119,31 +126,33 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   Future<void> _loadRecentSales() async {
-    if (!mounted) return;
-    final loc = AppLocalizations.of(context)!;
-    final db = await DatabaseHelper.instance.database;
-    
-    // Note: We inject the translated "Walk-in Customer" string into the query result if name is null
-    final result = await db.rawQuery('''
-      SELECT 
-        s.id, 
-        s.bill_number, 
-        s.sale_time, 
-        s.grand_total, 
-        s.cash_amount, 
-        s.bank_amount, 
-        s.credit_amount,
-        s.total_paid,
-        s.remaining_balance,
-        COALESCE(c.name_english, '${loc.walkInCustomer}') as customer_name,
-        c.outstanding_balance as customer_balance
-      FROM sales s
-      LEFT JOIN customers c ON s.customer_id = c.id
-      ORDER BY s.created_at DESC
-      LIMIT 20
-    ''');
-    if (mounted) setState(() => recentSales = result);
-  }
+  if (!mounted) return;
+  final loc = AppLocalizations.of(context)!;
+  final db = await DatabaseHelper.instance.database;
+  
+  // ✅ FIXED: Properly include status field in query
+  final result = await db.rawQuery('''
+    SELECT 
+      s.id, 
+      s.bill_number, 
+      s.sale_time, 
+      s.grand_total, 
+      s.cash_amount, 
+      s.bank_amount, 
+      s.credit_amount,
+      s.total_paid,
+      s.remaining_balance,
+      s.status,
+      COALESCE(c.name_english, '${loc.walkInCustomer}') as customer_name,
+      c.outstanding_balance as customer_balance
+    FROM sales s
+    LEFT JOIN customers c ON s.customer_id = c.id
+    ORDER BY s.created_at DESC
+    LIMIT 20
+  ''');
+  
+  if (mounted) setState(() => recentSales = result);
+}
 
   // --- Item Search Logic ---
   void _filterProducts(String query) {
@@ -682,67 +691,74 @@ class _SalesScreenState extends State<SalesScreen> {
     }
   }
 
-  // --- Delete Sale ---
-  Future<void> _deleteSale(int id, String billNumber) async {
-    final loc = AppLocalizations.of(context)!;
-    
-    bool? confirm = await showDialog(
-      context: context, 
-      builder: (c) => AlertDialog(
-        title: Text(loc.deleteBillTitle), 
-        content: Text(loc.deleteBillMsg), 
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(loc.cancel)), // Use loc.cancel
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red), 
-            onPressed: () => Navigator.pop(c, true), 
-            child: Text(loc.delete, style: const TextStyle(color: Colors.white))
-          )
-        ]
-      )
+  // --- Cancel Sale ---
+  Future<void> _cancelSale(int id, String billNumber) async {
+  final loc = AppLocalizations.of(context)!;
+
+  final reasonCtrl = TextEditingController();
+
+  final bool? confirm = await showDialog(
+    context: context,
+    builder: (c) => AlertDialog(
+      title: Text(loc.cancelSaleTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(loc.cancelSaleMessage),
+          const SizedBox(height: 10),
+          TextField(
+            controller: reasonCtrl,
+            decoration: InputDecoration(
+              labelText: loc.cancelReasonLabel,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(c, false),
+          child: Text(loc.cancel),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          onPressed: () => Navigator.pop(c, true),
+          child: Text(loc.cancelSale, style: const TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+
+  if (confirm != true) return;
+
+  try {
+    await DatabaseHelper.instance.cancelSale(
+      saleId: id,
+      cancelledBy: 'Cashier',
+      reason: reasonCtrl.text.trim(),
     );
-    
-    if (confirm != true) return;
-    
-    final db = await DatabaseHelper.instance.database;
-    
-    try {
-      final saleRes = await db.query('sales', where: 'id = ?', whereArgs: [id]);
-      if (saleRes.isEmpty) return;
-      
-      final sale = saleRes.first;
-      final itemsRes = await db.query('sale_items', where: 'sale_id = ?', whereArgs: [id]);
 
-      await db.transaction((txn) async {
-        // 1. Restore Stock
-        for (var item in itemsRes) {
-          await txn.rawUpdate(
-            'UPDATE products SET current_stock = current_stock + ? WHERE id = ?', 
-            [item['quantity_sold'], item['product_id']]
-          );
-        }
-        
-        // 2. Restore Customer Balance (THE FIX)
-        double remaining = (sale['remaining_balance'] as num?)?.toDouble() ?? 0.0;
-        if (sale['customer_id'] != null && remaining > 0) {
-          await txn.rawUpdate(
-            'UPDATE customers SET outstanding_balance = outstanding_balance - ? WHERE id = ?', 
-            [remaining, sale['customer_id']]
-          );
-        }
-        
-        // 3. Delete Records
-        await txn.delete('sale_items', where: 'sale_id = ?', whereArgs: [id]);
-        await txn.delete('sales', where: 'id = ?', whereArgs: [id]);
-      });
+    // ✅ FIXED: Refresh data after cancellation
+    await _refreshAllData();
 
-      await _refreshAllData();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.bill} $billNumber ${loc.deletedSuccessfully}'), backgroundColor: Colors.green));
-      
-    } catch (e) { 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e'), backgroundColor: Colors.red)); 
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.saleCancelledSuccess),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
+}
 
   // --- REFACTORED BUILD METHOD (RTL FIXES) ---
   @override
@@ -885,14 +901,19 @@ class _SalesScreenState extends State<SalesScreen> {
                           child: Text('${index+1}', style: const TextStyle(fontSize: 10))
                         ),
                         title: Text(sale['customer_name'] ?? loc.walkInCustomer, style: const TextStyle(fontSize: 13)),
-                        subtitle: Text('${sale['bill_number']}', style: const TextStyle(fontSize: 10)),
+                        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start,children: [Text(sale['bill_number'],
+                        style: const TextStyle(fontSize: 10),),Text(sale['status'] == 'CANCELLED'? loc.cancelled: loc.completed,
+                        style: TextStyle(fontSize: 10,fontWeight: FontWeight.bold,color: 
+                        sale['status'] == 'CANCELLED'? Colors.red: Colors.green,),),]),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min, 
                           children: [
                             Text('Rs ${sale['grand_total']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                             IconButton(
-                              icon: const Icon(Icons.delete, size: 16, color: Colors.red), 
-                              onPressed: () => _deleteSale(sale['id'], sale['bill_number'])
+                              icon: const Icon(Icons.cancel, size: 16, color: Colors.orange), 
+                              onPressed: sale['status'] == 'CANCELLED'
+                              ? null
+                              : () => _cancelSale(sale['id'], sale['bill_number']),
                             ),
                           ]
                         ),

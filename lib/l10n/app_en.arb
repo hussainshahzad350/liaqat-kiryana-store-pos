@@ -398,5 +398,15 @@
   "currentBalance": "Current Balance",
   "noData": "No Data",
   "cashIn": "Cash In",
-  "cashOut": "Cash Out"
+  "cashOut": "Cash Out",
+  "errorNegativeValues": "Invalid input: Negative values are not allowed.",
+  "cancelSale": "Cancel Sale",
+  "cancelSaleTitle": "Confirm Sale Cancellation",
+  "cancelSaleMessage": "Are you sure you want to cancel this sale?",
+  "cancelSaleWarning": "This action cannot be undone.",
+  "cancelReasonLabel": "Cancellation Reason",
+  "saleCancelledSuccess": "Sale cancelled successfully.",
+  "saleAlreadyCancelled": "This sale has already been cancelled.",
+  "cancelled": "Cancelled",
+  "completed": "Completed"
 }

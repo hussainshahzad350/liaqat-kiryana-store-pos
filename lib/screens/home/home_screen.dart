@@ -106,6 +106,29 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String _formatTime(String time24) {
+    if (time24.isEmpty) return '';
+    try {
+      // Parse 24-hour format (HH:mm)
+      final parts = time24.split(':');
+      if (parts.length < 2) return time24;
+      
+      int hour = int.parse(parts[0]);
+      final minute = parts[1];
+      
+      String period = 'AM';
+      if (hour >= 12) {
+        period = 'PM';
+        if (hour > 12) hour -= 12;
+      }
+      if (hour == 0) hour = 12;
+      
+      return '$hour:$minute $period';
+    } catch (e) {
+      return time24;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // ✅ Helper for accessing translations
@@ -341,57 +364,125 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // Recent Sales Card
                     Card(
-                      elevation: 4,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.receipt, color: Colors.green),
-                                const SizedBox(width: 8),
-                                // ✅ UPDATED: Localized 'Recent Sales'
-                                Text(localizations.recentSales, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            if (recentSales.isNotEmpty) ...[
-                              const SizedBox(height: 12),
-                              const Divider(),
-                              const SizedBox(height: 8),
-                              for (var sale in recentSales)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 12),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        width: 40, height: 40,
-                                        decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                                        child: Center(child: Text(sale['bill_number']?.toString().replaceAll('SALE-', '') ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(sale['customer_name']?.toString() ?? 'Cash', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                                            Text(sale['sale_time'] != null && (sale['sale_time'] as String).length >= 5? (sale['sale_time'] as String).substring(0, 5): sale['sale_time']?.toString() ?? '',style: const TextStyle(fontSize: 12, color: Colors.grey),),
-                                          ],
-                                        ),
-                                      ),
-                                      Text('Rs ${(sale['grand_total'] as num?)?.toStringAsFixed(0) ?? '0'}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                ),
-                            ] else ...[
-                              const SizedBox(height: 20),
-                              // ✅ UPDATED: Localized 'No sales yet'
-                              Center(child: Text(localizations.noSalesYet, style: const TextStyle(color: Colors.grey))),
-                            ],
-                          ],
-                        ),
+  elevation: 4,
+  child: Padding(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.receipt, color: Colors.green),
+            const SizedBox(width: 8),
+            Text(localizations.recentSales, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        if (recentSales.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 8),
+          for (var sale in recentSales)
+  Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Row(
+      children: [
+        Container(
+          width: 40, 
+          height: 40,
+          decoration: BoxDecoration(
+            color: sale['status'] == 'CANCELLED' 
+              ? Colors.red.withOpacity(0.1)
+              : Colors.green.withOpacity(0.1), 
+            borderRadius: BorderRadius.circular(8)
+          ),
+          child: Center(
+            child: Icon(
+              sale['status'] == 'CANCELLED' ? Icons.cancel : Icons.receipt,
+              color: sale['status'] == 'CANCELLED' ? Colors.red : Colors.green,
+              size: 20,
+            )
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                sale['customer_name']?.toString() ?? 'Cash', 
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)
+              ),
+              Row(
+                children: [
+                  // ✅ Full bill number (e.g., SB-2512000001)
+                  Text(
+                    sale['bill_number']?.toString() ?? '',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 6),
+                  // ✅ Status badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: sale['status'] == 'CANCELLED' 
+                        ? Colors.red.withOpacity(0.1) 
+                        : Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: sale['status'] == 'CANCELLED' 
+                          ? Colors.red 
+                          : Colors.green,
+                        width: 0.5
+                      )
+                    ),
+                    child: Text(
+                      sale['status'] == 'CANCELLED' 
+                        ? localizations.cancelled 
+                        : localizations.completed,
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: sale['status'] == 'CANCELLED' 
+                          ? Colors.red 
+                          : Colors.green,
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 6),
+                  // ✅ Time in 12-hour format with AM/PM
+                  Text(
+                    _formatTime(sale['sale_time']?.toString() ?? ''),
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Text(
+          'Rs ${(sale['grand_total'] as num?)?.toStringAsFixed(0) ?? '0'}', 
+          style: TextStyle(
+            fontSize: 16, 
+            fontWeight: FontWeight.bold,
+            decoration: sale['status'] == 'CANCELLED' 
+              ? TextDecoration.lineThrough 
+              : null,
+            color: sale['status'] == 'CANCELLED' 
+              ? Colors.grey 
+              : Colors.black,
+                    )
+                  ),
+                ],
+              ),
+            ),
+        ] else ...[
+          const SizedBox(height: 20),
+          Center(child: Text(localizations.noSalesYet, style: const TextStyle(color: Colors.grey))),
+        ],
+      ],
+    ),
+  ),
+),
                   ],
                 ),
               ),

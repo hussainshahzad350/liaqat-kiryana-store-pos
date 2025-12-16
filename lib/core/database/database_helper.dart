@@ -190,6 +190,10 @@ class DatabaseHelper {
         discount REAL DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
         updated_at TEXT,
+        status TEXT NOT NULL DEFAULT 'COMPLETED',
+        cancelled_at TEXT,
+        cancelled_by TEXT,
+        cancel_reason TEXT,
         FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
       )
     ''');
@@ -301,21 +305,21 @@ class DatabaseHelper {
   
   // FIX: getTodaySales (Missing method fix)
   Future<double> getTodaySales() async {
-    try {
-      final db = await database;
-      // FIX: Use DateFormat for reliable date string
-      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
-      final result = await db.rawQuery(
-        'SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ?',
-        [today]
-      );
-      return (result.first['total'] as num?)?.toDouble() ?? 0.0;
-    } catch (e) {
-      AppLogger.error("Error fetching today's sales: $e", tag: 'DB');
-      return 0.0;
-    }
+  try {
+    final db = await database;
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    
+    // ✅ FIXED: Only sum sales where status is COMPLETED
+    final result = await db.rawQuery(
+      'SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ? AND status = ?',
+      [today, 'COMPLETED']
+    );
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  } catch (e) {
+    AppLogger.error("Error fetching today's sales: $e", tag: 'DB');
+    return 0.0;
   }
+}
 
   Future<double> getCurrentCashBalance() async {
     try {
@@ -364,6 +368,102 @@ class DatabaseHelper {
     });
   }
 
+  Future<void> cancelSale({required int saleId,required String cancelledBy,String? reason,}) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      // 1. Fetch sale (validate)
+      final saleRes = await txn.query(
+        'sales',
+         where: 'id = ? AND status = ?',
+      whereArgs: [saleId, 'COMPLETED'],
+      limit: 1,
+    );
+
+    if (saleRes.isEmpty) {
+      throw Exception('Sale not found or already cancelled');
+    }
+    final sale = saleRes.first;
+    final double cashAmount = (sale['cash_amount'] as num).toDouble();
+    final double creditAmount = (sale['credit_amount'] as num).toDouble();
+    final int? customerId = sale['customer_id'] as int?;
+
+    // 2. Mark sale as CANCELLED
+    await txn.update(
+      'sales',
+      {
+        'status': 'CANCELLED',
+        'cancelled_at': DateTime.now().toIso8601String(),
+        'cancelled_by': cancelledBy,
+        'cancel_reason': reason,
+        'updated_at': DateTime.now().toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [saleId],
+    );
+
+    // 3. Revert stock
+    final items = await txn.query(
+      'sale_items',
+      where: 'sale_id = ?',
+      whereArgs: [saleId],
+    );
+
+    for (final item in items) {
+      await txn.rawUpdate(
+        '''
+        UPDATE products
+        SET current_stock = current_stock + ?
+        WHERE id = ?
+        ''',
+        [
+          (item['quantity_sold'] as num).toDouble(),
+          item['product_id']
+        ],
+      );
+    }
+
+    // 4. Reverse customer credit (if any)
+    if (customerId != null && creditAmount > 0) {
+      await txn.rawUpdate(
+        '''
+        UPDATE customers
+        SET outstanding_balance = outstanding_balance - ?
+        WHERE id = ?
+        ''',
+        [creditAmount, customerId],
+      );
+    }
+    // 5. Reverse cash (ledger entry – do NOT delete old one)
+    if (cashAmount > 0) {
+      final now = DateTime.now();
+      final dateStr = DateFormat('yyyy-MM-dd').format(now);
+      final timeStr = DateFormat('hh:mm a').format(now);
+
+      // get last balance
+      final balRes = await txn.rawQuery(
+        'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
+      );
+
+      double currentBalance = 0.0;
+      if (balRes.isNotEmpty) {
+        currentBalance = (balRes.first['balance_after'] as num).toDouble();
+      }
+
+      final newBalance = currentBalance - cashAmount;
+
+      await txn.insert('cash_ledger', {
+        'transaction_date': dateStr,
+        'transaction_time': timeStr,
+        'description': 'Sale Cancelled (Bill #${sale['bill_number']})',
+        'type': 'OUT',
+        'amount': cashAmount,
+        'balance_after': newBalance,
+        'remarks': reason ?? 'Sale cancellation',
+      });
+    }
+  });
+}
+
   Future<List<Map<String, dynamic>>> getCashLedger({int limit = 50, int offset = 0}) async {
     try {
       final db = await database;
@@ -380,29 +480,29 @@ class DatabaseHelper {
 
   // FIX: getTodayCustomers (Missing method fix)
   Future<List<Map<String, dynamic>>> getTodayCustomers() async {
-    try {
-      final db = await database;
-      // FIX: Use DateFormat
-      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
-      return await db.rawQuery('''
-        SELECT 
-          c.name_urdu, 
-          c.name_english, 
-          SUM(s.grand_total) as total_amount,
-          COUNT(s.id) as sale_count
-        FROM sales s
-        LEFT JOIN customers c ON s.customer_id = c.id
-        WHERE s.sale_date = ? AND c.id IS NOT NULL
-        GROUP BY c.id
-        ORDER BY total_amount DESC
-        LIMIT 5
-      ''', [today]);
-    } catch (e) {
-       AppLogger.error("Error fetching today's customers: $e", tag: 'DB');
-       return [];
-    }
+  try {
+    final db = await database;
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    
+    // ✅ FIXED: Filter by status = 'COMPLETED'
+    return await db.rawQuery('''
+      SELECT 
+        c.name_urdu, 
+        c.name_english, 
+        SUM(s.grand_total) as total_amount,
+        COUNT(s.id) as sale_count
+      FROM sales s
+      LEFT JOIN customers c ON s.customer_id = c.id
+      WHERE s.sale_date = ? AND c.id IS NOT NULL AND s.status = 'COMPLETED'
+      GROUP BY c.id
+      ORDER BY total_amount DESC
+      LIMIT 5
+    ''', [today]);
+  } catch (e) {
+     AppLogger.error("Error fetching today's customers: $e", tag: 'DB');
+     return [];
   }
+}
 
   // FIX: getLowStockItems (Missing method fix)
   Future<List<Map<String, dynamic>>> getLowStockItems() async {
@@ -428,24 +528,27 @@ class DatabaseHelper {
 
   // FIX: getRecentSales (Missing method fix)
   Future<List<Map<String, dynamic>>> getRecentSales() async {
-    try {
-      final db = await database;
-      return await db.rawQuery('''
-        SELECT 
-          s.bill_number, 
-          s.grand_total, 
-          s.sale_time,
-          COALESCE(c.name_urdu, c.name_english, 'Walk-in Customer') as customer_name
-        FROM sales s
-        LEFT JOIN customers c ON s.customer_id = c.id
-        ORDER BY s.created_at DESC
-        LIMIT 5
-      ''');
-    } catch (e) {
-      AppLogger.error("Error fetching recent sales: $e", tag: 'DB');
-      return [];
-    }
+  try {
+    final db = await database;
+    // ✅ FIXED: Added 'status' field to SELECT
+    return await db.rawQuery('''
+      SELECT 
+        s.id,
+        s.bill_number,
+        s.status, 
+        s.grand_total, 
+        s.sale_time,
+        COALESCE(c.name_urdu, c.name_english, 'Walk-in Customer') as customer_name
+      FROM sales s
+      LEFT JOIN customers c ON s.customer_id = c.id
+      ORDER BY s.created_at DESC
+      LIMIT 5
+    ''');
+  } catch (e) {
+    AppLogger.error("Error fetching recent sales: $e", tag: 'DB');
+    return [];
   }
+}
 
   // =======================================================
   //         CORE TRANSACTION & CRUD METHODS
@@ -571,56 +674,58 @@ class DatabaseHelper {
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     // 1. Today's Sales Total
-    batch.rawQuery('SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ?', [today]);
+    batch.rawQuery('SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ? AND status = ?', [today, 'COMPLETED']);
 
     // 2. Today's Top Customers
     batch.rawQuery('''
-        SELECT 
-          c.name_urdu, 
-          c.name_english, 
-          SUM(s.grand_total) as total_amount,
-          COUNT(s.id) as sale_count
-        FROM sales s
-        LEFT JOIN customers c ON s.customer_id = c.id
-        WHERE s.sale_date = ? AND c.id IS NOT NULL
-        GROUP BY c.id
-        ORDER BY total_amount DESC
-        LIMIT 5
-    ''', [today]);
+      SELECT 
+        c.name_urdu, 
+        c.name_english, 
+        SUM(s.grand_total) as total_amount,
+        COUNT(s.id) as sale_count
+      FROM sales s
+      LEFT JOIN customers c ON s.customer_id = c.id
+      WHERE s.sale_date = ? AND c.id IS NOT NULL AND s.status = 'COMPLETED'
+      GROUP BY c.id
+      ORDER BY total_amount DESC
+      LIMIT 5
+  ''', [today]);
 
     // 3. Low Stock Items
     batch.rawQuery('''
-        SELECT 
-          name_urdu, 
-          name_english, 
-          current_stock, 
-          min_stock_alert,
-          sale_price
-        FROM products 
-        WHERE current_stock > 0 AND current_stock <= min_stock_alert
-        ORDER BY (current_stock / min_stock_alert) ASC
-        LIMIT 5
-    ''');
+      SELECT 
+        name_urdu, 
+        name_english, 
+        current_stock, 
+        min_stock_alert,
+        sale_price
+      FROM products 
+      WHERE current_stock > 0 AND current_stock <= min_stock_alert
+      ORDER BY (current_stock / min_stock_alert) ASC
+      LIMIT 5
+  ''');
 
     // 4. Recent Sales
     batch.rawQuery('''
-        SELECT 
-          s.bill_number, 
-          s.grand_total, 
-          s.sale_time,
-          COALESCE(c.name_urdu, c.name_english, 'Walk-in Customer') as customer_name
-        FROM sales s
-        LEFT JOIN customers c ON s.customer_id = c.id
-        ORDER BY s.created_at DESC
-        LIMIT 5
-    ''');
+      SELECT 
+        s.id,
+        s.bill_number,
+        s.status, 
+        s.grand_total, 
+        s.sale_time,
+        COALESCE(c.name_urdu, c.name_english, 'Walk-in Customer') as customer_name
+      FROM sales s
+      LEFT JOIN customers c ON s.customer_id = c.id
+      ORDER BY s.created_at DESC
+      LIMIT 5
+  ''');
 
     final results = await batch.commit();
 
     // Parse results safely
     return {
       'todaySales': (results[0] as List).isNotEmpty 
-          ? ((results[0] as List).first['total'] as num?)?.toDouble() ?? 0.0 
+          ? ((results[0] as List).first['total'] as num?)?.toDouble() ?? 0.0  
           : 0.0,
       'todayCustomers': (results[1] as List).map((e) => e as Map<String, dynamic>).toList(),
       'lowStockItems': (results[2] as List).map((e) => e as Map<String, dynamic>).toList(),

@@ -396,5 +396,15 @@
   "currentBalance": "موجودہ بیلنس",
   "noData": "کوئی ڈیٹا نہیں ملا",
   "cashIn": "کیش ان",
-  "cashOut": "کیش آؤٹ"
+  "cashOut": "کیش آؤٹ",
+  "errorNegativeValues": "غلط اندراج: منفی اقدار کی اجازت نہیں ہے۔",
+  "cancelSale": "سیل منسوخ کریں",
+  "cancelSaleTitle": "سیل منسوخی کی تصدیق",
+  "cancelSaleMessage": "کیا آپ واقعی اس سیل کو منسوخ کرنا چاہتے ہیں؟",
+  "cancelSaleWarning": "یہ عمل واپس نہیں لیا جا سکتا۔",
+  "cancelReasonLabel": "منسوخی کی وجہ",
+  "saleCancelledSuccess": "سیل کامیابی سے منسوخ ہو گئی۔",
+  "saleAlreadyCancelled": "یہ سیل پہلے ہی منسوخ کی جا چکی ہے۔",
+  "completed": "مکمل شدہ",
+  "cancelled": "منسوخ شدہ"
 }

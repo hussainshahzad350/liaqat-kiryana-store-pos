@@ -1163,4 +1163,35 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get cashOut => 'کیش آؤٹ';
+
+  @override
+  String get errorNegativeValues => 'غلط اندراج: منفی اقدار کی اجازت نہیں ہے۔';
+
+  @override
+  String get cancelSale => 'سیل منسوخ کریں';
+
+  @override
+  String get cancelSaleTitle => 'سیل منسوخی کی تصدیق';
+
+  @override
+  String get cancelSaleMessage =>
+      'کیا آپ واقعی اس سیل کو منسوخ کرنا چاہتے ہیں؟';
+
+  @override
+  String get cancelSaleWarning => 'یہ عمل واپس نہیں لیا جا سکتا۔';
+
+  @override
+  String get cancelReasonLabel => 'منسوخی کی وجہ';
+
+  @override
+  String get saleCancelledSuccess => 'سیل کامیابی سے منسوخ ہو گئی۔';
+
+  @override
+  String get saleAlreadyCancelled => 'یہ سیل پہلے ہی منسوخ کی جا چکی ہے۔';
+
+  @override
+  String get cancelled => 'منسوخ شدہ';
+
+  @override
+  String get completed => 'مکمل شدہ';
 }

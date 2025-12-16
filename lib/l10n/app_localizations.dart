@@ -2377,6 +2377,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cash Out'**
   String get cashOut;
+
+  /// No description provided for @errorNegativeValues.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid input: Negative values are not allowed.'**
+  String get errorNegativeValues;
+
+  /// No description provided for @cancelSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Sale'**
+  String get cancelSale;
+
+  /// No description provided for @cancelSaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Sale Cancellation'**
+  String get cancelSaleTitle;
+
+  /// No description provided for @cancelSaleMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this sale?'**
+  String get cancelSaleMessage;
+
+  /// No description provided for @cancelSaleWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get cancelSaleWarning;
+
+  /// No description provided for @cancelReasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation Reason'**
+  String get cancelReasonLabel;
+
+  /// No description provided for @saleCancelledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale cancelled successfully.'**
+  String get saleCancelledSuccess;
+
+  /// No description provided for @saleAlreadyCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'This sale has already been cancelled.'**
+  String get saleAlreadyCancelled;
+
+  /// No description provided for @cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get cancelled;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completed;
 }
 
 class _AppLocalizationsDelegate

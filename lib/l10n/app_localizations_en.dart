@@ -1165,4 +1165,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cashOut => 'Cash Out';
+
+  @override
+  String get errorNegativeValues =>
+      'Invalid input: Negative values are not allowed.';
+
+  @override
+  String get cancelSale => 'Cancel Sale';
+
+  @override
+  String get cancelSaleTitle => 'Confirm Sale Cancellation';
+
+  @override
+  String get cancelSaleMessage => 'Are you sure you want to cancel this sale?';
+
+  @override
+  String get cancelSaleWarning => 'This action cannot be undone.';
+
+  @override
+  String get cancelReasonLabel => 'Cancellation Reason';
+
+  @override
+  String get saleCancelledSuccess => 'Sale cancelled successfully.';
+
+  @override
+  String get saleAlreadyCancelled => 'This sale has already been cancelled.';
+
+  @override
+  String get cancelled => 'Cancelled';
+
+  @override
+  String get completed => 'Completed';
 }
