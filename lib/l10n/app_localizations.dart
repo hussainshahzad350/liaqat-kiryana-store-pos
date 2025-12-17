@@ -749,7 +749,7 @@ abstract class AppLocalizations {
   /// No description provided for @totalBalance.
   ///
   /// In en, this message translates to:
-  /// **'Total balance'**
+  /// **'Total Balance'**
   String get totalBalance;
 
   /// No description provided for @avgBalance.
@@ -2357,7 +2357,7 @@ abstract class AppLocalizations {
   /// No description provided for @currentBalance.
   ///
   /// In en, this message translates to:
-  /// **'Current balance'**
+  /// **'Current Balance'**
   String get currentBalance;
 
   /// No description provided for @noData.
@@ -2491,6 +2491,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Processing sale...'**
   String get processingSale;
+
+  /// No description provided for @exceededBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Exceeded by'**
+  String get exceededBy;
+
+  /// No description provided for @increaseLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase Limit'**
+  String get increaseLimit;
+
+  /// No description provided for @continueAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue Anyway'**
+  String get continueAnyway;
+
+  /// No description provided for @updateCreditLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Credit Limit'**
+  String get updateCreditLimit;
+
+  /// No description provided for @newCreditLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'New Credit Limit'**
+  String get newCreditLimit;
+
+  /// No description provided for @suggestedLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested based on current sale'**
+  String get suggestedLimit;
+
+  /// No description provided for @invalidAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid amount'**
+  String get invalidAmount;
+
+  /// No description provided for @creditLimitUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit limit updated successfully'**
+  String get creditLimitUpdated;
+
+  /// No description provided for @creditLimitWarningMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'The current sale exceeds the customer\'s credit limit of {limit}. You can either collect payment now or increase the credit limit.'**
+  String creditLimitWarningMsg(Object limit);
+
+  /// No description provided for @excessAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Excess Amount'**
+  String get excessAmount;
+
+  /// No description provided for @increaseCreditLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase Credit Limit'**
+  String get increaseCreditLimit;
+
+  /// No description provided for @invalidLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid limit'**
+  String get invalidLimit;
+
+  /// No description provided for @updateLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Limit'**
+  String get updateLimit;
+
+  /// No description provided for @savePrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Print'**
+  String get savePrint;
+
+  /// No description provided for @changeDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Due'**
+  String get changeDue;
 }
 
 class _AppLocalizationsDelegate

@@ -333,7 +333,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerBalanceSummary => 'Customer Balance Summary';
 
   @override
-  String get totalBalance => 'Total balance';
+  String get totalBalance => 'Total Balance';
 
   @override
   String get avgBalance => 'Avg Balance';
@@ -1155,7 +1155,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remarks => 'Remarks';
 
   @override
-  String get currentBalance => 'Current balance';
+  String get currentBalance => 'Current Balance';
 
   @override
   String get noData => 'No Data';
@@ -1224,4 +1224,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get processingSale => 'Processing sale...';
+
+  @override
+  String get exceededBy => 'Exceeded by';
+
+  @override
+  String get increaseLimit => 'Increase Limit';
+
+  @override
+  String get continueAnyway => 'Continue Anyway';
+
+  @override
+  String get updateCreditLimit => 'Update Credit Limit';
+
+  @override
+  String get newCreditLimit => 'New Credit Limit';
+
+  @override
+  String get suggestedLimit => 'Suggested based on current sale';
+
+  @override
+  String get invalidAmount => 'Invalid amount';
+
+  @override
+  String get creditLimitUpdated => 'Credit limit updated successfully';
+
+  @override
+  String creditLimitWarningMsg(Object limit) {
+    return 'The current sale exceeds the customer\'s credit limit of $limit. You can either collect payment now or increase the credit limit.';
+  }
+
+  @override
+  String get excessAmount => 'Excess Amount';
+
+  @override
+  String get increaseCreditLimit => 'Increase Credit Limit';
+
+  @override
+  String get invalidLimit => 'Invalid limit';
+
+  @override
+  String get updateLimit => 'Update Limit';
+
+  @override
+  String get savePrint => 'Save & Print';
+
+  @override
+  String get changeDue => 'Change Due';
 }

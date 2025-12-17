@@ -415,5 +415,20 @@
   "creditLimitExceeded": "کریڈٹ حد سے تجاوز",
   "customerCreditLimit": "گاہک کی کریڈٹ حد",
   "creditLimitWarning": "یہ فروخت گاہک کی کریڈٹ حد سے تجاوز کرے گی۔ براہ کرم ادائیگی وصول کریں یا کریڈٹ حد بڑھائیں۔",
-  "processingSale": "فروخت پر کارروائی جاری ہے..."
+  "processingSale": "فروخت پر کارروائی جاری ہے...",
+  "exceededBy": "سے تجاوز",
+  "increaseLimit": "حد بڑھائیں",
+  "continueAnyway": "پھر بھی جاری رکھیں",
+  "updateCreditLimit": "کریڈٹ حد اپ ڈیٹ کریں",
+  "newCreditLimit": "نئی کریڈٹ حد",
+  "suggestedLimit": "موجودہ فروخت کی بنیاد پر تجویز کردہ",
+  "invalidAmount": "غلط رقم",
+  "creditLimitUpdated": "کریڈٹ حد کامیابی سے اپ ڈیٹ ہوگئی",
+  "creditLimitWarningMsg": "موجودہ فروخت گاہک کی کریڈٹ حد {limit} سے تجاوز کر گئی ہے۔ آپ یا تو ابھی ادائیگی وصول کر سکتے ہیں یا کریڈٹ حد بڑھا سکتے ہیں۔",
+  "excessAmount": "زیادہ رقم",
+  "increaseCreditLimit": "کریڈٹ حد بڑھائیں",
+  "invalidLimit": "غلط حد",
+  "updateLimit": "حد اپ ڈیٹ کریں",
+  "savePrint": "محفوظ اور پرنٹ کریں",
+  "changeDue": "بقایا رقم"
 }

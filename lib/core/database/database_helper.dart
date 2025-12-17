@@ -43,6 +43,16 @@ class DatabaseHelper {
     AppLogger.db('Database created successfully');
   }
 
+  Future<int> updateCustomerCreditLimit(int customerId, double newLimit) async {
+  final db = await database;
+  return await db.update(
+    'customers',
+    {'credit_limit': newLimit},
+    where: 'id = ?',
+    whereArgs: [customerId],
+  );
+}
+
   // 🛠️ Proper Migration Logic with Auto-Backup
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
     AppLogger.db('Upgrading database from v$oldVersion to v$newVersion');

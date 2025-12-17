@@ -416,8 +416,22 @@
   "productNotFound": "Product not found",
   "creditLimitExceeded": "Credit Limit Exceeded",
   "customerCreditLimit": "Customer credit limit",
-  "currentBalance": "Current balance",
-  "totalBalance": "Total balance",
   "creditLimitWarning": "This sale will exceed the customer's credit limit. Please collect payment or increase credit limit.",
-  "processingSale": "Processing sale..."
+  "processingSale": "Processing sale...",
+  "exceededBy": "Exceeded by",
+  "increaseLimit": "Increase Limit",
+  "continueAnyway": "Continue Anyway",
+  "updateCreditLimit": "Update Credit Limit",
+  "newCreditLimit": "New Credit Limit",
+  "suggestedLimit": "Suggested based on current sale",
+  "invalidAmount": "Invalid amount",
+  "creditLimitUpdated": "Credit limit updated successfully",
+  "creditLimitWarningMsg": "The current sale exceeds the customer's credit limit of {limit}. You can either collect payment now or increase the credit limit.",
+  "excessAmount": "Excess Amount",
+  "increaseCreditLimit": "Increase Credit Limit",
+  "invalidLimit": "Invalid limit",
+  "updateLimit": "Update Limit",
+  "savePrint": "Save & Print",
+  "changeDue": "Change Due"
+  
 }

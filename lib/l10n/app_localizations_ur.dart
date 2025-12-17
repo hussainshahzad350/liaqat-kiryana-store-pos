@@ -1222,4 +1222,51 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get processingSale => 'فروخت پر کارروائی جاری ہے...';
+
+  @override
+  String get exceededBy => 'سے تجاوز';
+
+  @override
+  String get increaseLimit => 'حد بڑھائیں';
+
+  @override
+  String get continueAnyway => 'پھر بھی جاری رکھیں';
+
+  @override
+  String get updateCreditLimit => 'کریڈٹ حد اپ ڈیٹ کریں';
+
+  @override
+  String get newCreditLimit => 'نئی کریڈٹ حد';
+
+  @override
+  String get suggestedLimit => 'موجودہ فروخت کی بنیاد پر تجویز کردہ';
+
+  @override
+  String get invalidAmount => 'غلط رقم';
+
+  @override
+  String get creditLimitUpdated => 'کریڈٹ حد کامیابی سے اپ ڈیٹ ہوگئی';
+
+  @override
+  String creditLimitWarningMsg(Object limit) {
+    return 'موجودہ فروخت گاہک کی کریڈٹ حد $limit سے تجاوز کر گئی ہے۔ آپ یا تو ابھی ادائیگی وصول کر سکتے ہیں یا کریڈٹ حد بڑھا سکتے ہیں۔';
+  }
+
+  @override
+  String get excessAmount => 'زیادہ رقم';
+
+  @override
+  String get increaseCreditLimit => 'کریڈٹ حد بڑھائیں';
+
+  @override
+  String get invalidLimit => 'غلط حد';
+
+  @override
+  String get updateLimit => 'حد اپ ڈیٹ کریں';
+
+  @override
+  String get savePrint => 'محفوظ اور پرنٹ کریں';
+
+  @override
+  String get changeDue => 'بقایا رقم';
 }

@@ -320,37 +320,50 @@ void didChangeDependencies() {
   }
 
   // --- Cart Actions ---
-  void _addToCart(Map<String, dynamic> product) {
+  void _addToCart(Map<String, dynamic> product, {double quantity = 1.0}) {
     final loc = AppLocalizations.of(context)!;
-    
+
+
+    // ✅ VALIDATION: Prevent adding invalid amounts (0 or negative)
+    if (quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.invalidQuantity)),
+      );
+      return;
+    }
+
     if (isSoundOn) SystemSound.play(SystemSoundType.click);
-    
+
     final index = cartItems.indexWhere((item) => item['id'] == product['id']);
     final availableStock = (product['current_stock'] as num).toDouble();
-    
+
     setState(() {
       if (index != -1) {
-        final currentQty = cartItems[index]['quantity'];
-        final newQty = currentQty + 1.0;
-        
+        final currentQty = cartItems[index]['quantity'] as double;
+        final newQty = currentQty + quantity;
+
         // ✅ VALIDATION: Check stock before adding
         if (newQty > availableStock) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${loc.insufficientStock}: ${availableStock.toStringAsFixed(0)} available'),
+              content: Text('${loc.insufficientStock}: ${availableStock.toStringAsFixed(2)} available'), // Show 2 decimals
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 2),
             ),
           );
           return;
         }
-        
+
         cartItems[index]['quantity'] = newQty;
         cartItems[index]['total'] = newQty * cartItems[index]['unit_price'];
-        cartItems[index]['qtyCtrl'].text = newQty.toStringAsFixed(0); 
+        
+        // ✅ FORMATTING: Show decimals if needed (e.g. 1.5), otherwise integer (e.g. 1)
+        String displayQty = newQty % 1 == 0 ? newQty.toInt().toString() : newQty.toString();
+        cartItems[index]['qtyCtrl'].text = displayQty;
+        
       } else {
         // ✅ VALIDATION: Check stock for new item
-        if (availableStock <= 0) {
+        if (availableStock < quantity) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(loc.outOfStock),
@@ -360,18 +373,22 @@ void didChangeDependencies() {
           );
           return;
         }
-        
+
         double price = (product['sale_price'] ?? 0.0).toDouble();
-        double qty = 1.0;
-        
-        final pCtrl = TextEditingController(text: price.toStringAsFixed(0));
-        final qCtrl = TextEditingController(text: qty.toStringAsFixed(0));
-        
+        double qty = quantity;
+
+        // ✅ FORMATTING: Support decimals for Price and Qty
+        String displayPrice = price % 1 == 0 ? price.toInt().toString() : price.toStringAsFixed(2);
+        String displayQty = quantity % 1 == 0 ? quantity.toInt().toString() : quantity.toStringAsFixed(2);
+
+        final pCtrl = TextEditingController(text: displayPrice);
+        final qCtrl = TextEditingController(text: displayQty);
+
         cartItems.add({
           'id': product['id'],
           'name_urdu': product['name_urdu'],
           'name_english': product['name_english'],
-          'current_stock': availableStock, 
+          'current_stock': availableStock,
           'unit_price': price,
           'quantity': qty,
           'total': price * qty,
@@ -379,24 +396,28 @@ void didChangeDependencies() {
           'qtyCtrl': qCtrl,
         });
       }
-      
+
       if (showProductList) {
         productSearchController.clear();
         showProductList = false;
       }
       _calculateTotals();
     });
-  }
+}
 
   void _updateCartItemFromField(int index) {
     final loc = AppLocalizations.of(context)!;
     final item = cartItems[index];
+
+    // Allow empty string during typing
+    String priceText = item['priceCtrl'].text;
+    String qtyText = item['qtyCtrl'].text;
     
-    double newPrice = double.tryParse(item['priceCtrl'].text) ?? 0.0;
-    double newQty = double.tryParse(item['qtyCtrl'].text) ?? 1.0;
+    double newPrice = priceText.isEmpty ? 0.0 : double.tryParse(priceText) ?? 0.0;
+    double newQty = qtyText.isEmpty ? 0.0 : double.tryParse(qtyText) ?? 0.0;
 
     // ✅ VALIDATION: Prevent negative or zero values
-    if (newPrice <= 0) {
+    if (newPrice < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.invalidPrice),
@@ -409,7 +430,7 @@ void didChangeDependencies() {
       return;
     }
 
-    if (newQty <= 0) {
+    if (newQty < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.invalidQuantity),
@@ -505,227 +526,448 @@ void didChangeDependencies() {
 
   // --- NEW SIMPLIFIED CHECKOUT DIALOG (LOCALIZED) ---
   void _showCheckoutDialog() {
-    if (cartItems.isEmpty) return;
-    
-    final loc = AppLocalizations.of(context)!;
-    
-    bool isRegistered = selectedCustomerId != null;
-    double billTotal = grandTotal;
-    double oldBalance = previousBalance;
+  if (cartItems.isEmpty) return;
 
-    if (isRegistered) {
-      final creditLimit = (selectedCustomerMap!['credit_limit'] as num?)?.toDouble() ?? 0.0;
-      final currentBalance = oldBalance;
-      final potentialBalance = currentBalance + billTotal;
-      if (potentialBalance > creditLimit) {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(loc.creditLimitExceeded),
-            content: Text(
-              '${loc.customerCreditLimit}: Rs ${creditLimit.toStringAsFixed(0)}\n'
-              '${loc.currentBalance}: Rs ${currentBalance.toStringAsFixed(0)}\n'
-              '${loc.billTotal}: Rs ${billTotal.toStringAsFixed(0)}\n'
-              '${loc.totalBalance}: Rs ${potentialBalance.toStringAsFixed(0)}\n\n'
-              '${loc.creditLimitWarning}'
+  // 1. Walk-in Customer Flow
+  if (selectedCustomerId == null) {
+    _showCheckoutPaymentDialog(); // Direct to payment, no limit check
+    return;
+  }
+  // 2. Registered Customer Flow
+  final double creditLimit = double.tryParse(selectedCustomerMap?['credit_limit'].toString() ?? '0') ?? 0.0;
+  final double currentBalance = double.tryParse(selectedCustomerMap?['outstanding_balance'].toString() ?? '0') ?? 0.0;
+  
+  // Calculate potential balance assuming the worst case (Full Credit)
+  // or simply notifying that the account is entering an over-limit state.
+  final double potentialBalance = currentBalance + grandTotal;
+
+  // Check if Limit Exceeded
+
+  if (potentialBalance > creditLimit) {
+    _showCreditLimitWarningDialog(
+      creditLimit: creditLimit,
+      currentBalance: currentBalance,
+      billTotal: grandTotal,
+      potentialBalance: potentialBalance,
+      onContinueAnyway: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true),
+      onIncreaseLimit: () {
+        _showIncreaseLimitDialog(onLimitUpdated: () {
+          // Re-trigger checkout to see if it passes now (or ignore flag)
+          _showCheckoutPaymentDialog(ignoreCreditLimit: true); 
+        });
+      },
+    );
+  } else {
+    _showCheckoutPaymentDialog(); 
+  }
+}
+
+// ✅ NEW: Show credit limit warning with options - ONLY when credit payment is attempted
+void _showCreditLimitWarningDialog({
+  required double creditLimit,
+  required double currentBalance,
+  required double billTotal,
+  required double potentialBalance,
+  required Function() onContinueAnyway,
+  required Function() onIncreaseLimit,
+}) {
+  final loc = AppLocalizations.of(context)!;
+  
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => AlertDialog(
+      title: Row(
+        children: [
+          const Icon(Icons.warning, color: Colors.orange),
+          const SizedBox(width: 10),
+          Text(loc.creditLimitExceeded, style: const TextStyle(color: Colors.orange)),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(loc.creditLimitWarningMsg(creditLimit.toStringAsFixed(0))),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _infoRow('${loc.customerCreditLimit}:', 'Rs ${creditLimit.toStringAsFixed(0)}'),
+                  _infoRow('${loc.currentBalance}:', 'Rs ${currentBalance.toStringAsFixed(0)}'),
+                  _infoRow('${loc.billTotal}:', 'Rs ${billTotal.toStringAsFixed(0)}'),
+                  const Divider(),
+                  _infoRow('${loc.totalBalance}:', 'Rs ${potentialBalance.toStringAsFixed(0)}',
+                    isBold: true,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    '${loc.excessAmount}: Rs ${(potentialBalance - creditLimit).toStringAsFixed(0)}',
+                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        // Option 1: Cancel
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            // Return to payment dialog without making changes
+          },
+          child: Text(loc.cancel, style: const TextStyle(color: Colors.grey)),
+        ),
+        
+        // Option 2: Increase Limit
+        OutlinedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            onIncreaseLimit();
+          },
+          style: OutlinedButton.styleFrom(
+            side: const BorderSide(color: Colors.blue),
+          ),
+          child: Text(loc.increaseLimit, style: const TextStyle(color: Colors.blue)),
+        ),
+        
+        // Option 3: Continue Anyway
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context);
+            onContinueAnyway();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange,
+          ),
+          child: Text(loc.continueAnyway, style: const TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
+}
+
+// ✅ NEW: Show dialog to increase customer credit limit
+void _showIncreaseLimitDialog({required VoidCallback onLimitUpdated}) {
+  final loc = AppLocalizations.of(context)!;
+  final limitCtrl = TextEditingController();
+
+  // Parse current limit safely
+  double currentLimit = double.tryParse(selectedCustomerMap?['credit_limit'].toString() ?? '0') ?? 0.0;
+  limitCtrl.text = currentLimit.toStringAsFixed(0);
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(loc.increaseCreditLimit),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${loc.current}: ${currentLimit.toStringAsFixed(0)}'),
+            const SizedBox(height: 10),
+            TextField(
+              controller: limitCtrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: loc.newCreditLimit,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(loc.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              double? newLimit = double.tryParse(limitCtrl.text);
+              if (newLimit == null || selectedCustomerId == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(loc.invalidLimit)),
+                );
+                return;
+              }
+
+              try {
+                // ✅ Now calling the method you defined in DatabaseHelper
+                await DatabaseHelper.instance.updateCustomerCreditLimit(selectedCustomerId!, newLimit);
+
+                // Update local UI state
+                setState(() {
+                  selectedCustomerMap!['credit_limit'] = newLimit;
+                });
+
+                if (mounted) {
+                  Navigator.pop(context); // Close dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${loc.creditLimitUpdated}: Rs ${newLimit.toStringAsFixed(0)}'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  // Continue the checkout flow
+                  onLimitUpdated(); 
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${loc.error}: $e')),
+                  );
+                }
+              }
+            },
+            child: Text(loc.updateLimit),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+// ✅ MODIFIED: Payment dialog with credit limit check when credit is selected
+void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
+  final loc = AppLocalizations.of(context)!;
+  bool isRegistered = selectedCustomerId != null;
+  double billTotal = grandTotal;
+  double oldBalance = previousBalance;
+
+  final cashCtrl = TextEditingController();
+  final bankCtrl = TextEditingController();
+  final creditCtrl = TextEditingController();
+
+  // Initial Setup
+  if (isRegistered) {
+    creditCtrl.text = '0'; // Default to 0, user chooses mix
+  }
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          double cash = double.tryParse(cashCtrl.text) ?? 0.0;
+          double bank = double.tryParse(bankCtrl.text) ?? 0.0;
+          double credit = double.tryParse(creditCtrl.text) ?? 0.0;
+          double totalPayment = cash + bank + credit;
+          double change = 0.0;
+          bool isValid = false;
+
+          // --- Validation Logic ---
+          if (isRegistered) {
+            // Registered: Payment must match bill (Exact split)
+            isValid = (totalPayment - billTotal).abs() < 0.01;
+          } else {
+            // Walk-in: Payment must be >= Bill
+            isValid = (cash + bank) >= billTotal;
+            if (isValid) {
+              change = (cash + bank) - billTotal;
+            }
+          }
+
+          // Function to process the sale
+          void processSaleAction() {
+            Navigator.pop(context); // Close dialog
+            _processSale(cash, bank, credit, change);
+          }
+
+          // Internal Credit Check (Secondary safety)
+          void checkCreditLimitAndProcess() {
+            // If we already ignored the limit in the pre-check, skip this.
+            if (ignoreCreditLimit) {
+              processSaleAction();
+              return;
+            }
+
+            // Otherwise, check if the specific CREDIT amount entered causes issues
+            // (Only relevant if they weren't over limit before, but are now)
+            if (!isRegistered || credit <= 0) {
+              processSaleAction();
+              return;
+            }
+
+            final creditLimit = (selectedCustomerMap!['credit_limit'] as num?)?.toDouble() ?? 0.0;
+            final potentialBalance = oldBalance + credit;
+
+            if (potentialBalance > creditLimit) {
+              // Show warning if they somehow bypassed the pre-check but are now over
+              Navigator.pop(context); // Close payment dialog to show warning
+              _showCreditLimitWarningDialog(
+                creditLimit: creditLimit,
+                currentBalance: oldBalance,
+                billTotal: credit,
+                potentialBalance: potentialBalance,
+                onContinueAnyway: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true),
+                onIncreaseLimit: () => _showIncreaseLimitDialog(
+                  onLimitUpdated: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true)
+                ),
+              );
+            } else {
+              processSaleAction();
+            }
+          }
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            title: Container(
+              color: Colors.green[700],
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  const Icon(Icons.shopping_cart, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Text(loc.checkoutButton, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              )
+            ),
+            titlePadding: EdgeInsets.zero,
+            content: SizedBox(
+              width: 400,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // --- Customer Info (Registered Only) ---
+                    if (isRegistered) ...[
+                      Text('${loc.searchCustomerHint}: ${selectedCustomerMap!['name_english']}', 
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 5),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[50], 
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.orange[200]!)
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                            const SizedBox(width: 5),
+                            Text('${loc.prevBalance}: Rs ${oldBalance.toStringAsFixed(0)}', 
+                              style: const TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 20),
+                    ],
+
+                    // --- Bill Details ---
+                    _infoRow(loc.billTotal, 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18),
+                    const Divider(),
+                    
+                    // --- Payment Inputs ---
+                    const SizedBox(height: 10),
+                    Text(loc.paymentLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(height: 10),
+                    
+                    // CASH
+                    _input(loc.cashInput, cashCtrl, (v) {
+                      setDialogState(() {
+                        if (isRegistered) {
+                           // Auto-calculate remaining for credit
+                           double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
+                           creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
+                        }
+                      });
+                    }),
+
+                    // BANK
+                    _input(loc.bankInput, bankCtrl, (v) {
+                      setDialogState(() {
+                        if (isRegistered) {
+                           // Auto-calculate remaining for credit
+                           double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
+                           creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
+                        }
+                      });
+                    }),
+
+                    // CREDIT (Registered Only)
+                    if (isRegistered)
+                      _input(loc.creditInput, creditCtrl, (v) {
+                        setDialogState(() {
+                          // Allow manual credit override
+                          // (Optional: You could adjust cash here, but simple input is usually better)
+                        });
+                      }),
+
+                    // --- Change / Balance Display ---
+                    const SizedBox(height: 10),
+                    if (!isRegistered) // Walk-in Change
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                           Text(loc.changeDue, style: const TextStyle(fontWeight: FontWeight.bold)),
+                           Text('Rs ${change.toStringAsFixed(0)}', 
+                             style: TextStyle(
+                               fontSize: 18, 
+                               fontWeight: FontWeight.bold, 
+                               color: change >= 0 ? Colors.green : Colors.red
+                             )
+                           ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(loc.ok),
+                child: Text(loc.cancel),
               ),
-             ],
-            ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+                onPressed: isValid ? checkCreditLimitAndProcess : null,
+                child: Text(loc.savePrint, style: const TextStyle(color: Colors.white)),
+              ),
+            ],
           );
-          return;
-          }
         }
-        final cashCtrl = TextEditingController();
-        final bankCtrl = TextEditingController();
-        final creditCtrl = TextEditingController();
-    
-    if (isRegistered) {
-      creditCtrl.text = billTotal.toStringAsFixed(0);
+      );
     }
+  );
+}
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            
-            double cash = double.tryParse(cashCtrl.text) ?? 0.0;
-            double bank = double.tryParse(bankCtrl.text) ?? 0.0;
-            // double credit = double.tryParse(creditCtrl.text) ?? 0.0; // Unused variable warning fix
-            
-            double totalPayment = cash + bank + (isRegistered ? (double.tryParse(creditCtrl.text) ?? 0.0) : 0);
-            double change = 0.0;
-            bool isValid = false;
-            
-            if (isRegistered) {
-              isValid = (totalPayment == billTotal);
-            } else {
-              isValid = (cash + bank) >= billTotal;
-              if (isValid) {
-                change = (cash + bank) - billTotal;
-              }
-            }
-
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              title: Container(
-                color: Colors.green[700], 
-                padding: const EdgeInsets.all(12), 
-                child: Row(
-                  children: [
-                    const Icon(Icons.shopping_cart, color: Colors.white),
-                    const SizedBox(width: 10),
-                    Text(loc.checkoutButton, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                  ],
-                )
-              ),
-              titlePadding: EdgeInsets.zero,
-              content: SizedBox(
-                width: 400,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Customer Info
-                      if (isRegistered) ...[
-                        Text('${loc.searchCustomerHint}: ${selectedCustomerMap!['name_english']}', 
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        const SizedBox(height: 5),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: Colors.orange[50], borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.orange[200]!)),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.info_outline, size: 16, color: Colors.orange),
-                              const SizedBox(width: 5),
-                              Text('${loc.prevBalance}: Rs ${oldBalance.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                        const Divider(height: 20),
-                      ],
-                      
-                      _row(loc.billTotal, 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18),
-                      const Divider(),
-                      const SizedBox(height: 10),
-                      Text(loc.paymentLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                      const SizedBox(height: 10),
-                      
-                      _input(loc.cashInput, cashCtrl, (v) {
-                        setDialogState(() {
-                          if (isRegistered) {
-                            double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
-                            creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
-                          }
-                        });
-                      }),
-                      
-                      _input(loc.bankInput, bankCtrl, (v) {
-                        setDialogState(() {
-                          if (isRegistered) {
-                            double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
-                            creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
-                          }
-                        });
-                      }),
-                      
-                      if (isRegistered)
-                        _input(loc.creditInput, creditCtrl, (v) { setDialogState(() {}); }, enabled: false),
-                      
-                      const Divider(thickness: 2, height: 30),
-                      
-                      // Validation Status
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: isValid ? Colors.green[50] : Colors.red[50],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isValid ? Colors.green : Colors.red)
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text('Total Payment:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                Text('Rs ${totalPayment.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              ],
-                            ),
-                            const SizedBox(height: 5),
-                            if (isRegistered) ...[
-                              Row(
-                                children: [
-                                  Icon(isValid ? Icons.check_circle : Icons.cancel, size: 16, color: isValid ? Colors.green : Colors.red),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    isValid ? loc.paymentMatch : loc.insufficientPayment,
-                                    style: TextStyle(fontSize: 12, color: isValid ? Colors.green[700] : Colors.red[700]),
-                                  ),
-                                ],
-                              ),
-                            ] else ...[
-                              if (change > 0)
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(loc.changeReturn, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    Text('Rs ${change.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green[700])),
-                                  ],
-                                ),
-                              if (!isValid)
-                                Text(
-                                  '${loc.insufficientPayment} (Need Rs ${(billTotal - totalPayment).toStringAsFixed(0)})',
-                                  style: const TextStyle(fontSize: 12, color: Colors.red),
-                                ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel, style: const TextStyle(color: Colors.grey))),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isValid ? Colors.green[700] : Colors.grey,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12)
-                  ),
-                  onPressed: isValid ? () {
-                    Navigator.pop(context);
-                    _processSale(cash, bank, isRegistered ? (double.tryParse(creditCtrl.text) ?? 0.0) : 0.0);
-                  } : null,
-                  child: Text(loc.confirmSale, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _row(String label, String value, {bool isBold = false, double size = 14}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-        children: [
-          Text(label, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal, fontSize: size)),
-          Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal, fontSize: size)),
-        ]
-      ),
-    );
-  }
+  Widget _infoRow(String label, String value, {bool isBold = false, double size = 14, Color? color}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: size, 
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: size,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            color: color,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _input(String label, TextEditingController ctrl, Function(String) onChanged, {bool enabled = true}) {
     return Padding(
@@ -756,7 +998,7 @@ void didChangeDependencies() {
   }
 
   // --- Process Sale ---
-  Future<void> _processSale(double cash, double bank, double credit) async {
+  Future<void> _processSale(double cash, double bank, double credit, double change) async {
     final loc = AppLocalizations.of(context)!;
     
     // ✅ VALIDATION: Final stock check before processing
