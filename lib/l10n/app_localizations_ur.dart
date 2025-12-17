@@ -1194,4 +1194,32 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get completed => 'مکمل شدہ';
+
+  @override
+  String get invalidPrice => 'قیمت صفر سے زیادہ ہونی چاہیے';
+
+  @override
+  String get invalidQuantity => 'مقدار صفر سے زیادہ ہونی چاہیے';
+
+  @override
+  String get insufficientStock => 'ناکافی اسٹاک';
+
+  @override
+  String get outOfStock => 'اسٹاک ختم';
+
+  @override
+  String get productNotFound => 'پروڈکٹ نہیں ملا';
+
+  @override
+  String get creditLimitExceeded => 'کریڈٹ حد سے تجاوز';
+
+  @override
+  String get customerCreditLimit => 'گاہک کی کریڈٹ حد';
+
+  @override
+  String get creditLimitWarning =>
+      'یہ فروخت گاہک کی کریڈٹ حد سے تجاوز کرے گی۔ براہ کرم ادائیگی وصول کریں یا کریڈٹ حد بڑھائیں۔';
+
+  @override
+  String get processingSale => 'فروخت پر کارروائی جاری ہے...';
 }

@@ -406,5 +406,14 @@
   "saleCancelledSuccess": "سیل کامیابی سے منسوخ ہو گئی۔",
   "saleAlreadyCancelled": "یہ سیل پہلے ہی منسوخ کی جا چکی ہے۔",
   "completed": "مکمل شدہ",
-  "cancelled": "منسوخ شدہ"
+  "cancelled": "منسوخ شدہ",
+  "invalidPrice": "قیمت صفر سے زیادہ ہونی چاہیے",
+  "invalidQuantity": "مقدار صفر سے زیادہ ہونی چاہیے",
+  "insufficientStock": "ناکافی اسٹاک",
+  "outOfStock": "اسٹاک ختم",
+  "productNotFound": "پروڈکٹ نہیں ملا",
+  "creditLimitExceeded": "کریڈٹ حد سے تجاوز",
+  "customerCreditLimit": "گاہک کی کریڈٹ حد",
+  "creditLimitWarning": "یہ فروخت گاہک کی کریڈٹ حد سے تجاوز کرے گی۔ براہ کرم ادائیگی وصول کریں یا کریڈٹ حد بڑھائیں۔",
+  "processingSale": "فروخت پر کارروائی جاری ہے..."
 }

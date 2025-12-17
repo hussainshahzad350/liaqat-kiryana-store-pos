@@ -333,7 +333,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get customerBalanceSummary => 'Customer Balance Summary';
 
   @override
-  String get totalBalance => 'Total Balance';
+  String get totalBalance => 'Total balance';
 
   @override
   String get avgBalance => 'Avg Balance';
@@ -1155,7 +1155,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remarks => 'Remarks';
 
   @override
-  String get currentBalance => 'Current Balance';
+  String get currentBalance => 'Current balance';
 
   @override
   String get noData => 'No Data';
@@ -1196,4 +1196,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get completed => 'Completed';
+
+  @override
+  String get invalidPrice => 'Price must be greater than zero';
+
+  @override
+  String get invalidQuantity => 'Quantity must be greater than zero';
+
+  @override
+  String get insufficientStock => 'Insufficient stock';
+
+  @override
+  String get outOfStock => 'Out of stock';
+
+  @override
+  String get productNotFound => 'Product not found';
+
+  @override
+  String get creditLimitExceeded => 'Credit Limit Exceeded';
+
+  @override
+  String get customerCreditLimit => 'Customer credit limit';
+
+  @override
+  String get creditLimitWarning =>
+      'This sale will exceed the customer\'s credit limit. Please collect payment or increase credit limit.';
+
+  @override
+  String get processingSale => 'Processing sale...';
 }

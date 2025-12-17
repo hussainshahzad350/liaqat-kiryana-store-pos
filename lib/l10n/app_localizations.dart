@@ -749,7 +749,7 @@ abstract class AppLocalizations {
   /// No description provided for @totalBalance.
   ///
   /// In en, this message translates to:
-  /// **'Total Balance'**
+  /// **'Total balance'**
   String get totalBalance;
 
   /// No description provided for @avgBalance.
@@ -2357,7 +2357,7 @@ abstract class AppLocalizations {
   /// No description provided for @currentBalance.
   ///
   /// In en, this message translates to:
-  /// **'Current Balance'**
+  /// **'Current balance'**
   String get currentBalance;
 
   /// No description provided for @noData.
@@ -2437,6 +2437,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Completed'**
   String get completed;
+
+  /// No description provided for @invalidPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price must be greater than zero'**
+  String get invalidPrice;
+
+  /// No description provided for @invalidQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity must be greater than zero'**
+  String get invalidQuantity;
+
+  /// No description provided for @insufficientStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient stock'**
+  String get insufficientStock;
+
+  /// No description provided for @outOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get outOfStock;
+
+  /// No description provided for @productNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Product not found'**
+  String get productNotFound;
+
+  /// No description provided for @creditLimitExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Limit Exceeded'**
+  String get creditLimitExceeded;
+
+  /// No description provided for @customerCreditLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer credit limit'**
+  String get customerCreditLimit;
+
+  /// No description provided for @creditLimitWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This sale will exceed the customer\'s credit limit. Please collect payment or increase credit limit.'**
+  String get creditLimitWarning;
+
+  /// No description provided for @processingSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing sale...'**
+  String get processingSale;
 }
 
 class _AppLocalizationsDelegate

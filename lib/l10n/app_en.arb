@@ -408,5 +408,16 @@
   "saleCancelledSuccess": "Sale cancelled successfully.",
   "saleAlreadyCancelled": "This sale has already been cancelled.",
   "cancelled": "Cancelled",
-  "completed": "Completed"
+  "completed": "Completed",
+  "invalidPrice": "Price must be greater than zero",
+  "invalidQuantity": "Quantity must be greater than zero",
+  "insufficientStock": "Insufficient stock",
+  "outOfStock": "Out of stock",
+  "productNotFound": "Product not found",
+  "creditLimitExceeded": "Credit Limit Exceeded",
+  "customerCreditLimit": "Customer credit limit",
+  "currentBalance": "Current balance",
+  "totalBalance": "Total balance",
+  "creditLimitWarning": "This sale will exceed the customer's credit limit. Please collect payment or increase credit limit.",
+  "processingSale": "Processing sale..."
 }

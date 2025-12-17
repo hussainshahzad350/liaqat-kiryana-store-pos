@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/database/database_helper.dart';
+import 'dart:async';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -30,6 +31,10 @@ class _SalesScreenState extends State<SalesScreen> {
   bool showCustomerList = false;
   bool showProductList = false; 
 
+  // Debounce Timers
+  Timer? _productSearchDebounce;
+  Timer? _customerSearchDebounce;
+
   // --- Selection ---
   int? selectedCustomerId;
   Map<String, dynamic>? selectedCustomerMap;
@@ -52,6 +57,8 @@ class _SalesScreenState extends State<SalesScreen> {
   void dispose() {
     productSearchController.dispose();
     customerSearchController.dispose();
+    _productSearchDebounce?.cancel();
+    _customerSearchDebounce?.cancel();
     for (var item in cartItems) {
       item['priceCtrl']?.dispose();
       item['qtyCtrl']?.dispose();
@@ -156,38 +163,48 @@ void didChangeDependencies() {
 
   // --- Item Search Logic ---
   void _filterProducts(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        filteredProducts = products;
-        showProductList = false;
-      } else {
-        showProductList = true;
-        filteredProducts = products.where((p) {
-          final nameEng = (p['name_english'] ?? '').toString().toLowerCase();
-          final itemCode = (p['item_code'] ?? '').toString().toLowerCase();
+    // Cancel previous timer
+    _productSearchDebounce?.cancel();
+    // Set new timer (300ms delay)
+    _productSearchDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      setState(() {
+        if (query.isEmpty) {
+          filteredProducts = products;
+          showProductList = false;
+        } else {
+          showProductList = true;
           final q = query.toLowerCase();
-          return nameEng.contains(q) || itemCode.contains(q);
-        }).toList();
-      }
+          filteredProducts = products.where((p) {
+            final nameEng = (p['name_english'] ?? '').toString().toLowerCase();
+            final itemCode = (p['item_code'] ?? '').toString().toLowerCase();
+            return nameEng.contains(q) || itemCode.contains(q);
+          }).toList();
+        }
+      });
     });
   }
 
   // --- Customer Search & Add Logic ---
   void _filterCustomers(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        filteredCustomers = customers;
-        showCustomerList = false;
-      } else {
-        showCustomerList = true;
-        filteredCustomers = customers.where((c) {
-          final nameEng = (c['name_english'] ?? '').toString().toLowerCase();
-          final nameUrdu = (c['name_urdu'] ?? '').toString();
-          final phone = (c['contact_primary'] ?? '').toString();
+    _customerSearchDebounce?.cancel();
+    
+    _customerSearchDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      setState(() {
+        if (query.isEmpty) {
+          filteredCustomers = customers;
+          showCustomerList = false;
+        } else {
+          showCustomerList = true;
           final q = query.toLowerCase();
-          return nameEng.contains(q) || nameUrdu.contains(q) || phone.contains(q);
-        }).toList();
-      }
+          filteredCustomers = customers.where((c) {
+            final nameEng = (c['name_english'] ?? '').toString().toLowerCase();
+            final phone = (c['contact_primary'] ?? '').toString();
+            return nameEng.contains(q) || phone.contains(q);
+          }).toList();
+        }
+      });
     });
   }
 
@@ -304,17 +321,46 @@ void didChangeDependencies() {
 
   // --- Cart Actions ---
   void _addToCart(Map<String, dynamic> product) {
+    final loc = AppLocalizations.of(context)!;
+    
     if (isSoundOn) SystemSound.play(SystemSoundType.click);
     
     final index = cartItems.indexWhere((item) => item['id'] == product['id']);
+    final availableStock = (product['current_stock'] as num).toDouble();
     
     setState(() {
       if (index != -1) {
-        final currentQty = cartItems[index]['quantity'] + 1.0;
-        cartItems[index]['quantity'] = currentQty;
-        cartItems[index]['total'] = currentQty * cartItems[index]['unit_price'];
-        cartItems[index]['qtyCtrl'].text = currentQty.toStringAsFixed(0); 
+        final currentQty = cartItems[index]['quantity'];
+        final newQty = currentQty + 1.0;
+        
+        // ✅ VALIDATION: Check stock before adding
+        if (newQty > availableStock) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${loc.insufficientStock}: ${availableStock.toStringAsFixed(0)} available'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          return;
+        }
+        
+        cartItems[index]['quantity'] = newQty;
+        cartItems[index]['total'] = newQty * cartItems[index]['unit_price'];
+        cartItems[index]['qtyCtrl'].text = newQty.toStringAsFixed(0); 
       } else {
+        // ✅ VALIDATION: Check stock for new item
+        if (availableStock <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(loc.outOfStock),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          return;
+        }
+        
         double price = (product['sale_price'] ?? 0.0).toDouble();
         double qty = 1.0;
         
@@ -325,7 +371,7 @@ void didChangeDependencies() {
           'id': product['id'],
           'name_urdu': product['name_urdu'],
           'name_english': product['name_english'],
-          'current_stock': product['current_stock'], 
+          'current_stock': availableStock, 
           'unit_price': price,
           'quantity': qty,
           'total': price * qty,
@@ -343,9 +389,53 @@ void didChangeDependencies() {
   }
 
   void _updateCartItemFromField(int index) {
+    final loc = AppLocalizations.of(context)!;
     final item = cartItems[index];
+    
     double newPrice = double.tryParse(item['priceCtrl'].text) ?? 0.0;
     double newQty = double.tryParse(item['qtyCtrl'].text) ?? 1.0;
+
+    // ✅ VALIDATION: Prevent negative or zero values
+    if (newPrice <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.invalidPrice),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      // Reset to original value
+      item['priceCtrl'].text = item['unit_price'].toStringAsFixed(0);
+      return;
+    }
+
+    if (newQty <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.invalidQuantity),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      // Reset to original value
+      item['qtyCtrl'].text = item['quantity'].toStringAsFixed(0);
+      return;
+    }
+
+    // ✅ VALIDATION: Check stock availability
+    final availableStock = (item['current_stock'] as num).toDouble();
+    if (newQty > availableStock) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${loc.insufficientStock}: ${availableStock.toStringAsFixed(0)} available'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      // Reset to available stock
+      item['qtyCtrl'].text = availableStock.toStringAsFixed(0);
+      newQty = availableStock;
+    }
 
     setState(() {
       cartItems[index]['unit_price'] = newPrice;
@@ -422,10 +512,37 @@ void didChangeDependencies() {
     bool isRegistered = selectedCustomerId != null;
     double billTotal = grandTotal;
     double oldBalance = previousBalance;
-    
-    final cashCtrl = TextEditingController();
-    final bankCtrl = TextEditingController();
-    final creditCtrl = TextEditingController();
+
+    if (isRegistered) {
+      final creditLimit = (selectedCustomerMap!['credit_limit'] as num?)?.toDouble() ?? 0.0;
+      final currentBalance = oldBalance;
+      final potentialBalance = currentBalance + billTotal;
+      if (potentialBalance > creditLimit) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(loc.creditLimitExceeded),
+            content: Text(
+              '${loc.customerCreditLimit}: Rs ${creditLimit.toStringAsFixed(0)}\n'
+              '${loc.currentBalance}: Rs ${currentBalance.toStringAsFixed(0)}\n'
+              '${loc.billTotal}: Rs ${billTotal.toStringAsFixed(0)}\n'
+              '${loc.totalBalance}: Rs ${potentialBalance.toStringAsFixed(0)}\n\n'
+              '${loc.creditLimitWarning}'
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(loc.ok),
+              ),
+             ],
+            ),
+          );
+          return;
+          }
+        }
+        final cashCtrl = TextEditingController();
+        final bankCtrl = TextEditingController();
+        final creditCtrl = TextEditingController();
     
     if (isRegistered) {
       creditCtrl.text = billTotal.toStringAsFixed(0);
@@ -642,7 +759,65 @@ void didChangeDependencies() {
   Future<void> _processSale(double cash, double bank, double credit) async {
     final loc = AppLocalizations.of(context)!;
     
-    // 1. Prepare Data
+    // ✅ VALIDATION: Final stock check before processing
+    for (var item in cartItems) {
+      final productId = item['id'];
+      final requestedQty = (item['quantity'] as num).toDouble();
+      
+      // Fetch current stock from database (real-time check)
+      final db = await DatabaseHelper.instance.database;
+      final result = await db.query('products', where: 'id = ?', whereArgs: [productId], limit: 1);
+      
+      if (result.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${loc.productNotFound}: ${item['name_english']}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      
+      final currentStock = (result.first['current_stock'] as num).toDouble();
+      if (currentStock < requestedQty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${loc.insufficientStock} for ${item['name_english']}: '
+              '${currentStock.toStringAsFixed(0)} available, ${requestedQty.toStringAsFixed(0)} requested'
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+    
+    // ✅ SHOW LOADING INDICATOR
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false,
+        child: Center(
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(loc.processingSale),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    
+    // Prepare Data
     final Map<String, dynamic> saleData = {
       'customer_id': selectedCustomerId,
       'grand_total': grandTotal,
@@ -661,14 +836,12 @@ void didChangeDependencies() {
     };
 
     try {
-      // FIX: Critical Transaction Scope (Issue #10)
-      // We await the DB transaction. If it fails (e.g. Stock < 0), 
-      // it throws an Exception, causing execution to jump to 'catch'.
       await DatabaseHelper.instance.createSale(saleData);
       
-      // FIX: Only clear cart AFTER a strictly successful transaction
-      _performClearCart();
+      // ✅ DISMISS LOADING INDICATOR
+      if (mounted) Navigator.pop(context);
       
+      _performClearCart();
       await _refreshAllData();
       
       if (mounted) {
@@ -677,15 +850,18 @@ void didChangeDependencies() {
         );
       }
     } catch (e) {
-      // FIX: Error Recovery
-      // The cart is explicitly NOT cleared here.
-      // The user remains on the screen with their items and can retry or modify the cart.
+      // ✅ DISMISS LOADING INDICATOR
+      if (mounted) Navigator.pop(context);
+      
       print('Error processing sale: $e');
       if (mounted) {
         final cleanError = e.toString().replaceAll("Exception: ", "");
-        // FIX: Use localized error message with parameter
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(loc.errorProcessingSale(cleanError)), backgroundColor: Colors.red) // Uses {error} placeholder
+          SnackBar(
+            content: Text(loc.errorProcessingSale(cleanError)), 
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          )
         );
       }
     }

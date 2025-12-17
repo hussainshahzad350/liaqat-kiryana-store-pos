@@ -30,7 +30,7 @@ class DatabaseHelper {
     // Version 2 ensures migration logic runs if upgrading from a v1 schema
     return await openDatabase(
       path,
-      version: 3, 
+      version: 4, 
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -77,6 +77,19 @@ class DatabaseHelper {
             )
           ''');
           AppLogger.db('Performed migration to v3 (Cash Ledger)');
+          break;
+
+        case 4:
+         // Add all performance indexes
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_products_name_english ON products(name_english)');
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_products_item_code ON products(item_code)');
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_name_english ON customers(name_english)');
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_contact ON customers(contact_primary)');
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_date ON sales(sale_date)');
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_status ON sales(status)');
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_date_status ON sales(sale_date, status)');
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_products_stock ON products(current_stock)');
+          AppLogger.db('Performed migration to v4 (Performance Indexes)');
           break;
         default:
           AppLogger.db('No migration logic defined for v$i');
