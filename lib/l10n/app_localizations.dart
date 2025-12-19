@@ -2581,6 +2581,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change Due'**
   String get changeDue;
+
+  /// No description provided for @pendingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Credits'**
+  String get pendingAmount;
+
+  /// No description provided for @itemsNeedRestock.
+  ///
+  /// In en, this message translates to:
+  /// **'Items need restock'**
+  String get itemsNeedRestock;
+
+  /// No description provided for @activeToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Active today'**
+  String get activeToday;
+
+  /// No description provided for @cannotDeleteBal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete customer with outstanding balance'**
+  String get cannotDeleteBal;
+
+  /// No description provided for @archivedCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived Customers'**
+  String get archivedCustomers;
+
+  /// No description provided for @warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get warning;
+
+  /// No description provided for @dashboardTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get dashboardTotal;
+
+  /// No description provided for @dashboardActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get dashboardActive;
+
+  /// No description provided for @dashboardArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get dashboardArchived;
+
+  /// No description provided for @balanceShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Bal'**
+  String get balanceShort;
+
+  /// No description provided for @searchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search...'**
+  String get searchPlaceholder;
+
+  /// No description provided for @searchArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Archived...'**
+  String get searchArchived;
+
+  /// No description provided for @addCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Customer'**
+  String get addCustomer;
+
+  /// No description provided for @phoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone (Unique)'**
+  String get phoneLabel;
+
+  /// No description provided for @addressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get addressLabel;
+
+  /// No description provided for @phoneExistsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number already exists in system'**
+  String get phoneExistsError;
+
+  /// No description provided for @archiveNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive Now'**
+  String get archiveNow;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In en, this message translates to:
+  /// **'is required'**
+  String get requiredField;
 }
 
 class _AppLocalizationsDelegate

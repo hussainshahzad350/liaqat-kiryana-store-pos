@@ -51,7 +51,8 @@ class DatabaseHelper {
     where: 'id = ?',
     whereArgs: [customerId],
   );
-}
+  }
+
 
   // 🛠️ Proper Migration Logic with Auto-Backup
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
@@ -262,6 +263,18 @@ class DatabaseHelper {
       )
     ''');
 
+    // 9. Payments Table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        amount REAL NOT NULL,
+        date TEXT NOT NULL,
+        notes TEXT,
+        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
+      )
+    ''');
+
     // 8. PERFORMANCE FIX: ADD INDEXES ON FOREIGN KEYS (Task 7 Fix)
     await db.execute('CREATE INDEX idx_sales_customer ON sales(customer_id)');
     await db.execute('CREATE INDEX idx_sale_items_sale ON sale_items(sale_id)');
@@ -342,7 +355,7 @@ class DatabaseHelper {
     AppLogger.error("Error fetching today's sales: $e", tag: 'DB');
     return 0.0;
   }
-}
+  }
 
   Future<double> getCurrentCashBalance() async {
     try {
@@ -485,7 +498,7 @@ class DatabaseHelper {
       });
     }
   });
-}
+  }
 
   Future<List<Map<String, dynamic>>> getCashLedger({int limit = 50, int offset = 0}) async {
     try {
@@ -499,6 +512,49 @@ class DatabaseHelper {
     } catch (e) {
       return [];
     }
+  }
+
+  Future<List<Map<String, dynamic>>> getCustomerLedger(int customerId) async {
+    final db = await database;
+
+    // Fetch Sales (Debits)
+    final salesResult = await db.rawQuery('''
+      SELECT 
+        'SALE' as type,
+        s.sale_date as date,
+        s.bill_number as ref_no,
+        si.product_id as prod_id, -- Used for lookups if needed
+        p.name_english || ' (' || si.quantity_sold || ' x ' || si.unit_price || ')' as description,
+        si.quantity_sold as qty,
+        si.unit_price as rate,
+        si.total_price as debit,
+        0 as credit
+      FROM sales s
+      JOIN sale_items si ON s.id = si.sale_id
+      JOIN products p ON si.product_id = p.id
+      WHERE s.customer_id = ? AND s.status = 'COMPLETED'
+    ''', [customerId]);
+
+    // Fetch Payments (Credits)
+    final paymentsResult = await db.rawQuery('''
+      SELECT 
+        'PAYMENT' as type,
+        date as date,
+        id as ref_no,
+        notes as description,
+        0 as qty,
+        0 as rate,
+        0 as debit,
+        amount as credit
+      FROM payments
+      WHERE customer_id = ?
+    ''', [customerId]);
+
+    // Combine and Sort by Date (Descending)
+    List<Map<String, dynamic>> ledger = [...salesResult, ...paymentsResult];
+    ledger.sort((a, b) => b['date'].toString().compareTo(a['date'].toString()));
+
+    return ledger;
   }
 
   // FIX: getTodayCustomers (Missing method fix)
@@ -525,7 +581,7 @@ class DatabaseHelper {
      AppLogger.error("Error fetching today's customers: $e", tag: 'DB');
      return [];
   }
-}
+  }
 
   // FIX: getLowStockItems (Missing method fix)
   Future<List<Map<String, dynamic>>> getLowStockItems() async {
@@ -571,7 +627,7 @@ class DatabaseHelper {
     AppLogger.error("Error fetching recent sales: $e", tag: 'DB');
     return [];
   }
-}
+  }
 
   // =======================================================
   //         CORE TRANSACTION & CRUD METHODS
@@ -788,6 +844,45 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.rawQuery('SELECT COUNT(*) as count FROM products');
     return (result.first['count'] as int?) ?? 0;
+  }
+
+  Future<int> addPayment(int customerId, double amount, String date, String notes) async {
+    final db = await database;
+    
+    return await db.transaction((txn) async {
+      // Record the payment
+      int id = await txn.insert('payments', {
+        'customer_id': customerId,
+        'amount': amount,
+        'date': date,
+        'notes': notes
+      });
+
+      // Update Customer Balance (Decrease balance by paid amount)
+      await txn.rawUpdate(
+        'UPDATE customers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
+        [amount, customerId]
+      );
+      
+      // Also record in cash ledger as an 'IN' entry
+      final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final timeStr = DateFormat('hh:mm a').format(DateTime.now());
+      
+      final res = await txn.rawQuery('SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+      double currentBalance = res.isNotEmpty ? (res.first['balance_after'] as num).toDouble() : 0.0;
+
+      await txn.insert('cash_ledger', {
+        'transaction_date': dateStr,
+        'transaction_time': timeStr,
+        'description': 'Payment from Customer (ID: $customerId)',
+        'type': 'IN',
+        'amount': amount,
+        'balance_after': currentBalance + amount,
+        'remarks': notes,
+      });
+
+      return id;
+    });
   }
   
   Future<double> getTotalStockValue() async {

@@ -1269,4 +1269,59 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get changeDue => 'بقایا رقم';
+
+  @override
+  String get pendingAmount => 'باقی رقم';
+
+  @override
+  String get itemsNeedRestock => 'اشیاء کی ضرورت ہے';
+
+  @override
+  String get activeToday => 'آج فعال';
+
+  @override
+  String get cannotDeleteBal =>
+      'موجودہ بیلنس والے گاہک کو حذف نہیں کیا جا سکتا';
+
+  @override
+  String get archivedCustomers => 'آرکائیو گاہک';
+
+  @override
+  String get warning => 'انتباہ';
+
+  @override
+  String get dashboardTotal => 'کل';
+
+  @override
+  String get dashboardActive => 'سرگرم';
+
+  @override
+  String get dashboardArchived => 'آرکائیو';
+
+  @override
+  String get balanceShort => 'بیلنس';
+
+  @override
+  String get searchPlaceholder => 'گاہک تلاش کریں...';
+
+  @override
+  String get searchArchived => 'آرکائیو گاہک تلاش کریں...';
+
+  @override
+  String get addCustomer => 'گاہک شامل کریں';
+
+  @override
+  String get phoneLabel => 'فون نمبر';
+
+  @override
+  String get addressLabel => 'پتہ';
+
+  @override
+  String get phoneExistsError => 'فون نمبر پہلے سے سسٹم میں موجود ہے';
+
+  @override
+  String get archiveNow => 'ابھی آرکائیو کریں';
+
+  @override
+  String get requiredField => 'یہ فیلڈ ضروری ہے';
 }

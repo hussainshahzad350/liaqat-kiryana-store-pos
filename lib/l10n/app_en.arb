@@ -432,6 +432,24 @@
   "invalidLimit": "Invalid limit",
   "updateLimit": "Update Limit",
   "savePrint": "Save & Print",
-  "changeDue": "Change Due"
+  "changeDue": "Change Due",
+  "pendingAmount": "Pending Credits",
+  "itemsNeedRestock": "Items need restock",
+  "activeToday": "Active today",
+  "cannotDeleteBal": "Cannot delete customer with outstanding balance",
+  "archivedCustomers": "Archived Customers",
+  "warning": "Warning",
+  "dashboardTotal": "Total",
+  "dashboardActive": "Active",
+  "dashboardArchived": "Archived",
+  "balanceShort": "Bal",
+  "searchPlaceholder": "Search...",
+  "searchArchived": "Search Archived...",
+  "addCustomer": "Add Customer",
+  "phoneLabel": "Phone (Unique)",
+  "addressLabel": "Address",
+  "phoneExistsError": "Phone number already exists in system",
+  "archiveNow": "Archive Now",
+  "requiredField": "is required"
   
 }

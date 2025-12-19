@@ -37,6 +37,9 @@ dependencies:
   # For taking photos
   image_picker: ^1.0.7
 
+  # Optional, for opening the file after save
+  open_file: ^3.3.0
+
 
 dev_dependencies:
   flutter_test:

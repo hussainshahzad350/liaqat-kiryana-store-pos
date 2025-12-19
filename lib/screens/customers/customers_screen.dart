@@ -1,0 +1,849 @@
+// lib/screens/master_data/customers_screen.dart
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import '../../core/database/database_helper.dart';
+import '../../l10n/app_localizations.dart';
+
+class CustomersScreen extends StatefulWidget {
+  const CustomersScreen({super.key});
+
+  @override
+  State<CustomersScreen> createState() => _CustomersScreenState();
+}
+
+class _CustomersScreenState extends State<CustomersScreen> {
+  // --- STATE VARIABLES ---
+  List<Map<String, dynamic>> customers = [];
+  List<Map<String, dynamic>> archivedCustomers = [];
+  
+  // Ledger State
+  bool _showArchiveOverlay = false;
+  bool _showLedgerOverlay = false;
+  List<Map<String, dynamic>> _currentLedger = [];
+  Map<String, dynamic>? _selectedCustomerForLedger;
+
+  bool _isFirstLoadRunning = true;
+  final TextEditingController searchController = TextEditingController();
+
+  // Stats
+  int countTotal = 0; double balTotal = 0.0;
+  int countActive = 0; double balActive = 0.0;
+  int countArchived = 0; double balArchived = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshData();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  // --- DATABASE & LOGIC ---
+
+  Future<void> _refreshData() async {
+    await _loadStats();
+    await _loadActiveCustomers();
+    if (_showArchiveOverlay) await _loadArchivedCustomers();
+  }
+
+  Future<void> _loadStats() async {
+    final db = await DatabaseHelper.instance.database;
+
+    // Active
+    final activeRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 1');
+    countActive = (activeRes.first['count'] as int?) ?? 0;
+    balActive = (activeRes.first['total'] as num? ?? 0.0).toDouble();
+
+    // Archived
+    final archRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 0');
+    countArchived = (archRes.first['count'] as int?) ?? 0;
+    balArchived = (archRes.first['total'] as num? ?? 0.0).toDouble();
+
+    // Total
+    countTotal = countActive + countArchived;
+    balTotal = balActive + balArchived;
+
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _loadActiveCustomers() async {
+    setState(() => _isFirstLoadRunning = true);
+    final db = await DatabaseHelper.instance.database;
+    final searchText = searchController.text.trim();
+    
+    String whereClause = 'is_active = 1';
+    List<dynamic> args = [];
+
+    if (searchText.isNotEmpty) {
+      whereClause += ' AND (name_english LIKE ? OR name_urdu LIKE ? OR contact_primary LIKE ?)';
+      args.addAll(['%$searchText%', '%$searchText%', '%$searchText%']);
+    }
+
+    final result = await db.query(
+      'customers',
+      where: whereClause,
+      whereArgs: args.isNotEmpty ? args : null,
+      orderBy: 'name_english ASC',
+    );
+
+    if (mounted) {
+      setState(() {
+        customers = result;
+        _isFirstLoadRunning = false;
+      });
+    }
+  }
+
+  Future<void> _loadArchivedCustomers() async {
+    final db = await DatabaseHelper.instance.database;
+    final result = await db.query('customers', where: 'is_active = 0', orderBy: 'name_english ASC');
+    setState(() => archivedCustomers = result);
+  }
+
+  Future<bool> _isPhoneUnique(String phone, {int? excludeId}) async {
+    final db = await DatabaseHelper.instance.database;
+    final result = await db.query('customers', where: 'contact_primary = ?', whereArgs: [phone]);
+    if (result.isEmpty) return true; 
+    if (excludeId != null) return result.first['id'] == excludeId;
+    return false; 
+  }
+
+  Future<bool> _canDelete(int id, double balance) async {
+    if (balance != 0) return false;
+    return true; 
+  }
+
+  // --- LEDGER LOGIC ---
+
+  Future<void> _openLedger(Map<String, dynamic> customer) async {
+    setState(() {
+      _selectedCustomerForLedger = customer;
+      _showLedgerOverlay = true;
+      _currentLedger = []; 
+    });
+    
+    try {
+      // Calls the new function in DatabaseHelper
+      final ledgerData = await DatabaseHelper.instance.getCustomerLedger(customer['id']);
+      setState(() => _currentLedger = ledgerData);
+    } catch (e) {
+      debugPrint("Error loading ledger: $e");
+    }
+  }
+
+  Future<void> _addPayment(double amount, String notes) async {
+    if (_selectedCustomerForLedger == null) return;
+    
+    final date = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+    
+    await DatabaseHelper.instance.addPayment(
+      _selectedCustomerForLedger!['id'], 
+      amount, 
+      date, 
+      notes
+    );
+    
+    await _refreshData(); 
+    await _openLedger(_selectedCustomerForLedger!); // Reload Ledger
+  }
+  
+  Future<void> _exportLedgerPdf() async {
+    final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
+    final customerName = _selectedCustomerForLedger?['name_english'] ?? 'Customer';
+
+    // 1. Load Fonts
+    // Use NotoSansArabic for Urdu (safe & reliable for PDF) or standard font for English
+    final font = isUrdu 
+        ? await PdfGoogleFonts.notoSansArabicRegular() 
+        : await PdfGoogleFonts.notoSansRegular();
+
+    final doc = pw.Document();
+
+    // 2. Define Headers based on Language
+    final headers = isUrdu 
+        ? ['تاریخ', 'حوالہ', 'تفصیل', 'ڈیبٹ', 'کریڈٹ'] // Urdu Headers
+        : ['Date', 'Ref', 'Description', 'Debit', 'Credit']; // English Headers
+
+    // 3. Prepare Data
+    final data = _currentLedger.map((row) {
+      final date = row['date'].toString().substring(0, 10);
+      return [
+        date,
+        row['ref_no'].toString(),
+        row['description'].toString(),
+        row['debit'] > 0 ? row['debit'].toString() : '-',
+        row['credit'] > 0 ? row['credit'].toString() : '-',
+      ];
+    }).toList();
+
+    // 4. Build PDF
+    doc.addPage(
+      pw.Page(
+        // Set Page Text Direction
+        textDirection: isUrdu ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+        theme: pw.ThemeData.withFont(base: font),
+        
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Header
+              pw.Header(
+                level: 0, 
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      isUrdu ? "$customerName :لیجر" : "Ledger: $customerName", 
+                      style: pw.TextStyle(fontSize: 24, font: font, fontWeight: pw.FontWeight.bold)
+                    ),
+                    pw.Text(
+                      DateFormat('dd-MM-yyyy').format(DateTime.now()),
+                      style: const pw.TextStyle(fontSize: 12)
+                    ),
+                  ],
+                )
+              ),
+              
+              pw.SizedBox(height: 20),
+              
+              // Table
+              pw.Table.fromTextArray(
+                context: context,
+                headers: headers,
+                data: data,
+                border: pw.TableBorder.all(color: PdfColors.grey400),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, font: font, color: PdfColors.white),
+                headerDecoration: const pw.BoxDecoration(color: PdfColors.green700),
+                cellStyle: pw.TextStyle(font: font, fontSize: 10),
+                cellAlignment: pw.Alignment.centerLeft,
+                // Adjust column widths if necessary
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(2), // Date
+                  1: const pw.FlexColumnWidth(1), // Ref
+                  2: const pw.FlexColumnWidth(4), // Desc
+                  3: const pw.FlexColumnWidth(2), // Debit
+                  4: const pw.FlexColumnWidth(2), // Credit
+                },
+              ),
+              
+              pw.SizedBox(height: 20),
+              
+              // Footer / Totals (Optional)
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.end,
+                children: [
+                  pw.Text(
+                    isUrdu 
+                      ? "کل بیلنس: ${_selectedCustomerForLedger?['outstanding_balance']}" 
+                      : "Total Balance: ${_selectedCustomerForLedger?['outstanding_balance']}",
+                    style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, font: font)
+                  ),
+                ]
+              )
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => doc.save());
+  }
+
+  // --- ACTIONS (Add/Edit/Delete) ---
+
+  Future<void> _addOrUpdateCustomer({
+    required int? id,
+    required String nameEng,
+    required String nameUrdu,
+    required String phone,
+    required String address,
+    required double limit,
+  }) async {
+    final db = await DatabaseHelper.instance.database;
+    final loc = AppLocalizations.of(context)!;
+
+    bool isUnique = await _isPhoneUnique(phone, excludeId: id);
+    if (!isUnique) throw Exception(loc.phoneExistsError);
+
+    final data = {
+      'name_english': nameEng,
+      'name_urdu': nameUrdu,
+      'contact_primary': phone,
+      'address': address,
+      'credit_limit': limit,
+    };
+
+    if (id == null) {
+      await db.insert('customers', {...data, 'outstanding_balance': 0.0, 'is_active': 1});
+      _showSnack(loc.customerAddedSuccess, Colors.green);
+    } else {
+      await db.update('customers', data, where: 'id = ?', whereArgs: [id]);
+      _showSnack(loc.customerUpdatedSuccess, Colors.green);
+    }
+    _refreshData();
+  }
+
+  Future<void> _toggleArchiveStatus(int id, bool currentStatus) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.update('customers', {'is_active': currentStatus ? 0 : 1}, where: 'id = ?', whereArgs: [id]);
+    _refreshData();
+    if (_showArchiveOverlay) _loadArchivedCustomers(); 
+  }
+
+  Future<void> _deleteCustomer(int id, double balance) async {
+    final loc = AppLocalizations.of(context)!;
+    
+    if (!(await _canDelete(id, balance))) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(loc.warning, style: const TextStyle(color: Colors.black)),
+          content: Text(loc.cannotDeleteBal, style: const TextStyle(color: Colors.black)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.ok, style: const TextStyle(color: Colors.black))),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              onPressed: () {
+                Navigator.pop(context);
+                _toggleArchiveStatus(id, true);
+              }, 
+              child: Text(loc.archiveNow)
+            )
+          ],
+        ),
+      );
+      return;
+    }
+
+    final bool? confirmed = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(loc.confirm, style: const TextStyle(color: Colors.black)),
+        content: Text(loc.confirmDeleteItem, style: const TextStyle(color: Colors.black)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(loc.no, style: const TextStyle(color: Colors.black))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true), 
+            child: Text(loc.yesDelete)
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final db = await DatabaseHelper.instance.database;
+      await db.delete('customers', where: 'id = ?', whereArgs: [id]);
+      _refreshData();
+      _showSnack(loc.itemDeleted, Colors.grey);
+    }
+  }
+
+  void _showSnack(String msg, MaterialColor color) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: color));
+  }
+
+  // --- UI COMPONENTS ---
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(loc.customers, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.green[700], 
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+      ),
+      body: Stack(
+        children: [
+          // MAIN CONTENT
+          Column(
+            children: [
+              _buildDashboard(loc),
+              
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                child: TextField(
+                  controller: searchController,
+                  onChanged: (_) => _loadActiveCustomers(),
+                  style: const TextStyle(color: Colors.black),
+                  decoration: InputDecoration(
+                    hintText: loc.searchPlaceholder,
+                    hintStyle: TextStyle(color: Colors.grey[600]),
+                    prefixIcon: const Icon(Icons.search, color: Colors.green),
+                    filled: true, fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.green, width: 1.5)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.green, width: 2.5)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                  ),
+                ),
+              ),
+
+              Expanded(
+                child: _isFirstLoadRunning
+                ? const Center(child: CircularProgressIndicator(color: Colors.green))
+                : customers.isEmpty
+                  ? Center(child: Text(loc.noCustomersFound, style: const TextStyle(color: Colors.black)))
+                  : ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 80),
+                      itemCount: customers.length,
+                      itemBuilder: (context, index) => _buildCustomerCard(customers[index]),
+                    ),
+              ),
+            ],
+          ),
+
+          // OVERLAYS
+          _buildArchiveOverlay(loc),
+          if (_showLedgerOverlay) _buildLedgerOverlay(loc),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green[700],
+        onPressed: () => _showAddDialog(),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildDashboard(AppLocalizations loc) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      height: 115,
+      child: Row(
+        children: [
+          Expanded(child: _buildKpiCard(loc.dashboardTotal, countTotal, balTotal, Colors.green, null)),
+          const SizedBox(width: 8),
+          Expanded(child: _buildKpiCard(loc.dashboardActive, countActive, balActive, Colors.green, null)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildKpiCard(loc.dashboardArchived, countArchived, balArchived, Colors.green, () { 
+               setState(() {
+                 _showArchiveOverlay = true;
+                 _loadArchivedCustomers();
+               });
+            }, isOrange: true), 
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKpiCard(String title, int count, double amount, MaterialColor color, VoidCallback? onTap, {bool isOrange = false}) {
+    final loc = AppLocalizations.of(context)!;
+    Color borderColor = isOrange ? Colors.orange[900]! : Colors.green[600]!;
+    final Color textColor = Colors.grey[900]!;
+
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        decoration: BoxDecoration(
+          color: color[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: 1.2), 
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13)),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(Icons.people, size: 18, color: textColor), 
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text("$count", style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 18)),
+                  ),
+                ),
+              ],
+            ),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text("${loc.balanceShort}: ${amount.toStringAsFixed(0)}", style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomerCard(Map<String, dynamic> customer, {bool isOverlay = false}) {
+    final double balance = customer['outstanding_balance'] ?? 0.0;
+    final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
+    final String name = isUrdu 
+        ? (customer['name_urdu'] != null && customer['name_urdu'].toString().isNotEmpty ? customer['name_urdu'] : customer['name_english']) 
+        : customer['name_english'];
+    final String phone = customer['contact_primary'] ?? '';
+
+    return Card(
+      elevation: 2, 
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: Colors.green[900]!, width: 1)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), 
+        dense: true,
+        leading: CircleAvatar(
+          radius: 18,
+          backgroundColor: Colors.green[50],
+          child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?', style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold)),
+        ),
+        title: Text(name, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: isUrdu ? 20 : 16, fontFamily: isUrdu ? 'NooriNastaleeq' : null)),
+        subtitle: Text(phone, style: const TextStyle(color: Colors.black, fontSize: 13)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+             if (balance != 0)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: balance > 0 ? Colors.red[50] : Colors.green[50],
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: balance > 0 ? Colors.red : Colors.green)
+                ),
+                child: Text(balance.toStringAsFixed(0), style: TextStyle(color: balance > 0 ? Colors.red[900] : Colors.green[900], fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+
+            // ✅ LEDGER BUTTON (Receipt Icon)
+            if (!isOverlay)
+            IconButton(
+              icon: Icon(Icons.receipt_long, color: Colors.green[700]),
+              tooltip: "View Ledger",
+              onPressed: () => _openLedger(customer),
+            ),
+
+            if (isOverlay)
+              IconButton(icon: const Icon(Icons.unarchive, color: Colors.green), onPressed: () => _toggleArchiveStatus(customer['id'], false))
+            else
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, color: Colors.black), 
+                onSelected: (value) {
+                  if (value == 'edit') _showAddDialog(customer: customer);
+                  if (value == 'archive') _toggleArchiveStatus(customer['id'], true);
+                  if (value == 'delete') _deleteCustomer(customer['id'], balance);
+                },
+                itemBuilder: (context) => [
+                   const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18, color: Colors.black), SizedBox(width: 8), Text('Edit', style: TextStyle(color: Colors.black))])),
+                   const PopupMenuItem(value: 'archive', child: Row(children: [Icon(Icons.archive, size: 18, color: Colors.black), SizedBox(width: 8), Text('Archive', style: TextStyle(color: Colors.black))])),
+                   const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 18, color: Colors.red), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.red))])),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- LEDGER OVERLAY (GREEN SCHEMA) ---
+  Widget _buildLedgerOverlay(AppLocalizations loc) {
+    final customer = _selectedCustomerForLedger!;
+    final name = customer['name_english'] ?? 'Unknown';
+    final balance = customer['outstanding_balance'] ?? 0.0;
+
+    return Stack(
+      children: [
+        GestureDetector(onTap: () => setState(() => _showLedgerOverlay = false), child: Container(color: Colors.black.withOpacity(0.5))),
+        Center(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.95,
+            height: MediaQuery.of(context).size.height * 0.85,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.green[700]!, width: 2), // Green Border
+            ),
+            child: Column(
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                        Text("Current Balance: $balance", style: TextStyle(color: balance > 0 ? Colors.red : Colors.green, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        IconButton(icon: const Icon(Icons.print, color: Colors.green), onPressed: _exportLedgerPdf, tooltip: "Export PDF"),
+                        IconButton(icon: const Icon(Icons.close, color: Colors.black), onPressed: () => setState(() => _showLedgerOverlay = false)),
+                      ],
+                    )
+                  ],
+                ),
+                const Divider(color: Colors.green, thickness: 1.5),
+
+                // Table Header
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  color: Colors.green[50], // Light Green Header
+                  child: Row(
+                    children: [
+                      const Expanded(flex: 2, child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
+                      const Expanded(flex: 3, child: Text("Description", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
+                      const Expanded(flex: 2, child: Text("Rate/Qty", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
+                      Expanded(flex: 2, child: Text("Debit", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red[800]))),
+                      Expanded(flex: 2, child: Text("Credit", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[800]))),
+                    ],
+                  ),
+                ),
+
+                // Ledger List
+                Expanded(
+                  child: _currentLedger.isEmpty
+                      ? const Center(child: Text("No transactions found", style: TextStyle(color: Colors.black)))
+                      : ListView.builder(
+                          itemCount: _currentLedger.length,
+                          itemBuilder: (context, index) {
+                            final row = _currentLedger[index];
+                            final isPayment = row['type'] == 'PAYMENT';
+                            final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
+                            final dateStr = DateFormat('dd/MM/yy').format(date);
+                            
+                            return Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                              decoration: BoxDecoration(
+                                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+                                color: isPayment ? Colors.green[50] : Colors.white,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(flex: 2, child: Text(dateStr, style: const TextStyle(fontSize: 12, color: Colors.black))),
+                                  Expanded(flex: 3, child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(row['description'] ?? '-', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black)),
+                                      if(!isPayment) Text("Bill #${row['ref_no']}", style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                                    ],
+                                  )),
+                                  Expanded(flex: 2, child: Text(isPayment ? '-' : "${row['qty']} x ${row['rate']}", style: const TextStyle(fontSize: 12, color: Colors.black))),
+                                  Expanded(flex: 2, child: Text(row['debit'] > 0 ? "${row['debit']}" : "-", style: TextStyle(color: Colors.red[900], fontWeight: FontWeight.bold))),
+                                  Expanded(flex: 2, child: Text(row['credit'] > 0 ? "${row['credit']}" : "-", style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold))),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                ),
+
+                // Payment Button
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[700],
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    icon: const Icon(Icons.attach_money, color: Colors.white),
+                    label: const Text("Receive Payment", style: TextStyle(color: Colors.white, fontSize: 16)),
+                    onPressed: _showPaymentDialog,
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showPaymentDialog() {
+    final amountCtrl = TextEditingController();
+    final notesCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.green[700]!, width: 2)),
+        title: const Text("Receive Payment", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: amountCtrl,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.black),
+              decoration: _cleanInput("Amount", Icons.money),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: notesCtrl,
+              style: const TextStyle(color: Colors.black),
+              decoration: _cleanInput("Notes (Optional)", Icons.note),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel", style: TextStyle(color: Colors.black))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
+            onPressed: () {
+               if(amountCtrl.text.isNotEmpty) {
+                 double amount = double.tryParse(amountCtrl.text) ?? 0.0;
+                 if(amount > 0) {
+                   Navigator.pop(context);
+                   _addPayment(amount, notesCtrl.text);
+                 }
+               }
+            },
+            child: const Text("Save"),
+          )
+        ],
+      ),
+    );
+  }
+
+  // --- ARCHIVE OVERLAY (GREEN SCHEMA) ---
+  Widget _buildArchiveOverlay(AppLocalizations loc) {
+    if (!_showArchiveOverlay) return const SizedBox.shrink();
+
+    return Stack(
+      children: [
+        GestureDetector(onTap: () => setState(() => _showArchiveOverlay = false), child: Container(color: Colors.black.withOpacity(0.5))),
+        Center(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.7,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.green[700]!, width: 2), // Green Border
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(loc.archivedCustomers, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
+                    IconButton(icon: const Icon(Icons.close, color: Colors.black), onPressed: () => setState(() => _showArchiveOverlay = false))
+                  ],
+                ),
+                const Divider(color: Colors.green),
+                Expanded(
+                  child: archivedCustomers.isEmpty
+                      ? Center(child: Text(loc.noCustomersFound, style: const TextStyle(color: Colors.black)))
+                      : ListView.builder(itemCount: archivedCustomers.length, itemBuilder: (context, index) => _buildCustomerCard(archivedCustomers[index], isOverlay: true)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --- ADD/EDIT DIALOG (GREEN SCHEMA) ---
+  void _showAddDialog({Map<String, dynamic>? customer}) {
+    final loc = AppLocalizations.of(context)!;
+    final nameEnController = TextEditingController(text: customer?['name_english'] ?? '');
+    final nameUrController = TextEditingController(text: customer?['name_urdu'] ?? '');
+    final phoneController = TextEditingController(text: customer?['contact_primary'] ?? '');
+    final addressController = TextEditingController(text: customer?['address'] ?? '');
+    String currentLimit = (customer?['credit_limit'] ?? 0.0).toString();
+    final limitController = TextEditingController(text: currentLimit == "0.0" ? "" : currentLimit);
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.green[700]!, width: 2)),
+              title: Text(customer == null ? loc.addCustomer : loc.editCustomer, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
+                child: SizedBox(
+                  width: 400,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 10),
+                      TextFormField(controller: nameEnController, decoration: _cleanInput("${loc.nameEnglish} *", Icons.person), style: const TextStyle(color: Colors.black)),
+                      const SizedBox(height: 12),
+                      TextFormField(controller: nameUrController, decoration: _cleanInput("${loc.nameUrdu} *", Icons.translate), textAlign: TextAlign.start, style: const TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 18, color: Colors.black)),
+                      const SizedBox(height: 12),
+                      TextFormField(controller: phoneController, decoration: _cleanInput("${loc.phoneLabel} *", Icons.phone), keyboardType: TextInputType.phone, style: const TextStyle(color: Colors.black)),
+                      const SizedBox(height: 12),
+                      TextFormField(controller: addressController, decoration: _cleanInput(loc.addressLabel, Icons.location_on), maxLines: 2, style: const TextStyle(color: Colors.black)),
+                      const SizedBox(height: 12),
+                      TextFormField(controller: limitController, decoration: _cleanInput(loc.creditLimit, Icons.credit_card), keyboardType: TextInputType.number, style: const TextStyle(color: Colors.black)),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: isSaving ? null : () => Navigator.pop(context), child: Text(loc.cancel, style: const TextStyle(color: Colors.black))),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
+                  onPressed: isSaving ? null : () async {
+                     if (nameEnController.text.trim().isEmpty) { _showSnack("${loc.nameEnglish} ${loc.requiredField}", Colors.red); return; }
+                     if (nameUrController.text.trim().isEmpty) { _showSnack("${loc.nameUrdu} ${loc.requiredField}", Colors.red); return; }
+                     if (phoneController.text.trim().isEmpty) { _showSnack("${loc.phoneLabel} ${loc.requiredField}", Colors.red); return; }
+
+                     setStateDialog(() => isSaving = true);
+                     try {
+                       await _addOrUpdateCustomer(
+                         id: customer?['id'], 
+                         nameEng: nameEnController.text.trim(), 
+                         nameUrdu: nameUrController.text.trim(), 
+                         phone: phoneController.text.trim(), 
+                         address: addressController.text.trim(), 
+                         limit: double.tryParse(limitController.text) ?? 0.0
+                       );
+                       if (context.mounted) Navigator.pop(context);
+                     } catch (e) {
+                       setStateDialog(() => isSaving = false);
+                       _showSnack(e.toString().replaceAll("Exception: ", ""), Colors.red);
+                     }
+                  },
+                  child: isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white)) : Text(loc.save),
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
+  }
+
+  InputDecoration _cleanInput(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.green[900]),
+      prefixIcon: Icon(icon, size: 20, color: Colors.green[900]),
+      filled: true, fillColor: Colors.white, 
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.green[900]!, width: 1.5)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.green[900]!, width: 2.5)),
+      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16), isDense: true,
+    );
+  }
+}

@@ -1271,4 +1271,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changeDue => 'Change Due';
+
+  @override
+  String get pendingAmount => 'Pending Credits';
+
+  @override
+  String get itemsNeedRestock => 'Items need restock';
+
+  @override
+  String get activeToday => 'Active today';
+
+  @override
+  String get cannotDeleteBal =>
+      'Cannot delete customer with outstanding balance';
+
+  @override
+  String get archivedCustomers => 'Archived Customers';
+
+  @override
+  String get warning => 'Warning';
+
+  @override
+  String get dashboardTotal => 'Total';
+
+  @override
+  String get dashboardActive => 'Active';
+
+  @override
+  String get dashboardArchived => 'Archived';
+
+  @override
+  String get balanceShort => 'Bal';
+
+  @override
+  String get searchPlaceholder => 'Search...';
+
+  @override
+  String get searchArchived => 'Search Archived...';
+
+  @override
+  String get addCustomer => 'Add Customer';
+
+  @override
+  String get phoneLabel => 'Phone (Unique)';
+
+  @override
+  String get addressLabel => 'Address';
+
+  @override
+  String get phoneExistsError => 'Phone number already exists in system';
+
+  @override
+  String get archiveNow => 'Archive Now';
+
+  @override
+  String get requiredField => 'is required';
 }
