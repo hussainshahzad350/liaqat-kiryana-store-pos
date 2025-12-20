@@ -2689,6 +2689,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'is required'**
   String get requiredField;
+
+  /// No description provided for @recentActivities.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activities'**
+  String get recentActivities;
+
+  /// No description provided for @dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dashboard;
+
+  /// No description provided for @noActivitiesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No activities yet'**
+  String get noActivitiesYet;
+
+  /// No description provided for @paymentReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment received'**
+  String get paymentReceived;
+
+  /// No description provided for @billCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill created'**
+  String get billCreated;
+
+  /// No description provided for @newCustomerAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'New customer added'**
+  String get newCustomerAdded;
+
+  /// No description provided for @stockUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock updated'**
+  String get stockUpdated;
 }
 
 class _AppLocalizationsDelegate

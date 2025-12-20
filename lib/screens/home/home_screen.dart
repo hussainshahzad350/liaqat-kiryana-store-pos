@@ -92,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
   setState(() {
-    _isRefreshing = true;  // ← ADD THIS
+    _isRefreshing = true;
   });
   
   try {
@@ -101,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
       dbHelper.getTodaySales(),
       dbHelper.getTodayCustomers(),
       dbHelper.getLowStockItems(),
-      dbHelper.getRecentSales(),
+      dbHelper.getRecentActivities(limit: 10),
     ]);
 
     if (!mounted) return;
@@ -111,12 +111,12 @@ class _HomeScreenState extends State<HomeScreen> {
       todayCustomers = results[1] as List<Map<String, dynamic>>;
       lowStockItems = results[2] as List<Map<String, dynamic>>;
       recentSales = results[3] as List<Map<String, dynamic>>;
-      _isRefreshing = false;  // ← ADD THIS
+      _isRefreshing = false;  
     });
   } catch (e) {
     print('Error loading data: $e');
     setState(() {
-      _isRefreshing = false;  // ← ADD THIS
+      _isRefreshing = false;  
     });
   }
  }
@@ -203,19 +203,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: RefreshIndicator(
                     onRefresh: _loadData,
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // KPI Grid (4 cards)
                           _buildKPIGrid(localizations),
                           
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
                           
                           // Details Grid (Customers + Low Stock)
                           _buildDetailsGrid(localizations),
                           
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
                           
                           // Recent Sales
                           _buildRecentSalesCard(localizations),
@@ -237,76 +237,79 @@ class _HomeScreenState extends State<HomeScreen> {
  }
 
   Widget _buildKPIGrid(AppLocalizations localizations) {
-  return GridView.count(
-    shrinkWrap: true,
-    physics: const NeverScrollableScrollPhysics(),
-    crossAxisCount: 4,                // ← Always 4 columns (desktop)
-    crossAxisSpacing: 16,
-    mainAxisSpacing: 16,
-    childAspectRatio: 1.8,            // ← Wider cards for desktop
-    children: [
-      // Card 1: Today's Sales
-      _buildKPICard(
-        title: localizations.todaySales,
-        value: 'Rs ${todaySales.toStringAsFixed(0)}',
-        icon: Icons.attach_money,
-        color: Colors.green,
-        trend: '+12%',
-        trendUp: true,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ReportsScreen()),
-          );
-        },
-      ),
-      
-      // Card 2: Pending Credits
-      _buildKPICard(
-        title: 'Pending Credits',  // ← Hardcode for now (or use localizations)
-        value: 'Rs ${_calculatePendingCredits().toStringAsFixed(0)}',
-        icon: Icons.credit_card,
-        color: Colors.orange,
-        subtitle: '${todayCustomers.length} Customers',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CustomersScreen()),
-          );
-        },
-      ),
-      
-      // Card 3: Low Stock Alert
-      _buildKPICard(
-        title: localizations.lowStock,
-        value: '${lowStockItems.length}',
-        icon: Icons.warning_amber,
-        color: Colors.red,
-        subtitle: 'Items need restock',
-        isAlert: lowStockItems.length > 5,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const StockScreen()),
-          );
-        },
-      ),
-      
-      // Card 4: Total Customers
-      _buildKPICard(
-        title: 'Total Customers',
-        value: '${todayCustomers.length}',
-        icon: Icons.people,
-        color: Colors.blue,
-        subtitle: 'Active today',
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CustomersScreen()),
-          );
-        },
-      ),
-    ],
+  return LayoutBuilder(                              
+    builder: (context, constraints) {
+      return GridView.count(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisCount: 4,
+        crossAxisSpacing: 12,                        
+        mainAxisSpacing: 12,                         
+        childAspectRatio: constraints.maxWidth > 1400 
+            ? 1.8                                    
+            : 1.0,                                   
+        children: [
+          
+          _buildKPICard(
+            title: localizations.todaySales,
+            value: 'Rs ${todaySales.toStringAsFixed(0)}',
+            icon: Icons.attach_money,
+            color: Colors.green,
+            trend: '+12%',
+            trendUp: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ReportsScreen()),
+              );
+            },
+          ),
+          
+          _buildKPICard(
+            title: 'Pending Credits',
+            value: 'Rs ${_calculatePendingCredits().toStringAsFixed(0)}',
+            icon: Icons.credit_card,
+            color: Colors.orange,
+            subtitle: '${todayCustomers.length} Customers',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CustomersScreen()),
+              );
+            },
+          ),
+          
+          _buildKPICard(
+            title: localizations.lowStock,
+            value: '${lowStockItems.length}',
+            icon: Icons.warning_amber,
+            color: Colors.red,
+            subtitle: 'Items need restock',
+            isAlert: lowStockItems.length > 5,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const StockScreen()),
+              );
+            },
+          ),
+          
+          _buildKPICard(
+            title: 'Total Customers',
+            value: '${todayCustomers.length}',
+            icon: Icons.people,
+            color: Colors.blue,
+            subtitle: 'Active today',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CustomersScreen()),
+              );
+            },
+          ),
+        ],
+      );
+    },
   );
   }
 
@@ -651,7 +654,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSidebarHeader(AppLocalizations localizations) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      height: 110,       // ✅ SHORTER WHEN COLLAPSED
+      height: 100,       // ✅ SHORTER WHEN COLLAPSED
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -667,8 +670,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Logo/Icon (always visible)
           Container(
-            width: isSidebarExpanded ? 60 : 40,    // ✅ SMALLER WHEN COLLAPSED
-            height: isSidebarExpanded ? 60 : 40,
+            width: isSidebarExpanded ? 55 : 35,    // ✅ SMALLER WHEN COLLAPSED
+            height: isSidebarExpanded ? 55 : 35,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
@@ -682,20 +685,20 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Icon(
               Icons.store,
-              size: isSidebarExpanded ? 32 : 24,
+              size: isSidebarExpanded ? 28 : 20,
               color: Colors.green[700],
             ),
           ),
         
           // Shop Name (only when expanded)
           if (isSidebarExpanded) ...[             // ✅ HIDDEN WHEN COLLAPSED
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
                 localizations.appTitle,
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -720,8 +723,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return InkWell(
       onTap: onTap,
       child: Container(
-        height: 50, // Fixed height for consistency
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        height: 40, // Fixed height for consistency
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
           color: isActive ? Colors.green[50] : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
@@ -740,21 +743,21 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: EdgeInsets.only(left: isSidebarExpanded ? 12.0 : 0),
               child: Icon(
                 icon,
-                size: 24,
+                size: 22,
                 color: color ?? (isActive ? Colors.green[700] : Colors.grey[700]),
               ),
             ),
             
             // 2. Text (ONLY visible if Expanded)
             if (isSidebarExpanded) ...[
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                     color: color ?? (isActive ? Colors.green[900] : Colors.grey[800]),
                   ),
@@ -866,7 +869,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHeaderBar(AppLocalizations localizations) {
     return Container(
-      height: 80,
+      height: 90,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.green[700],
@@ -884,7 +887,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   localizations.appTitle,
@@ -896,7 +899,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Dashboard',
+                  localizations.dashboard,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.9),
@@ -974,7 +977,7 @@ class _HomeScreenState extends State<HomeScreen> {
       color: Colors.white,
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.05),
+          color: Colors.black.withOpacity(0.2),
           blurRadius: 4,
           offset: const Offset(0, 2),
         ),
@@ -991,20 +994,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ).then((_) => _loadData());
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green[700],
-            foregroundColor: Colors.white,
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.green[700],
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             elevation: 2,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          icon: const Icon(Icons.add_shopping_cart, size: 22),
+          icon: Icon(Icons.add_shopping_cart, size: 22, color: Colors.green[700]),
           label: Text(
             localizations.generateBill,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              color: Colors.green[700],
             ),
           ),
         ),
@@ -1015,7 +1019,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildQuickActionButton(
           icon: Icons.bar_chart,
           label: localizations.reports,
-          color: Colors.blue,
+          color: Colors.green,
           onPressed: () {
             Navigator.push(
               context,
@@ -1030,7 +1034,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildQuickActionButton(
           icon: Icons.inventory_2,
           label: localizations.stockManagement,
-          color: Colors.orange,
+          color: Colors.green,
           onPressed: () {
             Navigator.push(
               context,
@@ -1045,7 +1049,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildQuickActionButton(
           icon: Icons.account_balance_wallet,
           label: localizations.cashLedger,
-          color: Colors.purple,
+          color: Colors.green,
           onPressed: () {
             Navigator.push(
               context,
@@ -1069,7 +1073,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           },
-          color: Colors.grey[700],
+          color: Colors.green[700],
         ),
         
         const SizedBox(width: 4),
@@ -1085,7 +1089,7 @@ class _HomeScreenState extends State<HomeScreen> {
           : const Icon(Icons.refresh, size: 24),
           tooltip: 'Refresh Dashboard',
           onPressed: _isRefreshing ? null : _loadData, // ← Disable when loading
-          color: Colors.grey[700],
+          color: Colors.green[700],
         ),
       ],
     ),
@@ -1367,119 +1371,290 @@ class _HomeScreenState extends State<HomeScreen> {
 
   //  Recent Sales Card
   Widget _buildRecentSalesCard(AppLocalizations localizations) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                const Icon(Icons.receipt_long, color: Colors.green, size: 28),
-                const SizedBox(width: 12),
-                Text(
-                  localizations.recentSales,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  return Card(
+    elevation: 2,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              const Icon(Icons.timeline, color: Colors.green, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                localizations.recentActivities,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const Spacer(),
+              // Auto-refresh indicator
+              if (_isRefreshing)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
-              ],
-            ),
+            ],
+          ),
           
-            // Sales List or Empty State
-            if (recentSales.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 12),
+          // Activities List or Empty State
+          if (recentSales.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
             
-              for (var sale in recentSales)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      // Status Icon
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: sale['status'] == 'CANCELLED'
-                              ? Colors.red.withOpacity(0.1)
-                              : Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          sale['status'] == 'CANCELLED' ? Icons.cancel : Icons.receipt,
-                          color: sale['status'] == 'CANCELLED' ? Colors.red : Colors.green,
-                          size: 20,
-                        ),
+            // Activity Items
+            for (var activity in recentSales)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Activity Icon
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: _getActivityColor(activity['activity_type']).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      child: Icon(
+                        _getActivityIcon(activity['activity_type']),
+                        color: _getActivityColor(activity['activity_type']),
+                        size: 22,
+                      ),
+                    ),
                     
-                      const SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     
-                      // Sale Info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              sale['customer_name']?.toString() ?? 'Cash',
-                              style: const TextStyle(
-                                fontSize: 15,
+                    // Activity Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Title
+                          Text(
+                            activity['title']?.toString() ?? 'Activity',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          
+                          const SizedBox(height: 4),
+                          
+                          // Description
+                          Text(
+                            _getActivityDescription(activity, localizations),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 4),
+                          
+                          // Details (amount, stock level, etc.)
+                          Text(
+                            _getActivityDetails(activity),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    const SizedBox(width: 8),
+                    
+                    // Timestamp
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          _getRelativeTime(activity['timestamp']?.toString()),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        
+                        // Status badge (for cancelled sales, urgent alerts)
+                        if (activity['status'] == 'CANCELLED')
+                          Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Cancelled',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.red[700],
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${sale['bill_number']} • ${_formatTime(sale['sale_time']?.toString() ?? '')}',
+                          ),
+                        
+                        if (activity['status'] == 'URGENT')
+                          Container(
+                            margin: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Urgent',
                               style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
+                                fontSize: 10,
+                                color: Colors.red[700],
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    
-                      // Amount
-                      Text(
-                        'Rs ${(sale['grand_total'] as num?)?.toStringAsFixed(0) ?? '0'}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          decoration: sale['status'] == 'CANCELLED'
-                              ? TextDecoration.lineThrough
-                              : null,
-                          color: sale['status'] == 'CANCELLED'
-                              ? Colors.grey
-                              : Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ] else ...[
-              const SizedBox(height: 16),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(Icons.receipt_long_outlined, size: 48, color: Colors.grey[400]),
-                      const SizedBox(height: 8),
-                      Text(
-                        localizations.noSalesYet,
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
+          ] else ...[
+            const SizedBox(height: 16),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(30),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.timeline_outlined,
+                      size: 64,
+                      color: Colors.grey[300],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      localizations.noActivitiesYet,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
-        ),
+        ],
       ),
-    );
+    ),
+  );
+  }
+
+  // Helper methods
+  IconData _getActivityIcon(String? type) {
+  switch (type) {
+    case 'SALE':
+      return Icons.receipt;
+    case 'PAYMENT':
+      return Icons.payments;
+    case 'ALERT':
+      return Icons.warning_amber;
+    case 'CUSTOMER':
+      return Icons.person_add;
+    case 'STOCK':
+      return Icons.inventory;
+    default:
+      return Icons.circle;
+  }
+  }
+
+  Color _getActivityColor(String? type) {
+  switch (type) {
+    case 'SALE':
+      return Colors.green;
+    case 'PAYMENT':
+      return Colors.blue;
+    case 'ALERT':
+      return Colors.red;
+    case 'CUSTOMER':
+      return Colors.purple;
+    case 'STOCK':
+      return Colors.orange;
+    default:
+      return Colors.grey;
+  }
+  }
+
+  String _getActivityDescription(Map<String, dynamic> activity, AppLocalizations localizations) {
+  final type = activity['activity_type']?.toString();
+  
+  switch (type) {
+    case 'SALE':
+      return localizations.billCreated;
+    case 'PAYMENT':
+      return localizations.paymentReceived;
+    case 'ALERT':
+      return localizations.lowStockAlert;
+    case 'CUSTOMER':
+      return localizations.newCustomerAdded;
+    case 'STOCK':
+      return localizations.stockUpdated;
+    default:
+      return 'Activity';
+  }
+  }
+
+  String _getActivityDetails(Map<String, dynamic> activity) {
+  final type = activity['activity_type']?.toString();
+  
+  switch (type) {
+    case 'SALE':
+      final amount = (activity['amount'] as num?)?.toDouble() ?? 0.0;
+      final customer = activity['customer_name']?.toString() ?? 'Cash';
+      return '$customer - Rs ${amount.toStringAsFixed(0)}';
+      
+    case 'PAYMENT':
+      final amount = (activity['amount'] as num?)?.toDouble() ?? 0.0;
+      return 'Rs ${amount.toStringAsFixed(0)}';
+      
+    case 'ALERT':
+      final stock = activity['stock_level'];
+      final unit = activity['unit_name']?.toString() ?? 'units';
+      return 'Only $stock $unit left';
+      
+    default:
+      return '';
+  }
+  }
+
+  String _getRelativeTime(String? timestamp) {
+  if (timestamp == null || timestamp.isEmpty) return '';
+  
+  try {
+    final activityTime = DateTime.parse(timestamp);
+    final now = DateTime.now();
+    final difference = now.difference(activityTime);
+    
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} min ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hr ago';
+    } else {
+      return '${difference.inDays} days ago';
+    }
+  } catch (e) {
+    return '';
+  }
   }
 
   // Footer Bar

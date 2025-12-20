@@ -605,26 +605,77 @@ class DatabaseHelper {
     }
   }
 
-  // FIX: getRecentSales (Missing method fix)
-  Future<List<Map<String, dynamic>>> getRecentSales() async {
+  Future<List<Map<String, dynamic>>> getRecentActivities({int limit = 10}) async {
+  final db = await database;
+  
+  List<Map<String, dynamic>> activities = [];
+  
   try {
-    final db = await database;
-    // ✅ FIXED: Added 'status' field to SELECT
-    return await db.rawQuery('''
+    // 1. Recent Sales (today)
+    final sales = await db.rawQuery('''
       SELECT 
-        s.id,
-        s.bill_number,
-        s.status, 
-        s.grand_total, 
-        s.sale_time,
-        COALESCE(c.name_urdu, c.name_english, 'Walk-in Customer') as customer_name
+        'SALE' as activity_type,
+        s.bill_number as title,
+        COALESCE(c.name_english, c.name_urdu, 'Cash Sale') as customer_name,
+        s.grand_total as amount,
+        s.sale_date || ' ' || s.sale_time as timestamp,
+        s.status as status
       FROM sales s
       LEFT JOIN customers c ON s.customer_id = c.id
-      ORDER BY s.created_at DESC
+      WHERE DATE(s.sale_date) = DATE('now', 'localtime')
+      ORDER BY s.sale_time DESC
       LIMIT 5
     ''');
+    
+    // 2. Recent Payments (today) - FIXED table name
+    final payments = await db.rawQuery('''
+      SELECT 
+        'PAYMENT' as activity_type,
+        COALESCE(c.name_english, c.name_urdu, 'Unknown') as title,
+        c.name_urdu as customer_name_urdu,
+        p.amount as amount,
+        p.date || ' 00:00' as timestamp,
+        'COMPLETED' as status
+      FROM payments p
+      JOIN customers c ON p.customer_id = c.id
+      WHERE DATE(p.date) = DATE('now', 'localtime')
+      ORDER BY p.date DESC
+      LIMIT 5
+    ''');
+    
+    // 3. Low Stock Alerts (current) - FIXED table name
+    final lowStockAlerts = await db.rawQuery('''
+      SELECT 
+        'ALERT' as activity_type,
+        COALESCE(p.name_english, p.name_urdu) as title,
+        p.current_stock as stock_level,
+        p.min_stock_alert as min_level,
+        p.unit_type as unit_name,
+        datetime('now', 'localtime') as timestamp,
+        'URGENT' as status
+      FROM products p
+      WHERE p.current_stock <= p.min_stock_alert
+      ORDER BY (p.current_stock * 1.0 / p.min_stock_alert) ASC
+      LIMIT 3
+    ''');
+    
+    // Combine all activities
+    activities.addAll(sales);
+    activities.addAll(payments);
+    activities.addAll(lowStockAlerts);
+    
+    // Sort by timestamp (most recent first)
+    activities.sort((a, b) {
+      final aTime = a['timestamp']?.toString() ?? '';
+      final bTime = b['timestamp']?.toString() ?? '';
+      return bTime.compareTo(aTime);
+    });
+    
+    // Return limited results
+    return activities.take(limit).toList();
+    
   } catch (e) {
-    AppLogger.error("Error fetching recent sales: $e", tag: 'DB');
+    print('Error getting recent activities: $e');
     return [];
   }
   }

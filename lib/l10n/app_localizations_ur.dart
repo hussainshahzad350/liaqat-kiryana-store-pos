@@ -1324,4 +1324,25 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get requiredField => 'یہ فیلڈ ضروری ہے';
+
+  @override
+  String get recentActivities => 'حالیہ سرگرمیاں';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get noActivitiesYet => 'ابھی تک کوئی سرگرمی نہیں';
+
+  @override
+  String get paymentReceived => 'ادائیگی وصول ہوئی';
+
+  @override
+  String get billCreated => 'بل بنایا گیا';
+
+  @override
+  String get newCustomerAdded => 'نیا گاہک شامل کیا گیا';
+
+  @override
+  String get stockUpdated => 'اسٹاک اپ ڈیٹ ہوا';
 }

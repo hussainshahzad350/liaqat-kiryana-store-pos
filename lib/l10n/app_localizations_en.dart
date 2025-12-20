@@ -1326,4 +1326,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get requiredField => 'is required';
+
+  @override
+  String get recentActivities => 'Recent Activities';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get noActivitiesYet => 'No activities yet';
+
+  @override
+  String get paymentReceived => 'Payment received';
+
+  @override
+  String get billCreated => 'Bill created';
+
+  @override
+  String get newCustomerAdded => 'New customer added';
+
+  @override
+  String get stockUpdated => 'Stock updated';
 }

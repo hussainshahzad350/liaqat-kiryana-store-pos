@@ -450,6 +450,13 @@
   "addressLabel": "Address",
   "phoneExistsError": "Phone number already exists in system",
   "archiveNow": "Archive Now",
-  "requiredField": "is required"
+  "requiredField": "is required",
+  "recentActivities": "Recent Activities",
+  "dashboard": "Dashboard",
+  "noActivitiesYet": "No activities yet",
+  "paymentReceived": "Payment received",
+  "billCreated": "Bill created",
+  "newCustomerAdded": "New customer added",
+  "stockUpdated": "Stock updated"
   
 }

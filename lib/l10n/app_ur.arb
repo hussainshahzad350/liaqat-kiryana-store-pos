@@ -448,5 +448,12 @@
   "addressLabel": "پتہ",
   "phoneExistsError": "فون نمبر پہلے سے سسٹم میں موجود ہے",
   "archiveNow": "ابھی آرکائیو کریں",
-  "requiredField": "یہ فیلڈ ضروری ہے"
+  "requiredField": "یہ فیلڈ ضروری ہے",
+  "recentActivities": "حالیہ سرگرمیاں",
+  "Dashboard": "ڈیش بورڈ",
+  "noActivitiesYet": "ابھی تک کوئی سرگرمی نہیں",
+  "paymentReceived": "ادائیگی وصول ہوئی",
+  "billCreated": "بل بنایا گیا",
+  "newCustomerAdded": "نیا گاہک شامل کیا گیا",
+  "stockUpdated": "اسٹاک اپ ڈیٹ ہوا"
 }
