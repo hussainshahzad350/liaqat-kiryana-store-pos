@@ -1347,4 +1347,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stockUpdated => 'Stock updated';
+
+  @override
+  String get pendingCredits => 'Pending Credits';
+
+  @override
+  String get systemOnline => 'System Online';
+
+  @override
+  String get databaseConnected => 'Database: Connected';
+
+  @override
+  String get systemOk => 'System OK';
+
+  @override
+  String get cashSale => 'Cash Sale';
+
+  @override
+  String get urgent => 'Urgent';
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String get minAgo => 'min ago';
+
+  @override
+  String get hrAgo => 'hr ago';
+
+  @override
+  String get daysAgo => 'days ago';
+
+  @override
+  String onlyLeft(Object count, Object unit) {
+    return 'Only $count $unit left';
+  }
+
+  @override
+  String get todaysCustomers => 'Today\'s Customers';
+
+  @override
+  String get activityType => 'Activity';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get pending => 'Pending';
+
+  @override
+  String get name => 'Name';
 }

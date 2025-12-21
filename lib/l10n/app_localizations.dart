@@ -2731,6 +2731,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stock updated'**
   String get stockUpdated;
+
+  /// No description provided for @pendingCredits.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Credits'**
+  String get pendingCredits;
+
+  /// No description provided for @systemOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'System Online'**
+  String get systemOnline;
+
+  /// No description provided for @databaseConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Database: Connected'**
+  String get databaseConnected;
+
+  /// No description provided for @systemOk.
+  ///
+  /// In en, this message translates to:
+  /// **'System OK'**
+  String get systemOk;
+
+  /// No description provided for @cashSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Sale'**
+  String get cashSale;
+
+  /// No description provided for @urgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get urgent;
+
+  /// No description provided for @justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get justNow;
+
+  /// No description provided for @minAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'min ago'**
+  String get minAgo;
+
+  /// No description provided for @hrAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'hr ago'**
+  String get hrAgo;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'days ago'**
+  String get daysAgo;
+
+  /// No description provided for @onlyLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {count} {unit} left'**
+  String onlyLeft(Object count, Object unit);
+
+  /// No description provided for @todaysCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Customers'**
+  String get todaysCustomers;
+
+  /// No description provided for @activityType.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get activityType;
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// No description provided for @pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get pending;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
 }
 
 class _AppLocalizationsDelegate

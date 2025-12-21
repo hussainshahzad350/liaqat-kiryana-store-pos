@@ -6,11 +6,31 @@ import 'package:shared_preferences/shared_preferences.dart'; // Added for persis
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'l10n/app_localizations.dart';
+import 'package:window_manager/window_manager.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    await windowManager.ensureInitialized();
+
+    WindowOptions windowOptions = const WindowOptions(
+      size: Size(1366, 768),
+      minimumSize: Size(1280, 720),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.normal,
+     );
+
+      windowManager.waitUntilReadyToShow(windowOptions, () async {
+        await windowManager.show();
+        await windowManager.focus();
+      }
+    );
+  }
+    
   // 🛠️ FIX: Initialize Database Factory for Desktop
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();

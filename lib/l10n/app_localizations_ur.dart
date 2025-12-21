@@ -1329,7 +1329,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get recentActivities => 'حالیہ سرگرمیاں';
 
   @override
-  String get dashboard => 'Dashboard';
+  String get dashboard => 'ڈیش بورڈ';
 
   @override
   String get noActivitiesYet => 'ابھی تک کوئی سرگرمی نہیں';
@@ -1345,4 +1345,54 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get stockUpdated => 'اسٹاک اپ ڈیٹ ہوا';
+
+  @override
+  String get pendingCredits => 'باقی رقم';
+
+  @override
+  String get systemOnline => 'سسٹم آن لائن';
+
+  @override
+  String get databaseConnected => 'ڈیٹا بیس: منسلک';
+
+  @override
+  String get systemOk => 'سسٹم ٹھیک ہے';
+
+  @override
+  String get cashSale => 'نقد فروخت';
+
+  @override
+  String get urgent => 'فوری';
+
+  @override
+  String get justNow => 'ابھی';
+
+  @override
+  String get minAgo => 'منٹ پہلے';
+
+  @override
+  String get hrAgo => 'گھنٹہ پہلے';
+
+  @override
+  String get daysAgo => 'دن پہلے';
+
+  @override
+  String onlyLeft(Object count, Object unit) {
+    return 'صرف $count $unit باقی';
+  }
+
+  @override
+  String get todaysCustomers => 'Today\'s Customers';
+
+  @override
+  String get activityType => 'سرگرمی';
+
+  @override
+  String get status => 'حیثیت';
+
+  @override
+  String get pending => 'زیر التواء';
+
+  @override
+  String get name => 'نام';
 }

@@ -455,5 +455,21 @@
   "paymentReceived": "ادائیگی وصول ہوئی",
   "billCreated": "بل بنایا گیا",
   "newCustomerAdded": "نیا گاہک شامل کیا گیا",
-  "stockUpdated": "اسٹاک اپ ڈیٹ ہوا"
+  "stockUpdated": "اسٹاک اپ ڈیٹ ہوا",
+  "dashboard": "ڈیش بورڈ",
+  "pendingCredits": "باقی رقم",
+  "systemOnline": "سسٹم آن لائن",
+  "databaseConnected": "ڈیٹا بیس: منسلک",
+  "systemOk": "سسٹم ٹھیک ہے",
+  "cashSale": "نقد فروخت",
+  "urgent": "فوری",
+  "justNow": "ابھی",
+  "minAgo": "منٹ پہلے",
+  "hrAgo": "گھنٹہ پہلے",
+  "daysAgo": "دن پہلے",
+  "onlyLeft": "صرف {count} {unit} باقی",
+  "activityType": "سرگرمی",
+  "status": "حیثیت",
+  "pending": "زیر التواء",
+  "name": "نام"
 }

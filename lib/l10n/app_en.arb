@@ -457,6 +457,22 @@
   "paymentReceived": "Payment received",
   "billCreated": "Bill created",
   "newCustomerAdded": "New customer added",
-  "stockUpdated": "Stock updated"
-  
+  "stockUpdated": "Stock updated",
+  "pendingCredits": "Pending Credits",
+  "systemOnline": "System Online",
+  "databaseConnected": "Database: Connected",
+  "systemOk": "System OK",
+  "cashSale": "Cash Sale",
+  "urgent": "Urgent",
+  "justNow": "Just now",
+  "minAgo": "min ago",
+  "hrAgo": "hr ago",
+  "daysAgo": "days ago",
+  "onlyLeft": "Only {count} {unit} left",
+  "todaysCustomers": "Today's Customers",
+  "activityType": "Activity",
+  "status": "Status",
+  "pending": "Pending",
+  "name": "Name"
+
 }
