@@ -1,9 +1,14 @@
 // lib/screens/settings/settings_screen.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' show join, basename, dirname;
+import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart' as sql;
 import '../../l10n/app_localizations.dart';
 import '../../main.dart';
-import '../../core/database/database_helper.dart';
+import '../../core/database/database_helper.dart' hide Database;
+import '../../core/utils/logger.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -130,17 +135,17 @@ class ShopProfileTab extends StatelessWidget {
                       border: const OutlineInputBorder(),
                       hintText: 'Liaqat Kiryana Store',
                     ),
-                    initialValue: loc.shopNamePlaceholder, // Localized
+                    initialValue: 'Liaqat Kiryana Store',
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: loc.address,
                       border: const OutlineInputBorder(),
-                      hintText: loc.addressPlaceholder, // Localized
+                      hintText: '123 Main Street, Lahore',
                     ),
                     maxLines: 2,
-                    initialValue: loc.addressPlaceholder,
+                    initialValue: '123 Main Street, Lahore',
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
@@ -182,14 +187,142 @@ class ShopProfileTab extends StatelessWidget {
 }
 
 // ==================== 2. Backup Tab ====================
-class BackupTab extends StatelessWidget {
+class BackupTab extends StatefulWidget {
   const BackupTab({super.key});
+
+  @override
+  State<BackupTab> createState() => _BackupTabState();
+}
+
+class _BackupTabState extends State<BackupTab> {
+  List<Map<String, dynamic>> backups = [];
+  bool isLoading = false;
+  double? currentDbSize;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBackups();
+    _getCurrentDbSize();
+  }
+
+  Future<void> _loadBackups() async {
+    setState(() => isLoading = true);
+    backups = await DatabaseHelper.instance.getBackupFiles();
+    setState(() => isLoading = false);
+  }
+
+  Future<bool> _createBackup() async {
+    try {
+      final backupPath = await DatabaseHelper.instance.createManualBackup(5);
+      return backupPath != null;
+    } catch (e) {
+      AppLogger.error('Backup error: $e', tag: 'UI');
+      return false;
+    }
+  }
+
+  Future<void> _confirmRestore(String backupPath) async {
+    final fileName = basename(backupPath);
+  
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.restoreBackup),
+        content: Text('${AppLocalizations.of(context)!.restoreConfirm}\n\n$fileName?\n\n${AppLocalizations.of(context)!.restoreWarning}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(AppLocalizations.of(context)!.restore, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  
+    if (confirm == true) {
+      setState(() => isLoading = true);
+      final success = await DatabaseHelper.instance.restoreBackup(backupPath);
+      setState(() => isLoading = false);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success 
+              ? AppLocalizations.of(context)!.restoreSuccess
+              : AppLocalizations.of(context)!.restoreFailed),
+            backgroundColor: success ? Colors.green : Colors.red,
+          )
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(String backupPath) async {
+    final fileName = basename(backupPath);
+  
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.deleteBackup),
+        content: Text('${AppLocalizations.of(context)!.deleteConfirm}\n\n$fileName?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  
+    if (confirm == true) {
+      try {
+        await File(backupPath).delete();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.backupDeleted),
+              backgroundColor: Colors.green,
+            )
+          );
+        }
+        await _loadBackups();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${AppLocalizations.of(context)!.deleteFailed}: $e'),
+              backgroundColor: Colors.red,
+            )
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _getCurrentDbSize() async {
+    final db = await DatabaseHelper.instance.database;
+    final file = File(db.path);
+    if (await file.exists()) {
+      final stat = await file.stat();
+      setState(() {
+        currentDbSize = stat.size / (1024 * 1024);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final now = DateTime.now();
-    final dateStr = "${now.day}-${now.month}-${now.year}";
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -206,15 +339,34 @@ class BackupTab extends StatelessWidget {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  ListTile(
-                    leading: const Icon(Icons.storage, color: Colors.teal),
-                    title: const Text('liaqat_store.db'),
-                    subtitle: Text('${loc.size}: 45.2 MB'),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.history, color: Colors.teal),
-                    title: Text(loc.lastBackup),
-                    subtitle: Text('$dateStr, 10:30 PM'),
+                  FutureBuilder<sql.Database>(
+                    future: DatabaseHelper.instance.database,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        final db = snapshot.data!;
+                        final dbPath = db.path;
+                        final fileName = basename(dbPath);
+                        final lastBackup = backups.isNotEmpty
+                          ? DateFormat('dd-MM-yyyy HH:mm').format(backups.first['modified'] as DateTime)
+                          : loc.never;
+                        
+                        return Column(
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.storage, color: Colors.teal),
+                              title: Text(fileName),
+                              subtitle: Text('${loc.size}: ${currentDbSize?.toStringAsFixed(2) ?? '?'} MB'),
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.history, color: Colors.teal),
+                              title: Text(loc.lastBackup),
+                              subtitle: Text(lastBackup),
+                            ),
+                          ],
+                        );
+                      }
+                      return const CircularProgressIndicator();
+                    },
                   ),
                 ],
               ),
@@ -238,20 +390,25 @@ class BackupTab extends StatelessWidget {
                       icon: const Icon(Icons.backup),
                       label: Text(loc.createBackupNow, style: const TextStyle(color: Colors.white)),
                       onPressed: () async {
-                        // FIX: Connect to DatabaseHelper backup
-                        final db = await DatabaseHelper.instance.database;
-                        // We can pass version 1 or current version
-                        // Note: You might need to move _backupDatabase to public in DatabaseHelper 
-                        // Change '_backupDatabase' to 'backupDatabase' in database_helper.dart first!
-  
-                        // Assuming you made it public:
-                        await DatabaseHelper.instance.backupDatabase(db, 3);
-                        if (!context.mounted) return; 
-  
-                        // OR for now, just trigger a simple file copy if you didn't expose the method:
+                        setState(() => isLoading = true);
+                        final success = await _createBackup();
+                        setState(() => isLoading = false);
+
+                        if (!mounted) return;
+                        
+                        // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Backup created successfully!'))
+                          SnackBar(
+                            content: Text(success
+                              ? loc.backupCreated
+                              : loc.backupFailed),
+                            backgroundColor: success ? Colors.green : Colors.red,
+                          )
                         );
+
+                        if (success) {
+                          await _loadBackups();
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -265,7 +422,11 @@ class BackupTab extends StatelessWidget {
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.usb),
                       label: Text(loc.exportToUsb),
-                      onPressed: () {},
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(loc.usbExportSetup))
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -288,30 +449,74 @@ class BackupTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    loc.recentBackups,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  BackupItem(fileName: 'store_$dateStr.db', date: dateStr, size: '45 MB'),
-                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      OutlinedButton(onPressed: () {}, child: Text(loc.openFolder)),
-                      const Spacer(),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                        child: Text(loc.restore, style: const TextStyle(color: Colors.white)),
+                      Text(
+                        loc.recentBackups,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(width: 10),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                        child: Text(loc.delete, style: const TextStyle(color: Colors.white)),
+                      const Spacer(),
+                      if (isLoading)
+                        const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        onPressed: _loadBackups,
+                        tooltip: loc.refresh,
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
+        
+                  if (backups.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: Text(
+                          loc.noBackupsFound,
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ),
+                    )
+                  else
+                    ...backups.take(5).map((backup) {
+                      final fileName = backup['name'] as String;
+                      final size = (backup['size'] as int) / (1024 * 1024);
+                      final modified = backup['modified'] as DateTime;
+                      final dateStr = DateFormat('dd-MM-yyyy HH:mm').format(modified);
+            
+                      return Column(
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.insert_drive_file, color: Colors.teal),
+                            title: Text(fileName),
+                            subtitle: Text('$dateStr • ${size.toStringAsFixed(2)} MB'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.restore, color: Colors.green),
+                                  onPressed: () => _confirmRestore(backup['path'] as String),
+                                  tooltip: loc.restore,
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => _confirmDelete(backup['path'] as String),
+                                  tooltip: loc.delete,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 1),
+                        ],
+                      );
+                    }),
                 ],
               ),
             ),
@@ -320,7 +525,7 @@ class BackupTab extends StatelessWidget {
       ),
     );
   }
-}
+ }
 
 // ==================== 3. Receipt Tab ====================
 class ReceiptTab extends StatelessWidget {
@@ -355,26 +560,25 @@ class ReceiptTab extends StatelessWidget {
                   const Divider(),
                   const SizedBox(height: 10),
                   Text(loc.fontSize),
-                  // Fix: Localized Dropdown Display
                   DropdownButton<String>(
-                    value: 'Medium',
+                    value: loc.medium,
                     isExpanded: true,
                     items: [
-                      DropdownMenuItem(value: 'Small', child: Text(loc.small)),
-                      DropdownMenuItem(value: 'Medium', child: Text(loc.medium)),
-                      DropdownMenuItem(value: 'Large', child: Text(loc.large)),
+                      DropdownMenuItem(value: loc.small, child: Text(loc.small)),
+                      DropdownMenuItem(value: loc.medium, child: Text(loc.medium)),
+                      DropdownMenuItem(value: loc.large, child: Text(loc.large)),
                     ],
                     onChanged: (value) {},
                   ),
                   const SizedBox(height: 10),
                   Text(loc.paperWidth),
                   DropdownButton<String>(
-                    value: '58mm',
+                    value: loc.paper58,
                     isExpanded: true,
                     items: [
-                      DropdownMenuItem(value: '58mm', child: Text(loc.paper58)),
-                      DropdownMenuItem(value: '80mm', child: Text(loc.paper80)),
-                      DropdownMenuItem(value: 'A4', child: Text(loc.paperA4)),
+                      DropdownMenuItem(value: loc.paper58, child: Text(loc.paper58)),
+                      DropdownMenuItem(value: loc.paper80, child: Text(loc.paper80)),
+                      DropdownMenuItem(value: loc.paperA4, child: Text(loc.paperA4)),
                     ],
                     onChanged: (value) {},
                   ),
@@ -396,13 +600,13 @@ class ReceiptTab extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(loc.selectPrinter),
                   DropdownButton<String>(
-                    value: 'USB Thermal',
+                    value: loc.printerUsb,
                     isExpanded: true,
                     items: [
-                      DropdownMenuItem(value: 'Default', child: Text(loc.printerDefault)),
-                      DropdownMenuItem(value: 'USB Thermal', child: Text(loc.printerUsb)),
-                      DropdownMenuItem(value: 'Network', child: Text(loc.printerNetwork)),
-                      DropdownMenuItem(value: 'PDF', child: Text(loc.printerPdf)),
+                      DropdownMenuItem(value: loc.printerDefault, child: Text(loc.printerDefault)),
+                      DropdownMenuItem(value: loc.printerUsb, child: Text(loc.printerUsb)),
+                      DropdownMenuItem(value: loc.printerNetwork, child: Text(loc.printerNetwork)),
+                      DropdownMenuItem(value: loc.printerPdf, child: Text(loc.printerPdf)),
                     ],
                     onChanged: (value) {},
                   ),
@@ -426,8 +630,18 @@ class ReceiptTab extends StatelessWidget {
 }
 
 // ==================== 4. Preferences Tab ====================
-class PreferencesTab extends StatelessWidget {
+class PreferencesTab extends StatefulWidget {
   const PreferencesTab({super.key});
+
+  @override
+  State<PreferencesTab> createState() => _PreferencesTabState();
+}
+
+class _PreferencesTabState extends State<PreferencesTab> {
+  String? _selectedDateFormat;
+  String? _selectedFrequency;
+  String _currencyPosition = 'before';
+  String _currencySymbol = 'Rs';
 
   @override
   Widget build(BuildContext context) {
@@ -469,13 +683,17 @@ class PreferencesTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(loc.dateFormat),
-                  DropdownButton(
-                    value: 'DD-MM-YYYY',
+                  DropdownButton<String>(
+                    value: _selectedDateFormat ?? 'DD-MM-YYYY',
                     isExpanded: true,
                     items: const ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD']
                         .map((format) => DropdownMenuItem(value: format, child: Text(format)))
                         .toList(),
-                    onChanged: (value) {},
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedDateFormat = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 10),
                   Text(loc.currencySymbol),
@@ -483,19 +701,29 @@ class PreferencesTab extends StatelessWidget {
                     children: [
                       Expanded(
                         child: TextFormField(
-                          decoration: const InputDecoration(hintText: 'Rs'),
-                          initialValue: 'Rs',
+                          decoration: InputDecoration(hintText: loc.currencySymbol),
+                          initialValue: _currencySymbol,
+                          onChanged: (value) {
+                            setState(() {
+                              _currencySymbol = value;
+                            });
+                          },
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: DropdownButton(
-                          value: loc.before,
+                        child: DropdownButton<String>(
+                          value: _currencyPosition,
+                          isExpanded: true,
                           items: [
-                             DropdownMenuItem(value: loc.before, child: Text(loc.before)),
-                             DropdownMenuItem(value: loc.after, child: Text(loc.after)),
+                            DropdownMenuItem(value: 'before', child: Text(loc.before)),
+                            DropdownMenuItem(value: 'after', child: Text(loc.after)),
                           ],
-                          onChanged: null,
+                          onChanged: (value) {
+                            setState(() {
+                              _currencyPosition = value!;
+                            });
+                          },
                         ),
                       ),
                     ],
@@ -548,16 +776,19 @@ class PreferencesTab extends StatelessWidget {
                   OptionSwitch(title: loc.enableAutoBackup),
                   const SizedBox(height: 10),
                   Text(loc.frequency),
-                  // Fix: Localized Dropdown
                   DropdownButton<String>(
-                    value: 'Daily',
+                    value: _selectedFrequency ?? loc.daily,
                     isExpanded: true,
                     items: [
-                      DropdownMenuItem(value: 'Daily', child: Text(loc.daily)),
-                      DropdownMenuItem(value: 'Weekly', child: Text(loc.weekly)),
-                      DropdownMenuItem(value: 'Monthly', child: Text(loc.monthly)),
+                      DropdownMenuItem(value: loc.daily, child: Text(loc.daily)),
+                      DropdownMenuItem(value: loc.weekly, child: Text(loc.weekly)),
+                      DropdownMenuItem(value: loc.monthly, child: Text(loc.monthly)),
                     ],
-                    onChanged: (value) {},
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedFrequency = value;
+                      });
+                    },
                   ),
                 ],
               ),
@@ -589,7 +820,14 @@ class PreferencesTab extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(loc.preferencesSaved),
+                    backgroundColor: Colors.green,
+                  )
+                );
+              },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: Colors.teal[700],
@@ -634,7 +872,11 @@ class AboutTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(loc.checkingForUpdates))
+                      );
+                    },
                     child: Text(loc.checkForUpdates),
                   ),
                   const SizedBox(height: 10),
@@ -795,17 +1037,31 @@ class BackupItem extends StatelessWidget {
   }
 }
 
-class OptionSwitch extends StatelessWidget {
+class OptionSwitch extends StatefulWidget {
   final String title;
 
   const OptionSwitch({super.key, required this.title});
 
   @override
+  State<OptionSwitch> createState() => _OptionSwitchState();
+}
+
+class _OptionSwitchState extends State<OptionSwitch> {
+  bool _isEnabled = true;
+
+  @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(title)),
-        Switch(value: true, onChanged: (value) {}),
+        Expanded(child: Text(widget.title)),
+        Switch(
+          value: _isEnabled, 
+          onChanged: (value) {
+            setState(() {
+              _isEnabled = value;
+            });
+          }
+        ),
       ],
     );
   }

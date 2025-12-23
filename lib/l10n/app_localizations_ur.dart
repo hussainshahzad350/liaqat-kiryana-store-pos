@@ -1395,4 +1395,55 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get name => 'نام';
+
+  @override
+  String get noBackupsFound => 'کوئی بیک اپ نہیں ملا';
+
+  @override
+  String get backupCreated => 'بیک اپ کامیابی سے بنایا گیا';
+
+  @override
+  String get backupFailed => 'بیک اپ بنانے میں ناکام';
+
+  @override
+  String get backupDeleted => 'بیک اپ حذف ہو گیا';
+
+  @override
+  String get deleteFailed => 'حذف کرنا ناکام';
+
+  @override
+  String get restoreBackup => 'بیک اپ بحال کریں';
+
+  @override
+  String get deleteBackup => 'بیک اپ حذف کریں';
+
+  @override
+  String get restoreConfirm => 'کیا آپ واقعی اس بیک اپ کو بحال کرنا چاہتے ہیں؟';
+
+  @override
+  String get deleteConfirm => 'کیا آپ واقعی اس بیک اپ کو حذف کرنا چاہتے ہیں؟';
+
+  @override
+  String get restoreWarning => 'انتباہ: بحالی سے موجودہ ڈیٹا ضائع ہو جائے گا!';
+
+  @override
+  String get restoreSuccess => 'بیک اپ کامیابی سے بحال ہو گیا';
+
+  @override
+  String get restoreFailed => 'بیک اپ بحال کرنے میں ناکام';
+
+  @override
+  String get usbExportSetup => 'USB ایکسپورٹ سیٹ اپ کریں';
+
+  @override
+  String get preferencesSaved => 'ترجیحات کامیابی سے محفوظ ہو گئیں';
+
+  @override
+  String get checkingForUpdates => 'اپ ڈیٹس کے لیے چیک کر رہا ہے...';
+
+  @override
+  String get never => 'کبھی نہیں';
+
+  @override
+  String get refresh => 'ریفرش';
 }

@@ -1397,4 +1397,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get name => 'Name';
+
+  @override
+  String get noBackupsFound => 'No backups found';
+
+  @override
+  String get backupCreated => 'Backup created successfully!';
+
+  @override
+  String get backupFailed => 'Failed to create backup';
+
+  @override
+  String get backupDeleted => 'Backup deleted';
+
+  @override
+  String get deleteFailed => 'Delete failed';
+
+  @override
+  String get restoreBackup => 'Restore Backup';
+
+  @override
+  String get deleteBackup => 'Delete Backup';
+
+  @override
+  String get restoreConfirm => 'Are you sure you want to restore from';
+
+  @override
+  String get deleteConfirm => 'Are you sure you want to delete';
+
+  @override
+  String get restoreWarning => 'This will replace your current database.';
+
+  @override
+  String get restoreSuccess =>
+      'Database restored successfully! App will restart.';
+
+  @override
+  String get restoreFailed => 'Restore failed';
+
+  @override
+  String get usbExportSetup => 'USB export requires additional setup';
+
+  @override
+  String get preferencesSaved => 'Preferences saved successfully';
+
+  @override
+  String get checkingForUpdates => 'Checking for updates...';
+
+  @override
+  String get never => 'Never';
+
+  @override
+  String get refresh => 'Refresh';
 }

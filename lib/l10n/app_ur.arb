@@ -471,5 +471,22 @@
   "activityType": "سرگرمی",
   "status": "حیثیت",
   "pending": "زیر التواء",
-  "name": "نام"
+  "name": "نام",
+  "noBackupsFound": "کوئی بیک اپ نہیں ملا",
+  "backupCreated": "بیک اپ کامیابی سے بنایا گیا",
+  "backupFailed": "بیک اپ بنانے میں ناکام",
+  "backupDeleted": "بیک اپ حذف ہو گیا",
+  "deleteFailed": "حذف کرنا ناکام",
+  "restoreBackup": "بیک اپ بحال کریں",
+  "deleteBackup": "بیک اپ حذف کریں",
+  "restoreConfirm": "کیا آپ واقعی اس بیک اپ کو بحال کرنا چاہتے ہیں؟",
+  "deleteConfirm": "کیا آپ واقعی اس بیک اپ کو حذف کرنا چاہتے ہیں؟",
+  "restoreWarning": "انتباہ: بحالی سے موجودہ ڈیٹا ضائع ہو جائے گا!",
+  "restoreSuccess": "بیک اپ کامیابی سے بحال ہو گیا",
+  "restoreFailed": "بیک اپ بحال کرنے میں ناکام",
+  "usbExportSetup": "USB ایکسپورٹ سیٹ اپ کریں",
+  "preferencesSaved": "ترجیحات کامیابی سے محفوظ ہو گئیں",
+  "checkingForUpdates": "اپ ڈیٹس کے لیے چیک کر رہا ہے...",
+  "never": "کبھی نہیں",
+  "refresh": "ریفرش"
 }

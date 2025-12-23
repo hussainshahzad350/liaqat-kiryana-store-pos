@@ -58,17 +58,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Future<void> _loadStats() async {
     final db = await DatabaseHelper.instance.database;
 
-    // Active
     final activeRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 1');
     countActive = (activeRes.first['count'] as int?) ?? 0;
     balActive = (activeRes.first['total'] as num? ?? 0.0).toDouble();
 
-    // Archived
     final archRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 0');
     countArchived = (archRes.first['count'] as int?) ?? 0;
     balArchived = (archRes.first['total'] as num? ?? 0.0).toDouble();
 
-    // Total
     countTotal = countActive + countArchived;
     balTotal = balActive + balArchived;
 
@@ -122,7 +119,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return true; 
   }
 
-  // --- LEDGER LOGIC ---
+  // --- LEDGER LOGIC (GROUPED) ---
 
   Future<void> _openLedger(Map<String, dynamic> customer) async {
     setState(() {
@@ -132,8 +129,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
     });
     
     try {
-      // Calls the new function in DatabaseHelper
-      final ledgerData = await DatabaseHelper.instance.getCustomerLedger(customer['id']);
+      // ✅ Using the Grouped Logic
+      final ledgerData = await DatabaseHelper.instance.getCustomerLedgerGrouped(customer['id']);
       setState(() => _currentLedger = ledgerData);
     } catch (e) {
       debugPrint("Error loading ledger: $e");
@@ -142,114 +139,73 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   Future<void> _addPayment(double amount, String notes) async {
     if (_selectedCustomerForLedger == null) return;
-    
     final date = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-    
-    await DatabaseHelper.instance.addPayment(
-      _selectedCustomerForLedger!['id'], 
-      amount, 
-      date, 
-      notes
-    );
-    
+    await DatabaseHelper.instance.addPayment(_selectedCustomerForLedger!['id'], amount, date, notes);
     await _refreshData(); 
-    await _openLedger(_selectedCustomerForLedger!); // Reload Ledger
+    await _openLedger(_selectedCustomerForLedger!); 
   }
   
   Future<void> _exportLedgerPdf() async {
+    final loc = AppLocalizations.of(context)!;
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
     final customerName = _selectedCustomerForLedger?['name_english'] ?? 'Customer';
 
-    // 1. Load Fonts
-    // Use NotoSansArabic for Urdu (safe & reliable for PDF) or standard font for English
-    final font = isUrdu 
-        ? await PdfGoogleFonts.notoSansArabicRegular() 
-        : await PdfGoogleFonts.notoSansRegular();
-
+    // Fonts
+    final font = isUrdu ? await PdfGoogleFonts.notoSansArabicRegular() : await PdfGoogleFonts.notoSansRegular();
     final doc = pw.Document();
 
-    // 2. Define Headers based on Language
+    // Headers
     final headers = isUrdu 
-        ? ['تاریخ', 'حوالہ', 'تفصیل', 'ڈیبٹ', 'کریڈٹ'] // Urdu Headers
-        : ['Date', 'Ref', 'Description', 'Debit', 'Credit']; // English Headers
+      ? ['تاریخ', 'تفصیل', 'Udhar (Dr)', 'Jama (Cr)', 'بیلنس']
+      : ['Date', 'Description', 'Bill Amt (Dr)', 'Received (Cr)', 'Balance'];
 
-    // 3. Prepare Data
+    // Data Preparation (Flattening for PDF)
     final data = _currentLedger.map((row) {
       final date = row['date'].toString().substring(0, 10);
+      final desc = row['type'] == 'BILL' ? "Bill #${row['bill_no']}" : "Payment / Recovery";
+      
       return [
         date,
-        row['ref_no'].toString(),
-        row['description'].toString(),
-        row['debit'] > 0 ? row['debit'].toString() : '-',
-        row['credit'] > 0 ? row['credit'].toString() : '-',
+        desc, // Simplified description for PDF
+        row['dr'] > 0 ? row['dr'].toString() : '-',
+        row['cr'] > 0 ? row['cr'].toString() : '-',
+        row['balance'].toStringAsFixed(0),
       ];
     }).toList();
 
-    // 4. Build PDF
     doc.addPage(
       pw.Page(
-        // Set Page Text Direction
-        textDirection: isUrdu ? pw.TextDirection.rtl : pw.TextDirection.ltr,
-        theme: pw.ThemeData.withFont(base: font),
-        
+        theme: pw.ThemeData.withFont(base: font).copyWith(textAlign: pw.TextAlign.start),
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Header
               pw.Header(
                 level: 0, 
                 child: pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(
-                      isUrdu ? "$customerName :لیجر" : "Ledger: $customerName", 
-                      style: pw.TextStyle(fontSize: 24, font: font, fontWeight: pw.FontWeight.bold)
-                    ),
-                    pw.Text(
-                      DateFormat('dd-MM-yyyy').format(DateTime.now()),
-                      style: const pw.TextStyle(fontSize: 12)
-                    ),
+                    pw.Text(isUrdu ? "$customerName :لیجر" : "Ledger: $customerName", style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                    pw.Text(DateFormat('dd-MM-yyyy').format(DateTime.now())),
                   ],
                 )
               ),
-              
               pw.SizedBox(height: 20),
-              
-              // Table
               pw.Table.fromTextArray(
                 context: context,
                 headers: headers,
                 data: data,
-                border: pw.TableBorder.all(color: PdfColors.grey400),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, font: font, color: PdfColors.white),
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.green700),
-                cellStyle: pw.TextStyle(font: font, fontSize: 10),
                 cellAlignment: pw.Alignment.centerLeft,
-                // Adjust column widths if necessary
                 columnWidths: {
-                  0: const pw.FlexColumnWidth(2), // Date
-                  1: const pw.FlexColumnWidth(1), // Ref
-                  2: const pw.FlexColumnWidth(4), // Desc
-                  3: const pw.FlexColumnWidth(2), // Debit
-                  4: const pw.FlexColumnWidth(2), // Credit
-                },
+                  0: const pw.FlexColumnWidth(2),
+                  1: const pw.FlexColumnWidth(4),
+                  2: const pw.FlexColumnWidth(2),
+                  3: const pw.FlexColumnWidth(2),
+                  4: const pw.FlexColumnWidth(2),
+                }
               ),
-              
-              pw.SizedBox(height: 20),
-              
-              // Footer / Totals (Optional)
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.end,
-                children: [
-                  pw.Text(
-                    isUrdu 
-                      ? "کل بیلنس: ${_selectedCustomerForLedger?['outstanding_balance']}" 
-                      : "Total Balance: ${_selectedCustomerForLedger?['outstanding_balance']}",
-                    style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, font: font)
-                  ),
-                ]
-              )
             ],
           );
         },
@@ -259,7 +215,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => doc.save());
   }
 
-  // --- ACTIONS (Add/Edit/Delete) ---
+  // --- ACTIONS ---
 
   Future<void> _addOrUpdateCustomer({
     required int? id,
@@ -524,8 +480,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 ),
                 child: Text(balance.toStringAsFixed(0), style: TextStyle(color: balance > 0 ? Colors.red[900] : Colors.green[900], fontSize: 12, fontWeight: FontWeight.bold)),
               ),
-
-            // ✅ LEDGER BUTTON (Receipt Icon)
+            
             if (!isOverlay)
             IconButton(
               icon: Icon(Icons.receipt_long, color: Colors.green[700]),
@@ -555,11 +510,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  // --- LEDGER OVERLAY (GREEN SCHEMA) ---
+  // --- LEDGER OVERLAY (GROUPED) ---
   Widget _buildLedgerOverlay(AppLocalizations loc) {
     final customer = _selectedCustomerForLedger!;
     final name = customer['name_english'] ?? 'Unknown';
-    final balance = customer['outstanding_balance'] ?? 0.0;
+    
+    // Calculate Totals for Header
+    double totalDr = 0;
+    double totalCr = 0;
+    for(var row in _currentLedger) {
+      totalDr += (row['dr'] as num).toDouble();
+      totalCr += (row['cr'] as num).toDouble();
+    }
+    double netBalance = totalDr - totalCr;
 
     return Stack(
       children: [
@@ -567,101 +530,175 @@ class _CustomersScreenState extends State<CustomersScreen> {
         Center(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.95,
-            height: MediaQuery.of(context).size.height * 0.85,
-            padding: const EdgeInsets.all(16),
+            height: MediaQuery.of(context).size.height * 0.90, 
+            padding: EdgeInsets.zero,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.grey[100], 
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.green[700]!, width: 2), // Green Border
+              border: Border.all(color: Colors.green[700]!, width: 2), 
             ),
             child: Column(
               children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-                        Text("Current Balance: $balance", style: TextStyle(color: balance > 0 ? Colors.red : Colors.green, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        IconButton(icon: const Icon(Icons.print, color: Colors.green), onPressed: _exportLedgerPdf, tooltip: "Export PDF"),
-                        IconButton(icon: const Icon(Icons.close, color: Colors.black), onPressed: () => setState(() => _showLedgerOverlay = false)),
-                      ],
-                    )
-                  ],
-                ),
-                const Divider(color: Colors.green, thickness: 1.5),
-
-                // Table Header
+                // Header (Totals)
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  color: Colors.green[50], // Light Green Header
-                  child: Row(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                  ),
+                  child: Column(
                     children: [
-                      const Expanded(flex: 2, child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
-                      const Expanded(flex: 3, child: Text("Description", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
-                      const Expanded(flex: 2, child: Text("Rate/Qty", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black))),
-                      Expanded(flex: 2, child: Text("Debit", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red[800]))),
-                      Expanded(flex: 2, child: Text("Credit", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[800]))),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                          Row(
+                            children: [
+                              IconButton(icon: const Icon(Icons.print, color: Colors.green), onPressed: _exportLedgerPdf, tooltip: "Export PDF"),
+                              IconButton(icon: const Icon(Icons.close, color: Colors.black), onPressed: () => setState(() => _showLedgerOverlay = false)),
+                            ],
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          _buildSummaryBox("Bill Amount", totalDr, Colors.blue),
+                          const SizedBox(width: 8),
+                          _buildSummaryBox("Received", totalCr, Colors.green),
+                          const SizedBox(width: 8),
+                          _buildSummaryBox("Net Balance", netBalance, netBalance > 0 ? Colors.red : Colors.green),
+                        ],
+                      ),
                     ],
                   ),
                 ),
 
-                // Ledger List
+                const Divider(height: 1),
+
+                // Table Header
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  color: Colors.green[700], 
+                  child: const Row(
+                    children: [
+                      Expanded(flex: 3, child: Text("Date / Details", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                      Expanded(flex: 2, child: Text("Bill Amt", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                      Expanded(flex: 2, child: Text("Recvd", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+                      Expanded(flex: 2, child: Text("Bal", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.yellowAccent))),
+                    ],
+                  ),
+                ),
+
+                // Transaction List (Grouped)
                 Expanded(
                   child: _currentLedger.isEmpty
-                      ? const Center(child: Text("No transactions found", style: TextStyle(color: Colors.black)))
-                      : ListView.builder(
+                      ? const Center(child: Text("No transactions found", style: TextStyle(color: Colors.grey)))
+                      : ListView.separated(
                           itemCount: _currentLedger.length,
+                          separatorBuilder: (c, i) => const Divider(height: 1),
                           itemBuilder: (context, index) {
                             final row = _currentLedger[index];
                             final isPayment = row['type'] == 'PAYMENT';
                             final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
-                            final dateStr = DateFormat('dd/MM/yy').format(date);
+                            final dateStr = DateFormat('dd-MM-yy').format(date);
+                            final balance = (row['balance'] as num).toDouble();
                             
-                            return Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                              decoration: BoxDecoration(
-                                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
-                                color: isPayment ? Colors.green[50] : Colors.white,
-                              ),
-                              child: Row(
+                            // 1. PAYMENT ROW
+                            if (isPayment) {
+                              return Container(
+                                color: Colors.green[50], 
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3, 
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(dateStr, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                          Text("PAYMENT / RECOVERY", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[900], fontSize: 13)),
+                                          if(row['desc'] != null && row['desc'] != '')
+                                            Text(row['desc'], style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
+                                        ],
+                                      )
+                                    ),
+                                    const Expanded(flex: 2, child: Text("-", textAlign: TextAlign.right)),
+                                    Expanded(flex: 2, child: Text(row['cr'].toString(), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
+                                    Expanded(flex: 2, child: Text(balance.toStringAsFixed(0), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold))),
+                                  ],
+                                ),
+                              );
+                            } 
+                            // 2. BILL ROW (Expandable)
+                            else {
+                              final items = row['items'] as List<dynamic>;
+                              return ExpansionTile(
+                                backgroundColor: Colors.white,
+                                collapsedBackgroundColor: Colors.white,
+                                tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3, 
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(dateStr, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                          Text("BILL #${row['bill_no']}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                        ],
+                                      )
+                                    ),
+                                    Expanded(flex: 2, child: Text(row['dr'].toString(), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red))),
+                                    const Expanded(flex: 2, child: Text("-", textAlign: TextAlign.right)), 
+                                    Expanded(flex: 2, child: Text(balance.toStringAsFixed(0), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold))),
+                                  ],
+                                ),
                                 children: [
-                                  Expanded(flex: 2, child: Text(dateStr, style: const TextStyle(fontSize: 12, color: Colors.black))),
-                                  Expanded(flex: 3, child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(row['description'] ?? '-', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.black)),
-                                      if(!isPayment) Text("Bill #${row['ref_no']}", style: TextStyle(fontSize: 10, color: Colors.grey[600])),
-                                    ],
-                                  )),
-                                  Expanded(flex: 2, child: Text(isPayment ? '-' : "${row['qty']} x ${row['rate']}", style: const TextStyle(fontSize: 12, color: Colors.black))),
-                                  Expanded(flex: 2, child: Text(row['debit'] > 0 ? "${row['debit']}" : "-", style: TextStyle(color: Colors.red[900], fontWeight: FontWeight.bold))),
-                                  Expanded(flex: 2, child: Text(row['credit'] > 0 ? "${row['credit']}" : "-", style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold))),
+                                  Container(
+                                    color: Colors.grey[50],
+                                    padding: const EdgeInsets.all(10),
+                                    child: Column(
+                                      children: [
+                                        const Row(children: [
+                                          Expanded(flex: 4, child: Text("Item Name", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                                          Expanded(flex: 2, child: Text("Rate x Qty", textAlign: TextAlign.right, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                                          Expanded(flex: 2, child: Text("Total", textAlign: TextAlign.right, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                                        ]),
+                                        const Divider(),
+                                        ...items.map((item) => Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 2),
+                                          child: Row(children: [
+                                            Expanded(flex: 4, child: Text(item['name'], style: const TextStyle(fontSize: 12))),
+                                            Expanded(flex: 2, child: Text("${item['rate']} x ${item['qty']}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
+                                            Expanded(flex: 2, child: Text("${item['total']}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
+                                          ]),
+                                        ))
+                                      ],
+                                    ),
+                                  )
                                 ],
-                              ),
-                            );
+                              );
+                            }
                           },
                         ),
                 ),
 
-                // Payment Button
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[700],
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                // Footer
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  color: Colors.white,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green[700],
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      icon: const Icon(Icons.attach_money, color: Colors.white),
+                      label: const Text("Receive Payment", style: TextStyle(color: Colors.white, fontSize: 16)),
+                      onPressed: _showPaymentDialog,
                     ),
-                    icon: const Icon(Icons.attach_money, color: Colors.white),
-                    label: const Text("Receive Payment", style: TextStyle(color: Colors.white, fontSize: 16)),
-                    onPressed: _showPaymentDialog,
                   ),
                 )
               ],
@@ -669,6 +706,27 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
         ),
       ],
+    );
+  }
+  
+  // Helper for Top Stats
+  Widget _buildSummaryBox(String label, double value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(0.5)),
+        ),
+        child: Column(
+          children: [
+            Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            FittedBox(child: Text(value.toStringAsFixed(0), style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold))),
+          ],
+        ),
+      ),
     );
   }
 
@@ -719,7 +777,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  // --- ARCHIVE OVERLAY (GREEN SCHEMA) ---
+  // --- ARCHIVE OVERLAY ---
   Widget _buildArchiveOverlay(AppLocalizations loc) {
     if (!_showArchiveOverlay) return const SizedBox.shrink();
 
@@ -734,7 +792,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.green[700]!, width: 2), // Green Border
+              border: Border.all(color: Colors.green[700]!, width: 2), 
             ),
             child: Column(
               children: [
@@ -759,7 +817,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  // --- ADD/EDIT DIALOG (GREEN SCHEMA) ---
+  // --- ADD/EDIT DIALOG ---
   void _showAddDialog({Map<String, dynamic>? customer}) {
     final loc = AppLocalizations.of(context)!;
     final nameEnController = TextEditingController(text: customer?['name_english'] ?? '');
@@ -789,7 +847,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       const SizedBox(height: 10),
                       TextFormField(controller: nameEnController, decoration: _cleanInput("${loc.nameEnglish} *", Icons.person), style: const TextStyle(color: Colors.black)),
                       const SizedBox(height: 12),
-                      TextFormField(controller: nameUrController, decoration: _cleanInput("${loc.nameUrdu} *", Icons.translate), textAlign: TextAlign.start, style: const TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 18, color: Colors.black)),
+                      // ✅ FIXED: Removed TextDirection.rtl
+                      TextFormField(controller: nameUrController, textAlign: TextAlign.start, decoration: _cleanInput("${loc.nameUrdu} *", Icons.translate), style: const TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 18, color: Colors.black)),
                       const SizedBox(height: 12),
                       TextFormField(controller: phoneController, decoration: _cleanInput("${loc.phoneLabel} *", Icons.phone), keyboardType: TextInputType.phone, style: const TextStyle(color: Colors.black)),
                       const SizedBox(height: 12),

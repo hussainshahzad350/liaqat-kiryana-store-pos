@@ -27,10 +27,9 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    // Version 2 ensures migration logic runs if upgrading from a v1 schema
     return await openDatabase(
       path,
-      version: 4, 
+      version: 6, 
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
     );
@@ -59,6 +58,7 @@ class DatabaseHelper {
     AppLogger.db('Upgrading database from v$oldVersion to v$newVersion');
 
     // FIX: Auto-Backup before critical migration
+    // ✅ CORRECT: Call with both parameters (db, oldVersion)
     await backupDatabase(db, oldVersion);
     
     for (int i = oldVersion + 1; i <= newVersion; i++) {
@@ -75,19 +75,7 @@ class DatabaseHelper {
           break;
 
         case 3:
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS cash_ledger (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            transaction_date TEXT NOT NULL,
-              transaction_time TEXT NOT NULL,
-              description TEXT NOT NULL,
-              type TEXT NOT NULL,
-              amount REAL NOT NULL,
-              balance_after REAL, 
-              remarks TEXT
-            )
-          ''');
-          AppLogger.db('Performed migration to v3 (Cash Ledger)');
+          // Reserved for cash_ledger future changes
           break;
 
         case 4:
@@ -102,34 +90,133 @@ class DatabaseHelper {
           await db.execute('CREATE INDEX IF NOT EXISTS idx_products_stock ON products(current_stock)');
           AppLogger.db('Performed migration to v4 (Performance Indexes)');
           break;
-        default:
+
+        case 5:
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS payments (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              customer_id INTEGER NOT NULL,
+              amount REAL NOT NULL,
+              date TEXT NOT NULL,
+              notes TEXT,
+              FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
+            )
+          ''');
+
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_payments_customer ON payments(customer_id)');
+          await db.execute('CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(date)');
+          AppLogger.db('Performed migration to v5 (Payments Table)');
+          break;
+
+        case 6:
+          // Example: Add a new column to products table
+          if (!await _columnExists(db, 'products', 'barcode')) {
+          await db.execute("ALTER TABLE products ADD COLUMN barcode TEXT");
+        }
+  
+          // Example: Create a new table
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS expense_categories (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name_english TEXT NOT NULL,
+              name_urdu TEXT,
+              created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+          ''');
+  
+          AppLogger.db('Performed migration to v6 (Added barcode & expense categories)');
+          break;
+
+          default:
           AppLogger.db('No migration logic defined for v$i');
       }
     }
   }
 
   // Helper: Creates a backup file like 'liaqat_store.db.v1.bak'
-  Future<void> backupDatabase(Database db, int version) async {
+  // ✅ FIXED: Use the passed Database parameter instead of getting a new one
+  Future<String?> backupDatabase(Database db, int version) async {
+  try {
+    final String dbPath = db.path;  // Use the passed db parameter
+    final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final String backupFileName = 'liaqat_store.v$version.$timestamp.backup.db';
+    final String backupPath = join(dirname(dbPath), backupFileName);
+    
+    AppLogger.db('Attempting database backup to: $backupPath');
+
+    try {
+      await db.execute('VACUUM INTO ?', [backupPath]);
+      AppLogger.info('Database backup created (VACUUM)', tag: 'DB');
+      return backupPath; // Return the backup file path
+    } catch (e) {
+      // Fallback for devices that don't support VACUUM INTO
+      final file = File(dbPath);
+      if (await file.exists()) {
+        await file.copy(backupPath);
+        AppLogger.info('Database backup created (File Copy)', tag: 'DB');
+        return backupPath;
+      }
+    }
+  } catch (e) {
+    AppLogger.error('Backup Failed: $e', tag: 'DB');
+  }
+  return null;
+}
+
+  // ✅ ADD: Separate method for manual backups from SettingsScreen
+  Future<String?> createManualBackup([int maxBackups = 5]) async {
+    final db = await database;
     try {
       final String dbPath = db.path;
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String backupPath = '$dbPath.v$version.$timestamp.bak';
+      final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final String backupFileName = 'manual_backup_$timestamp.db';
+      final String backupPath = join(dirname(dbPath), backupFileName);
       
-      AppLogger.db('Attempting database backup to: $backupPath');
+      AppLogger.db('Creating manual backup: $backupPath');
 
-      try {
-        await db.execute('VACUUM INTO ?', [backupPath]);
-        AppLogger.info('Database backup created (VACUUM)', tag: 'DB');
-      } catch (e) {
-        // Fallback for devices that don't support VACUUM INTO
-        final file = File(dbPath);
-        if (await file.exists()) {
-          await file.copy(backupPath);
-          AppLogger.info('Database backup created (File Copy)', tag: 'DB');
+      // Create backup
+      final file = File(dbPath);
+      if (await file.exists()) {
+        await file.copy(backupPath);
+        AppLogger.info('Manual backup created: $backupPath', tag: 'DB');
+        
+        // Clean old backups
+        await _cleanOldBackups(Directory(dirname(dbPath)), maxBackups);
+        
+        return backupPath;
+      }
+    } catch (e) {
+      AppLogger.error('Manual Backup Failed: $e', tag: 'DB');
+    }
+    return null;
+  }
+
+  // Helper to clean old backups
+  Future<void> _cleanOldBackups(Directory backupDir, int maxBackups) async {
+    try {
+      if (await backupDir.exists()) {
+        final files = await backupDir.list().toList();
+        final backupFiles = files.whereType<File>()
+            .where((file) => file.path.contains('.backup.db'))
+            .toList();
+        
+        // Sort by modified date (oldest first)
+        backupFiles.sort((a, b) {
+          final aStat = a.statSync();
+          final bStat = b.statSync();
+          return aStat.modified.compareTo(bStat.modified);
+        });
+        
+        // Delete oldest files if exceeding maxBackups
+        if (backupFiles.length > maxBackups) {
+          for (int i = 0; i < backupFiles.length - maxBackups; i++) {
+            await backupFiles[i].delete();
+            AppLogger.db('Deleted old backup: ${backupFiles[i].path}');
+          }
         }
       }
     } catch (e) {
-      AppLogger.error('Backup Failed: $e', tag: 'DB');
+      AppLogger.error('Error cleaning old backups: $e', tag: 'DB');
     }
   }
   
@@ -141,6 +228,14 @@ class DatabaseHelper {
     return result.any((map) => map['name'] == column);
   }
 
+  // Helper: Check if a table exists
+  Future<bool> _tableExists(Database db, String tableName) async {
+    final result = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+      [tableName]
+    );
+    return result.isNotEmpty;
+  }
 
   Future<void> _createTables(Database db) async {
     // 1. Shop Profile
@@ -272,6 +367,19 @@ class DatabaseHelper {
         date TEXT NOT NULL,
         notes TEXT,
         FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_payments_customer ON payments(customer_id)');
+    await db.execute('CREATE INDEX idx_payments_date ON payments(date)');
+
+    // Expense Categories
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS expense_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name_english TEXT NOT NULL,
+        name_urdu TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
 
@@ -603,6 +711,162 @@ class DatabaseHelper {
       AppLogger.error("Error fetching low stock items: $e", tag: 'DB');
       return [];
     }
+  }
+
+  Future<List<Map<String, dynamic>>> getBackupFiles() async {
+  try {
+    final db = await database;
+    final String dbPath = db.path;
+    final String dbDir = dirname(dbPath);
+    final Directory dir = Directory(dbDir);
+    
+    List<Map<String, dynamic>> backups = [];
+    
+    if (await dir.exists()) {
+      final files = await dir.list().toList();
+      
+      for (var file in files) {
+        if (file is File && file.path.contains('.backup.db')) {
+          final stat = await file.stat();
+          backups.add({
+            'path': file.path,
+            'name': basename(file.path),
+            'size': stat.size,
+            'modified': stat.modified,
+          });
+        }
+      }
+      
+      // Sort by modified date (newest first)
+      backups.sort((a, b) => b['modified'].compareTo(a['modified']));
+    }
+    
+    return backups;
+  } catch (e) {
+    AppLogger.error('Error getting backup files: $e', tag: 'DB');
+    return [];
+  }
+  }
+
+  Future<bool> restoreBackup(String backupPath) async {
+  try {
+    final db = await database;
+    final String currentDbPath = db.path;
+    
+    // 1. Close current database
+    await db.close();
+    
+    // 2. Backup current database first (just in case)
+    final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final String emergencyBackup = '$currentDbPath.emergency.$timestamp.bak';
+    await File(currentDbPath).copy(emergencyBackup);
+    
+    // 3. Copy backup file over current database
+    await File(backupPath).copy(currentDbPath);
+    
+    // 4. Re-open database
+    _database = null;
+    await database; // This will reinitialize
+    
+    AppLogger.info('Database restored from: $backupPath', tag: 'DB');
+    return true;
+  } catch (e) {
+    AppLogger.error('Restore Failed: $e', tag: 'DB');
+    return false;
+  }
+  }
+
+  // --- GROUPED LEDGER LOGIC ---
+  Future<List<Map<String, dynamic>>> getCustomerLedgerGrouped(int customerId) async {
+    final db = await database;
+
+    // 1. Fetch Sales (Bills) - The Parent Rows
+    final sales = await db.rawQuery('''
+      SELECT 
+        'BILL' as type,
+        id as ref_id,
+        sale_date as date,
+        bill_number as bill_no,
+        total_amount as dr,   -- Debit (Udhar)
+        0 as cr,              -- Credit (Jama)
+        remarks as desc
+      FROM sales 
+      WHERE customer_id = ? 
+    ''', [customerId]);
+
+    // 2. Fetch Items - The Child Rows
+    final saleItems = await db.rawQuery('''
+      SELECT 
+        si.sale_id,
+        p.name_english || ' (' || p.name_urdu || ')' as name,
+        si.quantity_sold as qty,
+        si.unit_price as rate,
+        si.total_price as total
+      FROM sale_items si
+      JOIN sales s ON si.sale_id = s.id
+      JOIN products p ON si.product_id = p.id
+      WHERE s.customer_id = ?
+    ''', [customerId]);
+
+    // 3. Fetch Payments
+    final payments = await db.rawQuery('''
+      SELECT 
+        'PAYMENT' as type,
+        id as ref_id,
+        date as date,
+        'Payment Received' as bill_no,
+        0 as dr,
+        amount as cr,
+        notes as desc
+      FROM payments
+      WHERE customer_id = ?
+    ''', [customerId]);
+
+    // 4. Organize Items by Sale ID
+    Map<int, List<Map<String, dynamic>>> itemsMap = {};
+    for (var item in saleItems) {
+      int saleId = item['sale_id'] as int;
+      if (!itemsMap.containsKey(saleId)) itemsMap[saleId] = [];
+      itemsMap[saleId]!.add(item);
+    }
+
+    // 5. Merge Sales & Payments into one Timeline
+    List<Map<String, dynamic>> timeline = [];
+
+    for (var sale in sales) {
+      int saleId = sale['ref_id'] as int;
+      Map<String, dynamic> row = Map.from(sale);
+      row['items'] = itemsMap[saleId] ?? []; // Attach items to the bill
+      timeline.add(row);
+    }
+
+    for (var pay in payments) {
+      timeline.add(pay);
+    }
+
+    // 6. Sort by Date (OLDEST First) to calculate Running Balance
+    timeline.sort((a, b) {
+      DateTime dA = DateTime.tryParse(a['date'].toString()) ?? DateTime(1900);
+      DateTime dB = DateTime.tryParse(b['date'].toString()) ?? DateTime(1900);
+      return dA.compareTo(dB);
+    });
+
+    // 7. Calculate Running Balance
+    double runningBal = 0.0;
+    List<Map<String, dynamic>> finalLedger = [];
+
+    for (var row in timeline) {
+      double dr = (row['dr'] as num).toDouble();
+      double cr = (row['cr'] as num).toDouble();
+      runningBal += (dr - cr); // Formula: Previous + Debit - Credit
+
+      Map<String, dynamic> newRow = Map.from(row);
+      newRow['balance'] = runningBal;
+      finalLedger.add(newRow);
+    }
+
+    // 8. Return Reversed (Newest First) for Display
+    return finalLedger.reversed.toList();
   }
 
   Future<List<Map<String, dynamic>>> getRecentActivities({int limit = 10}) async {

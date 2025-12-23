@@ -473,6 +473,23 @@
   "activityType": "Activity",
   "status": "Status",
   "pending": "Pending",
-  "name": "Name"
+  "name": "Name",
+  "noBackupsFound": "No backups found",
+  "backupCreated": "Backup created successfully!",
+  "backupFailed": "Failed to create backup",
+  "backupDeleted": "Backup deleted",
+  "deleteFailed": "Delete failed",
+  "restoreBackup": "Restore Backup",
+  "deleteBackup": "Delete Backup",
+  "restoreConfirm": "Are you sure you want to restore from",
+  "deleteConfirm": "Are you sure you want to delete",
+  "restoreWarning": "This will replace your current database.",
+  "restoreSuccess": "Database restored successfully! App will restart.",
+  "restoreFailed": "Restore failed",
+  "usbExportSetup": "USB export requires additional setup",
+  "preferencesSaved": "Preferences saved successfully",
+  "checkingForUpdates": "Checking for updates...",
+  "never": "Never",
+  "refresh": "Refresh"
 
 }
