@@ -490,6 +490,12 @@
   "preferencesSaved": "Preferences saved successfully",
   "checkingForUpdates": "Checking for updates...",
   "never": "Never",
-  "refresh": "Refresh"
+  "refresh": "Refresh",
+  "saveChangesSuccess": "Changes saved successfully",
+  "fieldRequired":  "Field is required",
+  "noDataAvailable": "No Data Available",
+  "dbSize": "Database Size",
+  "selectPaymentMethod":  "Select Payment Method",
+  "confirmPayment": "Confirm Payment"
 
 }

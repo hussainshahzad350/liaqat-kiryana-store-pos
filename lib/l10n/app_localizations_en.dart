@@ -1449,4 +1449,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get refresh => 'Refresh';
+
+  @override
+  String get saveChangesSuccess => 'Changes saved successfully';
+
+  @override
+  String get fieldRequired => 'Field is required';
+
+  @override
+  String get noDataAvailable => 'No Data Available';
+
+  @override
+  String get dbSize => 'Database Size';
+
+  @override
+  String get selectPaymentMethod => 'Select Payment Method';
+
+  @override
+  String get confirmPayment => 'Confirm Payment';
 }

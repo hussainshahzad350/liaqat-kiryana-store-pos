@@ -7,8 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 import '../../l10n/app_localizations.dart';
 import '../../main.dart';
-import '../../core/database/database_helper.dart' hide Database;
 import '../../core/utils/logger.dart';
+import '../../core/repositories/settings_repository.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,6 +19,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final SettingsRepository _settingsRepository = SettingsRepository();
 
   @override
   void initState() {
@@ -54,12 +55,12 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          ShopProfileTab(),
-          BackupTab(),
-          ReceiptTab(),
-          PreferencesTab(),
-          AboutTab(),
+        children: [
+          ShopProfileTab(repository: _settingsRepository),
+          BackupTab(repository: _settingsRepository),
+          ReceiptTab(repository: _settingsRepository),
+          PreferencesTab(repository: _settingsRepository),
+          AboutTab(repository: _settingsRepository),
         ],
       ),
     );
@@ -67,8 +68,81 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
 }
 
 // ==================== 1. Shop Profile Tab ====================
-class ShopProfileTab extends StatelessWidget {
-  const ShopProfileTab({super.key});
+class ShopProfileTab extends StatefulWidget {
+  final SettingsRepository repository;
+  const ShopProfileTab({super.key, required this.repository});
+
+  @override
+  State<ShopProfileTab> createState() => _ShopProfileTabState();
+}
+
+class _ShopProfileTabState extends State<ShopProfileTab> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameUrduController;
+  late final TextEditingController _nameEnglishController;
+  late final TextEditingController _addressController;
+  late final TextEditingController _primaryPhoneController;
+  late final TextEditingController _secondaryPhoneController;
+
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameUrduController = TextEditingController();
+    _nameEnglishController = TextEditingController();
+    _addressController = TextEditingController();
+    _primaryPhoneController = TextEditingController();
+    _secondaryPhoneController = TextEditingController();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _isLoading = true);
+    final profile = await widget.repository.getShopProfile();
+    if (mounted) {
+      if (profile != null) {
+        _nameUrduController.text = profile['name_urdu'] ?? '';
+        _nameEnglishController.text = profile['name_english'] ?? '';
+        _addressController.text = profile['address'] ?? '';
+        _primaryPhoneController.text = profile['phone_primary'] ?? '';
+        _secondaryPhoneController.text = profile['phone_secondary'] ?? '';
+      }
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    final data = {
+      'name_urdu': _nameUrduController.text,
+      'name_english': _nameEnglishController.text,
+      'address': _addressController.text,
+      'phone_primary': _primaryPhoneController.text,
+      'phone_secondary': _secondaryPhoneController.text,
+    };
+    await widget.repository.updateShopProfile(data);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.saveChangesSuccess),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameUrduController.dispose();
+    _nameEnglishController.dispose();
+    _addressController.dispose();
+    _primaryPhoneController.dispose();
+    _secondaryPhoneController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,119 +150,135 @@ class ShopProfileTab extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+      child: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
+              key: _formKey,
               child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.teal,
-                    child: Icon(Icons.store, size: 50, color: Colors.white),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.image),
-                        label: Text(loc.changeLogo),
-                        onPressed: () {},
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          const CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.teal,
+                            child: Icon(Icons.store, size: 50, color: Colors.white),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.image),
+                                label: Text(loc.changeLogo),
+                                onPressed: () {
+                                   ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text("Functionality not implemented yet."))
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 10),
+                              OutlinedButton(
+                                onPressed: () {
+                                   ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text("Functionality not implemented yet."))
+                                  );
+                                },
+                                child: Text(loc.remove),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      OutlinedButton(
-                        onPressed: () {},
-                        child: Text(loc.remove),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    loc.shopDetails,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: loc.shopNameUrdu,
-                      border: const OutlineInputBorder(),
-                      hintText: 'لياقت کريانہ اسٹور',
-                    ),
-                    initialValue: 'لياقت کريانہ اسٹور',
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: loc.shopNameEnglish,
-                      border: const OutlineInputBorder(),
-                      hintText: 'Liaqat Kiryana Store',
-                    ),
-                    initialValue: 'Liaqat Kiryana Store',
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: loc.address,
-                      border: const OutlineInputBorder(),
-                      hintText: '123 Main Street, Lahore',
-                    ),
-                    maxLines: 2,
-                    initialValue: '123 Main Street, Lahore',
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: '${loc.primaryPhone} *',
-                      border: const OutlineInputBorder(),
-                      hintText: '0300-1234567',
-                    ),
-                    initialValue: '0300-1234567',
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: loc.secondaryPhone,
-                      border: const OutlineInputBorder(),
-                      hintText: '042-1234567',
                     ),
                   ),
                   const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Colors.teal[700],
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            loc.shopDetails,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _nameUrduController,
+                            decoration: InputDecoration(
+                              labelText: loc.shopNameUrdu,
+                              border: const OutlineInputBorder(),
+                              hintText: 'لياقت کريانہ اسٹور',
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _nameEnglishController,
+                            decoration: InputDecoration(
+                              labelText: loc.shopNameEnglish,
+                              border: const OutlineInputBorder(),
+                              hintText: 'Liaqat Kiryana Store',
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _addressController,
+                            decoration: InputDecoration(
+                              labelText: loc.address,
+                              border: const OutlineInputBorder(),
+                              hintText: '123 Main Street, Lahore',
+                            ),
+                            maxLines: 2,
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _primaryPhoneController,
+                             validator: (value) => value == null || value.isEmpty ? loc.fieldRequired : null,
+                            decoration: InputDecoration(
+                              labelText: '${loc.primaryPhone} *',
+                              border: const OutlineInputBorder(),
+                              hintText: '0300-1234567',
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _secondaryPhoneController,
+                            decoration: InputDecoration(
+                              labelText: loc.secondaryPhone,
+                              border: const OutlineInputBorder(),
+                              hintText: '042-1234567',
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _saveProfile,
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                backgroundColor: Colors.teal[700],
+                              ),
+                              child: Text(loc.saveChanges, style: const TextStyle(color: Colors.white)),
+                            ),
+                          ),
+                        ],
                       ),
-                      child: Text(loc.saveChanges, style: const TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
-      ),
     );
   }
 }
 
 // ==================== 2. Backup Tab ====================
 class BackupTab extends StatefulWidget {
-  const BackupTab({super.key});
+  final SettingsRepository repository;
+  const BackupTab({super.key, required this.repository});
 
   @override
   State<BackupTab> createState() => _BackupTabState();
@@ -208,13 +298,28 @@ class _BackupTabState extends State<BackupTab> {
 
   Future<void> _loadBackups() async {
     setState(() => isLoading = true);
-    backups = await DatabaseHelper.instance.getBackupFiles();
-    setState(() => isLoading = false);
+    backups = await widget.repository.getBackupFiles();
+    if (mounted) {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _getCurrentDbSize() async {
+    try {
+      final size = await widget.repository.getDatabaseSize();
+      if (mounted) {
+        setState(() {
+          currentDbSize = size;
+        });
+      }
+    } catch (e) {
+      AppLogger.error('Error getting database size: $e', tag: 'UI');
+    }
   }
 
   Future<bool> _createBackup() async {
     try {
-      final backupPath = await DatabaseHelper.instance.createManualBackup(5);
+      final backupPath = await widget.repository.createManualBackup(5);
       return backupPath != null;
     } catch (e) {
       AppLogger.error('Backup error: $e', tag: 'UI');
@@ -246,8 +351,8 @@ class _BackupTabState extends State<BackupTab> {
   
     if (confirm == true) {
       setState(() => isLoading = true);
-      final success = await DatabaseHelper.instance.restoreBackup(backupPath);
-      setState(() => isLoading = false);
+      final success = await widget.repository.restoreBackup(backupPath);
+      if(mounted) setState(() => isLoading = false);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -258,6 +363,10 @@ class _BackupTabState extends State<BackupTab> {
             backgroundColor: success ? Colors.green : Colors.red,
           )
         );
+         if (success) {
+            // You might want to restart the app or re-initialize services here
+            AppLogger.info("Database restored. App restart recommended.", tag: 'UI');
+          }
       }
     }
   }
@@ -285,38 +394,18 @@ class _BackupTabState extends State<BackupTab> {
     );
   
     if (confirm == true) {
-      try {
-        await File(backupPath).delete();
-        if (mounted) {
+      final success = await widget.repository.deleteBackup(backupPath);
+       if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.backupDeleted),
-              backgroundColor: Colors.green,
+              content: Text(success ? AppLocalizations.of(context)!.backupDeleted : AppLocalizations.of(context)!.deleteFailed),
+              backgroundColor: success ? Colors.green : Colors.red,
             )
           );
         }
-        await _loadBackups();
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${AppLocalizations.of(context)!.deleteFailed}: $e'),
-              backgroundColor: Colors.red,
-            )
-          );
+        if (success) {
+          await _loadBackups();
         }
-      }
-    }
-  }
-
-  Future<void> _getCurrentDbSize() async {
-    final db = await DatabaseHelper.instance.database;
-    final file = File(db.path);
-    if (await file.exists()) {
-      final stat = await file.stat();
-      setState(() {
-        currentDbSize = stat.size / (1024 * 1024);
-      });
     }
   }
 
@@ -339,34 +428,17 @@ class _BackupTabState extends State<BackupTab> {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  FutureBuilder<sql.Database>(
-                    future: DatabaseHelper.instance.database,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        final db = snapshot.data!;
-                        final dbPath = db.path;
-                        final fileName = basename(dbPath);
-                        final lastBackup = backups.isNotEmpty
-                          ? DateFormat('dd-MM-yyyy HH:mm').format(backups.first['modified'] as DateTime)
-                          : loc.never;
-                        
-                        return Column(
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.storage, color: Colors.teal),
-                              title: Text(fileName),
-                              subtitle: Text('${loc.size}: ${currentDbSize?.toStringAsFixed(2) ?? '?'} MB'),
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.history, color: Colors.teal),
-                              title: Text(loc.lastBackup),
-                              subtitle: Text(lastBackup),
-                            ),
-                          ],
-                        );
-                      }
-                      return const CircularProgressIndicator();
-                    },
+                   ListTile(
+                    leading: const Icon(Icons.storage, color: Colors.teal),
+                    title: const Text("app_database.db"), // Assuming a static name
+                    subtitle: Text('${loc.size}: ${currentDbSize?.toStringAsFixed(2) ?? '?'} MB'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.history, color: Colors.teal),
+                    title: Text(loc.lastBackup),
+                    subtitle: Text(backups.isNotEmpty
+                        ? DateFormat('dd-MM-yyyy HH:mm').format(backups.first['modified'] as DateTime)
+                        : loc.never),
                   ),
                 ],
               ),
@@ -392,11 +464,10 @@ class _BackupTabState extends State<BackupTab> {
                       onPressed: () async {
                         setState(() => isLoading = true);
                         final success = await _createBackup();
-                        setState(() => isLoading = false);
+                        if (mounted) setState(() => isLoading = false);
 
                         if (!mounted) return;
                         
-                        // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(success
@@ -408,6 +479,7 @@ class _BackupTabState extends State<BackupTab> {
 
                         if (success) {
                           await _loadBackups();
+                          await _getCurrentDbSize();
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -435,7 +507,11 @@ class _BackupTabState extends State<BackupTab> {
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.download),
                       label: Text(loc.importFromUsb),
-                      onPressed: () {},
+                       onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(loc.usbExportSetup))
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -474,7 +550,7 @@ class _BackupTabState extends State<BackupTab> {
                   ),
                   const SizedBox(height: 10),
         
-                  if (backups.isEmpty)
+                  if (backups.isEmpty && !isLoading)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Center(
@@ -525,16 +601,17 @@ class _BackupTabState extends State<BackupTab> {
       ),
     );
   }
- }
-
+}
 // ==================== 3. Receipt Tab ====================
 class ReceiptTab extends StatelessWidget {
-  const ReceiptTab({super.key});
+  final SettingsRepository repository;
+  const ReceiptTab({super.key, required this.repository});
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
+    // TODO: Load receipt preferences from repository
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -568,7 +645,7 @@ class ReceiptTab extends StatelessWidget {
                       DropdownMenuItem(value: loc.medium, child: Text(loc.medium)),
                       DropdownMenuItem(value: loc.large, child: Text(loc.large)),
                     ],
-                    onChanged: (value) {},
+                    onChanged: (value) {}, // TODO: Save preference
                   ),
                   const SizedBox(height: 10),
                   Text(loc.paperWidth),
@@ -580,7 +657,7 @@ class ReceiptTab extends StatelessWidget {
                       DropdownMenuItem(value: loc.paper80, child: Text(loc.paper80)),
                       DropdownMenuItem(value: loc.paperA4, child: Text(loc.paperA4)),
                     ],
-                    onChanged: (value) {},
+                    onChanged: (value) {}, // TODO: Save preference
                   ),
                 ],
               ),
@@ -608,7 +685,7 @@ class ReceiptTab extends StatelessWidget {
                       DropdownMenuItem(value: loc.printerNetwork, child: Text(loc.printerNetwork)),
                       DropdownMenuItem(value: loc.printerPdf, child: Text(loc.printerPdf)),
                     ],
-                    onChanged: (value) {},
+                    onChanged: (value) {}, // TODO: Save preference
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
@@ -616,7 +693,11 @@ class ReceiptTab extends StatelessWidget {
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.print),
                       label: Text(loc.printTestReceipt),
-                      onPressed: () {},
+                      onPressed: () {
+                         ScaffoldMessenger.of(context).showSnackBar(
+                           const SnackBar(content: Text("Functionality not implemented yet."))
+                         );
+                      },
                     ),
                   ),
                 ],
@@ -631,17 +712,89 @@ class ReceiptTab extends StatelessWidget {
 
 // ==================== 4. Preferences Tab ====================
 class PreferencesTab extends StatefulWidget {
-  const PreferencesTab({super.key});
+  final SettingsRepository repository;
+  const PreferencesTab({super.key, required this.repository});
 
   @override
   State<PreferencesTab> createState() => _PreferencesTabState();
 }
 
 class _PreferencesTabState extends State<PreferencesTab> {
+  // App Preferences
   String? _selectedDateFormat;
-  String? _selectedFrequency;
   String _currencyPosition = 'before';
   String _currencySymbol = 'Rs';
+  
+  // Security
+  bool _requirePassword = false;
+  final TextEditingController _passwordController = TextEditingController();
+
+  // Auto Backup
+  bool _autoBackupEnabled = false;
+  String? _selectedFrequency;
+
+  // Notifications
+  bool _lowStockAlert = true;
+  bool _dayCloseReminder = true;
+
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    setState(() => _isLoading = true);
+    // In a real app, you'd load these from the repository
+    // The repository currently returns placeholder data, but the UI is ready.
+    final prefs = await widget.repository.getAppPreferences();
+    if(mounted) {
+      setState(() {
+        _selectedDateFormat = prefs['dateFormat'] ?? 'DD-MM-YYYY';
+        _currencySymbol = prefs['currencySymbol'] ?? 'Rs';
+        _currencyPosition = prefs['currencyPosition'] ?? 'before';
+        _requirePassword = prefs['requirePassword'] ?? false;
+        _autoBackupEnabled = prefs['autoBackupEnabled'] ?? false;
+        _lowStockAlert = prefs['lowStockAlert'] ?? true;
+        _dayCloseReminder = prefs['dayCloseReminder'] ?? true;
+        // The frequency might need localization if the keys are stored in english
+        _selectedFrequency = prefs['backupFrequency'] ?? AppLocalizations.of(context)!.daily;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _savePreferences() async {
+    final loc = AppLocalizations.of(context)!;
+    final prefs = {
+      'dateFormat': _selectedDateFormat,
+      'currencySymbol': _currencySymbol,
+      'currencyPosition': _currencyPosition,
+      'requirePassword': _requirePassword,
+      'password': _passwordController.text, // Note: Password should be hashed in a real app
+      'autoBackupEnabled': _autoBackupEnabled,
+      'backupFrequency': _selectedFrequency,
+      'lowStockAlert': _lowStockAlert,
+      'dayCloseReminder': _dayCloseReminder,
+    };
+    await widget.repository.updateAppPreferences(prefs);
+    if(mounted) {
+       ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.preferencesSaved),
+          backgroundColor: Colors.green,
+        )
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -650,7 +803,9 @@ class _PreferencesTabState extends State<PreferencesTab> {
     final String currentLangCode = Localizations.localeOf(context).languageCode;
     String dropdownValue = currentLangCode == 'ur' ? 'اردو' : 'English';
 
-    return SingleChildScrollView(
+    return _isLoading 
+      ? const Center(child: CircularProgressIndicator())
+      : SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
@@ -704,9 +859,8 @@ class _PreferencesTabState extends State<PreferencesTab> {
                           decoration: InputDecoration(hintText: loc.currencySymbol),
                           initialValue: _currencySymbol,
                           onChanged: (value) {
-                            setState(() {
-                              _currencySymbol = value;
-                            });
+                            // No need for setState since controller handles it, but for saving we need it
+                            _currencySymbol = value;
                           },
                         ),
                       ),
@@ -745,17 +899,22 @@ class _PreferencesTabState extends State<PreferencesTab> {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  OptionSwitch(title: loc.requirePasswordStartup),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: loc.password,
-                      suffixIcon: const Icon(Icons.visibility_off),
-                    ),
-                    obscureText: true,
+                  OptionSwitch(
+                    title: loc.requirePasswordStartup,
+                    isEnabled: _requirePassword,
+                    onChanged: (value) => setState(() => _requirePassword = value),
                   ),
-                  const SizedBox(height: 10),
-                  OptionSwitch(title: loc.lockAfter5Min),
+                  if(_requirePassword) ...[
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: loc.password,
+                        suffixIcon: const Icon(Icons.visibility_off),
+                      ),
+                      obscureText: true,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -773,23 +932,27 @@ class _PreferencesTabState extends State<PreferencesTab> {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  OptionSwitch(title: loc.enableAutoBackup),
-                  const SizedBox(height: 10),
-                  Text(loc.frequency),
-                  DropdownButton<String>(
-                    value: _selectedFrequency ?? loc.daily,
-                    isExpanded: true,
-                    items: [
-                      DropdownMenuItem(value: loc.daily, child: Text(loc.daily)),
-                      DropdownMenuItem(value: loc.weekly, child: Text(loc.weekly)),
-                      DropdownMenuItem(value: loc.monthly, child: Text(loc.monthly)),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedFrequency = value;
-                      });
-                    },
-                  ),
+                  OptionSwitch(
+                    title: loc.enableAutoBackup,
+                    isEnabled: _autoBackupEnabled,
+                    onChanged: (value) => setState(() => _autoBackupEnabled = value),
+                    ),
+                  if(_autoBackupEnabled) ...[
+                    const SizedBox(height: 10),
+                    Text(loc.frequency),
+                    DropdownButton<String>(
+                      value: _selectedFrequency ?? loc.daily,
+                      isExpanded: true,
+                      items: [ loc.daily, loc.weekly, loc.monthly]
+                          .map((freq) => DropdownMenuItem(value: freq, child: Text(freq)))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedFrequency = value;
+                        });
+                      },
+                    ),
+                  ]
                 ],
               ),
             ),
@@ -807,11 +970,16 @@ class _PreferencesTabState extends State<PreferencesTab> {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  OptionSwitch(title: loc.lowStockAlert),
-                  OptionSwitch(title: loc.dayCloseReminder),
-                  OptionSwitch(title: loc.backupSuccessNotify),
-                  OptionSwitch(title: loc.updateAvailableNotify),
-                  OptionSwitch(title: loc.soundEffects),
+                  OptionSwitch(
+                    title: loc.lowStockAlert,
+                    isEnabled: _lowStockAlert,
+                    onChanged: (value) => setState(() => _lowStockAlert = value),
+                  ),
+                  OptionSwitch(
+                    title: loc.dayCloseReminder,
+                    isEnabled: _dayCloseReminder,
+                    onChanged: (value) => setState(() => _dayCloseReminder = value),
+                  ),
                 ],
               ),
             ),
@@ -820,14 +988,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(loc.preferencesSaved),
-                    backgroundColor: Colors.green,
-                  )
-                );
-              },
+              onPressed: _savePreferences,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: Colors.teal[700],
@@ -843,7 +1004,8 @@ class _PreferencesTabState extends State<PreferencesTab> {
 
 // ==================== 5. About Tab ====================
 class AboutTab extends StatelessWidget {
-  const AboutTab({super.key});
+  final SettingsRepository repository;
+  const AboutTab({super.key, required this.repository});
 
   @override
   Widget build(BuildContext context) {
@@ -867,7 +1029,7 @@ class AboutTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    '${loc.version}: 1.0.0',
+                    '${loc.version}: 1.0.0', // TODO: Make this dynamic from pubspec
                     style: const TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 20),
@@ -893,21 +1055,36 @@ class AboutTab extends StatelessWidget {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    loc.systemInfo,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  InfoItem(label: loc.dbVersion, value: '1.0'),
-                  InfoItem(label: loc.totalItems, value: '145'),
-                  InfoItem(label: loc.totalCustomers, value: '45'),
-                  InfoItem(label: loc.totalSuppliers, value: '12'),
-                  InfoItem(label: loc.appUptime, value: '15d 2h'),
-                  InfoItem(label: loc.lastLogin, value: 'Today 08:00 AM'),
-                ],
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: repository.getDatabaseStats(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text(loc.noDataAvailable));
+                  }
+                  
+                  final stats = snapshot.data!;
+                  return Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        loc.systemInfo,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      InfoItem(label: loc.totalItems, value: (stats['products'] ?? 0).toString()),
+                      InfoItem(label: loc.totalCustomers, value: (stats['customers'] ?? 0).toString()),
+                      InfoItem(label: loc.totalSuppliers, value: (stats['suppliers'] ?? 0).toString()),
+                      InfoItem(label: loc.totalSales, value: (stats['sales'] ?? 0).toString()),
+                      InfoItem(label: loc.dbSize, value: "${(stats['databaseSize'] as double?)?.toStringAsFixed(2) ?? '0'} MB"),
+                    ],
+                  );
+                }
               ),
             ),
           ),
@@ -926,22 +1103,41 @@ class AboutTab extends StatelessWidget {
                   const SizedBox(height: 10),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(onPressed: () {}, child: Text(loc.repairDb)),
+                    child: OutlinedButton(onPressed: () async {
+                      final success = await repository.vacuumDatabase();
+                       if(context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(success ? "Database Optimized" : "Optimization failed"), backgroundColor: success ? Colors.green : Colors.red,)
+                          );
+                       }
+                    }, child: Text(loc.repairDb)),
                   ),
                   const SizedBox(height: 5),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(onPressed: () {}, child: Text(loc.archiveOldData)),
+                    child: OutlinedButton(onPressed: () {
+                       ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Functionality not implemented yet."))
+                      );
+                    }, child: Text(loc.archiveOldData)),
                   ),
                   const SizedBox(height: 5),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(onPressed: () {}, child: Text(loc.clearCache)),
+                    child: OutlinedButton(onPressed: () {
+                       ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Functionality not implemented yet."))
+                      );
+                    }, child: Text(loc.clearCache)),
                   ),
                   const SizedBox(height: 5),
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton(onPressed: () {}, child: Text(loc.viewLogs)),
+                    child: OutlinedButton(onPressed: () {
+                       ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Functionality not implemented yet."))
+                      );
+                    }, child: Text(loc.viewLogs)),
                   ),
                 ],
               ),
@@ -964,13 +1160,15 @@ class AboutTab extends StatelessWidget {
                     leading: const Icon(Icons.email),
                     title: Text(loc.email),
                     subtitle: const Text('hussainshahzad350@gmail.com'),
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.phone),
                     title: Text(loc.phone),
                     subtitle: const Text('0310-4523235'),
+                     onTap: () {},
                   ),
-                  SizedBox(
+                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(onPressed: () {}, child: Text(loc.viewOnlineGuide)),
                   ),
@@ -1002,65 +1200,69 @@ class BackupItem extends StatelessWidget {
   final String fileName;
   final String date;
   final String size;
+  final VoidCallback onRestore;
+  final VoidCallback onDelete;
 
   const BackupItem({
     super.key,
     required this.fileName,
     required this.date,
     required this.size,
+    required this.onRestore,
+    required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            const Icon(Icons.insert_drive_file, color: Colors.teal),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(fileName, style: const TextStyle(fontSize: 14)),
-                  Text(date, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
+    final loc = AppLocalizations.of(context)!;
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.insert_drive_file, color: Colors.teal),
+          title: Text(fileName),
+          subtitle: Text('$date • $size'),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.restore, color: Colors.green),
+                onPressed: onRestore,
+                tooltip: loc.restore,
               ),
-            ),
-            Text(size),
-          ],
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: onDelete,
+                tooltip: loc.delete,
+              ),
+            ],
+          ),
         ),
-      ),
+        const Divider(height: 1),
+      ],
     );
   }
 }
 
-class OptionSwitch extends StatefulWidget {
+class OptionSwitch extends StatelessWidget {
   final String title;
+  final bool isEnabled;
+  final Function(bool)? onChanged;
 
-  const OptionSwitch({super.key, required this.title});
-
-  @override
-  State<OptionSwitch> createState() => _OptionSwitchState();
-}
-
-class _OptionSwitchState extends State<OptionSwitch> {
-  bool _isEnabled = true;
+  const OptionSwitch({
+    super.key, 
+    required this.title,
+    this.isEnabled = false,
+    this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(widget.title)),
+        Expanded(child: Text(title)),
         Switch(
-          value: _isEnabled, 
-          onChanged: (value) {
-            setState(() {
-              _isEnabled = value;
-            });
-          }
+          value: isEnabled, 
+          onChanged: onChanged
         ),
       ],
     );

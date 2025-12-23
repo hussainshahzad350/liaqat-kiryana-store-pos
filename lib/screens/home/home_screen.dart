@@ -17,6 +17,7 @@ import '../units/units_screen.dart';
 import '../reports/reports_screen.dart';
 import '../cash_ledger/cash_ledger_screen.dart';
 import '../settings/settings_screen.dart';
+import '../../core/repositories/sales_repository.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,6 +27,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final SalesRepository _salesRepository = SalesRepository();
   // State variables
   String currentTime = '';
   String currentDate = '';
@@ -73,10 +75,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final dbHelper = DatabaseHelper.instance;
       final results = await Future.wait([
-        dbHelper.getTodaySales(),
+        _salesRepository.getTodaySales(),
         dbHelper.getTodayCustomers(),
         dbHelper.getLowStockItems(),
-        dbHelper.getRecentActivities(limit: 10),
+        _salesRepository.getRecentActivities(limit: 10),
       ]);
 
       if (!mounted) return;

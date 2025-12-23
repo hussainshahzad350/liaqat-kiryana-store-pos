@@ -488,5 +488,11 @@
   "preferencesSaved": "ترجیحات کامیابی سے محفوظ ہو گئیں",
   "checkingForUpdates": "اپ ڈیٹس کے لیے چیک کر رہا ہے...",
   "never": "کبھی نہیں",
-  "refresh": "ریفرش"
+  "refresh": "ریفرش",
+  "saveChangesSuccess": "تبدیلی کامیابی سے محفوظ ہو گئی ہے",
+  "fieldRequired":  "فیلڈ ضروری ہے",
+  "noDataAvailable": "کوئی ڈیتا موجود نہں",
+  "dbSize": "ڈیٹا بیس سائز",
+  "selectPaymentMethod":  "ادائیگی کا طریقہ کار",
+  "confirmPayment": "ادائیگی کنفرم؟"
 }

@@ -4,8 +4,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../l10n/app_localizations.dart';
-import '../../core/database/database_helper.dart';
 import 'dart:async';
+import '../../core/repositories/sales_repository.dart';
+import '../../models/sale_model.dart';
+import '../../core/utils/currency_utils.dart';
+import '../../core/repositories/items_repository.dart';
+import '../../core/repositories/customers_repository.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -15,11 +19,14 @@ class SalesScreen extends StatefulWidget {
 }
 
 class _SalesScreenState extends State<SalesScreen> {
+  final SalesRepository _salesRepository = SalesRepository();
+  final ItemsRepository _itemsRepository = ItemsRepository();
+  final CustomersRepository _customersRepository = CustomersRepository();
   // --- Data Variables ---
   List<Map<String, dynamic>> products = [];
   List<Map<String, dynamic>> customers = [];
   List<Map<String, dynamic>> cartItems = []; 
-  List<Map<String, dynamic>> recentSales = [];
+  List<Sale> recentSales = [];
 
   // --- Search & Filter ---
   final TextEditingController productSearchController = TextEditingController();
@@ -67,11 +74,10 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   @override
-void didChangeDependencies() {
-  super.didChangeDependencies();
-  // ✅ FIXED: Load recent sales when returning to screen
-  _loadRecentSales();
-}
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadRecentSales();
+  }
 
   // --- WillPopScope for back button warning ---
   Future<bool> _onWillPop() async {
@@ -110,9 +116,19 @@ void didChangeDependencies() {
     ]);
   }
 
+  Future<void> _loadCustomers() async {
+    // Use Repository
+    final result = await _customersRepository.getAllCustomers();
+    if (mounted) {
+      setState(() {
+        customers = result;
+        filteredCustomers = result;
+      });
+    }
+  }
+
   Future<void> _loadProducts() async {
-    final db = await DatabaseHelper.instance.database;
-    final result = await db.query('products', orderBy: 'name_english ASC');
+    final result = await _itemsRepository.getSellableItems();
     if (mounted) {
       setState(() {
         products = result;
@@ -121,45 +137,12 @@ void didChangeDependencies() {
     }
   }
 
-  Future<void> _loadCustomers() async {
-    final db = await DatabaseHelper.instance.database;
-    final result = await db.query('customers', orderBy: 'name_english ASC');
-    if (mounted) {
-      setState(() {
-        customers = result;
-        filteredCustomers = result; 
-      });
-    }
-  }
-
   Future<void> _loadRecentSales() async {
-  if (!mounted) return;
-  final loc = AppLocalizations.of(context)!;
-  final db = await DatabaseHelper.instance.database;
-  
-  // ✅ FIXED: Properly include status field in query
-  final result = await db.rawQuery('''
-    SELECT 
-      s.id, 
-      s.bill_number, 
-      s.sale_time, 
-      s.grand_total, 
-      s.cash_amount, 
-      s.bank_amount, 
-      s.credit_amount,
-      s.total_paid,
-      s.remaining_balance,
-      s.status,
-      COALESCE(c.name_english, '${loc.walkInCustomer}') as customer_name,
-      c.outstanding_balance as customer_balance
-    FROM sales s
-    LEFT JOIN customers c ON s.customer_id = c.id
-    ORDER BY s.created_at DESC
-    LIMIT 20
-  ''');
-  
-  if (mounted) setState(() => recentSales = result);
-}
+    if (!mounted) return;
+    // Use Repository - The repo should handle the complex join query
+    final result = await _salesRepository.getRecentSales();
+    if (mounted) setState(() => recentSales = result.map((map) => Sale.fromMap(map)).toList());
+  }
 
   // --- Item Search Logic ---
   void _filterProducts(String query) {
@@ -267,11 +250,10 @@ void didChangeDependencies() {
               }
 
               try {
-                final db = await DatabaseHelper.instance.database;
-                final existingUser = await db.query('customers', where: 'contact_primary = ?', whereArgs: [phoneNumber]);
+                final bool customerExists = await _customersRepository.customerExistsByPhone(phoneNumber);
 
                 // 2. Check Exists
-                if (existingUser.isNotEmpty) {
+                if (customerExists) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${loc.phoneExists}: "$phoneNumber"'), 
@@ -292,7 +274,7 @@ void didChangeDependencies() {
                   'created_at': DateTime.now().toIso8601String(),
                 };
 
-                final int id = await db.insert('customers', newCustomerData);
+                final int id = await _customersRepository.addCustomer(newCustomerData);
                 final Map<String, dynamic> savedCustomer = {'id': id, ...newCustomerData};
 
                 if (mounted) {
@@ -374,7 +356,7 @@ void didChangeDependencies() {
           return;
         }
 
-        double price = (product['sale_price'] ?? 0.0).toDouble();
+        double price = (product['sale_price'] ?? 0) / 100.0;
         double qty = quantity;
 
         // ✅ FORMATTING: Support decimals for Price and Qty
@@ -477,6 +459,96 @@ void didChangeDependencies() {
     }
   }
 
+  void _showCheckoutDialog() {
+    final loc = AppLocalizations.of(context)!;
+    
+    double cashAmount = 0.0;
+    double bankAmount = 0.0;
+    double creditAmount = 0.0;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        final cashCtrl = TextEditingController(text: grandTotal.toStringAsFixed(0));
+        final bankCtrl = TextEditingController();
+        final creditCtrl = TextEditingController();
+        
+        return AlertDialog(
+          title: Text(loc.selectPaymentMethod),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('${loc.grandTotal}: ${CurrencyUtils.formatRupees((grandTotal * 100).toInt())}',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: cashCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: '${loc.cash} (Rs)',
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (_) {},
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: bankCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: '${loc.bank} (Rs)',
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (_) {},
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: creditCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: '${loc.credit} (Rs)',
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (_) {},
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(loc.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                cashAmount = double.tryParse(cashCtrl.text) ?? 0.0;
+                bankAmount = double.tryParse(bankCtrl.text) ?? 0.0;
+                creditAmount = double.tryParse(creditCtrl.text) ?? 0.0;
+                
+                final totalPaid = cashAmount + bankAmount + creditAmount;
+                if (totalPaid < grandTotal) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(loc.insufficientPayment),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                
+                Navigator.pop(context);
+                final change = totalPaid - grandTotal;
+                _processSale(cashAmount, bankAmount, creditAmount, change);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+              child: Text(loc.confirmPayment, style: const TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _clearCart() {
     final loc = AppLocalizations.of(context)!;
 
@@ -524,517 +596,10 @@ void didChangeDependencies() {
     previousBalance = selectedCustomerMap?['outstanding_balance'] ?? 0.0;
   }
 
-  // --- NEW SIMPLIFIED CHECKOUT DIALOG (LOCALIZED) ---
-  void _showCheckoutDialog() {
-  if (cartItems.isEmpty) return;
-
-  // 1. Walk-in Customer Flow
-  if (selectedCustomerId == null) {
-    _showCheckoutPaymentDialog(); // Direct to payment, no limit check
-    return;
-  }
-  // 2. Registered Customer Flow
-  final double creditLimit = double.tryParse(selectedCustomerMap?['credit_limit'].toString() ?? '0') ?? 0.0;
-  final double currentBalance = double.tryParse(selectedCustomerMap?['outstanding_balance'].toString() ?? '0') ?? 0.0;
-  
-  // Calculate potential balance assuming the worst case (Full Credit)
-  // or simply notifying that the account is entering an over-limit state.
-  final double potentialBalance = currentBalance + grandTotal;
-
-  // Check if Limit Exceeded
-
-  if (potentialBalance > creditLimit) {
-    _showCreditLimitWarningDialog(
-      creditLimit: creditLimit,
-      currentBalance: currentBalance,
-      billTotal: grandTotal,
-      potentialBalance: potentialBalance,
-      onContinueAnyway: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true),
-      onIncreaseLimit: () {
-        _showIncreaseLimitDialog(onLimitUpdated: () {
-          // Re-trigger checkout to see if it passes now (or ignore flag)
-          _showCheckoutPaymentDialog(ignoreCreditLimit: true); 
-        });
-      },
-    );
-  } else {
-    _showCheckoutPaymentDialog(); 
-  }
-}
-
-// ✅ NEW: Show credit limit warning with options - ONLY when credit payment is attempted
-void _showCreditLimitWarningDialog({
-  required double creditLimit,
-  required double currentBalance,
-  required double billTotal,
-  required double potentialBalance,
-  required Function() onContinueAnyway,
-  required Function() onIncreaseLimit,
-}) {
-  final loc = AppLocalizations.of(context)!;
-  
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => AlertDialog(
-      title: Row(
-        children: [
-          const Icon(Icons.warning, color: Colors.orange),
-          const SizedBox(width: 10),
-          Text(loc.creditLimitExceeded, style: const TextStyle(color: Colors.orange)),
-        ],
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(loc.creditLimitWarningMsg(creditLimit.toStringAsFixed(0))),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _infoRow('${loc.customerCreditLimit}:', 'Rs ${creditLimit.toStringAsFixed(0)}'),
-                  _infoRow('${loc.currentBalance}:', 'Rs ${currentBalance.toStringAsFixed(0)}'),
-                  _infoRow('${loc.billTotal}:', 'Rs ${billTotal.toStringAsFixed(0)}'),
-                  const Divider(),
-                  _infoRow('${loc.totalBalance}:', 'Rs ${potentialBalance.toStringAsFixed(0)}',
-                    isBold: true,
-                    color: Colors.red,
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    '${loc.excessAmount}: Rs ${(potentialBalance - creditLimit).toStringAsFixed(0)}',
-                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        // Option 1: Cancel
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-            // Return to payment dialog without making changes
-          },
-          child: Text(loc.cancel, style: const TextStyle(color: Colors.grey)),
-        ),
-        
-        // Option 2: Increase Limit
-        OutlinedButton(
-          onPressed: () {
-            Navigator.pop(context);
-            onIncreaseLimit();
-          },
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.blue),
-          ),
-          child: Text(loc.increaseLimit, style: const TextStyle(color: Colors.blue)),
-        ),
-        
-        // Option 3: Continue Anyway
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-            onContinueAnyway();
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-          ),
-          child: Text(loc.continueAnyway, style: const TextStyle(color: Colors.white)),
-        ),
-      ],
-    ),
-  );
-}
-
-// ✅ NEW: Show dialog to increase customer credit limit
-void _showIncreaseLimitDialog({required VoidCallback onLimitUpdated}) {
-  final loc = AppLocalizations.of(context)!;
-  final limitCtrl = TextEditingController();
-
-  // Parse current limit safely
-  double currentLimit = double.tryParse(selectedCustomerMap?['credit_limit'].toString() ?? '0') ?? 0.0;
-  limitCtrl.text = currentLimit.toStringAsFixed(0);
-
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text(loc.increaseCreditLimit),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('${loc.current}: ${currentLimit.toStringAsFixed(0)}'),
-            const SizedBox(height: 10),
-            TextField(
-              controller: limitCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: loc.newCreditLimit,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(loc.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              double? newLimit = double.tryParse(limitCtrl.text);
-              if (newLimit == null || selectedCustomerId == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(loc.invalidLimit)),
-                );
-                return;
-              }
-
-              try {
-                // ✅ Now calling the method you defined in DatabaseHelper
-                await DatabaseHelper.instance.updateCustomerCreditLimit(selectedCustomerId!, newLimit);
-
-                // Update local UI state
-                setState(() {
-                  selectedCustomerMap!['credit_limit'] = newLimit;
-                });
-
-                if (mounted) {
-                  Navigator.pop(context); // Close dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${loc.creditLimitUpdated}: Rs ${newLimit.toStringAsFixed(0)}'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                  // Continue the checkout flow
-                  onLimitUpdated(); 
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('${loc.error}: $e')),
-                  );
-                }
-              }
-            },
-            child: Text(loc.updateLimit),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-// ✅ MODIFIED: Payment dialog with credit limit check when credit is selected
-void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
-  final loc = AppLocalizations.of(context)!;
-  bool isRegistered = selectedCustomerId != null;
-  double billTotal = grandTotal;
-  double oldBalance = previousBalance;
-
-  final cashCtrl = TextEditingController();
-  final bankCtrl = TextEditingController();
-  final creditCtrl = TextEditingController();
-
-  // Initial Setup
-  if (isRegistered) {
-    creditCtrl.text = '0'; // Default to 0, user chooses mix
-  }
-
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setDialogState) {
-          double cash = double.tryParse(cashCtrl.text) ?? 0.0;
-          double bank = double.tryParse(bankCtrl.text) ?? 0.0;
-          double credit = double.tryParse(creditCtrl.text) ?? 0.0;
-          double totalPayment = cash + bank + credit;
-          double change = 0.0;
-          bool isValid = false;
-
-          // --- Validation Logic ---
-          if (isRegistered) {
-            // Registered: Payment must match bill (Exact split)
-            isValid = (totalPayment - billTotal).abs() < 0.01;
-          } else {
-            // Walk-in: Payment must be >= Bill
-            isValid = (cash + bank) >= billTotal;
-            if (isValid) {
-              change = (cash + bank) - billTotal;
-            }
-          }
-
-          // Function to process the sale
-          void processSaleAction() {
-            Navigator.pop(context); // Close dialog
-            _processSale(cash, bank, credit, change);
-          }
-
-          // Internal Credit Check (Secondary safety)
-          void checkCreditLimitAndProcess() {
-            // If we already ignored the limit in the pre-check, skip this.
-            if (ignoreCreditLimit) {
-              processSaleAction();
-              return;
-            }
-
-            // Otherwise, check if the specific CREDIT amount entered causes issues
-            // (Only relevant if they weren't over limit before, but are now)
-            if (!isRegistered || credit <= 0) {
-              processSaleAction();
-              return;
-            }
-
-            final creditLimit = (selectedCustomerMap!['credit_limit'] as num?)?.toDouble() ?? 0.0;
-            final potentialBalance = oldBalance + credit;
-
-            if (potentialBalance > creditLimit) {
-              // Show warning if they somehow bypassed the pre-check but are now over
-              Navigator.pop(context); // Close payment dialog to show warning
-              _showCreditLimitWarningDialog(
-                creditLimit: creditLimit,
-                currentBalance: oldBalance,
-                billTotal: credit,
-                potentialBalance: potentialBalance,
-                onContinueAnyway: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true),
-                onIncreaseLimit: () => _showIncreaseLimitDialog(
-                  onLimitUpdated: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true)
-                ),
-              );
-            } else {
-              processSaleAction();
-            }
-          }
-
-          return AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            title: Container(
-              color: Colors.green[700],
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  const Icon(Icons.shopping_cart, color: Colors.white),
-                  const SizedBox(width: 10),
-                  Text(loc.checkoutButton, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                ],
-              )
-            ),
-            titlePadding: EdgeInsets.zero,
-            content: SizedBox(
-              width: 400,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // --- Customer Info (Registered Only) ---
-                    if (isRegistered) ...[
-                      Text('${loc.searchCustomerHint}: ${selectedCustomerMap!['name_english']}', 
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                      const SizedBox(height: 5),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.orange[50], 
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.orange[200]!)
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.info_outline, size: 16, color: Colors.orange),
-                            const SizedBox(width: 5),
-                            Text('${loc.prevBalance}: Rs ${oldBalance.toStringAsFixed(0)}', 
-                              style: const TextStyle(fontSize: 13)),
-                          ],
-                        ),
-                      ),
-                      const Divider(height: 20),
-                    ],
-
-                    // --- Bill Details ---
-                    _infoRow(loc.billTotal, 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18),
-                    const Divider(),
-                    
-                    // --- Payment Inputs ---
-                    const SizedBox(height: 10),
-                    Text(loc.paymentLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                    const SizedBox(height: 10),
-                    
-                    // CASH
-                    _input(loc.cashInput, cashCtrl, (v) {
-                      setDialogState(() {
-                        if (isRegistered) {
-                           // Auto-calculate remaining for credit
-                           double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
-                           creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
-                        }
-                      });
-                    }),
-
-                    // BANK
-                    _input(loc.bankInput, bankCtrl, (v) {
-                      setDialogState(() {
-                        if (isRegistered) {
-                           // Auto-calculate remaining for credit
-                           double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
-                           creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
-                        }
-                      });
-                    }),
-
-                    // CREDIT (Registered Only)
-                    if (isRegistered)
-                      _input(loc.creditInput, creditCtrl, (v) {
-                        setDialogState(() {
-                          // Allow manual credit override
-                          // (Optional: You could adjust cash here, but simple input is usually better)
-                        });
-                      }),
-
-                    // --- Change / Balance Display ---
-                    const SizedBox(height: 10),
-                    if (!isRegistered) // Walk-in Change
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                           Text(loc.changeDue, style: const TextStyle(fontWeight: FontWeight.bold)),
-                           Text('Rs ${change.toStringAsFixed(0)}', 
-                             style: TextStyle(
-                               fontSize: 18, 
-                               fontWeight: FontWeight.bold, 
-                               color: change >= 0 ? Colors.green : Colors.red
-                             )
-                           ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(loc.cancel),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
-                onPressed: isValid ? checkCreditLimitAndProcess : null,
-                child: Text(loc.savePrint, style: const TextStyle(color: Colors.white)),
-              ),
-            ],
-          );
-        }
-      );
-    }
-  );
-}
-
-  Widget _infoRow(String label, String value, {bool isBold = false, double size = 14, Color? color}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4.0),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: size, 
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: size,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: color,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-  Widget _input(String label, TextEditingController ctrl, Function(String) onChanged, {bool enabled = true}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          SizedBox(width: 130, child: Text(label, style: const TextStyle(fontSize: 14))),
-          Expanded(
-            child: TextField(
-              controller: ctrl,
-              enabled: enabled,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                isDense: true, 
-                contentPadding: const EdgeInsets.all(10), 
-                border: const OutlineInputBorder(),
-                prefixText: 'Rs ',
-                filled: !enabled,
-                fillColor: enabled ? null : Colors.grey[200],
-              ), 
-              style: TextStyle(fontWeight: FontWeight.bold, color: enabled ? Colors.black : Colors.grey[600]),
-              onChanged: onChanged,
-            ),
-          ),
-        ]
-      ),
-    );
-  }
-
   // --- Process Sale ---
   Future<void> _processSale(double cash, double bank, double credit, double change) async {
     final loc = AppLocalizations.of(context)!;
-    
-    // ✅ VALIDATION: Final stock check before processing
-    for (var item in cartItems) {
-      final productId = item['id'];
-      final requestedQty = (item['quantity'] as num).toDouble();
-      
-      // Fetch current stock from database (real-time check)
-      final db = await DatabaseHelper.instance.database;
-      final result = await db.query('products', where: 'id = ?', whereArgs: [productId], limit: 1);
-      
-      if (result.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${loc.productNotFound}: ${item['name_english']}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-      
-      final currentStock = (result.first['current_stock'] as num).toDouble();
-      if (currentStock < requestedQty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${loc.insufficientStock} for ${item['name_english']}: '
-              '${currentStock.toStringAsFixed(0)} available, ${requestedQty.toStringAsFixed(0)} requested'
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-    }
-    
+
     // ✅ SHOW LOADING INDICATOR
     showDialog(
       context: context,
@@ -1058,52 +623,52 @@ void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
         ),
       ),
     );
-    
+
     // Prepare Data
     final Map<String, dynamic> saleData = {
       'customer_id': selectedCustomerId,
-      'grand_total': grandTotal,
+      'grand_total': (grandTotal * 100).round(),
       'discount': 0.0,
-      'cash_amount': cash,
-      'bank_amount': bank,
-      'credit_amount': credit, 
+      'cash_amount': (cash * 100).round(),
+      'bank_amount': (bank * 100).round(),
+      'credit_amount': (credit * 100).round(),
       'items': cartItems.map((item) {
-         return {
-           'id': item['id'],
-           'quantity': item['quantity'],
-           'sale_price': item['unit_price'],
-           'total': item['total'],
-         };
+        return {
+          'id': item['id'],
+          'quantity': item['quantity'],
+          'sale_price': (item['unit_price'] * 100).round(),
+          'total': (item['total'] * 100).round(),
+        };
       }).toList(),
     };
 
     try {
-      await DatabaseHelper.instance.createSale(saleData);
-      
+      await _salesRepository.createSale(saleData);
+
       // ✅ DISMISS LOADING INDICATOR
       if (mounted) Navigator.pop(context);
-      
+
       _performClearCart();
       await _refreshAllData();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(loc.saleCompleted), backgroundColor: Colors.green)
+            SnackBar(content: Text(loc.saleCompleted), backgroundColor: Colors.green)
         );
       }
     } catch (e) {
       // ✅ DISMISS LOADING INDICATOR
       if (mounted) Navigator.pop(context);
-      
+
       print('Error processing sale: $e');
       if (mounted) {
         final cleanError = e.toString().replaceAll("Exception: ", "");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(loc.errorProcessingSale(cleanError)), 
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          )
+            SnackBar(
+              content: Text(loc.errorProcessingSale(cleanError)),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            )
         );
       }
     }
@@ -1149,9 +714,9 @@ void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
   if (confirm != true) return;
 
   try {
-    await DatabaseHelper.instance.cancelSale(
+    await _salesRepository.cancelSale(
       saleId: id,
-      cancelledBy: 'Cashier',
+      cancelledBy: 'Cashier', // TODO: Replace with actual logged-in user
       reason: reasonCtrl.text.trim(),
     );
 
@@ -1280,7 +845,7 @@ void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
                               overflow: TextOverflow.ellipsis
                             ),
                             Text(product['name_english'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                            Text('Rs ${product['sale_price']}', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                            Text(CurrencyUtils.formatRupees(product['sale_price'] ?? 0), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
                             Text('${loc.stock}:${product['current_stock']}', style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
                           ]
                         )
@@ -1318,20 +883,20 @@ void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
                           backgroundColor: Colors.green[100], 
                           child: Text('${index+1}', style: const TextStyle(fontSize: 10))
                         ),
-                        title: Text(sale['customer_name'] ?? loc.walkInCustomer, style: const TextStyle(fontSize: 13)),
-                        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start,children: [Text(sale['bill_number'],
-                        style: const TextStyle(fontSize: 10),),Text(sale['status'] == 'CANCELLED'? loc.cancelled: loc.completed,
+                        title: Text(sale.customerName ?? loc.walkInCustomer, style: const TextStyle(fontSize: 13)),
+                        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start,children: [Text(sale.billNumber,
+                        style: const TextStyle(fontSize: 10),),Text(sale.status == 'CANCELLED'? loc.cancelled: loc.completed,
                         style: TextStyle(fontSize: 10,fontWeight: FontWeight.bold,color: 
-                        sale['status'] == 'CANCELLED'? Colors.red: Colors.green,),),]),
+                        sale.status == 'CANCELLED'? Colors.red: Colors.green,),),]),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min, 
                           children: [
-                            Text('Rs ${sale['grand_total']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            Text(CurrencyUtils.formatRupees(sale.grandTotal.toInt()), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                             IconButton(
                               icon: const Icon(Icons.cancel, size: 16, color: Colors.orange), 
-                              onPressed: sale['status'] == 'CANCELLED'
+                              onPressed: sale.status == 'CANCELLED'
                               ? null
-                              : () => _cancelSale(sale['id'], sale['bill_number']),
+                              : () => _cancelSale(sale.id!, sale.billNumber),
                             ),
                           ]
                         ),
@@ -1545,7 +1110,7 @@ void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
                       Text(loc.subtotal), 
-                      Text('Rs ${subtotal.toStringAsFixed(0)}')
+                      Text(CurrencyUtils.formatRupees((subtotal * 100).toInt()))
                     ]
                   ),
                   if (previousBalance > 0) 
@@ -1562,7 +1127,7 @@ void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
                     children: [
                       Text(loc.grandTotal, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), 
                       Text(
-                        'Rs ${grandTotal.toStringAsFixed(0)}', 
+                        CurrencyUtils.formatRupees((grandTotal * 100).toInt()), 
                         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)
                       )
                     ]

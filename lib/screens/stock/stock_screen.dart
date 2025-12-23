@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/database/database_helper.dart';
+import '../../core/repositories/suppliers_repository.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -71,6 +72,7 @@ class PurchaseTab extends StatefulWidget {
 class _PurchaseTabState extends State<PurchaseTab> {
   List<Map<String, dynamic>> _suppliers = [];
   String? _selectedSupplierId;
+  late final SuppliersRepository _suppliersRepository;
 
   @override
   void initState() {
@@ -81,7 +83,7 @@ class _PurchaseTabState extends State<PurchaseTab> {
   Future<void> _loadSuppliers() async {
     // Note: If you have thousands of suppliers, this dropdown should strictly 
     // be replaced with a Searchable Dialog. For <500 suppliers, this is fine.
-    final data = await DatabaseHelper.instance.getSuppliers();
+    final data = await _suppliersRepository.getSuppliers();
     if (mounted) {
       setState(() {
         _suppliers = data;

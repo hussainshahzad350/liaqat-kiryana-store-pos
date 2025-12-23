@@ -1446,4 +1446,22 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get refresh => 'ریفرش';
+
+  @override
+  String get saveChangesSuccess => 'تبدیلی کامیابی سے محفوظ ہو گئی ہے';
+
+  @override
+  String get fieldRequired => 'فیلڈ ضروری ہے';
+
+  @override
+  String get noDataAvailable => 'کوئی ڈیتا موجود نہں';
+
+  @override
+  String get dbSize => 'ڈیٹا بیس سائز';
+
+  @override
+  String get selectPaymentMethod => 'ادائیگی کا طریقہ کار';
+
+  @override
+  String get confirmPayment => 'ادائیگی کنفرم؟';
 }

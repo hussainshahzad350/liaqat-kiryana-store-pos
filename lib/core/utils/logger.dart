@@ -1,6 +1,3 @@
-// یہ فائل بنائیں
-// ignore_for_file: avoid_print
-
 class AppLogger {
   static const bool isDebug = true;
   

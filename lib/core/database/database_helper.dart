@@ -69,7 +69,7 @@ class DatabaseHelper {
              await db.execute("ALTER TABLE customers ADD COLUMN email TEXT");
           }
           if (!await _columnExists(db, 'sales', 'discount')) {
-             await db.execute("ALTER TABLE sales ADD COLUMN discount REAL DEFAULT 0");
+             await db.execute("ALTER TABLE sales ADD COLUMN discount INTEGER DEFAULT 0");
           }
           AppLogger.db('Performed migration to v2');
           break;
@@ -96,7 +96,7 @@ class DatabaseHelper {
             CREATE TABLE IF NOT EXISTS payments (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               customer_id INTEGER NOT NULL,
-              amount REAL NOT NULL,
+              amount INTEGER NOT NULL,
               date TEXT NOT NULL,
               notes TEXT,
               FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
@@ -162,63 +162,6 @@ class DatabaseHelper {
   }
   return null;
 }
-
-  // ✅ ADD: Separate method for manual backups from SettingsScreen
-  Future<String?> createManualBackup([int maxBackups = 5]) async {
-    final db = await database;
-    try {
-      final String dbPath = db.path;
-      final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final String backupFileName = 'manual_backup_$timestamp.db';
-      final String backupPath = join(dirname(dbPath), backupFileName);
-      
-      AppLogger.db('Creating manual backup: $backupPath');
-
-      // Create backup
-      final file = File(dbPath);
-      if (await file.exists()) {
-        await file.copy(backupPath);
-        AppLogger.info('Manual backup created: $backupPath', tag: 'DB');
-        
-        // Clean old backups
-        await _cleanOldBackups(Directory(dirname(dbPath)), maxBackups);
-        
-        return backupPath;
-      }
-    } catch (e) {
-      AppLogger.error('Manual Backup Failed: $e', tag: 'DB');
-    }
-    return null;
-  }
-
-  // Helper to clean old backups
-  Future<void> _cleanOldBackups(Directory backupDir, int maxBackups) async {
-    try {
-      if (await backupDir.exists()) {
-        final files = await backupDir.list().toList();
-        final backupFiles = files.whereType<File>()
-            .where((file) => file.path.contains('.backup.db'))
-            .toList();
-        
-        // Sort by modified date (oldest first)
-        backupFiles.sort((a, b) {
-          final aStat = a.statSync();
-          final bStat = b.statSync();
-          return aStat.modified.compareTo(bStat.modified);
-        });
-        
-        // Delete oldest files if exceeding maxBackups
-        if (backupFiles.length > maxBackups) {
-          for (int i = 0; i < backupFiles.length - maxBackups; i++) {
-            await backupFiles[i].delete();
-            AppLogger.db('Deleted old backup: ${backupFiles[i].path}');
-          }
-        }
-      }
-    } catch (e) {
-      AppLogger.error('Error cleaning old backups: $e', tag: 'DB');
-    }
-  }
   
   // Helper function to check if a column exists before adding it (prevents crashes)
   Future<bool> _columnExists(Database db, String table, String column) async {
@@ -226,15 +169,6 @@ class DatabaseHelper {
       "PRAGMA table_info($table)"
     );
     return result.any((map) => map['name'] == column);
-  }
-
-  // Helper: Check if a table exists
-  Future<bool> _tableExists(Database db, String tableName) async {
-    final result = await db.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-      [tableName]
-    );
-    return result.isNotEmpty;
   }
 
   Future<void> _createTables(Database db) async {
@@ -269,10 +203,10 @@ class DatabaseHelper {
         name_english TEXT NOT NULL,
         category_id INTEGER,
         unit_type TEXT,
-        min_stock_alert REAL DEFAULT 10,
-        current_stock REAL DEFAULT 0,
-        avg_cost_price REAL DEFAULT 0,
-        sale_price REAL DEFAULT 0,
+        min_stock_alert INTEGER DEFAULT 10,
+        current_stock INTEGER DEFAULT 0,
+        avg_cost_price INTEGER DEFAULT 0,
+        sale_price INTEGER DEFAULT 0,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
@@ -285,8 +219,8 @@ class DatabaseHelper {
         name_urdu TEXT,
         contact_primary TEXT,
         address TEXT,
-        credit_limit REAL DEFAULT 0,
-        outstanding_balance REAL DEFAULT 0,
+        credit_limit INTEGER DEFAULT 0,
+        outstanding_balance INTEGER DEFAULT 0,
         is_active INTEGER DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
@@ -300,13 +234,13 @@ class DatabaseHelper {
         customer_id INTEGER,
         sale_date TEXT NOT NULL,
         sale_time TEXT NOT NULL,
-        grand_total REAL NOT NULL DEFAULT 0.0,
-        cash_amount REAL NOT NULL DEFAULT 0.0,
-        bank_amount REAL NOT NULL DEFAULT 0.0,
-        credit_amount REAL NOT NULL DEFAULT 0.0,
-        total_paid REAL NOT NULL DEFAULT 0.0,
-        remaining_balance REAL NOT NULL DEFAULT 0.0,
-        discount REAL DEFAULT 0,
+        grand_total INTEGER NOT NULL DEFAULT 0.0,
+        cash_amount INTEGER NOT NULL DEFAULT 0.0,
+        bank_amount INTEGER NOT NULL DEFAULT 0.0,
+        credit_amount INTEGER NOT NULL DEFAULT 0.0,
+        total_paid INTEGER NOT NULL DEFAULT 0.0,
+        remaining_balance INTEGER NOT NULL DEFAULT 0.0,
+        discount INTEGER DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
         updated_at TEXT,
         status TEXT NOT NULL DEFAULT 'COMPLETED',
@@ -323,9 +257,9 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         sale_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
-        quantity_sold REAL NOT NULL,
-        unit_price REAL NOT NULL,
-        total_price REAL NOT NULL,
+        quantity_sold INTEGER NOT NULL,
+        unit_price INTEGER NOT NULL,
+        total_price INTEGER NOT NULL,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
@@ -338,7 +272,7 @@ class DatabaseHelper {
         name_urdu TEXT,
         contact_primary TEXT,
         address TEXT,
-        outstanding_balance REAL DEFAULT 0,
+        outstanding_balance INTEGER DEFAULT 0,
         is_active INTEGER DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
@@ -352,8 +286,8 @@ class DatabaseHelper {
         transaction_time TEXT NOT NULL,
         description TEXT NOT NULL,
         type TEXT NOT NULL, -- 'IN' or 'OUT'
-        amount REAL NOT NULL,
-        balance_after REAL, 
+        amount INTEGER NOT NULL,
+        balance_after INTEGER, 
         remarks TEXT
       )
     ''');
@@ -363,7 +297,7 @@ class DatabaseHelper {
       CREATE TABLE IF NOT EXISTS payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_id INTEGER NOT NULL,
-        amount REAL NOT NULL,
+        amount INTEGER NOT NULL,
         date TEXT NOT NULL,
         notes TEXT,
         FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
@@ -446,24 +380,6 @@ class DatabaseHelper {
   // =======================================================
   //         DASHBOARD & REPORTS QUERIES (FIXED & ADDED)
   // =======================================================
-  
-  // FIX: getTodaySales (Missing method fix)
-  Future<double> getTodaySales() async {
-  try {
-    final db = await database;
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    
-    // ✅ FIXED: Only sum sales where status is COMPLETED
-    final result = await db.rawQuery(
-      'SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ? AND status = ?',
-      [today, 'COMPLETED']
-    );
-    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
-  } catch (e) {
-    AppLogger.error("Error fetching today's sales: $e", tag: 'DB');
-    return 0.0;
-  }
-  }
 
   Future<double> getCurrentCashBalance() async {
     try {
@@ -510,102 +426,6 @@ class DatabaseHelper {
         'remarks': remarks,
       });
     });
-  }
-
-  Future<void> cancelSale({required int saleId,required String cancelledBy,String? reason,}) async {
-    final db = await database;
-    await db.transaction((txn) async {
-      // 1. Fetch sale (validate)
-      final saleRes = await txn.query(
-        'sales',
-         where: 'id = ? AND status = ?',
-      whereArgs: [saleId, 'COMPLETED'],
-      limit: 1,
-    );
-
-    if (saleRes.isEmpty) {
-      throw Exception('Sale not found or already cancelled');
-    }
-    final sale = saleRes.first;
-    final double cashAmount = (sale['cash_amount'] as num).toDouble();
-    final double creditAmount = (sale['credit_amount'] as num).toDouble();
-    final int? customerId = sale['customer_id'] as int?;
-
-    // 2. Mark sale as CANCELLED
-    await txn.update(
-      'sales',
-      {
-        'status': 'CANCELLED',
-        'cancelled_at': DateTime.now().toIso8601String(),
-        'cancelled_by': cancelledBy,
-        'cancel_reason': reason,
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-      where: 'id = ?',
-      whereArgs: [saleId],
-    );
-
-    // 3. Revert stock
-    final items = await txn.query(
-      'sale_items',
-      where: 'sale_id = ?',
-      whereArgs: [saleId],
-    );
-
-    for (final item in items) {
-      await txn.rawUpdate(
-        '''
-        UPDATE products
-        SET current_stock = current_stock + ?
-        WHERE id = ?
-        ''',
-        [
-          (item['quantity_sold'] as num).toDouble(),
-          item['product_id']
-        ],
-      );
-    }
-
-    // 4. Reverse customer credit (if any)
-    if (customerId != null && creditAmount > 0) {
-      await txn.rawUpdate(
-        '''
-        UPDATE customers
-        SET outstanding_balance = outstanding_balance - ?
-        WHERE id = ?
-        ''',
-        [creditAmount, customerId],
-      );
-    }
-    // 5. Reverse cash (ledger entry – do NOT delete old one)
-    if (cashAmount > 0) {
-      final now = DateTime.now();
-      final dateStr = DateFormat('yyyy-MM-dd').format(now);
-      final timeStr = DateFormat('hh:mm a').format(now);
-
-      // get last balance
-      final balRes = await txn.rawQuery(
-        'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
-      );
-
-      double currentBalance = 0.0;
-      if (balRes.isNotEmpty) {
-        currentBalance = (balRes.first['balance_after'] as num).toDouble();
-      }
-
-      final newBalance = currentBalance - cashAmount;
-
-      await txn.insert('cash_ledger', {
-        'transaction_date': dateStr,
-        'transaction_time': timeStr,
-        'description': 'Sale Cancelled (Bill #${sale['bill_number']})',
-        'type': 'OUT',
-        'amount': cashAmount,
-        'balance_after': newBalance,
-        'remarks': reason ?? 'Sale cancellation',
-      });
-    }
-  });
   }
 
   Future<List<Map<String, dynamic>>> getCashLedger({int limit = 50, int offset = 0}) async {
@@ -713,69 +533,6 @@ class DatabaseHelper {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getBackupFiles() async {
-  try {
-    final db = await database;
-    final String dbPath = db.path;
-    final String dbDir = dirname(dbPath);
-    final Directory dir = Directory(dbDir);
-    
-    List<Map<String, dynamic>> backups = [];
-    
-    if (await dir.exists()) {
-      final files = await dir.list().toList();
-      
-      for (var file in files) {
-        if (file is File && file.path.contains('.backup.db')) {
-          final stat = await file.stat();
-          backups.add({
-            'path': file.path,
-            'name': basename(file.path),
-            'size': stat.size,
-            'modified': stat.modified,
-          });
-        }
-      }
-      
-      // Sort by modified date (newest first)
-      backups.sort((a, b) => b['modified'].compareTo(a['modified']));
-    }
-    
-    return backups;
-  } catch (e) {
-    AppLogger.error('Error getting backup files: $e', tag: 'DB');
-    return [];
-  }
-  }
-
-  Future<bool> restoreBackup(String backupPath) async {
-  try {
-    final db = await database;
-    final String currentDbPath = db.path;
-    
-    // 1. Close current database
-    await db.close();
-    
-    // 2. Backup current database first (just in case)
-    final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    final String emergencyBackup = '$currentDbPath.emergency.$timestamp.bak';
-    await File(currentDbPath).copy(emergencyBackup);
-    
-    // 3. Copy backup file over current database
-    await File(backupPath).copy(currentDbPath);
-    
-    // 4. Re-open database
-    _database = null;
-    await database; // This will reinitialize
-    
-    AppLogger.info('Database restored from: $backupPath', tag: 'DB');
-    return true;
-  } catch (e) {
-    AppLogger.error('Restore Failed: $e', tag: 'DB');
-    return false;
-  }
-  }
-
   // --- GROUPED LEDGER LOGIC ---
   Future<List<Map<String, dynamic>>> getCustomerLedgerGrouped(int customerId) async {
     final db = await database;
@@ -869,273 +626,10 @@ class DatabaseHelper {
     return finalLedger.reversed.toList();
   }
 
-  Future<List<Map<String, dynamic>>> getRecentActivities({int limit = 10}) async {
-  final db = await database;
-  
-  List<Map<String, dynamic>> activities = [];
-  
-  try {
-    // 1. Recent Sales (today)
-    final sales = await db.rawQuery('''
-      SELECT 
-        'SALE' as activity_type,
-        s.bill_number as title,
-        COALESCE(c.name_english, c.name_urdu, 'Cash Sale') as customer_name,
-        s.grand_total as amount,
-        s.sale_date || ' ' || s.sale_time as timestamp,
-        s.status as status
-      FROM sales s
-      LEFT JOIN customers c ON s.customer_id = c.id
-      WHERE DATE(s.sale_date) = DATE('now', 'localtime')
-      ORDER BY s.sale_time DESC
-      LIMIT 5
-    ''');
-    
-    // 2. Recent Payments (today) - FIXED table name
-    final payments = await db.rawQuery('''
-      SELECT 
-        'PAYMENT' as activity_type,
-        COALESCE(c.name_english, c.name_urdu, 'Unknown') as title,
-        c.name_urdu as customer_name_urdu,
-        p.amount as amount,
-        p.date || ' 00:00' as timestamp,
-        'COMPLETED' as status
-      FROM payments p
-      JOIN customers c ON p.customer_id = c.id
-      WHERE DATE(p.date) = DATE('now', 'localtime')
-      ORDER BY p.date DESC
-      LIMIT 5
-    ''');
-    
-    // 3. Low Stock Alerts (current) - FIXED table name
-    final lowStockAlerts = await db.rawQuery('''
-      SELECT 
-        'ALERT' as activity_type,
-        COALESCE(p.name_english, p.name_urdu) as title,
-        p.current_stock as stock_level,
-        p.min_stock_alert as min_level,
-        p.unit_type as unit_name,
-        datetime('now', 'localtime') as timestamp,
-        'URGENT' as status
-      FROM products p
-      WHERE p.current_stock <= p.min_stock_alert
-      ORDER BY (p.current_stock * 1.0 / p.min_stock_alert) ASC
-      LIMIT 3
-    ''');
-    
-    // Combine all activities
-    activities.addAll(sales);
-    activities.addAll(payments);
-    activities.addAll(lowStockAlerts);
-    
-    // Sort by timestamp (most recent first)
-    activities.sort((a, b) {
-      final aTime = a['timestamp']?.toString() ?? '';
-      final bTime = b['timestamp']?.toString() ?? '';
-      return bTime.compareTo(aTime);
-    });
-    
-    // Return limited results
-    return activities.take(limit).toList();
-    
-  } catch (e) {
-    print('Error getting recent activities: $e');
-    return [];
-  }
-  }
-
   // =======================================================
   //         CORE TRANSACTION & CRUD METHODS
   // =======================================================
   
-  // FIX: Atomic and Validated Sale Creation (Tasks 3, 4, 5, 8 Fixes)
-  Future<void> createSale(Map<String, dynamic> saleData) async {
-    final db = await database;
-    
-    // NOTE: Removed non-atomic timestamp based generation.
-    // We now use the SQLite ID to generate sequential Bill Numbers atomically.
-    // 1. Prepare Financials
-    double grandTotal = (saleData['grand_total'] as num).toDouble();
-    double cash = (saleData['cash_amount'] as num?)?.toDouble() ?? 0.0;
-    double bank = (saleData['bank_amount'] as num?)?.toDouble() ?? 0.0;
-    
-    double totalPaid = cash + bank;
-    double remainingBalance = grandTotal - totalPaid;
-
-    if (remainingBalance < 0) remainingBalance = 0;
-
-    // 2. Prepare Date Components for Bill Number
-
-    final now = DateTime.now();
-    final String yy = (now.year % 100).toString(); // e.g., '25'
-    final String mm = now.month.toString().padLeft(2, '0'); // e.g., '12'
-
-    // sale_date and sale_time logic
-    final String saleDate = DateFormat('yyyy-MM-dd').format(now);
-    final String saleTime = DateFormat('HH:mm').format(now);
-
-    try {
-      await db.transaction((txn) async {
-        // ---------------------------------------------------------
-        // Step A: Insert with Temporary Bill Number
-        // ---------------------------------------------------------
-        // We use a temp string to satisfy the NOT NULL constraint.
-        // The real ID is generated by SQLite here.
-        final tempBillNo = 'TEMP-${now.microsecondsSinceEpoch}';
-
-        final saleId = await txn.insert('sales', {
-          'bill_number': tempBillNo, 
-          'customer_id': saleData['customer_id'],
-          'sale_date': saleDate,
-          'sale_time': saleTime,
-          'grand_total': grandTotal,
-          'discount': saleData['discount'] ?? 0.0,
-          'cash_amount': cash,
-          'bank_amount': bank,
-          'credit_amount': remainingBalance,
-          'total_paid': totalPaid,
-          'remaining_balance': remainingBalance,
-        });
-
-        // ---------------------------------------------------------
-        // Step B: Generate Final Atomic Bill Number (SB-YYMMXXXXXX)
-        // ---------------------------------------------------------
-        // format: SB + Year(25) + Month(12) + ID(000001)
-        // Example: SB-2512000001
-        final String sequence = saleId.toString().padLeft(4, '0');
-        final String finalBillNumber = 'SB-$yy$mm$sequence';
-
-        // ---------------------------------------------------------
-        // Step C: Update the Sale Record with Final Bill Number
-        // ---------------------------------------------------------
-
-        await txn.rawUpdate(
-          'UPDATE sales SET bill_number = ? WHERE id = ?',
-          [finalBillNumber, saleId]
-        );
-
-        // ---------------------------------------------------------
-        // Step D: Insert Items & Handle Stock (Atomic)
-        // ---------------------------------------------------------
-
-        // 4. Insert Items & Atomic Stock Deduction (Race Condition & Validation Fix)
-        final items = saleData['items'] as List<Map<String, dynamic>>;
-        for (var item in items) {
-          final productId = item['id'];
-          final quantity = (item['quantity'] as num).toDouble();
-
-          await txn.insert('sale_items', {
-            'sale_id': saleId,
-            'product_id': productId,
-            'quantity_sold': quantity,
-            'unit_price': item['sale_price'],
-            'total_price': item['total'],
-          });
-
-          // Atomic check and update: ensures stock is > quantity and prevents race condition
-          int count = await txn.rawUpdate('''
-            UPDATE products 
-            SET current_stock = current_stock - ? 
-            WHERE id = ? AND current_stock >= ?
-          ''', [quantity, productId, quantity]);
-
-          if (count == 0) {
-            throw Exception('Insufficient stock or invalid product ID: $productId');
-          }
-        }
-
-        // 5. Update Customer Balance (Debt Fix)
-        if (saleData['customer_id'] != null && remainingBalance > 0) {
-           await txn.rawUpdate(
-             'UPDATE customers SET outstanding_balance = outstanding_balance + ? WHERE id = ?',
-             [remainingBalance, saleData['customer_id']]
-           );
-        }
-      });
-      AppLogger.info('Sale created successfully', tag: 'DB');
-    } catch (e) {
-      AppLogger.error('Error creating sale: $e', tag: 'DB');
-      throw Exception('Transaction Failed: ${e.toString()}');
-    }
-  }
-
-  // --- Utility Getters ---
-
-  Future<Map<String, dynamic>> getDashboardData() async {
-    final db = await database;
-    final batch = db.batch();
-    
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-    // 1. Today's Sales Total
-    batch.rawQuery('SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ? AND status = ?', [today, 'COMPLETED']);
-
-    // 2. Today's Top Customers
-    batch.rawQuery('''
-      SELECT 
-        c.name_urdu, 
-        c.name_english, 
-        SUM(s.grand_total) as total_amount,
-        COUNT(s.id) as sale_count
-      FROM sales s
-      LEFT JOIN customers c ON s.customer_id = c.id
-      WHERE s.sale_date = ? AND c.id IS NOT NULL AND s.status = 'COMPLETED'
-      GROUP BY c.id
-      ORDER BY total_amount DESC
-      LIMIT 5
-  ''', [today]);
-
-    // 3. Low Stock Items
-    batch.rawQuery('''
-      SELECT 
-        name_urdu, 
-        name_english, 
-        current_stock, 
-        min_stock_alert,
-        sale_price
-      FROM products 
-      WHERE current_stock > 0 AND current_stock <= min_stock_alert
-      ORDER BY (current_stock / min_stock_alert) ASC
-      LIMIT 5
-  ''');
-
-    // 4. Recent Sales
-    batch.rawQuery('''
-      SELECT 
-        s.id,
-        s.bill_number,
-        s.status, 
-        s.grand_total, 
-        s.sale_time,
-        COALESCE(c.name_urdu, c.name_english, 'Walk-in Customer') as customer_name
-      FROM sales s
-      LEFT JOIN customers c ON s.customer_id = c.id
-      ORDER BY s.created_at DESC
-      LIMIT 5
-  ''');
-
-    final results = await batch.commit();
-
-    // Parse results safely
-    return {
-      'todaySales': (results[0] as List).isNotEmpty 
-          ? ((results[0] as List).first['total'] as num?)?.toDouble() ?? 0.0  
-          : 0.0,
-      'todayCustomers': (results[1] as List).map((e) => e as Map<String, dynamic>).toList(),
-      'lowStockItems': (results[2] as List).map((e) => e as Map<String, dynamic>).toList(),
-      'recentSales': (results[3] as List).map((e) => e as Map<String, dynamic>).toList(),
-    };
-  }
-
-  Future<List<Map<String, dynamic>>> getSuppliers() async {
-    try {
-      final db = await database;
-      return await db.query('suppliers', orderBy: 'name_english ASC');
-    } catch (e) {
-      AppLogger.error('Error getting suppliers: $e', tag: 'DB');
-      return [];
-    }
-  }
 
   Future<List<Map<String, dynamic>>> getAllItems() async {
      try {
