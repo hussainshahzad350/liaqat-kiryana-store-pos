@@ -2,8 +2,9 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import '../../core/database/database_helper.dart';
+import 'package:liaqat_store/core/repositories/cash_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/cash_ledger_model.dart';
 
 class CashLedgerScreen extends StatefulWidget {
   const CashLedgerScreen({super.key});
@@ -13,7 +14,8 @@ class CashLedgerScreen extends StatefulWidget {
 }
 
 class _CashLedgerScreenState extends State<CashLedgerScreen> {
-  List<Map<String, dynamic>> ledgerEntries = [];
+  final CashRepository _cashRepository = CashRepository();
+  List<CashLedger> ledgerEntries = [];
   double currentBalance = 0.0;
   
   // Pagination
@@ -55,10 +57,10 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
     });
     
     // Load Balance
-    final bal = await DatabaseHelper.instance.getCurrentCashBalance();
+    final bal = await _cashRepository.getCurrentCashBalance();
     
     // Load List
-    final data = await DatabaseHelper.instance.getCashLedger(limit: _limit, offset: 0);
+    final data = await _cashRepository.getCashLedger(limit: _limit, offset: 0);
     
     if (!mounted) return;
     setState(() {
@@ -74,7 +76,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
     setState(() => _isLoadMoreRunning = true);
 
     _page++;
-    final data = await DatabaseHelper.instance.getCashLedger(
+    final data = await _cashRepository.getCashLedger(
       limit: _limit, 
       offset: _page * _limit
     );
@@ -132,7 +134,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
             onPressed: () async {
               final amount = double.tryParse(amountCtrl.text) ?? 0.0;
               if (amount > 0 && descCtrl.text.isNotEmpty) {
-                await DatabaseHelper.instance.addCashEntry(
+                await _cashRepository.addCashEntry(
                   descCtrl.text, 
                   type, 
                   amount, 
@@ -204,7 +206,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                         }
 
                         final entry = ledgerEntries[index];
-                        final isIncome = entry['type'] == 'IN';
+                        final isIncome = entry.isInflow;
 
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -216,14 +218,14 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                 color: isIncome ? Colors.green : Colors.red,
                               ),
                             ),
-                            title: Text(entry['description'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('${entry['transaction_date']} | ${entry['transaction_time']}'),
+                            title: Text(entry.description, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('${entry.transactionDate} | ${entry.transactionTime}'),
                             trailing: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  '${isIncome ? '+' : '-'} ${entry['amount']}',
+                                  '${isIncome ? '+' : '-'} ${entry.amount}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: isIncome ? Colors.green : Colors.red,
@@ -231,7 +233,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'Bal: ${entry['balance_after']?.toStringAsFixed(0)}',
+                                  'Bal: ${entry.balanceAfter?.toStringAsFixed(0)}',
                                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                                 ),
                               ],

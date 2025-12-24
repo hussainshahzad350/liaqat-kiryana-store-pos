@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
-import '../../core/database/database_helper.dart';
+import '../../core/repositories/sales_repository.dart';
+import '../../core/repositories/customers_repository.dart';
+import '../../core/repositories/items_repository.dart';
 import '../sales/sales_screen.dart';
 import '../stock/stock_screen.dart';
 import '../items/items_screen.dart';
@@ -17,7 +19,6 @@ import '../units/units_screen.dart';
 import '../reports/reports_screen.dart';
 import '../cash_ledger/cash_ledger_screen.dart';
 import '../settings/settings_screen.dart';
-import '../../core/repositories/sales_repository.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,6 +29,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final SalesRepository _salesRepository = SalesRepository();
+  final CustomersRepository _customersRepository = CustomersRepository();
+  final ItemsRepository _itemsRepository = ItemsRepository();
   // State variables
   String currentTime = '';
   String currentDate = '';
@@ -73,11 +76,10 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final dbHelper = DatabaseHelper.instance;
       final results = await Future.wait([
         _salesRepository.getTodaySales(),
-        dbHelper.getTodayCustomers(),
-        dbHelper.getLowStockItems(),
+        _customersRepository.getTodayCustomers(),
+        _itemsRepository.getLowStockItems(),
         _salesRepository.getRecentActivities(limit: 10),
       ]);
 

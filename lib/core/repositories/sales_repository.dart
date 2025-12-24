@@ -1,5 +1,4 @@
 // lib/core/repositories/sales_repository.dart
-import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
 import '../../models/sale_model.dart';
 import 'package:intl/intl.dart';
@@ -216,12 +215,13 @@ class SalesRepository {
   // ========================================
 
   /// Fetch recent sales with customer info
-  Future<List<Map<String, dynamic>>> getRecentSales({int limit = 20}) async {
+  Future<List<Sale>> getRecentSales({int limit = 20}) async {
     final db = await _dbHelper.database;
-    return await db.rawQuery('''
+    final result = await db.rawQuery('''
       SELECT 
         s.id, 
         s.bill_number, 
+        s.sale_date,
         s.sale_time, 
         s.grand_total, 
         s.cash_amount, 
@@ -234,6 +234,7 @@ class SalesRepository {
       ORDER BY s.created_at DESC
       LIMIT ?
     ''', [limit]);
+    return result.map((map) => Sale.fromMap(map)).toList();
   }
 
   /// Get today's sales total
@@ -255,7 +256,7 @@ class SalesRepository {
   }
 
   /// Get sale by ID with all details
-  Future<Map<String, dynamic>?> getSaleById(int saleId) async {
+  Future<Sale?> getSaleById(int saleId) async {
     final db = await _dbHelper.database;
     final result = await db.query(
       'sales',
@@ -265,32 +266,36 @@ class SalesRepository {
     );
     
     if (result.isEmpty) return null;
-    return result.first;
+    return Sale.fromMap(result.first);
   }
 
   /// Get sale items for a specific sale
-  Future<List<Map<String, dynamic>>> getSaleItems(int saleId) async {
+  Future<List<SaleItem>> getSaleItems(int saleId) async {
     final db = await _dbHelper.database;
-    return await db.rawQuery('''
+    final result = await db.rawQuery('''
       SELECT 
-        si.*,
-        p.name_english,
-        p.name_urdu,
-        p.unit_type
+        si.id,
+        si.sale_id,
+        si.product_id as itemId,
+        COALESCE(p.name_english, p.name_urdu) as name,
+        si.quantity_sold as quantity,
+        si.unit_price as price,
+        si.total_price as total
       FROM sale_items si
       JOIN products p ON si.product_id = p.id
       WHERE si.sale_id = ?
       ORDER BY si.id
     ''', [saleId]);
+    return result.map((map) => SaleItem.fromMap(map)).toList();
   }
 
   /// Get sales by date range
-  Future<List<Map<String, dynamic>>> getSalesByDateRange(
+  Future<List<Sale>> getSalesByDateRange(
     String startDate,
     String endDate,
   ) async {
     final db = await _dbHelper.database;
-    return await db.rawQuery('''
+    final result = await db.rawQuery('''
       SELECT 
         s.*,
         COALESCE(c.name_english, 'Walk-in Customer') as customer_name
@@ -300,12 +305,13 @@ class SalesRepository {
       AND s.status = 'COMPLETED'
       ORDER BY s.sale_date DESC, s.sale_time DESC
     ''', [startDate, endDate]);
+    return result.map((map) => Sale.fromMap(map)).toList();
   }
 
   /// Get sales by customer
-  Future<List<Map<String, dynamic>>> getSalesByCustomer(int customerId) async {
+  Future<List<Sale>> getSalesByCustomer(int customerId) async {
     final db = await _dbHelper.database;
-    return await db.rawQuery('''
+    final result = await db.rawQuery('''
       SELECT 
         s.*,
         c.name_english as customer_name
@@ -315,6 +321,7 @@ class SalesRepository {
       AND s.status = 'COMPLETED'
       ORDER BY s.sale_date DESC, s.sale_time DESC
     ''', [customerId]);
+    return result.map((map) => Sale.fromMap(map)).toList();
   }
 
   // ========================================

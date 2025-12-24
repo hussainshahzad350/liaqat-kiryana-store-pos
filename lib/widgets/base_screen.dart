@@ -1,7 +1,6 @@
 // lib/widgets/base_screen.dart
 
 import 'package:flutter/material.dart';
-import '../l10n/app_localizations.dart';
 import 'app_navigation_sidebar.dart';
 
 class BaseScreen extends StatefulWidget {
@@ -27,8 +26,6 @@ class _BaseScreenState extends State<BaseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
-    
     return Scaffold(
       body: Row(
         children: [

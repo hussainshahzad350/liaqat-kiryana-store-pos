@@ -1,10 +1,8 @@
 // lib/screens/settings/settings_screen.dart
 
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' show join, basename, dirname;
+import 'package:path/path.dart' show basename;
 import 'package:intl/intl.dart';
-import 'package:sqflite/sqflite.dart' as sql;
 import '../../l10n/app_localizations.dart';
 import '../../main.dart';
 import '../../core/utils/logger.dart';
@@ -125,9 +123,10 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
     };
     await widget.repository.updateShopProfile(data);
     if (mounted) {
+      final loc = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.saveChangesSuccess),
+          content: Text(loc.saveChangesSuccess),
           backgroundColor: Colors.green,
         ),
       );
@@ -329,21 +328,22 @@ class _BackupTabState extends State<BackupTab> {
 
   Future<void> _confirmRestore(String backupPath) async {
     final fileName = basename(backupPath);
+    final loc = AppLocalizations.of(context)!;
   
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.restoreBackup),
-        content: Text('${AppLocalizations.of(context)!.restoreConfirm}\n\n$fileName?\n\n${AppLocalizations.of(context)!.restoreWarning}'),
+        title: Text(loc.restoreBackup),
+        content: Text('${loc.restoreConfirm}\n\n$fileName?\n\n${loc.restoreWarning}'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: Text(loc.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text(AppLocalizations.of(context)!.restore, style: const TextStyle(color: Colors.white)),
+            child: Text(loc.restore, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -355,11 +355,12 @@ class _BackupTabState extends State<BackupTab> {
       if(mounted) setState(() => isLoading = false);
       
       if (mounted) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(success 
-              ? AppLocalizations.of(context)!.restoreSuccess
-              : AppLocalizations.of(context)!.restoreFailed),
+              ? loc.restoreSuccess
+              : loc.restoreFailed),
             backgroundColor: success ? Colors.green : Colors.red,
           )
         );
@@ -373,21 +374,22 @@ class _BackupTabState extends State<BackupTab> {
 
   Future<void> _confirmDelete(String backupPath) async {
     final fileName = basename(backupPath);
+    final loc = AppLocalizations.of(context)!;
   
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.deleteBackup),
-        content: Text('${AppLocalizations.of(context)!.deleteConfirm}\n\n$fileName?'),
+        title: Text(loc.deleteBackup),
+        content: Text('${loc.deleteConfirm}\n\n$fileName?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: Text(loc.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.white)),
+            child: Text(loc.delete, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -396,9 +398,10 @@ class _BackupTabState extends State<BackupTab> {
     if (confirm == true) {
       final success = await widget.repository.deleteBackup(backupPath);
        if (mounted) {
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(success ? AppLocalizations.of(context)!.backupDeleted : AppLocalizations.of(context)!.deleteFailed),
+              content: Text(success ? loc.backupDeleted : loc.deleteFailed),
               backgroundColor: success ? Colors.green : Colors.red,
             )
           );
@@ -468,6 +471,7 @@ class _BackupTabState extends State<BackupTab> {
 
                         if (!mounted) return;
                         
+                        // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(success
@@ -1101,17 +1105,7 @@ class AboutTab extends StatelessWidget {
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(onPressed: () async {
-                      final success = await repository.vacuumDatabase();
-                       if(context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(success ? "Database Optimized" : "Optimization failed"), backgroundColor: success ? Colors.green : Colors.red,)
-                          );
-                       }
-                    }, child: Text(loc.repairDb)),
-                  ),
+                  _VacuumDatabaseButton(repository: repository, loc: loc),
                   const SizedBox(height: 5),
                   SizedBox(
                     width: double.infinity,
@@ -1195,6 +1189,40 @@ class AboutTab extends StatelessWidget {
 }
 
 // ==================== Helper Widgets ====================
+
+class _VacuumDatabaseButton extends StatefulWidget {
+  final SettingsRepository repository;
+  final AppLocalizations loc;
+
+  const _VacuumDatabaseButton({required this.repository, required this.loc});
+
+  @override
+  State<_VacuumDatabaseButton> createState() => _VacuumDatabaseButtonState();
+}
+
+class _VacuumDatabaseButtonState extends State<_VacuumDatabaseButton> {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () async {
+          final success = await widget.repository.vacuumDatabase();
+          if (mounted) {
+            // ignore: use_build_context_synchronously
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(success ? "Database Optimized" : "Optimization failed"),
+                backgroundColor: success ? Colors.green : Colors.red,
+              ),
+            );
+          }
+        },
+        child: Text(widget.loc.repairDb),
+      ),
+    );
+  }
+}
 
 class BackupItem extends StatelessWidget {
   final String fileName;

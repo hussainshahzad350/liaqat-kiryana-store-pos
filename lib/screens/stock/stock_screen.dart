@@ -3,8 +3,8 @@
 
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
-import '../../core/database/database_helper.dart';
 import '../../core/repositories/suppliers_repository.dart';
+import '../../core/repositories/items_repository.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -232,6 +232,9 @@ class StockViewTab extends StatefulWidget {
 }
 
 class _StockViewTabState extends State<StockViewTab> {
+  // Repository
+  final ItemsRepository _itemsRepository = ItemsRepository();
+  
   // Pagination State
   List<Map<String, dynamic>> items = [];
   bool _isFirstLoadRunning = true;
@@ -273,8 +276,8 @@ class _StockViewTabState extends State<StockViewTab> {
   }
 
   Future<void> _loadStats() async {
-    final count = await DatabaseHelper.instance.getTotalProductsCount();
-    final value = await DatabaseHelper.instance.getTotalStockValue();
+    final count = await _itemsRepository.getTotalProductsCount();
+    final value = await _itemsRepository.getTotalStockValue();
     if (mounted) {
       setState(() {
         _totalItemsCount = count;
@@ -292,32 +295,19 @@ class _StockViewTabState extends State<StockViewTab> {
     });
 
     try {
-      final db = await DatabaseHelper.instance.database;
       final query = _searchController.text.trim();
       
       List<Map<String, dynamic>> result;
       
       if (query.isNotEmpty) {
-        result = await db.query(
-          'products',
-          where: 'name_english LIKE ? OR name_urdu LIKE ?',
-          whereArgs: ['%$query%', '%$query%'],
-          orderBy: 'name_english ASC',
-          limit: _limit,
-          offset: 0,
-        );
+        result = await _itemsRepository.searchProducts(query);
       } else {
-        result = await db.query(
-          'products',
-          orderBy: 'name_english ASC',
-          limit: _limit,
-          offset: 0,
-        );
+        result = await _itemsRepository.getAllProducts();
       }
 
       if (!mounted) return;
       setState(() {
-        items = result;
+        items = result.length > _limit ? result.sublist(0, _limit) : result;
         _isFirstLoadRunning = false;
         if (result.length < _limit) _hasNextPage = false;
       });
@@ -331,38 +321,32 @@ class _StockViewTabState extends State<StockViewTab> {
     setState(() => _isLoadMoreRunning = true);
 
     try {
-      final db = await DatabaseHelper.instance.database;
       final query = _searchController.text.trim();
       _page++;
       final offset = _page * _limit;
 
       List<Map<String, dynamic>> result;
       if (query.isNotEmpty) {
-        result = await db.query(
-          'products',
-          where: 'name_english LIKE ? OR name_urdu LIKE ?',
-          whereArgs: ['%$query%', '%$query%'],
-          orderBy: 'name_english ASC',
-          limit: _limit,
-          offset: offset,
-        );
+        result = await _itemsRepository.searchProducts(query);
       } else {
-        result = await db.query(
-          'products',
-          orderBy: 'name_english ASC',
-          limit: _limit,
-          offset: offset,
-        );
+        result = await _itemsRepository.getAllProducts();
       }
+
+      // Implement client-side pagination
+      final startIndex = offset;
+      final endIndex = (offset + _limit).clamp(0, result.length);
+      final paginatedResult = startIndex < result.length 
+          ? result.sublist(startIndex, endIndex) 
+          : <Map<String, dynamic>>[];
 
       if (!mounted) return;
       setState(() {
-        if (result.isNotEmpty) {
-          items.addAll(result);
+        if (paginatedResult.isNotEmpty) {
+          items.addAll(paginatedResult);
         } else {
           _hasNextPage = false;
         }
-        if (result.length < _limit) _hasNextPage = false;
+        if (paginatedResult.length < _limit) _hasNextPage = false;
         _isLoadMoreRunning = false;
       });
     } catch (e) {

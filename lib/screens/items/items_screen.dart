@@ -2,8 +2,9 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import '../../core/database/database_helper.dart';
+import '../../core/repositories/items_repository.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/product_model.dart';
 
 class ItemsScreen extends StatefulWidget {
   const ItemsScreen({super.key});
@@ -13,12 +14,12 @@ class ItemsScreen extends StatefulWidget {
 }
 
 class _ItemsScreenState extends State<ItemsScreen> {
+  final ItemsRepository _itemsRepository = ItemsRepository();
   // Pagination & Data State
-  List<Map<String, dynamic>> items = [];
+  List<Product> items = [];
   bool _isFirstLoadRunning = true;
   bool _hasNextPage = true;
   bool _isLoadMoreRunning = false;
-  int _page = 0;
   final int _limit = 20;
 
   late ScrollController _scrollController;
@@ -53,35 +54,19 @@ class _ItemsScreenState extends State<ItemsScreen> {
   Future<void> _firstLoad() async {
     setState(() {
       _isFirstLoadRunning = true;
-      _page = 0;
       _hasNextPage = true;
       items = [];
     });
 
     try {
-      final db = await DatabaseHelper.instance.database;
       final String searchQuery = searchController.text.trim();
       
-      List<Map<String, dynamic>> result;
+      List<Product> result;
       
       if (searchQuery.isNotEmpty) {
-        // FIX: DB-Side Search for Scalability
-        result = await db.query(
-          'products',
-          where: 'name_english LIKE ? OR name_urdu LIKE ?',
-          whereArgs: ['%$searchQuery%', '%$searchQuery%'],
-          orderBy: 'name_english ASC',
-          limit: _limit,
-          offset: 0,
-        );
+        result = await _itemsRepository.searchProducts(searchQuery);
       } else {
-        // FIX: Pagination (Limit/Offset)
-        result = await db.query(
-          'products',
-          orderBy: 'name_english ASC',
-          limit: _limit,
-          offset: 0,
-        );
+        result = await _itemsRepository.getAllProducts();
       }
 
       if (!mounted) return;
@@ -105,29 +90,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
     setState(() => _isLoadMoreRunning = true);
 
     try {
-      final db = await DatabaseHelper.instance.database;
       final String searchQuery = searchController.text.trim();
-      _page += 1; // Increment page for offset calculation
-      final int offset = _page * _limit;
 
-      List<Map<String, dynamic>> result;
+      List<Product> result;
       
       if (searchQuery.isNotEmpty) {
-        result = await db.query(
-          'products',
-          where: 'name_english LIKE ? OR name_urdu LIKE ?',
-          whereArgs: ['%$searchQuery%', '%$searchQuery%'],
-          orderBy: 'name_english ASC',
-          limit: _limit,
-          offset: offset,
-        );
+        result = await _itemsRepository.searchProducts(searchQuery);
       } else {
-        result = await db.query(
-          'products',
-          orderBy: 'name_english ASC',
-          limit: _limit,
-          offset: offset,
-        );
+        result = await _itemsRepository.getAllProducts();
       }
 
       if (!mounted) return;
@@ -136,11 +106,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
         if (result.isNotEmpty) {
           items.addAll(result);
         } else {
-          _hasNextPage = false;
-        }
-        
-        // If strictly less than limit, end reached
-        if (result.length < _limit) {
           _hasNextPage = false;
         }
         
@@ -212,13 +177,13 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                       decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
                                       child: const Center(child: Icon(Icons.inventory, color: Colors.green)),
                                     ),
-                                    title: Text(item['name_urdu'] ?? item['name_english'] ?? localizations.unknown, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Text('${localizations.stock}: ${item['current_stock']} | ${localizations.price}: ${item['sale_price']}'),
+                                    title: Text(item.nameUrdu ?? item.nameEnglish, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    subtitle: Text('${localizations.stock}: ${item.currentStock} | ${localizations.price}: ${item.salePrice}'),
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showEditItemDialog(item)),
-                                        IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _deleteItem(item['id'])),
+                                        IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _deleteItem(item.id!)),
                                       ],
                                     ),
                                   ),
@@ -284,14 +249,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
           ElevatedButton(
             onPressed: () async {
               if (nameEngController.text.isNotEmpty) {
-                final db = await DatabaseHelper.instance.database;
-                await db.insert('products', {
-                  'name_english': nameEngController.text,
-                  'name_urdu': nameUrduController.text,
-                  'sale_price': double.tryParse(priceController.text) ?? 0,
-                  'current_stock': double.tryParse(stockController.text) ?? 0,
-                  'created_at': DateTime.now().toIso8601String(),
-                });
+                final newProduct = Product(
+                  nameEnglish: nameEngController.text,
+                  nameUrdu: nameUrduController.text,
+                  salePrice: int.tryParse(priceController.text) ?? 0,
+                  currentStock: int.tryParse(stockController.text) ?? 0,
+                );
+                
+                await _itemsRepository.addProduct(newProduct);
                 
                 if (!mounted) return;
                 Navigator.pop(context);
@@ -305,12 +270,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
   }
 
-  void _showEditItemDialog(Map<String, dynamic> item) {
+  void _showEditItemDialog(Product item) {
     final localizations = AppLocalizations.of(context)!;
-    final nameEngController = TextEditingController(text: item['name_english']);
-    final nameUrduController = TextEditingController(text: item['name_urdu']);
-    final priceController = TextEditingController(text: item['sale_price'].toString());
-    final stockController = TextEditingController(text: item['current_stock'].toString());
+    final nameEngController = TextEditingController(text: item.nameEnglish);
+    final nameUrduController = TextEditingController(text: item.nameUrdu);
+    final priceController = TextEditingController(text: item.salePrice.toString());
+    final stockController = TextEditingController(text: item.currentStock.toString());
 
     showDialog(
       context: context,
@@ -334,18 +299,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
           TextButton(onPressed: () => Navigator.pop(context), child: Text(localizations.cancel)),
           ElevatedButton(
             onPressed: () async {
-              final db = await DatabaseHelper.instance.database;
-              await db.update(
-                'products',
-                {
-                  'name_english': nameEngController.text,
-                  'name_urdu': nameUrduController.text,
-                  'sale_price': double.tryParse(priceController.text) ?? 0,
-                  'current_stock': double.tryParse(stockController.text) ?? 0,
-                },
-                where: 'id = ?',
-                whereArgs: [item['id']],
+              final updatedProduct = item.copyWith(
+                nameEnglish: nameEngController.text,
+                nameUrdu: nameUrduController.text,
+                salePrice: int.tryParse(priceController.text) ?? 0,
+                currentStock: int.tryParse(stockController.text) ?? 0,
               );
+              
+              await _itemsRepository.updateProduct(item.id!, updatedProduct);
               
               if (!mounted) return;
               Navigator.pop(context);
@@ -379,8 +340,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     if (confirmed == true) {
       try {
-        final db = await DatabaseHelper.instance.database;
-        await db.delete('products', where: 'id = ?', whereArgs: [id]);
+        await _itemsRepository.deleteProduct(id);
         
         if (!mounted) return;
 

@@ -6,10 +6,12 @@ import 'package:flutter/services.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
 import '../../core/repositories/sales_repository.dart';
-import '../../models/sale_model.dart';
-import '../../core/utils/currency_utils.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../core/repositories/customers_repository.dart';
+import '../../core/utils/currency_utils.dart';
+import '../../models/sale_model.dart';
+import '../../models/product_model.dart';
+import '../../models/customer_model.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -19,12 +21,16 @@ class SalesScreen extends StatefulWidget {
 }
 
 class _SalesScreenState extends State<SalesScreen> {
+  // ========================================
+  // REPOSITORY INSTANCES
+  // ========================================
   final SalesRepository _salesRepository = SalesRepository();
   final ItemsRepository _itemsRepository = ItemsRepository();
   final CustomersRepository _customersRepository = CustomersRepository();
+  
   // --- Data Variables ---
-  List<Map<String, dynamic>> products = [];
-  List<Map<String, dynamic>> customers = [];
+  List<Product> products = [];
+  List<Customer> customers = [];
   List<Map<String, dynamic>> cartItems = []; 
   List<Sale> recentSales = [];
 
@@ -32,8 +38,8 @@ class _SalesScreenState extends State<SalesScreen> {
   final TextEditingController productSearchController = TextEditingController();
   final TextEditingController customerSearchController = TextEditingController();
   
-  List<Map<String, dynamic>> filteredCustomers = [];
-  List<Map<String, dynamic>> filteredProducts = []; 
+  List<Customer> filteredCustomers = [];
+  List<Product> filteredProducts = []; 
   
   bool showCustomerList = false;
   bool showProductList = false; 
@@ -44,7 +50,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
   // --- Selection ---
   int? selectedCustomerId;
-  Map<String, dynamic>? selectedCustomerMap;
+  Customer? selectedCustomerMap;
 
   // --- Totals ---
   double subtotal = 0.0;
@@ -81,7 +87,6 @@ class _SalesScreenState extends State<SalesScreen> {
 
   // --- WillPopScope for back button warning ---
   Future<bool> _onWillPop() async {
-    // Access localization directly
     final loc = AppLocalizations.of(context)!;
 
     if (cartItems.isNotEmpty) {
@@ -107,7 +112,10 @@ class _SalesScreenState extends State<SalesScreen> {
     return true;
   }
 
-  // --- Data Loading ---
+  // ========================================
+  // DATA LOADING - USING REPOSITORIES
+  // ========================================
+  
   Future<void> _refreshAllData() async {
     await Future.wait([
       _loadProducts(),
@@ -116,8 +124,17 @@ class _SalesScreenState extends State<SalesScreen> {
     ]);
   }
 
+  Future<void> _loadProducts() async {
+    final result = await _itemsRepository.getAllProducts();
+    if (mounted) {
+      setState(() {
+        products = result;
+        filteredProducts = result;
+      });
+    }
+  }
+
   Future<void> _loadCustomers() async {
-    // Use Repository
     final result = await _customersRepository.getAllCustomers();
     if (mounted) {
       setState(() {
@@ -127,28 +144,15 @@ class _SalesScreenState extends State<SalesScreen> {
     }
   }
 
-  Future<void> _loadProducts() async {
-    final result = await _itemsRepository.getSellableItems();
-    if (mounted) {
-      setState(() {
-        products = result;
-        filteredProducts = result;
-      });
-    }
-  }
-
   Future<void> _loadRecentSales() async {
     if (!mounted) return;
-    // Use Repository - The repo should handle the complex join query
     final result = await _salesRepository.getRecentSales();
-    if (mounted) setState(() => recentSales = result.map((map) => Sale.fromMap(map)).toList());
+    if (mounted) setState(() => recentSales = result);
   }
 
   // --- Item Search Logic ---
   void _filterProducts(String query) {
-    // Cancel previous timer
     _productSearchDebounce?.cancel();
-    // Set new timer (300ms delay)
     _productSearchDebounce = Timer(const Duration(milliseconds: 300), () {
       if (!mounted) return;
       setState(() {
@@ -159,8 +163,8 @@ class _SalesScreenState extends State<SalesScreen> {
           showProductList = true;
           final q = query.toLowerCase();
           filteredProducts = products.where((p) {
-            final nameEng = (p['name_english'] ?? '').toString().toLowerCase();
-            final itemCode = (p['item_code'] ?? '').toString().toLowerCase();
+            final nameEng = (p.nameEnglish ?? '').toLowerCase();
+            final itemCode = (p.itemCode ?? '').toLowerCase();
             return nameEng.contains(q) || itemCode.contains(q);
           }).toList();
         }
@@ -182,8 +186,8 @@ class _SalesScreenState extends State<SalesScreen> {
           showCustomerList = true;
           final q = query.toLowerCase();
           filteredCustomers = customers.where((c) {
-            final nameEng = (c['name_english'] ?? '').toString().toLowerCase();
-            final phone = (c['contact_primary'] ?? '').toString();
+            final nameEng = (c.nameEnglish ?? '').toLowerCase();
+            final phone = (c.contactPrimary ?? '').toString();
             return nameEng.contains(q) || phone.contains(q);
           }).toList();
         }
@@ -191,16 +195,16 @@ class _SalesScreenState extends State<SalesScreen> {
     });
   }
 
-  void _selectCustomer(Map<String, dynamic>? customer) {
+  void _selectCustomer(Customer? customer) {
     setState(() {
       if (customer == null) {
         selectedCustomerId = null;
         selectedCustomerMap = null;
         customerSearchController.clear();
       } else {
-        selectedCustomerId = customer['id'];
+        selectedCustomerId = customer.id;
         selectedCustomerMap = customer;
-        customerSearchController.text = "${customer['name_english']} (${customer['contact_primary'] ?? ''})";
+        customerSearchController.text = "${customer.nameEnglish} (${customer.contactPrimary ?? ''})";
       }
       showCustomerList = false;
       _calculateTotals();
@@ -238,7 +242,7 @@ class _SalesScreenState extends State<SalesScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
             onPressed: () async {
-              // 1. Validation 
+              // Validation 
               if (nameEngCtrl.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.nameRequired)));
                 return;
@@ -250,10 +254,11 @@ class _SalesScreenState extends State<SalesScreen> {
               }
 
               try {
-                final bool customerExists = await _customersRepository.customerExistsByPhone(phoneNumber);
+                // Check if phone exists using repository
+                final existingCustomers = await _customersRepository.searchCustomers(phoneNumber);
+                final phoneExists = existingCustomers.any((c) => c.contactPrimary == phoneNumber);
 
-                // 2. Check Exists
-                if (customerExists) {
+                if (phoneExists) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${loc.phoneExists}: "$phoneNumber"'), 
@@ -263,26 +268,22 @@ class _SalesScreenState extends State<SalesScreen> {
                   return; 
                 }
 
-                final newCustomerData = {
-                  'name_english': nameEngCtrl.text.trim(),
-                  'name_urdu': nameUrduCtrl.text.trim(),
-                  'contact_primary': phoneNumber,
-                  'address': addressCtrl.text.trim(),
-                  'credit_limit': double.tryParse(creditLimitCtrl.text) ?? 0.0,
-                  'outstanding_balance': 0.0,
-                  'is_active': 1,
-                  'created_at': DateTime.now().toIso8601String(),
-                };
+                final newCustomer = Customer(
+                  nameEnglish: nameEngCtrl.text.trim(),
+                  nameUrdu: nameUrduCtrl.text.trim(),
+                  contactPrimary: phoneNumber,
+                  address: addressCtrl.text.trim(),
+                  creditLimit: (int.tryParse(creditLimitCtrl.text) ?? 0) * 100,
+                );
 
-                final int id = await _customersRepository.addCustomer(newCustomerData);
-                final Map<String, dynamic> savedCustomer = {'id': id, ...newCustomerData};
+                final int id = await _customersRepository.addCustomer(newCustomer);
+                final Customer savedCustomer = newCustomer.copyWith(id: id);
 
                 if (mounted) {
                   _selectCustomer(savedCustomer);
                   Navigator.of(context).pop();
                   await _loadCustomers();
                   
-                  // 3. Success Message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text("${loc.customerAdded}: '${nameEngCtrl.text}'"), 
@@ -302,11 +303,9 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   // --- Cart Actions ---
-  void _addToCart(Map<String, dynamic> product, {double quantity = 1.0}) {
+  void _addToCart(Product product, {double quantity = 1.0}) {
     final loc = AppLocalizations.of(context)!;
 
-
-    // ✅ VALIDATION: Prevent adding invalid amounts (0 or negative)
     if (quantity <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.invalidQuantity)),
@@ -316,19 +315,18 @@ class _SalesScreenState extends State<SalesScreen> {
 
     if (isSoundOn) SystemSound.play(SystemSoundType.click);
 
-    final index = cartItems.indexWhere((item) => item['id'] == product['id']);
-    final availableStock = (product['current_stock'] as num).toDouble();
+    final index = cartItems.indexWhere((item) => item['id'] == product.id);
+    final availableStock = (product.currentStock as num).toDouble();
 
     setState(() {
       if (index != -1) {
         final currentQty = cartItems[index]['quantity'] as double;
         final newQty = currentQty + quantity;
 
-        // ✅ VALIDATION: Check stock before adding
         if (newQty > availableStock) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${loc.insufficientStock}: ${availableStock.toStringAsFixed(2)} available'), // Show 2 decimals
+              content: Text('${loc.insufficientStock}: ${availableStock.toStringAsFixed(2)} available'),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 2),
             ),
@@ -339,12 +337,10 @@ class _SalesScreenState extends State<SalesScreen> {
         cartItems[index]['quantity'] = newQty;
         cartItems[index]['total'] = newQty * cartItems[index]['unit_price'];
         
-        // ✅ FORMATTING: Show decimals if needed (e.g. 1.5), otherwise integer (e.g. 1)
         String displayQty = newQty % 1 == 0 ? newQty.toInt().toString() : newQty.toString();
         cartItems[index]['qtyCtrl'].text = displayQty;
         
       } else {
-        // ✅ VALIDATION: Check stock for new item
         if (availableStock < quantity) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -356,10 +352,9 @@ class _SalesScreenState extends State<SalesScreen> {
           return;
         }
 
-        double price = (product['sale_price'] ?? 0) / 100.0;
+        double price = (product.salePrice ?? 0) / 100.0;
         double qty = quantity;
 
-        // ✅ FORMATTING: Support decimals for Price and Qty
         String displayPrice = price % 1 == 0 ? price.toInt().toString() : price.toStringAsFixed(2);
         String displayQty = quantity % 1 == 0 ? quantity.toInt().toString() : quantity.toStringAsFixed(2);
 
@@ -367,9 +362,9 @@ class _SalesScreenState extends State<SalesScreen> {
         final qCtrl = TextEditingController(text: displayQty);
 
         cartItems.add({
-          'id': product['id'],
-          'name_urdu': product['name_urdu'],
-          'name_english': product['name_english'],
+          'id': product.id,
+          'name_urdu': product.nameUrdu,
+          'name_english': product.nameEnglish,
           'current_stock': availableStock,
           'unit_price': price,
           'quantity': qty,
@@ -385,20 +380,18 @@ class _SalesScreenState extends State<SalesScreen> {
       }
       _calculateTotals();
     });
-}
+  }
 
   void _updateCartItemFromField(int index) {
     final loc = AppLocalizations.of(context)!;
     final item = cartItems[index];
 
-    // Allow empty string during typing
     String priceText = item['priceCtrl'].text;
     String qtyText = item['qtyCtrl'].text;
     
     double newPrice = priceText.isEmpty ? 0.0 : double.tryParse(priceText) ?? 0.0;
     double newQty = qtyText.isEmpty ? 0.0 : double.tryParse(qtyText) ?? 0.0;
 
-    // ✅ VALIDATION: Prevent negative or zero values
     if (newPrice < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -407,7 +400,6 @@ class _SalesScreenState extends State<SalesScreen> {
           duration: const Duration(seconds: 2),
         ),
       );
-      // Reset to original value
       item['priceCtrl'].text = item['unit_price'].toStringAsFixed(0);
       return;
     }
@@ -420,12 +412,10 @@ class _SalesScreenState extends State<SalesScreen> {
           duration: const Duration(seconds: 2),
         ),
       );
-      // Reset to original value
       item['qtyCtrl'].text = item['quantity'].toStringAsFixed(0);
       return;
     }
 
-    // ✅ VALIDATION: Check stock availability
     final availableStock = (item['current_stock'] as num).toDouble();
     if (newQty > availableStock) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -435,7 +425,6 @@ class _SalesScreenState extends State<SalesScreen> {
           duration: const Duration(seconds: 2),
         ),
       );
-      // Reset to available stock
       item['qtyCtrl'].text = availableStock.toStringAsFixed(0);
       newQty = availableStock;
     }
@@ -457,96 +446,6 @@ class _SalesScreenState extends State<SalesScreen> {
         _calculateTotals();
       });
     }
-  }
-
-  void _showCheckoutDialog() {
-    final loc = AppLocalizations.of(context)!;
-    
-    double cashAmount = 0.0;
-    double bankAmount = 0.0;
-    double creditAmount = 0.0;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        final cashCtrl = TextEditingController(text: grandTotal.toStringAsFixed(0));
-        final bankCtrl = TextEditingController();
-        final creditCtrl = TextEditingController();
-        
-        return AlertDialog(
-          title: Text(loc.selectPaymentMethod),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('${loc.grandTotal}: ${CurrencyUtils.formatRupees((grandTotal * 100).toInt())}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: cashCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: '${loc.cash} (Rs)',
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (_) {},
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: bankCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: '${loc.bank} (Rs)',
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (_) {},
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: creditCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: '${loc.credit} (Rs)',
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (_) {},
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(loc.cancel),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                cashAmount = double.tryParse(cashCtrl.text) ?? 0.0;
-                bankAmount = double.tryParse(bankCtrl.text) ?? 0.0;
-                creditAmount = double.tryParse(creditCtrl.text) ?? 0.0;
-                
-                final totalPaid = cashAmount + bankAmount + creditAmount;
-                if (totalPaid < grandTotal) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(loc.insufficientPayment),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-                
-                Navigator.pop(context);
-                final change = totalPaid - grandTotal;
-                _processSale(cashAmount, bankAmount, creditAmount, change);
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
-              child: Text(loc.confirmPayment, style: const TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _clearCart() {
@@ -593,14 +492,473 @@ class _SalesScreenState extends State<SalesScreen> {
   void _calculateTotals() {
     subtotal = cartItems.fold(0.0, (sum, item) => sum + (item['total'] as double));
     grandTotal = subtotal;
-    previousBalance = selectedCustomerMap?['outstanding_balance'] ?? 0.0;
+    previousBalance = (selectedCustomerMap?.outstandingBalance ?? 0) / 100.0;
   }
 
-  // --- Process Sale ---
+  // ========================================
+  // CHECKOUT DIALOG - USING REPOSITORY
+  // ========================================
+  
+  void _showCheckoutDialog() {
+    if (cartItems.isEmpty) return;
+
+    // 1. Walk-in Customer Flow
+    if (selectedCustomerId == null) {
+      _showCheckoutPaymentDialog();
+      return;
+    }
+    
+    // 2. Registered Customer Flow - Check Credit Limit
+    final double creditLimit = (selectedCustomerMap?.creditLimit ?? 0) / 100.0;
+    final double currentBalance = (selectedCustomerMap?.outstandingBalance ?? 0) / 100.0;
+    final double potentialBalance = currentBalance + grandTotal;
+
+    if (potentialBalance > creditLimit) {
+      _showCreditLimitWarningDialog(
+        creditLimit: creditLimit,
+        currentBalance: currentBalance,
+        billTotal: grandTotal,
+        potentialBalance: potentialBalance,
+        onContinueAnyway: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true),
+        onIncreaseLimit: () {
+          _showIncreaseLimitDialog(onLimitUpdated: () {
+            _showCheckoutPaymentDialog(ignoreCreditLimit: true); 
+          });
+        },
+      );
+    } else {
+      _showCheckoutPaymentDialog(); 
+    }
+  }
+
+  void _showCreditLimitWarningDialog({
+    required double creditLimit,
+    required double currentBalance,
+    required double billTotal,
+    required double potentialBalance,
+    required Function() onContinueAnyway,
+    required Function() onIncreaseLimit,
+  }) {
+    final loc = AppLocalizations.of(context)!;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning, color: Colors.orange),
+            const SizedBox(width: 10),
+            Text(loc.creditLimitExceeded, style: const TextStyle(color: Colors.orange)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(loc.creditLimitWarningMsg(creditLimit.toStringAsFixed(0))),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _infoRow('${loc.customerCreditLimit}:', 'Rs ${creditLimit.toStringAsFixed(0)}'),
+                    _infoRow('${loc.currentBalance}:', 'Rs ${currentBalance.toStringAsFixed(0)}'),
+                    _infoRow('${loc.billTotal}:', 'Rs ${billTotal.toStringAsFixed(0)}'),
+                    const Divider(),
+                    _infoRow('${loc.totalBalance}:', 'Rs ${potentialBalance.toStringAsFixed(0)}',
+                      isBold: true,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '${loc.excessAmount}: Rs ${(potentialBalance - creditLimit).toStringAsFixed(0)}',
+                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(loc.cancel, style: const TextStyle(color: Colors.grey)),
+          ),
+          OutlinedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onIncreaseLimit();
+            },
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Colors.blue),
+            ),
+            child: Text(loc.increaseLimit, style: const TextStyle(color: Colors.blue)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              onContinueAnyway();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+            ),
+            child: Text(loc.continueAnyway, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showIncreaseLimitDialog({required VoidCallback onLimitUpdated}) {
+    final loc = AppLocalizations.of(context)!;
+    final limitCtrl = TextEditingController();
+
+    double currentLimit = (selectedCustomerMap?['credit_limit'] as num?)?.toDouble() ?? 0.0;
+    currentLimit = currentLimit / 100.0;
+    limitCtrl.text = currentLimit.toStringAsFixed(0);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(loc.increaseCreditLimit),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('${loc.current}: ${currentLimit.toStringAsFixed(0)}'),
+              const SizedBox(height: 10),
+              TextField(
+                controller: limitCtrl,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: loc.newCreditLimit,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(loc.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                double? newLimit = double.tryParse(limitCtrl.text);
+                if (newLimit == null || selectedCustomerId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(loc.invalidLimit)),
+                  );
+                  return;
+                }
+
+                try {
+                  await _customersRepository.updateCustomerCreditLimit(
+                    selectedCustomerId!,
+                    newLimit * 100
+                  );
+
+                  setState(() {
+                    selectedCustomerMap = selectedCustomerMap!.copyWith(
+                      creditLimit: (newLimit * 100).toInt(),
+                    );
+                  });
+
+                  if (mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${loc.creditLimitUpdated}: Rs ${newLimit.toStringAsFixed(0)}'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    onLimitUpdated(); 
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('${loc.error}: $e')),
+                    );
+                  }
+                }
+              },
+              child: Text(loc.updateLimit),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
+    final loc = AppLocalizations.of(context)!;
+    bool isRegistered = selectedCustomerId != null;
+    double billTotal = grandTotal;
+    double oldBalance = previousBalance;
+
+    final cashCtrl = TextEditingController();
+    final bankCtrl = TextEditingController();
+    final creditCtrl = TextEditingController();
+
+    if (isRegistered) {
+      creditCtrl.text = '0';
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            double cash = double.tryParse(cashCtrl.text) ?? 0.0;
+            double bank = double.tryParse(bankCtrl.text) ?? 0.0;
+            double credit = double.tryParse(creditCtrl.text) ?? 0.0;
+            double totalPayment = cash + bank + credit;
+            double change = 0.0;
+            bool isValid = false;
+
+            if (isRegistered) {
+              isValid = (totalPayment - billTotal).abs() < 0.01;
+            } else {
+              isValid = (cash + bank) >= billTotal;
+              if (isValid) {
+                change = (cash + bank) - billTotal;
+              }
+            }
+
+            void processSaleAction() {
+              Navigator.pop(context);
+              _processSale(cash, bank, credit, change);
+            }
+
+            void checkCreditLimitAndProcess() {
+              if (ignoreCreditLimit) {
+                processSaleAction();
+                return;
+              }
+
+              if (!isRegistered || credit <= 0) {
+                processSaleAction();
+                return;
+              }
+
+              final creditLimit = (selectedCustomerMap!['credit_limit'] as num?)?.toDouble() ?? 0.0;
+              final potentialBalance = oldBalance + credit;
+
+              if (potentialBalance > creditLimit / 100.0) {
+                Navigator.pop(context);
+                _showCreditLimitWarningDialog(
+                  creditLimit: creditLimit / 100.0,
+                  currentBalance: oldBalance,
+                  billTotal: credit,
+                  potentialBalance: potentialBalance,
+                  onContinueAnyway: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true),
+                  onIncreaseLimit: () => _showIncreaseLimitDialog(
+                    onLimitUpdated: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true)
+                  ),
+                );
+              } else {
+                processSaleAction();
+              }
+            }
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              title: Container(
+                color: Colors.green[700],
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.shopping_cart, color: Colors.white),
+                    const SizedBox(width: 10),
+                    Text(loc.checkoutButton, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                )
+              ),
+              titlePadding: EdgeInsets.zero,
+              content: SizedBox(
+                width: 400,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (isRegistered) ...[
+                        Text('${loc.searchCustomerHint}: ${selectedCustomerMap!['name_english']}', 
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 5),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.orange[50], 
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.orange[200]!)
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                              const SizedBox(width: 5),
+                              Text('${loc.prevBalance}: Rs ${oldBalance.toStringAsFixed(0)}', 
+                                style: const TextStyle(fontSize: 13)),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 20),
+                      ],
+
+                      _infoRow(loc.billTotal, 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18),
+                      const Divider(),
+                      
+                      const SizedBox(height: 10),
+                      Text(loc.paymentLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 10),
+                      
+                      _input(loc.cashInput, cashCtrl, (v) {
+                        setDialogState(() {
+                          if (isRegistered) {
+                            double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
+                            creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
+                          }
+                        });
+                      }),
+
+                      _input(loc.bankInput, bankCtrl, (v) {
+                        setDialogState(() {
+                          if (isRegistered) {
+                            double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
+                            creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
+                          }
+                        });
+                      }),
+
+                      if (isRegistered)
+                        _input(loc.creditInput, creditCtrl, (v) {
+                          setDialogState(() {});
+                        }),
+
+                      const SizedBox(height: 10),
+                      if (!isRegistered)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(loc.changeDue, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text('Rs ${change.toStringAsFixed(0)}', 
+                              style: TextStyle(
+                                fontSize: 18, 
+                                fontWeight: FontWeight.bold, 
+                                color: change >= 0 ? Colors.green : Colors.red
+                              )
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(loc.cancel),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+                  onPressed: isValid ? checkCreditLimitAndProcess : null,
+                  child: Text(loc.savePrint, style: const TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          }
+        );
+      }
+    );
+  }
+
+  Widget _infoRow(String label, String value, {bool isBold = false, double size = 14, Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: size, 
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: size,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _input(String label, TextEditingController ctrl, Function(String) onChanged, {bool enabled = true}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          SizedBox(width: 130, child: Text(label, style: const TextStyle(fontSize: 14))),
+          Expanded(
+            child: TextField(
+              controller: ctrl,
+              enabled: enabled,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                isDense: true, 
+                contentPadding: const EdgeInsets.all(10), 
+                border: const OutlineInputBorder(),
+                prefixText: 'Rs ',
+                filled: !enabled,
+                fillColor: enabled ? null : Colors.grey[200],
+              ), 
+              style: TextStyle(fontWeight: FontWeight.bold, color: enabled ? Colors.black : Colors.grey[600]),
+              onChanged: onChanged,
+            ),
+          ),
+        ]
+      ),
+    );
+  }
+
+  // ========================================
+  // PROCESS SALE - USING REPOSITORY
+  // ========================================
+  
   Future<void> _processSale(double cash, double bank, double credit, double change) async {
     final loc = AppLocalizations.of(context)!;
 
-    // ✅ SHOW LOADING INDICATOR
+    // 1. STOCK VALIDATION - Using Repository
+    final validationResult = await _salesRepository.validateStock(cartItems);
+    
+    if (!validationResult['valid']) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            validationResult['error'] ?? 'Stock validation failed',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Show loading indicator
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -624,7 +982,7 @@ class _SalesScreenState extends State<SalesScreen> {
       ),
     );
 
-    // Prepare Data
+    // Prepare sale data
     final Map<String, dynamic> saleData = {
       'customer_id': selectedCustomerId,
       'grand_total': (grandTotal * 100).round(),
@@ -643,9 +1001,10 @@ class _SalesScreenState extends State<SalesScreen> {
     };
 
     try {
+      // Create sale using repository
       await _salesRepository.createSale(saleData);
 
-      // ✅ DISMISS LOADING INDICATOR
+      // Dismiss loading indicator
       if (mounted) Navigator.pop(context);
 
       _performClearCart();
@@ -653,103 +1012,107 @@ class _SalesScreenState extends State<SalesScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(loc.saleCompleted), backgroundColor: Colors.green)
+          SnackBar(content: Text(loc.saleCompleted), backgroundColor: Colors.green)
         );
       }
     } catch (e) {
-      // ✅ DISMISS LOADING INDICATOR
+      // Dismiss loading indicator
       if (mounted) Navigator.pop(context);
 
       print('Error processing sale: $e');
       if (mounted) {
         final cleanError = e.toString().replaceAll("Exception: ", "");
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(loc.errorProcessingSale(cleanError)),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 4),
-            )
+          SnackBar(
+            content: Text(loc.errorProcessingSale(cleanError)),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          )
         );
       }
     }
   }
 
-  // --- Cancel Sale ---
+  // ========================================
+  // CANCEL SALE - USING REPOSITORY
+  // ========================================
+  
   Future<void> _cancelSale(int id, String billNumber) async {
-  final loc = AppLocalizations.of(context)!;
+    final loc = AppLocalizations.of(context)!;
 
-  final reasonCtrl = TextEditingController();
+    final reasonCtrl = TextEditingController();
 
-  final bool? confirm = await showDialog(
-    context: context,
-    builder: (c) => AlertDialog(
-      title: Text(loc.cancelSaleTitle),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(loc.cancelSaleMessage),
-          const SizedBox(height: 10),
-          TextField(
-            controller: reasonCtrl,
-            decoration: InputDecoration(
-              labelText: loc.cancelReasonLabel,
+    final bool? confirm = await showDialog(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(loc.cancelSaleTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(loc.cancelSaleMessage),
+            const SizedBox(height: 10),
+            TextField(
+              controller: reasonCtrl,
+              decoration: InputDecoration(
+                labelText: loc.cancelReasonLabel,
+              ),
             ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: Text(loc.cancel),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(c, true),
+            child: Text(loc.cancelSale, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(c, false),
-          child: Text(loc.cancel),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          onPressed: () => Navigator.pop(c, true),
-          child: Text(loc.cancelSale, style: const TextStyle(color: Colors.white)),
-        ),
-      ],
-    ),
-  );
-
-  if (confirm != true) return;
-
-  try {
-    await _salesRepository.cancelSale(
-      saleId: id,
-      cancelledBy: 'Cashier', // TODO: Replace with actual logged-in user
-      reason: reasonCtrl.text.trim(),
     );
 
-    // ✅ FIXED: Refresh data after cancellation
-    await _refreshAllData();
+    if (confirm != true) return;
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(loc.saleCancelledSuccess),
-          backgroundColor: Colors.green,
-        ),
+    try {
+      // Cancel sale using repository
+      await _salesRepository.cancelSale(
+        saleId: id,
+        cancelledBy: 'Cashier',
+        reason: reasonCtrl.text.trim(),
       );
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
-      );
+
+      // Refresh data after cancellation
+      await _refreshAllData();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(loc.saleCancelledSuccess),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
-}
 
-  // --- REFACTORED BUILD METHOD (RTL FIXES) ---
+  // ========================================
+  // BUILD UI
+  // ========================================
+  
   @override
   Widget build(BuildContext context) {
-    // 1. Initialize Localization Helper
     final loc = AppLocalizations.of(context)!;
-    
-    // Determine if RTL is active for specific conditional logic if needed
     final bool isRTL = Directionality.of(context) == TextDirection.rtl;
 
     return WillPopScope(
@@ -764,9 +1127,7 @@ class _SalesScreenState extends State<SalesScreen> {
           ]
         ),
         body: Row(children: [
-          // ------------------------------------------------------------------
           // LEFT PANEL (Item Grid) 
-          // ------------------------------------------------------------------
           Expanded(flex: 6, child: Column(children: [
             // Item Search
             Padding(
@@ -776,7 +1137,6 @@ class _SalesScreenState extends State<SalesScreen> {
                   controller: productSearchController,
                   decoration: InputDecoration(
                     hintText: loc.searchItemHint, 
-                    // Prefix Icon logic handled automatically by Flutter's Start position
                     prefixIcon: const Icon(Icons.search), 
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
                     filled: true, 
@@ -856,6 +1216,7 @@ class _SalesScreenState extends State<SalesScreen> {
               ),
             ),
             const Divider(thickness: 2),
+            
             // Recent Sales
             Container(
               height: 200, 
@@ -865,7 +1226,6 @@ class _SalesScreenState extends State<SalesScreen> {
                   padding: const EdgeInsets.all(8), 
                   color: Colors.grey[200], 
                   width: double.infinity, 
-                  // RTL Fix: centerLeft -> centerStart
                   alignment: AlignmentDirectional.centerStart,
                   child: Text(loc.recentSales, style: const TextStyle(fontWeight: FontWeight.bold))
                 ),
@@ -884,10 +1244,20 @@ class _SalesScreenState extends State<SalesScreen> {
                           child: Text('${index+1}', style: const TextStyle(fontSize: 10))
                         ),
                         title: Text(sale.customerName ?? loc.walkInCustomer, style: const TextStyle(fontSize: 13)),
-                        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start,children: [Text(sale.billNumber,
-                        style: const TextStyle(fontSize: 10),),Text(sale.status == 'CANCELLED'? loc.cancelled: loc.completed,
-                        style: TextStyle(fontSize: 10,fontWeight: FontWeight.bold,color: 
-                        sale.status == 'CANCELLED'? Colors.red: Colors.green,),),]),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(sale.billNumber, style: const TextStyle(fontSize: 10)),
+                            Text(
+                              sale.status == 'CANCELLED' ? loc.cancelled : loc.completed,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: sale.status == 'CANCELLED' ? Colors.red : Colors.green,
+                              ),
+                            ),
+                          ]
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min, 
                           children: [
@@ -895,8 +1265,8 @@ class _SalesScreenState extends State<SalesScreen> {
                             IconButton(
                               icon: const Icon(Icons.cancel, size: 16, color: Colors.orange), 
                               onPressed: sale.status == 'CANCELLED'
-                              ? null
-                              : () => _cancelSale(sale.id!, sale.billNumber),
+                                ? null
+                                : () => _cancelSale(sale.id!, sale.billNumber),
                             ),
                           ]
                         ),
@@ -908,13 +1278,10 @@ class _SalesScreenState extends State<SalesScreen> {
             ),
           ])),
 
-          // ------------------------------------------------------------------
           // RIGHT PANEL (Cart & Customer)
-          // ------------------------------------------------------------------
           Expanded(flex: 4, child: Container(
             decoration: BoxDecoration(
               color: Colors.grey[50], 
-              // RTL Fix: Border(left:...) -> BorderDirectional(start:...)
               border: BorderDirectional(start: BorderSide(color: Colors.grey[300]!))
             ),
             child: Column(children: [
@@ -1008,14 +1375,13 @@ class _SalesScreenState extends State<SalesScreen> {
                       itemBuilder: (context, index) {
                         final item = cartItems[index];
                         return Container(
-                          // RTL Fix: padding only(left) would be bad. symmetric is safe.
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), 
                           child: Row(children: [
                             // Item Name
                             Expanded(
                               flex: 3, 
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start, // Auto-flips for RTL
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     isRTL && item['name_urdu'] != null ? item['name_urdu'] : item['name_english'], 
@@ -1076,7 +1442,7 @@ class _SalesScreenState extends State<SalesScreen> {
                               width: 70, 
                               child: Text(
                                 (item['total'] as double).toStringAsFixed(0), 
-                                textAlign: TextAlign.end, // RTL Fix: right -> end
+                                textAlign: TextAlign.end,
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
                               )
                             ),
@@ -1094,6 +1460,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       },
                     )
               ),
+              
               // Totals Section
               Container(
                 padding: const EdgeInsets.all(12), 
@@ -1110,7 +1477,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
                       Text(loc.subtotal), 
-                      Text(CurrencyUtils.formatRupees((subtotal * 100).toInt()))
+                      Text('Rs ${subtotal.toStringAsFixed(0)}')
                     ]
                   ),
                   if (previousBalance > 0) 
@@ -1127,7 +1494,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     children: [
                       Text(loc.grandTotal, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), 
                       Text(
-                        CurrencyUtils.formatRupees((grandTotal * 100).toInt()), 
+                        'Rs ${grandTotal.toStringAsFixed(0)}', 
                         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)
                       )
                     ]

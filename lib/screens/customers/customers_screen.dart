@@ -3,11 +3,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:liaqat_store/core/repositories/customers_repository.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import '../../core/database/database_helper.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/customer_model.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -17,15 +18,16 @@ class CustomersScreen extends StatefulWidget {
 }
 
 class _CustomersScreenState extends State<CustomersScreen> {
+  final CustomersRepository _customersRepository = CustomersRepository();
   // --- STATE VARIABLES ---
-  List<Map<String, dynamic>> customers = [];
-  List<Map<String, dynamic>> archivedCustomers = [];
+  List<Customer> customers = [];
+  List<Customer> archivedCustomers = [];
   
   // Ledger State
   bool _showArchiveOverlay = false;
   bool _showLedgerOverlay = false;
   List<Map<String, dynamic>> _currentLedger = [];
-  Map<String, dynamic>? _selectedCustomerForLedger;
+  Customer? _selectedCustomerForLedger;
 
   bool _isFirstLoadRunning = true;
   final TextEditingController searchController = TextEditingController();
@@ -56,41 +58,30 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   Future<void> _loadStats() async {
-    final db = await DatabaseHelper.instance.database;
-
-    final activeRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 1');
-    countActive = (activeRes.first['count'] as int?) ?? 0;
-    balActive = (activeRes.first['total'] as num? ?? 0.0).toDouble();
-
-    final archRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 0');
-    countArchived = (archRes.first['count'] as int?) ?? 0;
-    balArchived = (archRes.first['total'] as num? ?? 0.0).toDouble();
-
-    countTotal = countActive + countArchived;
-    balTotal = balActive + balArchived;
-
-    if (mounted) setState(() {});
+    final stats = await _customersRepository.getCustomerStats();
+    
+    if (mounted) {
+      setState(() {
+        countTotal = stats['countTotal'] as int;
+        balTotal = stats['balTotal'] as double;
+        countActive = stats['countActive'] as int;
+        balActive = stats['balActive'] as double;
+        countArchived = stats['countArchived'] as int;
+        balArchived = stats['balArchived'] as double;
+      });
+    }
   }
 
   Future<void> _loadActiveCustomers() async {
     setState(() => _isFirstLoadRunning = true);
-    final db = await DatabaseHelper.instance.database;
     final searchText = searchController.text.trim();
     
-    String whereClause = 'is_active = 1';
-    List<dynamic> args = [];
-
-    if (searchText.isNotEmpty) {
-      whereClause += ' AND (name_english LIKE ? OR name_urdu LIKE ? OR contact_primary LIKE ?)';
-      args.addAll(['%$searchText%', '%$searchText%', '%$searchText%']);
+    List<Customer> result;
+    if (searchText.isEmpty) {
+      result = await _customersRepository.getActiveCustomers();
+    } else {
+      result = await _customersRepository.searchCustomers(searchText, activeOnly: true);
     }
-
-    final result = await db.query(
-      'customers',
-      where: whereClause,
-      whereArgs: args.isNotEmpty ? args : null,
-      orderBy: 'name_english ASC',
-    );
 
     if (mounted) {
       setState(() {
@@ -101,17 +92,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   Future<void> _loadArchivedCustomers() async {
-    final db = await DatabaseHelper.instance.database;
-    final result = await db.query('customers', where: 'is_active = 0', orderBy: 'name_english ASC');
+    final result = await _customersRepository.getArchivedCustomers();
     setState(() => archivedCustomers = result);
   }
 
   Future<bool> _isPhoneUnique(String phone, {int? excludeId}) async {
-    final db = await DatabaseHelper.instance.database;
-    final result = await db.query('customers', where: 'contact_primary = ?', whereArgs: [phone]);
-    if (result.isEmpty) return true; 
-    if (excludeId != null) return result.first['id'] == excludeId;
-    return false; 
+    return await _customersRepository.isPhoneUnique(phone, excludeId: excludeId);
   }
 
   Future<bool> _canDelete(int id, double balance) async {
@@ -121,7 +107,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   // --- LEDGER LOGIC (GROUPED) ---
 
-  Future<void> _openLedger(Map<String, dynamic> customer) async {
+  Future<void> _openLedger(Customer customer) async {
     setState(() {
       _selectedCustomerForLedger = customer;
       _showLedgerOverlay = true;
@@ -130,7 +116,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     
     try {
       // ✅ Using the Grouped Logic
-      final ledgerData = await DatabaseHelper.instance.getCustomerLedgerGrouped(customer['id']);
+      final ledgerData = await _customersRepository.getCustomerLedgerGrouped(customer.id!);
       setState(() => _currentLedger = ledgerData);
     } catch (e) {
       debugPrint("Error loading ledger: $e");
@@ -140,15 +126,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Future<void> _addPayment(double amount, String notes) async {
     if (_selectedCustomerForLedger == null) return;
     final date = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-    await DatabaseHelper.instance.addPayment(_selectedCustomerForLedger!['id'], amount, date, notes);
+    await _customersRepository.addPayment(_selectedCustomerForLedger!.id!, amount, date, notes);
     await _refreshData(); 
     await _openLedger(_selectedCustomerForLedger!); 
   }
   
-  Future<void> _exportLedgerPdf() async {
-    final loc = AppLocalizations.of(context)!;
+  Future<void> _exportLedgerPdf(AppLocalizations loc) async {
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
-    final customerName = _selectedCustomerForLedger?['name_english'] ?? 'Customer';
+    final customerName = _selectedCustomerForLedger?.nameEnglish ?? 'Customer';
 
     // Fonts
     final font = isUrdu ? await PdfGoogleFonts.notoSansArabicRegular() : await PdfGoogleFonts.notoSansRegular();
@@ -225,33 +210,38 @@ class _CustomersScreenState extends State<CustomersScreen> {
     required String address,
     required double limit,
   }) async {
-    final db = await DatabaseHelper.instance.database;
     final loc = AppLocalizations.of(context)!;
 
     bool isUnique = await _isPhoneUnique(phone, excludeId: id);
     if (!isUnique) throw Exception(loc.phoneExistsError);
 
-    final data = {
-      'name_english': nameEng,
-      'name_urdu': nameUrdu,
-      'contact_primary': phone,
-      'address': address,
-      'credit_limit': limit,
-    };
+    final customer = Customer(
+      id: id,
+      nameEnglish: nameEng,
+      nameUrdu: nameUrdu,
+      contactPrimary: phone,
+      address: address,
+      creditLimit: limit.toInt(),
+      outstandingBalance: 0,
+      isActive: true,
+    );
 
     if (id == null) {
-      await db.insert('customers', {...data, 'outstanding_balance': 0.0, 'is_active': 1});
+      await _customersRepository.addCustomer(customer);
       _showSnack(loc.customerAddedSuccess, Colors.green);
     } else {
-      await db.update('customers', data, where: 'id = ?', whereArgs: [id]);
+      await _customersRepository.updateCustomer(id, customer);
       _showSnack(loc.customerUpdatedSuccess, Colors.green);
     }
     _refreshData();
   }
 
   Future<void> _toggleArchiveStatus(int id, bool currentStatus) async {
-    final db = await DatabaseHelper.instance.database;
-    await db.update('customers', {'is_active': currentStatus ? 0 : 1}, where: 'id = ?', whereArgs: [id]);
+    final customer = await _customersRepository.getCustomerById(id);
+    if (customer == null) return;
+    
+    final updatedCustomer = customer.copyWith(isActive: !currentStatus);
+    await _customersRepository.updateCustomer(id, updatedCustomer);
     _refreshData();
     if (_showArchiveOverlay) _loadArchivedCustomers(); 
   }
@@ -298,8 +288,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
 
     if (confirmed == true) {
-      final db = await DatabaseHelper.instance.database;
-      await db.delete('customers', where: 'id = ?', whereArgs: [id]);
+      await _customersRepository.deleteCustomer(id);
       _refreshData();
       _showSnack(loc.itemDeleted, Colors.grey);
     }
@@ -380,12 +369,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
       height: 115,
       child: Row(
         children: [
-          Expanded(child: _buildKpiCard(loc.dashboardTotal, countTotal, balTotal, Colors.green, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, balTotal, Colors.green, null)),
           const SizedBox(width: 8),
-          Expanded(child: _buildKpiCard(loc.dashboardActive, countActive, balActive, Colors.green, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, balActive, Colors.green, null)),
           const SizedBox(width: 8),
           Expanded(
-            child: _buildKpiCard(loc.dashboardArchived, countArchived, balArchived, Colors.green, () { 
+            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, balArchived, Colors.green, () { 
                setState(() {
                  _showArchiveOverlay = true;
                  _loadArchivedCustomers();
@@ -397,8 +386,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildKpiCard(String title, int count, double amount, MaterialColor color, VoidCallback? onTap, {bool isOrange = false}) {
-    final loc = AppLocalizations.of(context)!;
+  Widget _buildKpiCard(AppLocalizations loc, String title, int count, double amount, MaterialColor color, VoidCallback? onTap, {bool isOrange = false}) {
     Color borderColor = isOrange ? Colors.orange[900]! : Colors.green[600]!;
     final Color textColor = Colors.grey[900]!;
 
@@ -443,13 +431,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildCustomerCard(Map<String, dynamic> customer, {bool isOverlay = false}) {
-    final double balance = customer['outstanding_balance'] ?? 0.0;
+  Widget _buildCustomerCard(Customer customer, {bool isOverlay = false}) {
+    final double balance = customer.outstandingBalance.toDouble();
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
     final String name = isUrdu 
-        ? (customer['name_urdu'] != null && customer['name_urdu'].toString().isNotEmpty ? customer['name_urdu'] : customer['name_english']) 
-        : customer['name_english'];
-    final String phone = customer['contact_primary'] ?? '';
+        ? (customer.nameUrdu != null && customer.nameUrdu!.isNotEmpty ? customer.nameUrdu! : customer.nameEnglish) 
+        : customer.nameEnglish;
+    final String phone = customer.contactPrimary ?? '';
 
     return Card(
       elevation: 2, 
@@ -489,14 +477,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
             ),
 
             if (isOverlay)
-              IconButton(icon: const Icon(Icons.unarchive, color: Colors.green), onPressed: () => _toggleArchiveStatus(customer['id'], false))
+              IconButton(icon: const Icon(Icons.unarchive, color: Colors.green), onPressed: () => _toggleArchiveStatus(customer.id!, false))
             else
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, color: Colors.black), 
                 onSelected: (value) {
                   if (value == 'edit') _showAddDialog(customer: customer);
-                  if (value == 'archive') _toggleArchiveStatus(customer['id'], true);
-                  if (value == 'delete') _deleteCustomer(customer['id'], balance);
+                  if (value == 'archive') _toggleArchiveStatus(customer.id!, true);
+                  if (value == 'delete') _deleteCustomer(customer.id!, balance);
                 },
                 itemBuilder: (context) => [
                    const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18, color: Colors.black), SizedBox(width: 8), Text('Edit', style: TextStyle(color: Colors.black))])),
@@ -513,7 +501,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   // --- LEDGER OVERLAY (GROUPED) ---
   Widget _buildLedgerOverlay(AppLocalizations loc) {
     final customer = _selectedCustomerForLedger!;
-    final name = customer['name_english'] ?? 'Unknown';
+    final name = customer.nameEnglish;
     
     // Calculate Totals for Header
     double totalDr = 0;
@@ -554,7 +542,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
                           Row(
                             children: [
-                              IconButton(icon: const Icon(Icons.print, color: Colors.green), onPressed: _exportLedgerPdf, tooltip: "Export PDF"),
+                              IconButton(icon: const Icon(Icons.print, color: Colors.green), onPressed: () => _exportLedgerPdf(loc), tooltip: "Export PDF"),
                               IconButton(icon: const Icon(Icons.close, color: Colors.black), onPressed: () => setState(() => _showLedgerOverlay = false)),
                             ],
                           )
@@ -818,14 +806,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   // --- ADD/EDIT DIALOG ---
-  void _showAddDialog({Map<String, dynamic>? customer}) {
+  void _showAddDialog({Customer? customer}) {
     final loc = AppLocalizations.of(context)!;
-    final nameEnController = TextEditingController(text: customer?['name_english'] ?? '');
-    final nameUrController = TextEditingController(text: customer?['name_urdu'] ?? '');
-    final phoneController = TextEditingController(text: customer?['contact_primary'] ?? '');
-    final addressController = TextEditingController(text: customer?['address'] ?? '');
-    String currentLimit = (customer?['credit_limit'] ?? 0.0).toString();
-    final limitController = TextEditingController(text: currentLimit == "0.0" ? "" : currentLimit);
+    final nameEnController = TextEditingController(text: customer?.nameEnglish ?? '');
+    final nameUrController = TextEditingController(text: customer?.nameUrdu ?? '');
+    final phoneController = TextEditingController(text: customer?.contactPrimary ?? '');
+    final addressController = TextEditingController(text: customer?.address ?? '');
+    String currentLimit = (customer?.creditLimit ?? 0).toString();
+    final limitController = TextEditingController(text: currentLimit == "0" ? "" : currentLimit);
     bool isSaving = false;
 
     showDialog(
@@ -871,7 +859,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                      setStateDialog(() => isSaving = true);
                      try {
                        await _addOrUpdateCustomer(
-                         id: customer?['id'], 
+                         id: customer?.id, 
                          nameEng: nameEnController.text.trim(), 
                          nameUrdu: nameUrController.text.trim(), 
                          phone: phoneController.text.trim(), 
