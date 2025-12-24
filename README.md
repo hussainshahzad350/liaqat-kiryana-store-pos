@@ -149,3 +149,5 @@ Hussain Shahzad 📧 hussainshahzad350@gmail.com 📱 +92 310-4523235
 Flutter Team: For the amazing cross-platform framework sqflite_ffi: Desktop SQLite support Material Design: Beautiful, accessible components Pakistani Retail Community: For feature requirements and testing 📊 Project Stats Metric Value Total Lines of Code ~8,000 Dart Files 25 Screens 15 Database Tables 8 Supported Languages 2 Translation Keys 250+ Test Coverage 0% (⚠️ Needs improvement) 🔗 Related Projects Flutter Desktop Samples sqflite_ffi Documentation Flutter Internationalization �
 
 ⭐ Star this repo if you find it useful! Made with ❤️ in Pakistan 🇵🇰 �
+
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/hussainshahzad350/liaqat-kiryana-store-pos?utm_source=oss&utm_medium=github&utm_campaign=hussainshahzad350%2Fliaqat-kiryana-store-pos&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
