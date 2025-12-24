@@ -1457,6 +1457,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get noDataAvailable => 'کوئی ڈیتا موجود نہں';
 
   @override
+  String get refreshingData => 'ڈیٹا ریفریش ہو رہا ہے...';
+
+  @override
   String get dbSize => 'ڈیٹا بیس سائز';
 
   @override

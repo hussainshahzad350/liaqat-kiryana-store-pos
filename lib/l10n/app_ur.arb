@@ -494,5 +494,7 @@
   "noDataAvailable": "کوئی ڈیتا موجود نہں",
   "dbSize": "ڈیٹا بیس سائز",
   "selectPaymentMethod":  "ادائیگی کا طریقہ کار",
-  "confirmPayment": "ادائیگی کنفرم؟"
+  "confirmPayment": "ادائیگی کنفرم؟",
+  "refreshingData":   "ڈیٹا ریفریش ہو رہا ہے..."
+  
 }

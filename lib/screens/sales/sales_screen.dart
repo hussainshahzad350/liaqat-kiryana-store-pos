@@ -163,7 +163,7 @@ class _SalesScreenState extends State<SalesScreen> {
           showProductList = true;
           final q = query.toLowerCase();
           filteredProducts = products.where((p) {
-            final nameEng = (p.nameEnglish ?? '').toLowerCase();
+            final nameEng = (p.nameEnglish).toLowerCase();
             final itemCode = (p.itemCode ?? '').toLowerCase();
             return nameEng.contains(q) || itemCode.contains(q);
           }).toList();
@@ -186,7 +186,7 @@ class _SalesScreenState extends State<SalesScreen> {
           showCustomerList = true;
           final q = query.toLowerCase();
           filteredCustomers = customers.where((c) {
-            final nameEng = (c.nameEnglish ?? '').toLowerCase();
+            final nameEng = (c.nameEnglish).toLowerCase();
             final phone = (c.contactPrimary ?? '').toString();
             return nameEng.contains(q) || phone.contains(q);
           }).toList();
@@ -352,7 +352,7 @@ class _SalesScreenState extends State<SalesScreen> {
           return;
         }
 
-        double price = (product.salePrice ?? 0) / 100.0;
+        double price = (product.salePrice) / 100.0;
         double qty = quantity;
 
         String displayPrice = price % 1 == 0 ? price.toInt().toString() : price.toStringAsFixed(2);
@@ -509,8 +509,8 @@ class _SalesScreenState extends State<SalesScreen> {
     }
     
     // 2. Registered Customer Flow - Check Credit Limit
-    final double creditLimit = (selectedCustomerMap?.creditLimit ?? 0) / 100.0;
-    final double currentBalance = (selectedCustomerMap?.outstandingBalance ?? 0) / 100.0;
+    double creditLimit = (selectedCustomerMap?.creditLimit ?? 0) / 100.0;
+    double currentBalance = (selectedCustomerMap?.outstandingBalance ?? 0) / 100.0;
     final double potentialBalance = currentBalance + grandTotal;
 
     if (potentialBalance > creditLimit) {
@@ -621,7 +621,7 @@ class _SalesScreenState extends State<SalesScreen> {
     final loc = AppLocalizations.of(context)!;
     final limitCtrl = TextEditingController();
 
-    double currentLimit = (selectedCustomerMap?['credit_limit'] as num?)?.toDouble() ?? 0.0;
+    double currentLimit = (selectedCustomerMap?.creditLimit ?? 0).toDouble();
     currentLimit = currentLimit / 100.0;
     limitCtrl.text = currentLimit.toStringAsFixed(0);
 
@@ -750,7 +750,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 return;
               }
 
-              final creditLimit = (selectedCustomerMap!['credit_limit'] as num?)?.toDouble() ?? 0.0;
+              final creditLimit = selectedCustomerMap!.creditLimit.toDouble();
               final potentialBalance = oldBalance + credit;
 
               if (potentialBalance > creditLimit / 100.0) {
@@ -792,7 +792,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (isRegistered) ...[
-                        Text('${loc.searchCustomerHint}: ${selectedCustomerMap!['name_english']}', 
+                        Text('${loc.searchCustomerHint}: ${selectedCustomerMap!.nameEnglish}', 
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 5),
                         Container(
@@ -1165,8 +1165,8 @@ class _SalesScreenState extends State<SalesScreen> {
                         final p = filteredProducts[index];
                         return ListTile(
                           dense: true,
-                          title: Text(p['name_english'] ?? 'Unknown'),
-                          subtitle: Text('Stock: ${p['current_stock']} | Rs ${p['sale_price']}'),
+                          title: Text(p.nameEnglish),
+                          subtitle: Text('Stock: ${p.currentStock} | Rs ${p.salePrice}'),
                           onTap: () => _addToCart(p),
                         );
                       },
@@ -1199,14 +1199,14 @@ class _SalesScreenState extends State<SalesScreen> {
                           mainAxisAlignment: MainAxisAlignment.center, 
                           children: [
                             Text(
-                              product['name_urdu'] ?? '', 
+                              product.nameUrdu ?? '', 
                               style: const TextStyle(fontSize: 12, fontFamily: 'NooriNastaleeq', fontWeight: FontWeight.bold), 
                               maxLines: 1, 
                               overflow: TextOverflow.ellipsis
                             ),
-                            Text(product['name_english'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                            Text(CurrencyUtils.formatRupees(product['sale_price'] ?? 0), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
-                            Text('${loc.stock}:${product['current_stock']}', style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+                            Text(product.nameEnglish, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                            Text(CurrencyUtils.formatRupees(product.salePrice), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                            Text('${loc.stock}:${product.currentStock}', style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
                           ]
                         )
                       ),
@@ -1344,9 +1344,10 @@ class _SalesScreenState extends State<SalesScreen> {
                           final c = filteredCustomers[index]; 
                           return ListTile(
                             dense: true, 
-                            title: Text(c['name_english'] ?? 'Unknown'), 
-                            subtitle: Text('${c['contact_primary'] ?? ''}'), 
-                            trailing: Text('${loc.currBal}: ${c['outstanding_balance']}'), 
+                            title: Text(c.nameEnglish), 
+                            // ignore: unnecessary_string_interpolations
+                            subtitle: Text('${c.contactPrimary ?? ''}'), 
+                            trailing: Text('${loc.currBal}: ${c.outstandingBalance}'), 
                             onTap: () => _selectCustomer(c)
                           ); 
                         }

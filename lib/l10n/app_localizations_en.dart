@@ -1460,6 +1460,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noDataAvailable => 'No Data Available';
 
   @override
+  String get refreshingData => 'Refreshing Data';
+
+  @override
   String get dbSize => 'Database Size';
 
   @override

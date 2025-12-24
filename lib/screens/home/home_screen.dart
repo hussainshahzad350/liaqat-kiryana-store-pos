@@ -3,22 +3,12 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/repositories/sales_repository.dart';
 import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/items_repository.dart';
-import '../sales/sales_screen.dart';
-import '../stock/stock_screen.dart';
-import '../items/items_screen.dart';
-import '../customers/customers_screen.dart';
-import '../suppliers/suppliers_screen.dart';
-import '../categories/categories_screen.dart';
-import '../units/units_screen.dart';
-import '../reports/reports_screen.dart';
-import '../cash_ledger/cash_ledger_screen.dart';
-import '../settings/settings_screen.dart';
+import '../../core/routes/app_routes.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String currentDate = '';
   Timer? timer;
   Timer? dataTimer;
-  bool isSidebarExpanded = true;
+
   bool _isRefreshing = false;
   
   // Data variables
@@ -110,422 +100,113 @@ class _HomeScreenState extends State<HomeScreen> {
     return total;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
+    @override
 
-    return FocusableActionDetector(
-      autofocus: true,
-      shortcuts: {
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyN): const _NewSaleIntent(),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyR): const _RefreshIntent(),
-        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyB): const _ToggleSidebarIntent(),
-      },
-      actions: {
-        _NewSaleIntent: CallbackAction<_NewSaleIntent>(
-          onInvoke: (_) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SalesScreen()),
-            );
-            return null;
-          },
-        ),
-        _RefreshIntent: CallbackAction<_RefreshIntent>(
-          onInvoke: (_) {
-            _loadData();
-            return null;
-          },
-        ),
-        _ToggleSidebarIntent: CallbackAction<_ToggleSidebarIntent>(
-          onInvoke: (_) {
-            setState(() {
-              isSidebarExpanded = !isSidebarExpanded;
-            });
-            return null;
-          },
-        ),
-      },
-      child: Scaffold(
-        body: Row(
-          children: [
-            // LEFT: Navigation Sidebar
-            _buildNavigationSidebar(localizations),
-            
-            // RIGHT: Main Content Area
-            Expanded(
-              child: Column(
-                children: [
-                  // 1. Header Bar
-                  _buildHeaderBar(localizations),
-                  
-                  // 2. Action Bar
-                  _buildActionBar(localizations),
-                  
-                  // 3. Dashboard Content
-                  Expanded(
-                    child: Column(
-                      children: [
-                        // FIXED SECTION (Doesn't scroll)
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // KPI Grid (Fixed at top)
-                              _buildKPIGrid(localizations),
-                              const SizedBox(height: 16),
-                              
-                              // Details Grid - Customers + Low Stock (Fixed)
-                              _buildDetailsGrid(localizations),
-                            ],
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        // SCROLLABLE SECTION (Only Recent Activities)
-                        Expanded(
-                          child: RefreshIndicator(
-                            onRefresh: _loadData,
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                              child: _buildRecentSalesCard(localizations),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // 4. Footer Bar
-                  _buildFooterBar(localizations),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    Widget build(BuildContext context) {
 
-  // ========================================================================
-  // NAVIGATION SIDEBAR
-  // ========================================================================
+      final localizations = AppLocalizations.of(context)!;
+
   
-  Widget _buildNavigationSidebar(AppLocalizations localizations) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: isSidebarExpanded ? 240 : 70,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: BorderDirectional(
-          end: BorderSide(color: Colors.grey[300]!, width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(2, 0),
-          ),
-        ],
-      ),
-      child: Column(
+
+      return Column(
+
         children: [
-          _buildSidebarHeader(localizations),
+
+          // 1. Header Bar
+
+          _buildHeaderBar(localizations),
+
+          
+
+          // 2. Action Bar
+
+          _buildActionBar(localizations),
+
+          
+
+          // 3. Dashboard Content
+
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              physics: const ClampingScrollPhysics(),
+
+            child: Column(
+
               children: [
-                _buildMenuItem(
-                  icon: Icons.dashboard,
-                  title: localizations.home,
-                  isActive: true,
-                  onTap: () {},
-                ),
-                _buildMenuItem(
-                  icon: Icons.shopping_cart,
-                  title: localizations.salesPos,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const SalesScreen()));
-                  },
-                ),
-                _buildMenuItem(
-                  icon: Icons.warehouse,
-                  title: localizations.stockManagement,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const StockScreen()));
-                  },
-                ),
-                _buildMenuItem(
-                  icon: Icons.inventory,
-                  title: localizations.items,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ItemsScreen()));
-                  },
-                ),
-                _buildMenuItem(
-                  icon: Icons.people,
-                  title: localizations.customers,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomersScreen()));
-                  },
-                ),
-                _buildMenuItem(
-                  icon: Icons.business,
-                  title: localizations.suppliers,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const SuppliersScreen()));
-                  },
-                ),
-                _buildMenuItem(
-                  icon: Icons.category,
-                  title: localizations.categories,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CategoriesScreen()));
-                  },
-                ),
-                _buildMenuItem(
-                  icon: Icons.square_foot,
-                  title: localizations.units,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const UnitsScreen()));
-                  },
-                ),
-                _buildMenuItem(
-                  icon: Icons.analytics,
-                  title: localizations.reports,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ReportsScreen()));
-                  },
-                ),
-                _buildMenuItem(
-                  icon: Icons.attach_money,
-                  title: localizations.cashLedger,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CashLedgerScreen()));
-                  },
-                ),
-                _buildMenuItem(
-                  icon: Icons.settings,
-                  title: localizations.settings,
-                  isActive: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
-                  },
-                ),
-                const Divider(height: 1),
-                _buildMenuItem(
-                  icon: Icons.logout,
-                  title: localizations.logout,
-                  isActive: false,
-                  color: Colors.red,
-                  onTap: () {
-                    Navigator.pushReplacementNamed(context, '/');
-                  },
-                ),
-              ],
-            ),
-          ),
-          _buildSidebarFooter(localizations),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildSidebarHeader(AppLocalizations localizations) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      height: 100,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Colors.green[700]!, Colors.green[600]!],
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: isSidebarExpanded ? 50 : 35,
-            height: isSidebarExpanded ? 50 : 35,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Icon(
-              Icons.store,
-              size: isSidebarExpanded ? 28 : 20,
-              color: Colors.green[700],
-            ),
-          ),
-          if (isSidebarExpanded) ...[
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                localizations.appTitle,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+                // FIXED SECTION (Doesn't scroll)
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required bool isActive,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: 44,
-        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: isActive ? Colors.green[50] : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: isActive ? Border.all(color: Colors.green[700]!, width: 1.5) : null,
-        ),
-        child: Row(
-          mainAxisAlignment: isSidebarExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(left: isSidebarExpanded ? 12.0 : 0),
-              child: Icon(
-                icon,
-                size: 22,
-                color: color ?? (isActive ? Colors.green[700] : Colors.grey[700]),
-              ),
-            ),
-            if (isSidebarExpanded) ...[
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                    color: color ?? (isActive ? Colors.green[900] : Colors.grey[800]),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+                Container(
 
-  Widget _buildSidebarFooter(AppLocalizations localizations) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        border: Border(top: BorderSide(color: Colors.grey[300]!, width: 1)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isSidebarExpanded) ...[
-            Container(
-              constraints: const BoxConstraints(maxHeight: 40),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+
+                  child: Column(
+
+                    mainAxisSize: MainAxisSize.min,
+
                     children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          localizations.systemOnline,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
+
+                      // KPI Grid (Fixed at top)
+
+                      _buildKPIGrid(localizations),
+
+                      const SizedBox(height: 16),
+
+                      
+
+                      // Details Grid - Customers + Low Stock (Fixed)
+
+                      _buildDetailsGrid(localizations),
+
                     ],
+
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'v1.0.0',
-                    style: TextStyle(fontSize: 9, color: Colors.grey[600]),
+
+                ),
+
+                
+
+                const SizedBox(height: 16),
+
+                
+
+                // SCROLLABLE SECTION (Only Recent Activities)
+
+                Expanded(
+
+                  child: RefreshIndicator(
+
+                    onRefresh: _loadData,
+
+                    child: SingleChildScrollView(
+
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+
+                      child: _buildRecentSalesCard(localizations),
+
+                    ),
+
                   ),
-                ],
-              ),
-            ),
-          ],
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                setState(() {
-                  isSidebarExpanded = !isSidebarExpanded;
-                });
-              },
-              child: Container(
-                height: 50,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.grey[300]!, width: 1)),
+
                 ),
-                child: Icon(
-                  isSidebarExpanded ? Icons.chevron_left : Icons.chevron_right,
-                  size: 20,
-                  color: Colors.grey[600],
-                ),
-              ),
+
+              ],
+
             ),
+
           ),
+
+          
+
+          // 4. Footer Bar
+
+          _buildFooterBar(localizations),
+
         ],
-      ),
-    );
-  }
+
+      );
+
+    }
+
+
 
   // ========================================================================
   // HEADER BAR
@@ -630,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 IconButton(
                   icon: const Icon(Icons.account_circle, color: Colors.white, size: 28),
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
+                    Navigator.pushNamed(context, AppRoutes.settings);
                   },
                   tooltip: localizations.settings,
                   padding: EdgeInsets.zero,
@@ -668,10 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // 1. Primary Action: New Sale Button
           ElevatedButton.icon(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SalesScreen()),
-              ).then((_) => _loadData());
+              Navigator.pushNamed(context, AppRoutes.sales).then((_) => _loadData());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
@@ -714,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: localizations.reports,
             color: Colors.green[700]!,
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const ReportsScreen()));
+              Navigator.pushNamed(context, AppRoutes.reports);
             },
           ),
           
@@ -726,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: localizations.stockManagement,
             color: Colors.green[700]!,
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const StockScreen()));
+              Navigator.pushNamed(context, AppRoutes.stock);
             },
           ),
           
@@ -738,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: localizations.cashLedger,
             color: Colors.green[700]!,
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CashLedgerScreen()));
+              Navigator.pushNamed(context, AppRoutes.cashLedger);
             },
           ),
           
@@ -884,7 +562,7 @@ class _HomeScreenState extends State<HomeScreen> {
               trend: '+12%',
               trendUp: true,
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ReportsScreen()));
+                Navigator.pushNamed(context, AppRoutes.reports);
               },
             ),
             _buildKPICard(
@@ -894,7 +572,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.orange,
               subtitle: '${todayCustomers.length} ${localizations.customers}',
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomersScreen()));
+                Navigator.pushNamed(context, AppRoutes.customers);
               },
             ),
             _buildKPICard(
@@ -905,7 +583,7 @@ class _HomeScreenState extends State<HomeScreen> {
               subtitle: localizations.itemsNeedRestock,
               isAlert: lowStockItems.length > 5,
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const StockScreen()));
+                Navigator.pushNamed(context, AppRoutes.stock);
               },
             ),
             _buildKPICard(
@@ -915,7 +593,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.blue,
               subtitle: localizations.activeToday,
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomersScreen()));
+                Navigator.pushNamed(context, AppRoutes.customers);
               },
             ),
           ],
@@ -1701,14 +1379,17 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations) {
 // KEYBOARD SHORTCUT INTENTS
 // ============================================================================
 
+// ignore: unused_element
 class _NewSaleIntent extends Intent {
   const _NewSaleIntent();
 }
 
+// ignore: unused_element
 class _RefreshIntent extends Intent {
   const _RefreshIntent();
 }
 
+// ignore: unused_element
 class _ToggleSidebarIntent extends Intent {
   const _ToggleSidebarIntent();
 }

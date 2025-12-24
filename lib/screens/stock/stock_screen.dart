@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/repositories/suppliers_repository.dart';
 import '../../core/repositories/items_repository.dart';
+import '../../models/product_model.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -236,7 +237,7 @@ class _StockViewTabState extends State<StockViewTab> {
   final ItemsRepository _itemsRepository = ItemsRepository();
   
   // Pagination State
-  List<Map<String, dynamic>> items = [];
+  List<Product> items = [];
   bool _isFirstLoadRunning = true;
   bool _hasNextPage = true;
   bool _isLoadMoreRunning = false;
@@ -297,7 +298,7 @@ class _StockViewTabState extends State<StockViewTab> {
     try {
       final query = _searchController.text.trim();
       
-      List<Map<String, dynamic>> result;
+      List<Product> result;
       
       if (query.isNotEmpty) {
         result = await _itemsRepository.searchProducts(query);
@@ -325,7 +326,7 @@ class _StockViewTabState extends State<StockViewTab> {
       _page++;
       final offset = _page * _limit;
 
-      List<Map<String, dynamic>> result;
+      List<Product> result;
       if (query.isNotEmpty) {
         result = await _itemsRepository.searchProducts(query);
       } else {
@@ -337,7 +338,7 @@ class _StockViewTabState extends State<StockViewTab> {
       final endIndex = (offset + _limit).clamp(0, result.length);
       final paginatedResult = startIndex < result.length 
           ? result.sublist(startIndex, endIndex) 
-          : <Map<String, dynamic>>[];
+          : <Product>[];
 
       if (!mounted) return;
       setState(() {
@@ -431,9 +432,9 @@ class _StockViewTabState extends State<StockViewTab> {
                               itemCount: items.length,
                               itemBuilder: (context, index) {
                                 final item = items[index];
-                                final stock = (item['current_stock'] as num?)?.toDouble() ?? 0.0;
-                                final minStock = (item['min_stock_alert'] as num?)?.toDouble() ?? 10.0;
-                                final price = (item['sale_price'] as num?)?.toDouble() ?? 0.0;
+                                final stock = (item.currentStock as num?)?.toDouble() ?? 0.0;
+                                const minStock = 10.0; // Default alert threshold
+                                final price = ((item.salePrice as num?)?.toDouble() ?? 0.0) / 100.0;
                                 final totalVal = stock * price; // Or cost price if available
 
                                 // Highlight low stock
@@ -448,7 +449,7 @@ class _StockViewTabState extends State<StockViewTab> {
                                   child: ListTile(
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                                     title: Text(
-                                      item['name_english'] ?? item['name_urdu'] ?? 'Unknown',
+                                      item.nameEnglish,
                                       style: const TextStyle(fontWeight: FontWeight.bold),
                                     ),
                                     subtitle: Text(
@@ -462,7 +463,7 @@ class _StockViewTabState extends State<StockViewTab> {
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
-                                        '$stock ${item['unit_type'] ?? ''}',
+                                        '$stock',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: isLow ? Colors.red[900] : Colors.green[900],

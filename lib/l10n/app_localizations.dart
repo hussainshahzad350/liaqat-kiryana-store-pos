@@ -2948,6 +2948,12 @@ abstract class AppLocalizations {
   /// **'No Data Available'**
   String get noDataAvailable;
 
+  /// No description provided for @refreshingData.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshing Data'**
+  String get refreshingData;
+
   /// No description provided for @dbSize.
   ///
   /// In en, this message translates to:

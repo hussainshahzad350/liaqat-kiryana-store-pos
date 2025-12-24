@@ -494,6 +494,7 @@
   "saveChangesSuccess": "Changes saved successfully",
   "fieldRequired":  "Field is required",
   "noDataAvailable": "No Data Available",
+  "refreshingData": "Refreshing Data",
   "dbSize": "Database Size",
   "selectPaymentMethod":  "Select Payment Method",
   "confirmPayment": "Confirm Payment"

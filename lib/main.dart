@@ -5,8 +5,21 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Added for persistence
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/sales/sales_screen.dart';
+import 'screens/stock/stock_screen.dart';
+import 'screens/items/items_screen.dart';
+import 'screens/customers/customers_screen.dart';
+import 'screens/suppliers/suppliers_screen.dart';
+import 'screens/categories/categories_screen.dart';
+import 'screens/units/units_screen.dart';
+import 'screens/reports/reports_screen.dart';
+import 'screens/cash_ledger/cash_ledger_screen.dart';
+import 'screens/settings/settings_screen.dart';
+import 'screens/about/about_screen.dart';
+import 'core/routes/app_routes.dart';
 import 'l10n/app_localizations.dart';
 import 'package:window_manager/window_manager.dart';
+import 'widgets/main_layout.dart'; // Import MainLayout
 
 
 void main() async {
@@ -99,7 +112,18 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
+        AppRoutes.home: (context) => const MainLayout(currentRoute: AppRoutes.home, child: HomeScreen()),
+        AppRoutes.sales: (context) => const MainLayout(currentRoute: AppRoutes.sales, child: SalesScreen()),
+        AppRoutes.stock: (context) => const MainLayout(currentRoute: AppRoutes.stock, child: StockScreen()),
+        AppRoutes.items: (context) => const MainLayout(currentRoute: AppRoutes.items, child: ItemsScreen()),
+        AppRoutes.customers: (context) => const MainLayout(currentRoute: AppRoutes.customers, child: CustomersScreen()),
+        AppRoutes.suppliers: (context) => const MainLayout(currentRoute: AppRoutes.suppliers, child: SuppliersScreen()),
+        AppRoutes.categories: (context) => const MainLayout(currentRoute: AppRoutes.categories, child: CategoriesScreen()),
+        AppRoutes.units: (context) => const MainLayout(currentRoute: AppRoutes.units, child: UnitsScreen()),
+        AppRoutes.reports: (context) => const MainLayout(currentRoute: AppRoutes.reports, child: ReportsScreen()),
+        AppRoutes.cashLedger: (context) => const MainLayout(currentRoute: AppRoutes.cashLedger, child: CashLedgerScreen()),
+        AppRoutes.settings: (context) => const MainLayout(currentRoute: AppRoutes.settings, child: SettingsScreen()),
+        AppRoutes.about: (context) => const MainLayout(currentRoute: AppRoutes.about, child: AboutScreen()),
       },
     );
   }

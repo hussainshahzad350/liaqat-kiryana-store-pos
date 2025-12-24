@@ -3,18 +3,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../core/routes/app_routes.dart';
-import '../screens/home/home_screen.dart';
-import '../screens/sales/sales_screen.dart';
-import '../screens/stock/stock_screen.dart';
-import '../screens/items/items_screen.dart';
-import '../screens/customers/customers_screen.dart';
-import '../screens/suppliers/suppliers_screen.dart';
-import '../screens/categories/categories_screen.dart';
-import '../screens/units/units_screen.dart';
-import '../screens/reports/reports_screen.dart';
-import '../screens/cash_ledger/cash_ledger_screen.dart';
-import '../screens/settings/settings_screen.dart';
-import '../screens/about/about_screen.dart';
 
 class AppNavigationSidebar extends StatefulWidget {
   final String currentRoute;
@@ -72,77 +60,77 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                     icon: Icons.dashboard,
                     title: localizations.home,
                     route: AppRoutes.home,
-                    screen: const HomeScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.shopping_cart,
                     title: localizations.salesPos,
                     route: AppRoutes.sales,
-                    screen: const SalesScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.warehouse,
                     title: localizations.stockManagement,
                     route: AppRoutes.stock,
-                    screen: const StockScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.inventory,
                     title: localizations.items,
                     route: AppRoutes.items,
-                    screen: const ItemsScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.people,
                     title: localizations.customers,
                     route: AppRoutes.customers,
-                    screen: const CustomersScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.business,
                     title: localizations.suppliers,
                     route: AppRoutes.suppliers,
-                    screen: const SuppliersScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.category,
                     title: localizations.categories,
                     route: AppRoutes.categories,
-                    screen: const CategoriesScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.square_foot,
                     title: localizations.units,
                     route: AppRoutes.units,
-                    screen: const UnitsScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.analytics,
                     title: localizations.reports,
                     route: AppRoutes.reports,
-                    screen: const ReportsScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.attach_money,
                     title: localizations.cashLedger,
                     route: AppRoutes.cashLedger,
-                    screen: const CashLedgerScreen(),
+
                   ),
                   
                   _buildMenuItem(
                     icon: Icons.settings,
                     title: localizations.settings,
                     route: AppRoutes.settings,
-                    screen: const SettingsScreen(),
+
                   ),
                   
                   const Divider(height: 1),
@@ -151,7 +139,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                     icon: Icons.info,
                     title: localizations.aboutApp,
                     route: AppRoutes.about,
-                    screen: const AboutScreen(),
+
                   ),
                   
                   _buildMenuItem(
@@ -239,7 +227,6 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
     required IconData icon,
     required String title,
     required String route,
-    Widget? screen,
     Color? color,
     VoidCallback? onTap,
   }) {
@@ -247,14 +234,8 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
     
     return InkWell(
       onTap: onTap ?? () {
-        if (screen != null && !isActive) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => screen,
-              settings: RouteSettings(name: route),
-            ),
-          );
+        if (!isActive) {
+          Navigator.pushReplacementNamed(context, route);
         }
       },
       child: Container(
