@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' show basename;
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import '../../core/theme/theme_provider.dart';
 import '../../main.dart';
 import '../../core/utils/logger.dart';
 import '../../core/repositories/settings_repository.dart';
@@ -37,9 +39,8 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(loc.settings), 
-        backgroundColor: Colors.teal[700],
-        bottom: TabBar(
+                title: Text(loc.settings),
+                backgroundColor: Theme.of(context).primaryColor,        bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
           tabs: [
@@ -122,12 +123,13 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
       'phone_secondary': _secondaryPhoneController.text,
     };
     await widget.repository.updateShopProfile(data);
+    if (!mounted) return;
     if (mounted) {
       final loc = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.saveChangesSuccess),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).primaryColor,
         ),
       );
     }
@@ -160,10 +162,10 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 50,
-                            backgroundColor: Colors.teal,
-                            child: Icon(Icons.store, size: 50, color: Colors.white),
+                            backgroundColor: Theme.of(context).primaryColor,
+                            child: const Icon(Icons.store, size: 50, color: Colors.white),
                           ),
                           const SizedBox(height: 10),
                           Row(
@@ -258,7 +260,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                               onPressed: _saveProfile,
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
-                                backgroundColor: Colors.teal[700],
+                                backgroundColor: Theme.of(context).primaryColor,
                               ),
                               child: Text(loc.saveChanges, style: const TextStyle(color: Colors.white)),
                             ),
@@ -342,7 +344,7 @@ class _BackupTabState extends State<BackupTab> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
             child: Text(loc.restore, style: const TextStyle(color: Colors.white)),
           ),
         ],
@@ -361,7 +363,7 @@ class _BackupTabState extends State<BackupTab> {
             content: Text(success 
               ? loc.restoreSuccess
               : loc.restoreFailed),
-            backgroundColor: success ? Colors.green : Colors.red,
+            backgroundColor: success ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.error,
           )
         );
          if (success) {
@@ -388,7 +390,7 @@ class _BackupTabState extends State<BackupTab> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
             child: Text(loc.delete, style: const TextStyle(color: Colors.white)),
           ),
         ],
@@ -402,7 +404,7 @@ class _BackupTabState extends State<BackupTab> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(success ? loc.backupDeleted : loc.deleteFailed),
-              backgroundColor: success ? Colors.green : Colors.red,
+              backgroundColor: success ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.error,
             )
           );
         }
@@ -432,12 +434,12 @@ class _BackupTabState extends State<BackupTab> {
                   ),
                   const SizedBox(height: 10),
                    ListTile(
-                    leading: const Icon(Icons.storage, color: Colors.teal),
+                    leading: Icon(Icons.storage, color: Theme.of(context).primaryColor),
                     title: const Text("app_database.db"), // Assuming a static name
                     subtitle: Text('${loc.size}: ${currentDbSize?.toStringAsFixed(2) ?? '?'} MB'),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.history, color: Colors.teal),
+                    leading: Icon(Icons.history, color: Theme.of(context).primaryColor),
                     title: Text(loc.lastBackup),
                     subtitle: Text(backups.isNotEmpty
                         ? DateFormat('dd-MM-yyyy HH:mm').format(backups.first['modified'] as DateTime)
@@ -477,7 +479,7 @@ class _BackupTabState extends State<BackupTab> {
                             content: Text(success
                               ? loc.backupCreated
                               : loc.backupFailed),
-                            backgroundColor: success ? Colors.green : Colors.red,
+                            backgroundColor: success ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.error,
                           )
                         );
 
@@ -488,7 +490,7 @@ class _BackupTabState extends State<BackupTab> {
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Colors.teal[700],
+                        backgroundColor: Theme.of(context).primaryColor,
                       ),
                     ),
                   ),
@@ -560,7 +562,7 @@ class _BackupTabState extends State<BackupTab> {
                       child: Center(
                         child: Text(
                           loc.noBackupsFound,
-                          style: TextStyle(color: Colors.grey[600]),
+                          style: TextStyle(color: Theme.of(context).hintColor),
                         ),
                       ),
                     )
@@ -574,19 +576,19 @@ class _BackupTabState extends State<BackupTab> {
                       return Column(
                         children: [
                           ListTile(
-                            leading: const Icon(Icons.insert_drive_file, color: Colors.teal),
+                            leading: Icon(Icons.insert_drive_file, color: Theme.of(context).primaryColor),
                             title: Text(fileName),
                             subtitle: Text('$dateStr • ${size.toStringAsFixed(2)} MB'),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.restore, color: Colors.green),
+                                  icon: Icon(Icons.restore, color: Theme.of(context).primaryColor),
                                   onPressed: () => _confirmRestore(backup['path'] as String),
                                   tooltip: loc.restore,
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
                                   onPressed: () => _confirmDelete(backup['path'] as String),
                                   tooltip: loc.delete,
                                 ),
@@ -788,7 +790,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
        ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.preferencesSaved),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).primaryColor,
         )
       );
     }
@@ -813,7 +815,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Language
+          // Language & Theme
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -841,6 +843,30 @@ class _PreferencesTabState extends State<PreferencesTab> {
                     },
                   ),
                   const SizedBox(height: 10),
+                  const Divider(),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Theme", // TODO: Add to localization
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Consumer<ThemeProvider>(
+                    builder: (context, themeProvider, child) {
+                      return DropdownButton<String>(
+                        value: themeProvider.themeName,
+                        isExpanded: true,
+                        items: ['lightGreen', 'darkGreen', 'lightBlue', 'darkBlue']
+                            .map((theme) => DropdownMenuItem(value: theme, child: Text(theme)))
+                            .toList(),
+                        onChanged: (String? newTheme) {
+                          if (newTheme != null) {
+                            themeProvider.setTheme(newTheme);
+                          }
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 10),
                   Text(loc.dateFormat),
                   DropdownButton<String>(
                     value: _selectedDateFormat ?? 'DD-MM-YYYY',
@@ -863,7 +889,6 @@ class _PreferencesTabState extends State<PreferencesTab> {
                           decoration: InputDecoration(hintText: loc.currencySymbol),
                           initialValue: _currencySymbol,
                           onChanged: (value) {
-                            // No need for setState since controller handles it, but for saving we need it
                             _currencySymbol = value;
                           },
                         ),
@@ -993,11 +1018,10 @@ class _PreferencesTabState extends State<PreferencesTab> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _savePreferences,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.teal[700],
-              ),
-              child: Text(loc.savePreferences, style: const TextStyle(color: Colors.white)),
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                      backgroundColor: Theme.of(context).primaryColor,
+                                    ),              child: Text(loc.savePreferences, style: const TextStyle(color: Colors.white)),
             ),
           ),
         ],
@@ -1025,7 +1049,7 @@ class AboutTab extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  const Icon(Icons.store, size: 80, color: Colors.teal),
+                  Icon(Icons.store, size: 80, color: Theme.of(context).primaryColor),
                   const SizedBox(height: 10),
                   Text(
                     loc.appTitle,
@@ -1034,7 +1058,7 @@ class AboutTab extends StatelessWidget {
                   const SizedBox(height: 5),
                   Text(
                     '${loc.version}: 1.0.0', // TODO: Make this dynamic from pubspec
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(color: Theme.of(context).hintColor),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
@@ -1048,7 +1072,7 @@ class AboutTab extends StatelessWidget {
                   const SizedBox(height: 10),
                   Text(
                     '${loc.developedBy}: Smart Khata Technologies',
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(color: Theme.of(context).hintColor, fontSize: 12),
                   ),
                 ],
               ),
@@ -1173,11 +1197,11 @@ class AboutTab extends StatelessWidget {
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.grey[50],
+            color: Theme.of(context).colorScheme.surface,
             child: Center(
               child: Text(
                 '© ${DateTime.now().year} ${loc.appTitle}. ${loc.allRightsReserved}',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -1213,7 +1237,7 @@ class _VacuumDatabaseButtonState extends State<_VacuumDatabaseButton> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(success ? "Database Optimized" : "Optimization failed"),
-                backgroundColor: success ? Colors.green : Colors.red,
+                backgroundColor: success ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.error,
               ),
             );
           }
@@ -1246,19 +1270,19 @@ class BackupItem extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-          leading: const Icon(Icons.insert_drive_file, color: Colors.teal),
+          leading: Icon(Icons.insert_drive_file, color: Theme.of(context).primaryColor),
           title: Text(fileName),
           subtitle: Text('$date • $size'),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.restore, color: Colors.green),
+                icon: Icon(Icons.restore, color: Theme.of(context).primaryColor),
                 onPressed: onRestore,
                 tooltip: loc.restore,
               ),
               IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
+                icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
                 onPressed: onDelete,
                 tooltip: loc.delete,
               ),

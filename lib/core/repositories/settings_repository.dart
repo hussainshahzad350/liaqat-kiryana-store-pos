@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -395,17 +396,29 @@ class SettingsRepository {
   /// Placeholder methods for future implementation
   
   Future<Map<String, dynamic>> getAppPreferences() async {
-    // TODO: Implement with SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
     return {
-      'language': 'en',
-      'theme': 'light',
-      'soundEnabled': true,
-      'printOnSale': false,
+      'language': prefs.getString('app_language') ?? 'en',
+      'theme': prefs.getString('app_theme') ?? 'lightGreen',
+      'soundEnabled': prefs.getBool('soundEnabled') ?? true,
+      'printOnSale': prefs.getBool('printOnSale') ?? false,
     };
   }
 
   Future<void> updateAppPreferences(Map<String, dynamic> preferences) async {
-    // TODO: Implement with SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    if (preferences.containsKey('language')) {
+      await prefs.setString('app_language', preferences['language']);
+    }
+    if (preferences.containsKey('theme')) {
+      await prefs.setString('app_theme', preferences['theme']);
+    }
+    if (preferences.containsKey('soundEnabled')) {
+      await prefs.setBool('soundEnabled', preferences['soundEnabled']);
+    }
+    if (preferences.containsKey('printOnSale')) {
+      await prefs.setBool('printOnSale', preferences['printOnSale']);
+    }
     AppLogger.info('App preferences updated', tag: 'SettingsRepo');
   }
 }

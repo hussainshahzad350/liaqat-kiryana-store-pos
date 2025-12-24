@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart'; // Import AppColors
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Access theme colors
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('ایپ کے بارے میں'),
-        backgroundColor: Colors.deepPurple[700],
+        // backgroundColor will be handled by AppBarTheme in AppThemes
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -24,38 +29,36 @@ class AboutScreen extends StatelessWidget {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.deepPurple[100],
+                        color: colorScheme.primaryContainer, // Themed background
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(
+                      child: Icon( // Changed to non-const to allow dynamic color
                         Icons.store,
                         size: 60,
-                        color: Colors.deepPurple,
+                        color: colorScheme.primary, // Themed icon color
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text( // Changed to non-const to allow dynamic text style
                       'لیاقت کرایانہ اسٹور POS',
-                      style: TextStyle(
-                        fontSize: 24,
+                      style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface, // Themed text color
                       ),
                     ),
                     const SizedBox(height: 5),
-                    const Text(
+                    Text( // Changed to non-const
                       'ورژن: 1.0.0',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant, // Themed text color
                       ),
                     ),
                     const SizedBox(height: 10),
-                    const Text(
+                    Text( // Changed to non-const
                       'ایک مکمل پوائنٹ آف سیل سسٹم چھوٹے اور درمیانے کاروباروں کے لیے',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant, // Themed text color
                       ),
                     ),
                   ],
@@ -76,20 +79,20 @@ class AboutScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text( // Changed to non-const
                       'تکنیکی معلومات',
-                      style: TextStyle(
-                        fontSize: 18,
+                      style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 15),
-                    _buildTechItem('فریم ورک', 'Flutter 3.0+'),
-                    _buildTechItem('پلیٹ فارم', 'Windows Desktop'),
-                    _buildTechItem('ڈیٹا بیس', 'SQLite with sqflite'),
-                    _buildTechItem('اسٹیٹ مینجمنٹ', 'Provider'),
-                    _buildTechItem('UI فریم ورک', 'Material Design 3'),
-                    _buildTechItem('آخری اپ ڈیٹ', 'دسمبر 2024'),
+                    _buildTechItem(context, 'فریم ورک', 'Flutter 3.0+'), // Pass context
+                    _buildTechItem(context, 'پلیٹ فارم', 'Windows Desktop'), // Pass context
+                    _buildTechItem(context, 'ڈیٹا بیس', 'SQLite with sqflite'), // Pass context
+                    _buildTechItem(context, 'اسٹیٹ مینجمنٹ', 'Provider'), // Pass context
+                    _buildTechItem(context, 'UI فریم ورک', 'Material Design 3'), // Pass context
+                    _buildTechItem(context, 'آخری اپ ڈیٹ', 'دسمبر 2024'), // Pass context
                   ],
                 ),
               ),
@@ -104,21 +107,21 @@ class AboutScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text( // Changed to non-const
                       'ایپ کی خصوصیات',
-                      style: TextStyle(
-                        fontSize: 18,
+                      style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _buildFeatureItem('مکمل POS سسٹم'),
-                    _buildFeatureItem('اسٹاک مینجمنٹ'),
-                    _buildFeatureItem('کسٹمر مینجمنٹ'),
-                    _buildFeatureItem('5 قسم کی رپورٹس'),
-                    _buildFeatureItem('ڈیٹا بیک اپ سسٹم'),
-                    _buildFeatureItem('دونوں زبانیں (اردو/انگریزی)'),
-                    _buildFeatureItem('پرنٹر سپورٹ'),
+                    _buildFeatureItem(context, 'مکمل POS سسٹم'), // Pass context
+                    _buildFeatureItem(context, 'اسٹاک مینجمنٹ'), // Pass context
+                    _buildFeatureItem(context, 'کسٹمر مینجمنٹ'), // Pass context
+                    _buildFeatureItem(context, '5 قسم کی رپورٹس'), // Pass context
+                    _buildFeatureItem(context, 'ڈیٹا بیک اپ سسٹم'), // Pass context
+                    _buildFeatureItem(context, 'دونوں زبانیں (اردو/انگریزی)'), // Pass context
+                    _buildFeatureItem(context, 'پرنٹر سپورٹ'), // Pass context
                   ],
                 ),
               ),
@@ -134,31 +137,30 @@ class AboutScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: colorScheme.surfaceVariant, // Themed background
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
                 children: [
-                  const Text(
+                  Text( // Changed to non-const
                     '© 2024 لیاقت کرایانہ اسٹور',
-                    style: TextStyle(
+                    style: textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 5),
-                  const Text(
+                  Text( // Changed to non-const
                     'تمام حقوق محفوظ ہیں۔',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Text(
+                  Text( // Changed to non-const
                     'بنی: ${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -172,7 +174,9 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTechItem(String label, String value) {
+  Widget _buildTechItem(BuildContext context, String label, String value) { // Added context
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -181,14 +185,24 @@ class AboutScreen extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
-          const Text(': '),
+          Text(
+            ': ',
+            style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+            ),
+          ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: Colors.grey),
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ],
@@ -196,14 +210,22 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureItem(String feature) {
+  Widget _buildFeatureItem(BuildContext context, String feature) { // Added context
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 16),
+          const Icon(Icons.check_circle, color: AppColors.success, size: 16), // Use AppColors.success
           const SizedBox(width: 10),
-          Expanded(child: Text(feature)),
+          Expanded(
+              child: Text(
+                feature,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              )),
         ],
       ),
     );

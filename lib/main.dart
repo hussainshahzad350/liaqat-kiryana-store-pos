@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Added for persistence
+import 'core/repositories/settings_repository.dart';
+import 'core/theme/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/sales/sales_screen.dart';
@@ -19,8 +21,7 @@ import 'screens/about/about_screen.dart';
 import 'core/routes/app_routes.dart';
 import 'l10n/app_localizations.dart';
 import 'package:window_manager/window_manager.dart';
-import 'widgets/main_layout.dart'; // Import MainLayout
-
+import 'widgets/main_layout.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,24 +45,27 @@ void main() async {
     );
   }
     
-  // 🛠️ FIX: Initialize Database Factory for Desktop
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
 
-  // Load Language Preference
-  final prefs = await SharedPreferences.getInstance();
-  final String languageCode = prefs.getString('languageCode') ?? 'en';
+  final SettingsRepository settingsRepository = SettingsRepository();
+  final initialPrefs = await settingsRepository.getAppPreferences();
+  final String languageCode = initialPrefs['languageCode'] ?? 'en';
 
-  runApp(LiaqatStoreApp(initialLanguage: languageCode));
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(settingsRepository),
+      child: LiaqatStoreApp(initialLanguage: languageCode),
+    ),
+  );
 }
 
 class LiaqatStoreApp extends StatefulWidget {
   final String initialLanguage;
   const LiaqatStoreApp({super.key, required this.initialLanguage});
 
-  // Static method to allow language changing from anywhere
   static void setLocale(BuildContext context, Locale newLocale) {
     _LiaqatStoreAppState? state = context.findAncestorStateOfType<_LiaqatStoreAppState>();
     state?.setLocale(newLocale);
@@ -84,46 +88,50 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
     setState(() {
       _locale = locale;
     });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('languageCode', locale.languageCode);
+    final repo = SettingsRepository();
+    await repo.updateAppPreferences({'languageCode': locale.languageCode});
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Liaqat Kiryana Store',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        useMaterial3: true,
-        fontFamily: _locale.languageCode == 'ur' ? 'NooriNastaleeq' : null, // Font Switch
-      ),
-      locale: _locale,
-      supportedLocales: const [
-        Locale('en', ''),
-        Locale('ur', ''),
-      ],
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const LoginScreen(),
-        AppRoutes.home: (context) => const MainLayout(currentRoute: AppRoutes.home, child: HomeScreen()),
-        AppRoutes.sales: (context) => const MainLayout(currentRoute: AppRoutes.sales, child: SalesScreen()),
-        AppRoutes.stock: (context) => const MainLayout(currentRoute: AppRoutes.stock, child: StockScreen()),
-        AppRoutes.items: (context) => const MainLayout(currentRoute: AppRoutes.items, child: ItemsScreen()),
-        AppRoutes.customers: (context) => const MainLayout(currentRoute: AppRoutes.customers, child: CustomersScreen()),
-        AppRoutes.suppliers: (context) => const MainLayout(currentRoute: AppRoutes.suppliers, child: SuppliersScreen()),
-        AppRoutes.categories: (context) => const MainLayout(currentRoute: AppRoutes.categories, child: CategoriesScreen()),
-        AppRoutes.units: (context) => const MainLayout(currentRoute: AppRoutes.units, child: UnitsScreen()),
-        AppRoutes.reports: (context) => const MainLayout(currentRoute: AppRoutes.reports, child: ReportsScreen()),
-        AppRoutes.cashLedger: (context) => const MainLayout(currentRoute: AppRoutes.cashLedger, child: CashLedgerScreen()),
-        AppRoutes.settings: (context) => const MainLayout(currentRoute: AppRoutes.settings, child: SettingsScreen()),
-        AppRoutes.about: (context) => const MainLayout(currentRoute: AppRoutes.about, child: AboutScreen()),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Liaqat Kiryana Store',
+          debugShowCheckedModeBanner: false,
+          theme: themeProvider.themeData.copyWith(
+            textTheme: themeProvider.themeData.textTheme.apply(
+              fontFamily: _locale.languageCode == 'ur' ? 'NooriNastaleeq' : null,
+            ),
+          ),
+          locale: _locale,
+          supportedLocales: const [
+            Locale('en', ''),
+            Locale('ur', ''),
+          ],
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          initialRoute: '/',
+          routes: {
+            '/': (context) => const LoginScreen(),
+            AppRoutes.home: (context) => const MainLayout(currentRoute: AppRoutes.home, child: HomeScreen()),
+            AppRoutes.sales: (context) => const MainLayout(currentRoute: AppRoutes.sales, child: SalesScreen()),
+            AppRoutes.stock: (context) => const MainLayout(currentRoute: AppRoutes.stock, child: StockScreen()),
+            AppRoutes.items: (context) => const MainLayout(currentRoute: AppRoutes.items, child: ItemsScreen()),
+            AppRoutes.customers: (context) => const MainLayout(currentRoute: AppRoutes.customers, child: CustomersScreen()),
+            AppRoutes.suppliers: (context) => const MainLayout(currentRoute: AppRoutes.suppliers, child: SuppliersScreen()),
+            AppRoutes.categories: (context) => const MainLayout(currentRoute: AppRoutes.categories, child: CategoriesScreen()),
+            AppRoutes.units: (context) => const MainLayout(currentRoute: AppRoutes.units, child: UnitsScreen()),
+            AppRoutes.reports: (context) => const MainLayout(currentRoute: AppRoutes.reports, child: ReportsScreen()),
+            AppRoutes.cashLedger: (context) => const MainLayout(currentRoute: AppRoutes.cashLedger, child: CashLedgerScreen()),
+            AppRoutes.settings: (context) => const MainLayout(currentRoute: AppRoutes.settings, child: SettingsScreen()),
+            AppRoutes.about: (context) => const MainLayout(currentRoute: AppRoutes.about, child: AboutScreen()),
+          },
+        );
       },
     );
   }

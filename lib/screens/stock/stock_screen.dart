@@ -73,7 +73,7 @@ class PurchaseTab extends StatefulWidget {
 class _PurchaseTabState extends State<PurchaseTab> {
   List<Map<String, dynamic>> _suppliers = [];
   String? _selectedSupplierId;
-  late final SuppliersRepository _suppliersRepository;
+  final _suppliersRepository = SuppliersRepository();
 
   @override
   void initState() {
