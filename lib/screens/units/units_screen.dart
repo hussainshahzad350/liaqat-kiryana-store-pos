@@ -142,7 +142,6 @@ class _UnitsScreenState extends State<UnitsScreen> {
                 SnackBar(content: Text(loc.itemDeleted), backgroundColor: colorScheme.primary),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
             child: Text(loc.yesDelete),
           ),
         ],
@@ -194,7 +193,6 @@ class UnitDialog extends StatelessWidget {
             onSave();
             Navigator.pop(context);
           },
-          style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
           child: Text(loc.save),
         ),
       ],

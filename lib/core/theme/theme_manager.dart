@@ -32,15 +32,15 @@ class ThemeManager extends ChangeNotifier {
   ThemeData get currentThemeData {
     switch (_currentThemeKey) {
       case ThemeConstants.lightGreen:
-        return AppThemes.lightGreenTheme;
+        return AppThemes.getTheme('green', Brightness.light);
       case ThemeConstants.darkGreen:
-        return AppThemes.darkGreenTheme;
+        return AppThemes.getTheme('green', Brightness.dark);
       case ThemeConstants.lightBlue:
-        return AppThemes.lightBlueTheme;
+        return AppThemes.getTheme('blue', Brightness.light);
       case ThemeConstants.darkBlue:
-        return AppThemes.darkBlueTheme;
+        return AppThemes.getTheme('blue', Brightness.dark);
       default:
-        return AppThemes.lightGreenTheme; // Fallback to default
+        return AppThemes.getTheme('green', Brightness.light); // Fallback to default
     }
   }
 

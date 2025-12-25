@@ -443,7 +443,6 @@ class PurchaseReportTab extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.download),
-            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
             label: Text(loc.downloadReport),
           ),
         ],
@@ -687,7 +686,6 @@ class StockReportTab extends StatelessWidget {
                       const Spacer(),
                       ElevatedButton(
                         onPressed: () {},
-                        style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
                         child: Text(loc.fullReport),
                       ),
                     ],

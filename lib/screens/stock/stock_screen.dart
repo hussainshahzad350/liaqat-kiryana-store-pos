@@ -190,11 +190,6 @@ class _PurchaseTabState extends State<PurchaseTab> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {}, // Save Logic to be implemented
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-              ),
               child: Text(loc.savePurchase, style: const TextStyle(fontSize: 16)),
             ),
           ),
@@ -398,7 +393,6 @@ class _StockViewTabState extends State<StockViewTab> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context), // Logic placeholder
-            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
             child: Text(loc.save),
           )
         ],

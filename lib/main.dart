@@ -96,52 +96,23 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
+        final lightTheme = themeProvider.lightTheme.copyWith(
+          textTheme: themeProvider.lightTheme.textTheme.apply(
+            fontFamily: _locale.languageCode == 'ur' ? 'NooriNastaleeq' : null,
+          ),
+        );
+        final darkTheme = themeProvider.darkTheme.copyWith(
+          textTheme: themeProvider.darkTheme.textTheme.apply(
+            fontFamily: _locale.languageCode == 'ur' ? 'NooriNastaleeq' : null,
+          ),
+        );
+
         return MaterialApp(
           title: 'Liaqat Kiryana Store',
           debugShowCheckedModeBanner: false,
-          theme: themeProvider.themeData.copyWith(
-            textTheme: themeProvider.themeData.textTheme.apply(
-              fontFamily: _locale.languageCode == 'ur' ? 'NooriNastaleeq' : null,
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: themeProvider.themeData.colorScheme.surfaceVariant.withOpacity(0.3),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: themeProvider.themeData.colorScheme.outline),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: themeProvider.themeData.colorScheme.outline),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: themeProvider.themeData.colorScheme.primary, width: 2),
-              ),
-              labelStyle: TextStyle(color: themeProvider.themeData.colorScheme.onSurfaceVariant),
-              prefixIconColor: themeProvider.themeData.colorScheme.onSurfaceVariant,
-              suffixIconColor: themeProvider.themeData.colorScheme.onSurfaceVariant,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            ),
-            scrollbarTheme: ScrollbarThemeData(
-              thumbVisibility: MaterialStateProperty.all(true),
-              trackVisibility: MaterialStateProperty.all(true),
-              thumbColor: MaterialStateProperty.all(themeProvider.themeData.colorScheme.onSurfaceVariant.withOpacity(0.4)),
-              radius: const Radius.circular(10),
-              thickness: MaterialStateProperty.all(8),
-            ),
-            dialogTheme: DialogThemeData(
-              backgroundColor: themeProvider.themeData.colorScheme.surface,
-              surfaceTintColor: Colors.transparent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-            cardTheme: CardThemeData(
-              color: themeProvider.themeData.colorScheme.surface,
-              elevation: 2,
-              surfaceTintColor: Colors.transparent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: themeProvider.themeMode,
           locale: _locale,
           supportedLocales: const [
             Locale('en', ''),

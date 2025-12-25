@@ -24,9 +24,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     // Helper to access localizations easier
     final localizations = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: Center( 
         child: Container(
           width: 400, 
@@ -39,28 +40,29 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.store, size: 80, color: Colors.green[700]),
+                  Icon(Icons.store, size: 80, color: colorScheme.primary),
                   const SizedBox(height: 20),
                   // UPDATED: Use localized app title
                   Text(
                     localizations.appTitle, 
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green[700]),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.primary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 5),
                   // UPDATED: Use localized POS system label
                   Text(
                     localizations.posSystem, 
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 16, color: colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 30),
                   TextField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
+                    style: TextStyle(color: colorScheme.onSurface),
                     decoration: InputDecoration(
                       // UPDATED: Use localized password label
                       labelText: localizations.password,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      // Border handled by global theme
                       prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
@@ -81,11 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         // and check `if (!mounted) return;` before navigating.
                         Navigator.pushReplacementNamed(context, '/home');
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[700],
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
                       // UPDATED: Use localized Login button text
                       child: Text(localizations.login, style: const TextStyle(fontSize: 18)),
                     ),

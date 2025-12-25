@@ -393,7 +393,6 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface))),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
             child: Text(loc.yesDelete),
           ),
         ],
@@ -471,7 +470,6 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.tertiary, foregroundColor: colorScheme.onTertiary),
             onPressed: () {
               final balance = double.tryParse(balanceCtrl.text) ?? 0.0;
               if (isEdit) {
@@ -781,11 +779,6 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.tertiary,
-                        foregroundColor: colorScheme.onTertiary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
                       icon: Icon(Icons.payment, color: colorScheme.onTertiary),
                       label: Text("Add Payment", style: TextStyle(color: colorScheme.onTertiary, fontSize: 16)),
                       onPressed: _showPaymentDialog,
@@ -850,7 +843,6 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel", style: TextStyle(color: colorScheme.onSurface))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.tertiary, foregroundColor: colorScheme.onTertiary),
             onPressed: () {
               if (amountCtrl.text.isNotEmpty) {
                 final amount = double.tryParse(amountCtrl.text) ?? 0.0;

@@ -853,17 +853,64 @@ class _PreferencesTabState extends State<PreferencesTab> {
                   const SizedBox(height: 10),
                   Consumer<ThemeProvider>(
                     builder: (context, themeProvider, child) {
-                      return DropdownButton<String>(
-                        value: themeProvider.themeName,
-                        isExpanded: true,
-                        items: ['lightGreen', 'darkGreen', 'lightBlue', 'darkBlue']
-                            .map((theme) => DropdownMenuItem(value: theme, child: Text(theme)))
-                            .toList(),
-                        onChanged: (String? newTheme) {
-                          if (newTheme != null) {
-                            themeProvider.setTheme(newTheme);
-                          }
-                        },
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Theme Color"),
+                          DropdownButton<String>(
+                            value: themeProvider.currentColor,
+                            isExpanded: true,
+                            items: const [
+                              DropdownMenuItem(value: 'green', child: Text('Green')),
+                              DropdownMenuItem(value: 'blue', child: Text('Blue')),
+                              DropdownMenuItem(value: 'orange', child: Text('Orange')),
+                            ],
+                            onChanged: (String? newColor) {
+                              if (newColor != null) {
+                                themeProvider.setColor(newColor);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          const Text("Theme Mode"),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: RadioListTile<ThemeMode>(
+                                  title: const Text('Light'),
+                                  value: ThemeMode.light,
+                                  groupValue: themeProvider.themeMode,
+                                  onChanged: (ThemeMode? value) {
+                                    if (value != null) themeProvider.setMode(value);
+                                  },
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                              Expanded(
+                                child: RadioListTile<ThemeMode>(
+                                  title: const Text('Dark'),
+                                  value: ThemeMode.dark,
+                                  groupValue: themeProvider.themeMode,
+                                  onChanged: (ThemeMode? value) {
+                                    if (value != null) themeProvider.setMode(value);
+                                  },
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                              Expanded(
+                                child: RadioListTile<ThemeMode>(
+                                  title: const Text('System'),
+                                  value: ThemeMode.system,
+                                  groupValue: themeProvider.themeMode,
+                                  onChanged: (ThemeMode? value) {
+                                    if (value != null) themeProvider.setMode(value);
+                                  },
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       );
                     },
                   ),

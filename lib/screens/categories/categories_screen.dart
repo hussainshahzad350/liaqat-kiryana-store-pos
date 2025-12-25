@@ -322,7 +322,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 SnackBar(content: Text(loc.itemDeleted), backgroundColor: colorScheme.primary),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
             child: Text(loc.yesDelete),
           ),
         ],
@@ -354,7 +353,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 const SnackBar(content: Text('سب کیٹیگری حذف ہو گئی')),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('ہاں، حذف کریں'),
           ),
         ],
@@ -497,7 +495,6 @@ class _CategoryDialogState extends State<CategoryDialog> {
         ),
         ElevatedButton(
           onPressed: _saveCategory,
-          style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
           child: Text(loc.save),
         ),
       ],

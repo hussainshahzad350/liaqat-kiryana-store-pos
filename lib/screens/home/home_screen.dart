@@ -3,6 +3,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/repositories/sales_repository.dart';
@@ -106,9 +107,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final localizations = AppLocalizations.of(context)!;
 
-      return Column(
-
-        children: [
+      return Shortcuts(
+        shortcuts: const <ShortcutActivator, Intent>{
+          SingleActivator(LogicalKeyboardKey.f5): _RefreshIntent(),
+          SingleActivator(LogicalKeyboardKey.keyN, control: true): _NewSaleIntent(),
+        },
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            _RefreshIntent: CallbackAction<_RefreshIntent>(
+              onInvoke: (intent) => _loadData(),
+            ),
+            _NewSaleIntent: CallbackAction<_NewSaleIntent>(
+              onInvoke: (intent) {
+                Navigator.pushNamed(context, AppRoutes.sales).then((_) => _loadData());
+                return null;
+              },
+            ),
+          },
+          child: Focus(
+            autofocus: true,
+            child: Column(
+              children: [
 
           // 1. Header Bar
 
@@ -123,63 +142,53 @@ class _HomeScreenState extends State<HomeScreen> {
           
 
           // 3. Dashboard Content
+          // 3. Dashboard Content - Desktop Layout
 
           Expanded(
 
-            child: Column(
-
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
 
-                // FIXED SECTION (Doesn't scroll)
-
-                Container(
-
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-
-                  child: Column(
-
-                    mainAxisSize: MainAxisSize.min,
-
-                    children: [
-
-                      // KPI Grid (Fixed at top)
-
-                      _buildKPIGrid(localizations),
-
-                      const SizedBox(height: 16),
-
-                      
-
-                      // Details Grid - Customers + Low Stock (Fixed)
-
-                      _buildDetailsGrid(localizations),
-
-                    ],
-
+                // LEFT PANEL: Main Dashboard (KPIs + Details)
+                Expanded(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          // KPI Grid (Fixed at top)
+                          _buildKPIGrid(localizations),
+                          const SizedBox(height: 16),
+                          // Details Grid - Customers + Low Stock (Fixed)
+                          _buildDetailsGrid(localizations),
+                        ],
+                      ),
+                    ),
                   ),
-
                 ),
-
-                
 
                 const SizedBox(height: 16),
 
+                // Vertical Divider
+                VerticalDivider(width: 1, color: Theme.of(context).colorScheme.outlineVariant),
                 
 
                 // SCROLLABLE SECTION (Only Recent Activities)
 
-                Expanded(
-
-                  child: RefreshIndicator(
-
-                    onRefresh: _loadData,
-
-                    child: SingleChildScrollView(
-
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-
-                      child: _buildRecentSalesCard(localizations),
-
+                // RIGHT PANEL: Sidebar (Recent Activities)
+                SizedBox(
+                  width: 400,
+                  child: Container(
+                    color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: _buildRecentSalesCard(localizations),
+                        ),
+                      ],
                     ),
 
                   ),
@@ -200,8 +209,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
         ],
 
+            ),
+          ),
+        ),
       );
-
     }
 
 
@@ -354,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.surface,
               foregroundColor: colorScheme.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               elevation: 3,
               shadowColor: colorScheme.shadow.withOpacity(0.2),
               side: BorderSide(color: colorScheme.primary, width: 2),
@@ -423,66 +434,29 @@ class _HomeScreenState extends State<HomeScreen> {
           const Spacer(),
           
           // 5. Search Button
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Search feature coming soon!'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
-                borderRadius: BorderRadius.circular(8),
-                hoverColor: colorScheme.primaryContainer,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: colorScheme.primary, width: 1.5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.search, size: 20, color: colorScheme.primary),
-                ),
-              ),
-            ),
+          _HoverableActionIcon(
+            icon: Icon(Icons.search, size: 20, color: colorScheme.primary),
+            color: colorScheme.primary,
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Search feature coming soon!'), duration: Duration(seconds: 2)),
+              );
+            },
           ),
           
           const SizedBox(width: 8),
           
           // 6. Refresh Button
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _isRefreshing ? null : _loadData,
-                borderRadius: BorderRadius.circular(8),
-                hoverColor: colorScheme.primaryContainer,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: _isRefreshing ? colorScheme.outline : colorScheme.primary,
-                      width: 1.5,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: _isRefreshing
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.primary,
-                          ),
-                        )
-                      : Icon(Icons.refresh, size: 20, color: colorScheme.primary),
-                ),
-              ),
-            ),
+          _HoverableActionIcon(
+            color: colorScheme.primary,
+            onTap: _isRefreshing ? null : _loadData,
+            icon: _isRefreshing
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary),
+                  )
+                : Icon(Icons.refresh, size: 20, color: colorScheme.primary),
           ),
         ],
       ),
@@ -546,17 +520,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildKPIGrid(AppLocalizations localizations) {
     final colorScheme = Theme.of(context).colorScheme;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 4,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: constraints.maxWidth > 1400 ? 1.8 : 1.5,
-          children: [
-            _buildKPICard(
+    // Using SizedBox to constrain height for the Spacer() inside cards
+    // Row + Expanded ensures equal width distribution without aspect ratio issues
+    return SizedBox(
+      height: 150,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _buildKPICard(
               title: localizations.todaySales,
               value: 'Rs ${todaySales.toStringAsFixed(0)}',
               icon: Icons.attach_money,
@@ -567,7 +539,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pushNamed(context, AppRoutes.reports);
               },
             ),
-            _buildKPICard(
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildKPICard(
               title: localizations.pendingAmount,
               value: 'Rs ${_calculatePendingCredits().toStringAsFixed(0)}',
               icon: Icons.credit_card,
@@ -577,7 +552,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pushNamed(context, AppRoutes.customers);
               },
             ),
-            _buildKPICard(
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildKPICard(
               title: localizations.lowStock,
               value: '${lowStockItems.length}',
               icon: Icons.warning_amber,
@@ -588,7 +566,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pushNamed(context, AppRoutes.stock);
               },
             ),
-            _buildKPICard(
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: _buildKPICard(
               title: localizations.totalCustomers,
               value: '${todayCustomers.length}',
               icon: Icons.people,
@@ -598,9 +579,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pushNamed(context, AppRoutes.customers);
               },
             ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
   }
 
@@ -632,106 +613,97 @@ class _HomeScreenState extends State<HomeScreen> {
     required VoidCallback onTap,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: Card(
-        elevation: 2,
-        color: colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          hoverColor: color.withOpacity(0.05),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return _HoverableCard(
+      onTap: onTap,
+      color: color,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(icon, color: color, size: 24),
-                    ),
-                    const Spacer(),
-                    if (trend != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: trendUp
-                              ? colorScheme.primary.withOpacity(0.1)
-                              : colorScheme.error.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              trendUp ? Icons.arrow_upward : Icons.arrow_downward,
-                              size: 12,
-                              color: trendUp ? colorScheme.primary : colorScheme.error,
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              trend,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: trendUp ? colorScheme.primary : colorScheme.error,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (isAlert && trend == null)
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: colorScheme.error,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.priority_high, color: colorScheme.onError, size: 12),
-                      ),
-                  ],
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: color, size: 24),
                 ),
                 const Spacer(),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
+                if (trend != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: trendUp
+                          ? colorScheme.primary.withOpacity(0.1)
+                          : colorScheme.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          trendUp ? Icons.arrow_upward : Icons.arrow_downward,
+                          size: 12,
+                          color: trendUp ? colorScheme.primary : colorScheme.error,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          trend,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: trendUp ? colorScheme.primary : colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                if (isAlert && trend == null)
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: colorScheme.error,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.priority_high, color: colorScheme.onError, size: 12),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
               ],
             ),
-          ),
+            const Spacer(),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -745,9 +717,23 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: _buildCustomersCard(localizations)),
+        // LEFT COLUMN: Customer summaries, Sales summaries
+        Expanded(
+          child: Column(
+            children: [
+              _buildCustomersCard(localizations),
+            ],
+          ),
+        ),
         const SizedBox(width: 16),
-        Expanded(child: _buildLowStockCard(localizations)),
+        // RIGHT COLUMN: Low stock, Alerts or secondary cards
+        Expanded(
+          child: Column(
+            children: [
+              _buildLowStockCard(localizations),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -1027,38 +1013,42 @@ class _HomeScreenState extends State<HomeScreen> {
         
         // SCROLLABLE ACTIVITIES LIST
         if (recentSales.isNotEmpty)
-          Container(
-            constraints: const BoxConstraints(maxHeight: 400),
-            child: ListView.separated(
-              shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: recentSales.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                color: colorScheme.outlineVariant,
-                indent: 20,
-                endIndent: 20,
+          Expanded(
+            child: Scrollbar(
+              thumbVisibility: true,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: recentSales.length,
+                separatorBuilder: (context, index) => Divider(
+                  height: 1,
+                  color: colorScheme.outlineVariant,
+                  indent: 20,
+                  endIndent: 20,
+                ),
+                itemBuilder: (context, index) {
+                  final activity = recentSales[index];
+                  return _buildActivityRow(activity, localizations);
+                },
               ),
-              itemBuilder: (context, index) {
-                final activity = recentSales[index];
-                return _buildActivityRow(activity, localizations);
-              },
             ),
           )
         else
           // EMPTY STATE
-          Padding(
-            padding: const EdgeInsets.all(40),
+          Expanded(
             child: Center(
-              child: Column(
-                children: [
-                  Icon(Icons.timeline_outlined, size: 64, color: colorScheme.outline),
-                  const SizedBox(height: 12),
-                  Text(
-                    localizations.noActivitiesYet,
-                    style: TextStyle(fontSize: 15, color: colorScheme.onSurfaceVariant),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.timeline_outlined, size: 64, color: colorScheme.outline),
+                    const SizedBox(height: 12),
+                    Text(
+                      localizations.noActivitiesYet,
+                      style: TextStyle(fontSize: 15, color: colorScheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1072,7 +1062,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final activityType = activity['activity_type']?.toString();
   final status = activity['status']?.toString();
   
-  return Container(
+  return _HoverableListItem(
+    child: Container(
     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
     child: Row(
       children: [
@@ -1179,6 +1170,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    ),
     ),
   );
   }
@@ -1400,4 +1392,157 @@ class _RefreshIntent extends Intent {
 // ignore: unused_element
 class _ToggleSidebarIntent extends Intent {
   const _ToggleSidebarIntent();
+}
+
+// ============================================================================
+// REUSABLE HOVER WIDGETS
+// ============================================================================
+
+class _HoverableCard extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _HoverableCard({
+    required this.child,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  State<_HoverableCard> createState() => _HoverableCardState();
+}
+
+class _HoverableCardState extends State<_HoverableCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withOpacity(_isHovered ? 0.15 : 0.05),
+              blurRadius: _isHovered ? 8 : 2,
+              offset: Offset(0, _isHovered ? 4 : 2),
+            ),
+          ],
+          border: Border.all(
+            color: _isHovered ? widget.color.withOpacity(0.5) : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: BorderRadius.circular(12),
+            hoverColor: widget.color.withOpacity(0.05),
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HoverableActionIcon extends StatefulWidget {
+  final Widget icon;
+  final VoidCallback? onTap;
+  final Color color;
+
+  const _HoverableActionIcon({
+    required this.icon,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  State<_HoverableActionIcon> createState() => _HoverableActionIconState();
+}
+
+class _HoverableActionIconState extends State<_HoverableActionIcon> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(8),
+          hoverColor: widget.color.withOpacity(0.1),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: _isHovered ? widget.color : widget.color.withOpacity(0.5),
+                width: 1.5,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              color: _isHovered ? widget.color.withOpacity(0.05) : Colors.transparent,
+            ),
+            child: widget.icon,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HoverableListItem extends StatefulWidget {
+  final Widget child;
+
+  const _HoverableListItem({required this.child});
+
+  @override
+  State<_HoverableListItem> createState() => _HoverableListItemState();
+}
+
+class _HoverableListItemState extends State<_HoverableListItem> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        decoration: BoxDecoration(
+          color: _isHovered ? colorScheme.surfaceVariant.withOpacity(0.3) : Colors.transparent,
+          border: Border(
+            left: BorderSide(
+              color: _isHovered ? colorScheme.primary : Colors.transparent,
+              width: 4,
+            ),
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {},
+            hoverColor: Colors.transparent,
+            child: widget.child,
+          ),
+        ),
+      ),
+    );
+  }
 }
