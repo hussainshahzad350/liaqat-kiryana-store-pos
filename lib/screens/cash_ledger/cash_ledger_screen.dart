@@ -2,6 +2,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:liaqat_store/core/repositories/cash_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cash_ledger_model.dart';
@@ -93,65 +94,149 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
     });
   }
 
-  Future<void> _addTransaction(String type) async {
+  Future<void> _addTransaction(String initialType) async {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final amountCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final remarksCtrl = TextEditingController();
+    
+    String selectedType = initialType;
+    DateTime selectedDate = DateTime.now();
 
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(type == 'IN' ? loc.newCashIn : loc.newCashOut), // Ensure keys exist
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: amountCtrl,
-                decoration: InputDecoration(labelText: loc.amount),
-                keyboardType: TextInputType.number,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) {
+          return AlertDialog(
+            backgroundColor: colorScheme.surface,
+            title: Text(
+              selectedType == 'IN' ? loc.newCashIn : loc.newCashOut,
+              style: TextStyle(color: colorScheme.onSurface),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Type Selector
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setStateDialog(() => selectedType = 'IN'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: selectedType == 'IN' ? colorScheme.primaryContainer : colorScheme.surfaceVariant,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: selectedType == 'IN' ? colorScheme.primary : colorScheme.outline),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(loc.cashIn, style: TextStyle(fontWeight: FontWeight.bold, color: selectedType == 'IN' ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => setStateDialog(() => selectedType = 'OUT'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: selectedType == 'OUT' ? colorScheme.errorContainer : colorScheme.surfaceVariant,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: selectedType == 'OUT' ? colorScheme.error : colorScheme.outline),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(loc.cashOut, style: TextStyle(fontWeight: FontWeight.bold, color: selectedType == 'OUT' ? colorScheme.onErrorContainer : colorScheme.onSurfaceVariant)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Date Picker
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime.now(),
+                        builder: (context, child) => Theme(data: Theme.of(context).copyWith(colorScheme: colorScheme), child: child!),
+                      );
+                      if (picked != null) setStateDialog(() => selectedDate = picked);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: colorScheme.outline),
+                        borderRadius: BorderRadius.circular(8),
+                        color: colorScheme.surface,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.calendar_today, size: 20, color: colorScheme.onSurfaceVariant),
+                          const SizedBox(width: 10),
+                          Text(DateFormat('dd MMM yyyy').format(selectedDate), style: TextStyle(color: colorScheme.onSurface)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextField(
+                    controller: amountCtrl,
+                    decoration: InputDecoration(labelText: loc.amount, filled: true, fillColor: colorScheme.surfaceVariant, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(color: colorScheme.onSurface),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: descCtrl,
+                    decoration: InputDecoration(labelText: loc.description, filled: true, fillColor: colorScheme.surfaceVariant, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
+                    style: TextStyle(color: colorScheme.onSurface),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: remarksCtrl,
+                    decoration: InputDecoration(labelText: loc.remarks, filled: true, fillColor: colorScheme.surfaceVariant, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
+                    style: TextStyle(color: colorScheme.onSurface),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: descCtrl,
-                decoration: InputDecoration(labelText: loc.description),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurfaceVariant)),
               ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: remarksCtrl,
-                decoration: InputDecoration(labelText: loc.remarks),
+              ElevatedButton(
+                onPressed: () async {
+                  final amount = double.tryParse(amountCtrl.text) ?? 0.0;
+                  if (amount > 0 && descCtrl.text.isNotEmpty) {
+                    await _cashRepository.addCashEntry(
+                      descCtrl.text, 
+                      selectedType, 
+                      amount, 
+                      remarksCtrl.text
+                    );
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      _refreshData(); 
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: selectedType == 'IN' ? colorScheme.primary : colorScheme.error,
+                  foregroundColor: selectedType == 'IN' ? colorScheme.onPrimary : colorScheme.onError,
+                ),
+                child: Text(loc.save),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(loc.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final amount = double.tryParse(amountCtrl.text) ?? 0.0;
-              if (amount > 0 && descCtrl.text.isNotEmpty) {
-                await _cashRepository.addCashEntry(
-                  descCtrl.text, 
-                  type, 
-                  amount, 
-                  remarksCtrl.text
-                );
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  _refreshData(); // Reload list
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: type == 'IN' ? Colors.green : Colors.red,
-            ),
-            child: Text(loc.save, style: const TextStyle(color: Colors.white)),
-          ),
-        ],
+          );
+        }
       ),
     );
   }
@@ -159,31 +244,32 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(loc.cashLedger), // Ensure key 'cashLedger' exists
-        backgroundColor: Colors.deepOrange[700],
-        foregroundColor: Colors.white,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
       ),
       body: Column(
         children: [
           // Balance Card
           Card(
             margin: const EdgeInsets.all(16),
-            color: Colors.deepOrange[50],
+            color: colorScheme.primaryContainer,
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(loc.currentBalance, style: const TextStyle(fontSize: 16)),
+                  Text(loc.currentBalance, style: TextStyle(fontSize: 16, color: colorScheme.onPrimaryContainer)),
                   Text(
                     'Rs ${currentBalance.toStringAsFixed(0)}',
                     style: TextStyle(
                       fontSize: 24, 
                       fontWeight: FontWeight.bold,
-                      color: Colors.deepOrange[900]
+                      color: colorScheme.onPrimaryContainer
                     ),
                   ),
                 ],
@@ -194,15 +280,15 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
           // List
           Expanded(
             child: _isFirstLoadRunning
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
               : ledgerEntries.isEmpty
-                  ? Center(child: Text(loc.noData))
+                  ? Center(child: Text(loc.noData, style: TextStyle(color: colorScheme.onSurface)))
                   : ListView.builder(
                       controller: _scrollController,
                       itemCount: ledgerEntries.length + (_isLoadMoreRunning ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == ledgerEntries.length) {
-                          return const Center(child: CircularProgressIndicator());
+                          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
                         }
 
                         final entry = ledgerEntries[index];
@@ -210,16 +296,17 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
 
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          color: colorScheme.surface,
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: isIncome ? Colors.green[100] : Colors.red[100],
+                              backgroundColor: isIncome ? colorScheme.primaryContainer : colorScheme.errorContainer,
                               child: Icon(
                                 isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-                                color: isIncome ? Colors.green : Colors.red,
+                                color: isIncome ? colorScheme.primary : colorScheme.error,
                               ),
                             ),
-                            title: Text(entry.description, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text('${entry.transactionDate} | ${entry.transactionTime}'),
+                            title: Text(entry.description, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                            subtitle: Text('${entry.transactionDate} | ${entry.transactionTime}', style: TextStyle(color: colorScheme.onSurfaceVariant)),
                             trailing: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.end,
@@ -228,13 +315,13 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                   '${isIncome ? '+' : '-'} ${entry.amount}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: isIncome ? Colors.green : Colors.red,
+                                    color: isIncome ? colorScheme.primary : colorScheme.error,
                                     fontSize: 16,
                                   ),
                                 ),
                                 Text(
                                   'Bal: ${entry.balanceAfter?.toStringAsFixed(0)}',
-                                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                  style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
                                 ),
                               ],
                             ),
@@ -251,18 +338,25 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: Text(loc.cashIn, style: const TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], padding: const EdgeInsets.symmetric(vertical: 15)),
+                    icon: Icon(Icons.add, color: colorScheme.onPrimary),
+                    label: Text(loc.cashIn, style: TextStyle(color: colorScheme.onPrimary)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary, 
+                      padding: const EdgeInsets.symmetric(vertical: 15)
+                    ),
                     onPressed: () => _addTransaction('IN'),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.remove, color: Colors.white),
-                    label: Text(loc.cashOut, style: const TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700], padding: const EdgeInsets.symmetric(vertical: 15)),
+                    icon: Icon(Icons.remove, color: colorScheme.onError),
+                    label: Text(loc.cashOut, style: TextStyle(color: colorScheme.onError)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.error, 
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      foregroundColor: colorScheme.onError
+                    ),
                     onPressed: () => _addTransaction('OUT'),
                   ),
                 ),

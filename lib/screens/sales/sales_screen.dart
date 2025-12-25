@@ -88,6 +88,7 @@ class _SalesScreenState extends State<SalesScreen> {
   // --- WillPopScope for back button warning ---
   Future<bool> _onWillPop() async {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (cartItems.isNotEmpty) {
       final bool? shouldExit = await showDialog(
@@ -102,7 +103,7 @@ class _SalesScreenState extends State<SalesScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text(loc.exit, style: const TextStyle(color: Colors.red)),
+              child: Text(loc.exit, style: TextStyle(color: colorScheme.error)),
             ),
           ],
         ),
@@ -214,6 +215,7 @@ class _SalesScreenState extends State<SalesScreen> {
   // Quick Add Customer
   void _showAddCustomerDialog() {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     
     final nameEngCtrl = TextEditingController();
     final nameUrduCtrl = TextEditingController();
@@ -240,7 +242,7 @@ class _SalesScreenState extends State<SalesScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
             onPressed: () async {
               // Validation 
               if (nameEngCtrl.text.trim().isEmpty) {
@@ -262,7 +264,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${loc.phoneExists}: "$phoneNumber"'), 
-                      backgroundColor: Colors.red
+                      backgroundColor: colorScheme.error
                     )
                   );
                   return; 
@@ -287,12 +289,12 @@ class _SalesScreenState extends State<SalesScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text("${loc.customerAdded}: '${nameEngCtrl.text}'"), 
-                      backgroundColor: Colors.green
+                      backgroundColor: colorScheme.primary
                     )
                   );
                 }
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e'), backgroundColor: Colors.red));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error));
               }
             },
             child: Text(loc.saveSelect),
@@ -305,6 +307,7 @@ class _SalesScreenState extends State<SalesScreen> {
   // --- Cart Actions ---
   void _addToCart(Product product, {double quantity = 1.0}) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (quantity <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -327,7 +330,7 @@ class _SalesScreenState extends State<SalesScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${loc.insufficientStock}: ${availableStock.toStringAsFixed(2)} available'),
-              backgroundColor: Colors.red,
+              backgroundColor: colorScheme.error,
               duration: const Duration(seconds: 2),
             ),
           );
@@ -345,7 +348,7 @@ class _SalesScreenState extends State<SalesScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(loc.outOfStock),
-              backgroundColor: Colors.red,
+              backgroundColor: colorScheme.error,
               duration: const Duration(seconds: 2),
             ),
           );
@@ -384,6 +387,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
   void _updateCartItemFromField(int index) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final item = cartItems[index];
 
     String priceText = item['priceCtrl'].text;
@@ -396,7 +400,7 @@ class _SalesScreenState extends State<SalesScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.invalidPrice),
-          backgroundColor: Colors.red,
+          backgroundColor: colorScheme.error,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -408,7 +412,7 @@ class _SalesScreenState extends State<SalesScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.invalidQuantity),
-          backgroundColor: Colors.red,
+          backgroundColor: colorScheme.error,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -421,7 +425,7 @@ class _SalesScreenState extends State<SalesScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${loc.insufficientStock}: ${availableStock.toStringAsFixed(0)} available'),
-          backgroundColor: Colors.red,
+          backgroundColor: colorScheme.error,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -450,6 +454,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
   void _clearCart() {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     if (cartItems.isEmpty) return;
     
@@ -468,7 +473,7 @@ class _SalesScreenState extends State<SalesScreen> {
               Navigator.pop(context);
               _performClearCart();
             },
-            child: Text(loc.clearAll, style: const TextStyle(color: Colors.red)),
+            child: Text(loc.clearAll, style: TextStyle(color: colorScheme.error)),
           ),
         ],
       ),
@@ -540,6 +545,7 @@ class _SalesScreenState extends State<SalesScreen> {
     required Function() onIncreaseLimit,
   }) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     
     showDialog(
       context: context,
@@ -547,9 +553,9 @@ class _SalesScreenState extends State<SalesScreen> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.warning, color: Colors.orange),
+            Icon(Icons.warning, color: colorScheme.error),
             const SizedBox(width: 10),
-            Text(loc.creditLimitExceeded, style: const TextStyle(color: Colors.orange)),
+            Text(loc.creditLimitExceeded, style: TextStyle(color: colorScheme.error)),
           ],
         ),
         content: SingleChildScrollView(
@@ -557,29 +563,29 @@ class _SalesScreenState extends State<SalesScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(loc.creditLimitWarningMsg(creditLimit.toStringAsFixed(0))),
+              Text(loc.creditLimitWarningMsg(creditLimit.toStringAsFixed(0)), style: TextStyle(color: colorScheme.onSurface)),
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange[50],
+                  color: colorScheme.errorContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _infoRow('${loc.customerCreditLimit}:', 'Rs ${creditLimit.toStringAsFixed(0)}'),
-                    _infoRow('${loc.currentBalance}:', 'Rs ${currentBalance.toStringAsFixed(0)}'),
-                    _infoRow('${loc.billTotal}:', 'Rs ${billTotal.toStringAsFixed(0)}'),
-                    const Divider(),
+                    _infoRow('${loc.customerCreditLimit}:', 'Rs ${creditLimit.toStringAsFixed(0)}', color: colorScheme.onErrorContainer),
+                    _infoRow('${loc.currentBalance}:', 'Rs ${currentBalance.toStringAsFixed(0)}', color: colorScheme.onErrorContainer),
+                    _infoRow('${loc.billTotal}:', 'Rs ${billTotal.toStringAsFixed(0)}', color: colorScheme.onErrorContainer),
+                    Divider(color: colorScheme.onErrorContainer.withOpacity(0.5)),
                     _infoRow('${loc.totalBalance}:', 'Rs ${potentialBalance.toStringAsFixed(0)}',
                       isBold: true,
-                      color: Colors.red,
+                      color: colorScheme.error,
                     ),
                     const SizedBox(height: 5),
                     Text(
                       '${loc.excessAmount}: Rs ${(potentialBalance - creditLimit).toStringAsFixed(0)}',
-                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -590,7 +596,7 @@ class _SalesScreenState extends State<SalesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(loc.cancel, style: const TextStyle(color: Colors.grey)),
+            child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
           OutlinedButton(
             onPressed: () {
@@ -598,9 +604,10 @@ class _SalesScreenState extends State<SalesScreen> {
               onIncreaseLimit();
             },
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.blue),
+              side: BorderSide(color: colorScheme.primary),
+              foregroundColor: colorScheme.primary,
             ),
-            child: Text(loc.increaseLimit, style: const TextStyle(color: Colors.blue)),
+            child: Text(loc.increaseLimit),
           ),
           ElevatedButton(
             onPressed: () {
@@ -608,9 +615,10 @@ class _SalesScreenState extends State<SalesScreen> {
               onContinueAnyway();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
             ),
-            child: Text(loc.continueAnyway, style: const TextStyle(color: Colors.white)),
+            child: Text(loc.continueAnyway),
           ),
         ],
       ),
@@ -619,6 +627,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
   void _showIncreaseLimitDialog({required VoidCallback onLimitUpdated}) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final limitCtrl = TextEditingController();
 
     double currentLimit = (selectedCustomerMap?.creditLimit ?? 0).toDouble();
@@ -677,7 +686,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('${loc.creditLimitUpdated}: Rs ${newLimit.toStringAsFixed(0)}'),
-                        backgroundColor: Colors.green,
+                        backgroundColor: colorScheme.primary,
                       ),
                     );
                     onLimitUpdated(); 
@@ -685,7 +694,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${loc.error}: $e')),
+                      SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error),
                     );
                   }
                 }
@@ -700,6 +709,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
   void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     bool isRegistered = selectedCustomerId != null;
     double billTotal = grandTotal;
     double oldBalance = previousBalance;
@@ -771,15 +781,16 @@ class _SalesScreenState extends State<SalesScreen> {
             }
 
             return AlertDialog(
+              backgroundColor: colorScheme.surface,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               title: Container(
-                color: Colors.green[700],
+                color: colorScheme.primary,
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    const Icon(Icons.shopping_cart, color: Colors.white),
+                    Icon(Icons.shopping_cart, color: colorScheme.onPrimary),
                     const SizedBox(width: 10),
-                    Text(loc.checkoutButton, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(loc.checkoutButton, style: TextStyle(color: colorScheme.onPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
                   ],
                 )
               ),
@@ -793,32 +804,32 @@ class _SalesScreenState extends State<SalesScreen> {
                     children: [
                       if (isRegistered) ...[
                         Text('${loc.searchCustomerHint}: ${selectedCustomerMap!.nameEnglish}', 
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface)),
                         const SizedBox(height: 5),
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.orange[50], 
+                            color: colorScheme.secondaryContainer, 
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: Colors.orange[200]!)
+                            border: Border.all(color: colorScheme.secondary)
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                              Icon(Icons.info_outline, size: 16, color: colorScheme.secondary),
                               const SizedBox(width: 5),
                               Text('${loc.prevBalance}: Rs ${oldBalance.toStringAsFixed(0)}', 
-                                style: const TextStyle(fontSize: 13)),
+                                style: TextStyle(fontSize: 13, color: colorScheme.onSecondaryContainer)),
                             ],
                           ),
                         ),
                         const Divider(height: 20),
                       ],
 
-                      _infoRow(loc.billTotal, 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18),
+                      _infoRow(loc.billTotal, 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18, color: colorScheme.onSurface),
                       const Divider(),
                       
                       const SizedBox(height: 10),
-                      Text(loc.paymentLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(loc.paymentLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: colorScheme.onSurface)),
                       const SizedBox(height: 10),
                       
                       _input(loc.cashInput, cashCtrl, (v) {
@@ -849,12 +860,12 @@ class _SalesScreenState extends State<SalesScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(loc.changeDue, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(loc.changeDue, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
                             Text('Rs ${change.toStringAsFixed(0)}', 
                               style: TextStyle(
                                 fontSize: 18, 
                                 fontWeight: FontWeight.bold, 
-                                color: change >= 0 ? Colors.green : Colors.red
+                                color: change >= 0 ? colorScheme.primary : colorScheme.error
                               )
                             ),
                           ],
@@ -869,9 +880,12 @@ class _SalesScreenState extends State<SalesScreen> {
                   child: Text(loc.cancel),
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700]),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                  ),
                   onPressed: isValid ? checkCreditLimitAndProcess : null,
-                  child: Text(loc.savePrint, style: const TextStyle(color: Colors.white)),
+                  child: Text(loc.savePrint),
                 ),
               ],
             );
@@ -882,6 +896,7 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   Widget _infoRow(String label, String value, {bool isBold = false, double size = 14, Color? color}) {
+    final defaultColor = Theme.of(context).colorScheme.onSurface;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -892,6 +907,7 @@ class _SalesScreenState extends State<SalesScreen> {
             style: TextStyle(
               fontSize: size, 
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color ?? defaultColor,
             ),
           ),
           Text(
@@ -899,7 +915,7 @@ class _SalesScreenState extends State<SalesScreen> {
             style: TextStyle(
               fontSize: size,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: color,
+              color: color ?? defaultColor,
             ),
           ),
         ],
@@ -908,11 +924,12 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   Widget _input(String label, TextEditingController ctrl, Function(String) onChanged, {bool enabled = true}) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          SizedBox(width: 130, child: Text(label, style: const TextStyle(fontSize: 14))),
+          SizedBox(width: 130, child: Text(label, style: TextStyle(fontSize: 14, color: colorScheme.onSurface))),
           Expanded(
             child: TextField(
               controller: ctrl,
@@ -924,9 +941,9 @@ class _SalesScreenState extends State<SalesScreen> {
                 border: const OutlineInputBorder(),
                 prefixText: 'Rs ',
                 filled: !enabled,
-                fillColor: enabled ? null : Colors.grey[200],
+                fillColor: enabled ? null : colorScheme.surfaceVariant,
               ), 
-              style: TextStyle(fontWeight: FontWeight.bold, color: enabled ? Colors.black : Colors.grey[600]),
+              style: TextStyle(fontWeight: FontWeight.bold, color: enabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant),
               onChanged: onChanged,
             ),
           ),
@@ -941,6 +958,7 @@ class _SalesScreenState extends State<SalesScreen> {
   
   Future<void> _processSale(double cash, double bank, double credit, double change) async {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     // 1. STOCK VALIDATION - Using Repository
     final validationResult = await _salesRepository.validateStock(cartItems);
@@ -952,7 +970,7 @@ class _SalesScreenState extends State<SalesScreen> {
           content: Text(
             validationResult['error'] ?? 'Stock validation failed',
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: colorScheme.error,
         ),
       );
       return;
@@ -1012,7 +1030,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(loc.saleCompleted), backgroundColor: Colors.green)
+          SnackBar(content: Text(loc.saleCompleted), backgroundColor: colorScheme.primary)
         );
       }
     } catch (e) {
@@ -1025,7 +1043,7 @@ class _SalesScreenState extends State<SalesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(loc.errorProcessingSale(cleanError)),
-            backgroundColor: Colors.red,
+            backgroundColor: colorScheme.error,
             duration: const Duration(seconds: 4),
           )
         );
@@ -1039,6 +1057,7 @@ class _SalesScreenState extends State<SalesScreen> {
   
   Future<void> _cancelSale(int id, String billNumber) async {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     final reasonCtrl = TextEditingController();
 
@@ -1065,9 +1084,12 @@ class _SalesScreenState extends State<SalesScreen> {
             child: Text(loc.cancel),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+            ),
             onPressed: () => Navigator.pop(c, true),
-            child: Text(loc.cancelSale, style: const TextStyle(color: Colors.white)),
+            child: Text(loc.cancelSale),
           ),
         ],
       ),
@@ -1090,7 +1112,7 @@ class _SalesScreenState extends State<SalesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(loc.saleCancelledSuccess),
-            backgroundColor: Colors.green,
+            backgroundColor: colorScheme.primary,
           ),
         );
       }
@@ -1099,7 +1121,7 @@ class _SalesScreenState extends State<SalesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString()),
-            backgroundColor: Colors.red,
+            backgroundColor: colorScheme.error,
           ),
         );
       }
@@ -1114,13 +1136,15 @@ class _SalesScreenState extends State<SalesScreen> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final bool isRTL = Directionality.of(context) == TextDirection.rtl;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(loc.posTitle), 
-          backgroundColor: Colors.green[700],
+          title: Text(loc.posTitle, style: TextStyle(color: colorScheme.onPrimary)), 
+          backgroundColor: colorScheme.primary,
+          iconTheme: IconThemeData(color: colorScheme.onPrimary),
           actions: [
             IconButton(icon: const Icon(Icons.refresh), onPressed: _refreshAllData), 
             IconButton(icon: const Icon(Icons.delete_sweep), onPressed: _clearCart), 
@@ -1137,10 +1161,10 @@ class _SalesScreenState extends State<SalesScreen> {
                   controller: productSearchController,
                   decoration: InputDecoration(
                     hintText: loc.searchItemHint, 
-                    prefixIcon: const Icon(Icons.search), 
+                    prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant), 
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
                     filled: true, 
-                    fillColor: Colors.grey[100]
+                    fillColor: colorScheme.surfaceVariant
                   ),
                   onChanged: _filterProducts,
                   onTap: () { 
@@ -1153,10 +1177,10 @@ class _SalesScreenState extends State<SalesScreen> {
                   Container(
                     height: 200, 
                     decoration: BoxDecoration(
-                      color: Colors.white, 
-                      border: Border.all(color: Colors.grey[300]!), 
+                      color: colorScheme.surface, 
+                      border: Border.all(color: colorScheme.outline), 
                       borderRadius: BorderRadius.circular(8), 
-                      boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4)]
+                      boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.1), blurRadius: 4)]
                     ),
                     child: ListView.separated(
                       itemCount: filteredProducts.length, 
@@ -1190,7 +1214,8 @@ class _SalesScreenState extends State<SalesScreen> {
                 itemBuilder: (context, index) {
                   final product = products[index];
                   return Card(
-                    elevation: 2, 
+                    elevation: 2,
+                    color: colorScheme.surface,
                     child: InkWell(
                       onTap: () => _addToCart(product),
                       child: Padding(
@@ -1200,13 +1225,13 @@ class _SalesScreenState extends State<SalesScreen> {
                           children: [
                             Text(
                               product.nameUrdu ?? '', 
-                              style: const TextStyle(fontSize: 12, fontFamily: 'NooriNastaleeq', fontWeight: FontWeight.bold), 
+                              style: TextStyle(fontSize: 12, fontFamily: 'NooriNastaleeq', fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
                               maxLines: 1, 
                               overflow: TextOverflow.ellipsis
                             ),
-                            Text(product.nameEnglish, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                            Text(CurrencyUtils.formatRupees(product.salePrice), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
-                            Text('${loc.stock}:${product.currentStock}', style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+                            Text(product.nameEnglish, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                            Text(CurrencyUtils.formatRupees(product.salePrice), style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                            Text('${loc.stock}:${product.currentStock}', style: TextStyle(fontSize: 9, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold)),
                           ]
                         )
                       ),
@@ -1220,14 +1245,14 @@ class _SalesScreenState extends State<SalesScreen> {
             // Recent Sales
             Container(
               height: 200, 
-              color: Colors.white,
+              color: colorScheme.surface,
               child: Column(children: [
                 Container(
                   padding: const EdgeInsets.all(8), 
-                  color: Colors.grey[200], 
+                  color: colorScheme.surfaceVariant, 
                   width: double.infinity, 
                   alignment: AlignmentDirectional.centerStart,
-                  child: Text(loc.recentSales, style: const TextStyle(fontWeight: FontWeight.bold))
+                  child: Text(loc.recentSales, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant))
                 ),
                 Expanded(
                   child: ListView.separated(
@@ -1240,20 +1265,20 @@ class _SalesScreenState extends State<SalesScreen> {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                         leading: CircleAvatar(
                           radius: 12, 
-                          backgroundColor: Colors.green[100], 
-                          child: Text('${index+1}', style: const TextStyle(fontSize: 10))
+                          backgroundColor: colorScheme.primaryContainer, 
+                          child: Text('${index+1}', style: TextStyle(fontSize: 10, color: colorScheme.onPrimaryContainer))
                         ),
-                        title: Text(sale.customerName ?? loc.walkInCustomer, style: const TextStyle(fontSize: 13)),
+                        title: Text(sale.customerName ?? loc.walkInCustomer, style: TextStyle(fontSize: 13, color: colorScheme.onSurface)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(sale.billNumber, style: const TextStyle(fontSize: 10)),
+                            Text(sale.billNumber, style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
                             Text(
                               sale.status == 'CANCELLED' ? loc.cancelled : loc.completed,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: sale.status == 'CANCELLED' ? Colors.red : Colors.green,
+                                color: sale.status == 'CANCELLED' ? colorScheme.error : colorScheme.primary,
                               ),
                             ),
                           ]
@@ -1261,9 +1286,9 @@ class _SalesScreenState extends State<SalesScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min, 
                           children: [
-                            Text(CurrencyUtils.formatRupees(sale.grandTotal.toInt()), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            Text(CurrencyUtils.formatRupees(sale.grandTotal.toInt()), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
                             IconButton(
-                              icon: const Icon(Icons.cancel, size: 16, color: Colors.orange), 
+                              icon: Icon(Icons.cancel, size: 16, color: colorScheme.error), 
                               onPressed: sale.status == 'CANCELLED'
                                 ? null
                                 : () => _cancelSale(sale.id!, sale.billNumber),
@@ -1281,14 +1306,14 @@ class _SalesScreenState extends State<SalesScreen> {
           // RIGHT PANEL (Cart & Customer)
           Expanded(flex: 4, child: Container(
             decoration: BoxDecoration(
-              color: Colors.grey[50], 
-              border: BorderDirectional(start: BorderSide(color: Colors.grey[300]!))
+              color: colorScheme.surface, 
+              border: BorderDirectional(start: BorderSide(color: colorScheme.outlineVariant))
             ),
             child: Column(children: [
               // Customer Search Panel
               Container(
                 padding: const EdgeInsets.all(8), 
-                color: Colors.white, 
+                color: colorScheme.surface, 
                 child: Column(children: [
                   Row(children: [
                     Expanded(
@@ -1296,13 +1321,15 @@ class _SalesScreenState extends State<SalesScreen> {
                         controller: customerSearchController,
                         decoration: InputDecoration(
                           labelText: loc.searchCustomerHint, 
-                          prefixIcon: const Icon(Icons.person_search), 
+                          prefixIcon: Icon(Icons.person_search, color: colorScheme.onSurfaceVariant), 
                           suffixIcon: selectedCustomerId != null ? IconButton(
                             icon: const Icon(Icons.clear), 
                             onPressed: () => _selectCustomer(null)
                           ) : null, 
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
-                          isDense: true
+                          isDense: true,
+                          filled: true,
+                          fillColor: colorScheme.surfaceVariant
                         ), 
                         onChanged: _filterCustomers, 
                         onTap: () { 
@@ -1320,10 +1347,11 @@ class _SalesScreenState extends State<SalesScreen> {
                         onPressed: _showAddCustomerDialog, 
                         style: ElevatedButton.styleFrom(
                           padding: EdgeInsets.zero, 
-                          backgroundColor: Colors.green[700], 
+                          backgroundColor: colorScheme.primary, 
+                          foregroundColor: colorScheme.onPrimary,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
                         ), 
-                        child: const Icon(Icons.person_add, color: Colors.white)
+                        child: const Icon(Icons.person_add)
                       )
                     ),
                   ]),
@@ -1332,10 +1360,10 @@ class _SalesScreenState extends State<SalesScreen> {
                       height: 150, 
                       margin: const EdgeInsets.only(top: 5), 
                       decoration: BoxDecoration(
-                        color: Colors.white, 
-                        border: Border.all(color: Colors.grey[300]!), 
+                        color: colorScheme.surface, 
+                        border: Border.all(color: colorScheme.outline), 
                         borderRadius: BorderRadius.circular(8), 
-                        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4)]
+                        boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.1), blurRadius: 4)]
                       ), 
                       child: ListView.separated(
                         itemCount: filteredCustomers.length, 
@@ -1364,15 +1392,15 @@ class _SalesScreenState extends State<SalesScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.shopping_cart, size: 50, color: Colors.grey),
+                          Icon(Icons.shopping_cart, size: 50, color: colorScheme.outline),
                           const SizedBox(height: 10),
-                          Text(loc.cartEmpty, style: const TextStyle(color: Colors.grey, fontSize: 16)),
+                          Text(loc.cartEmpty, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16)),
                         ],
                       ),
                     )
                   : ListView.separated(
                       itemCount: cartItems.length, 
-                      separatorBuilder: (c, i) => const Divider(height: 1),
+                      separatorBuilder: (c, i) => Divider(height: 1, color: colorScheme.outlineVariant),
                       itemBuilder: (context, index) {
                         final item = cartItems[index];
                         return Container(
@@ -1386,13 +1414,13 @@ class _SalesScreenState extends State<SalesScreen> {
                                 children: [
                                   Text(
                                     isRTL && item['name_urdu'] != null ? item['name_urdu'] : item['name_english'], 
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), 
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface), 
                                     maxLines: 1, 
                                     overflow: TextOverflow.ellipsis
                                   ), 
                                   Text(
                                     '${loc.stock}: ${item['current_stock']}', 
-                                    style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)
+                                    style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold)
                                   ),
                                 ]
                               )
@@ -1410,9 +1438,9 @@ class _SalesScreenState extends State<SalesScreen> {
                                   contentPadding: const EdgeInsets.all(8), 
                                   border: const OutlineInputBorder(), 
                                   labelText: loc.price, 
-                                  labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
+                                  labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant)
                                 ),
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), 
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
                                 onChanged: (_) => _updateCartItemFromField(index),
                               )
                             ),
@@ -1430,9 +1458,9 @@ class _SalesScreenState extends State<SalesScreen> {
                                   contentPadding: const EdgeInsets.all(8), 
                                   border: const OutlineInputBorder(), 
                                   labelText: loc.qty, 
-                                  labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
+                                  labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant)
                                 ),
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold), 
+                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
                                 onChanged: (_) => _updateCartItemFromField(index),
                               )
                             ),
@@ -1444,16 +1472,16 @@ class _SalesScreenState extends State<SalesScreen> {
                               child: Text(
                                 (item['total'] as double).toStringAsFixed(0), 
                                 textAlign: TextAlign.end,
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface)
                               )
                             ),
                             
                             // Delete Button
                             InkWell(
                               onTap: () => _removeCartItem(index), 
-                              child: const Padding(
-                                padding: EdgeInsets.all(8.0), 
-                                child: Icon(Icons.close, color: Colors.red, size: 24)
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0), 
+                                child: Icon(Icons.close, color: colorScheme.error, size: 24)
                               )
                             ), 
                           ]),
@@ -1465,38 +1493,38 @@ class _SalesScreenState extends State<SalesScreen> {
               // Totals Section
               Container(
                 padding: const EdgeInsets.all(12), 
-                color: Colors.white, 
+                color: colorScheme.surface, 
                 child: Column(children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
-                      Text(loc.totalItems), 
-                      Text('${cartItems.length}')
+                      Text(loc.totalItems, style: TextStyle(color: colorScheme.onSurface)), 
+                      Text('${cartItems.length}', style: TextStyle(color: colorScheme.onSurface))
                     ]
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
-                      Text(loc.subtotal), 
-                      Text('Rs ${subtotal.toStringAsFixed(0)}')
+                      Text(loc.subtotal, style: TextStyle(color: colorScheme.onSurface)), 
+                      Text('Rs ${subtotal.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.onSurface))
                     ]
                   ),
                   if (previousBalance > 0) 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                       children: [
-                        Text(loc.prevBalance, style: const TextStyle(color: Colors.orange, fontSize: 12)), 
-                        Text('Rs ${previousBalance.toStringAsFixed(0)}', style: const TextStyle(color: Colors.orange, fontSize: 12))
+                        Text(loc.prevBalance, style: TextStyle(color: colorScheme.error, fontSize: 12)), 
+                        Text('Rs ${previousBalance.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.error, fontSize: 12))
                       ]
                     ),
-                  const Divider(),
+                  Divider(color: colorScheme.outlineVariant),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                     children: [
-                      Text(loc.grandTotal, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), 
+                      Text(loc.grandTotal, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface)), 
                       Text(
                         'Rs ${grandTotal.toStringAsFixed(0)}', 
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.primary)
                       )
                     ]
                   ),
@@ -1507,14 +1535,15 @@ class _SalesScreenState extends State<SalesScreen> {
                     child: ElevatedButton(
                       onPressed: cartItems.isEmpty ? null : _showCheckoutDialog, 
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[700]
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
                       ), 
                       child: Text(
                         loc.checkoutButton, 
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16, 
                           fontWeight: FontWeight.bold, 
-                          color: Colors.white
+                          color: colorScheme.onPrimary
                         )
                       )
                     )

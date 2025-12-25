@@ -27,6 +27,7 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
     final isEnglish = localizations.localeName == 'en';
+    final colorScheme = Theme.of(context).colorScheme;
 
     // Move the Intents here or to a separate file if they are truly global and used by multiple layouts.
     // For now, moving them here as per the plan.
@@ -50,7 +51,13 @@ class _MainLayoutState extends State<MainLayout> {
             // How to refresh the current child screen? This needs more thought.
             // For now, a simple snackbar or a refresh callback could be passed to MainLayout if needed.
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(localizations.refreshingData)),
+              SnackBar(
+                content: Text(
+                  localizations.refreshingData,
+                  style: TextStyle(color: colorScheme.onInverseSurface),
+                ),
+                backgroundColor: colorScheme.inverseSurface,
+              ),
             );
             return null;
           }),

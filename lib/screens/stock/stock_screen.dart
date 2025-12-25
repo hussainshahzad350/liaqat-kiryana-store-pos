@@ -32,17 +32,18 @@ class _StockScreenState extends State<StockScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(loc.stockManagement),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
+        title: Text(loc.stockManagement, style: TextStyle(color: colorScheme.onPrimary)),
+        backgroundColor: colorScheme.primary,
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          indicatorColor: Colors.white,
+          labelColor: colorScheme.onPrimary,
+          unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
+          indicatorColor: colorScheme.onPrimary,
           tabs: [
             Tab(icon: const Icon(Icons.shopping_cart), text: loc.purchase),
             Tab(icon: const Icon(Icons.remove_shopping_cart), text: loc.sales),
@@ -95,6 +96,7 @@ class _PurchaseTabState extends State<PurchaseTab> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -103,11 +105,12 @@ class _PurchaseTabState extends State<PurchaseTab> {
         children: [
           Text(
             loc.newPurchase,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
           ),
           const SizedBox(height: 20),
           
           Card(
+            color: colorScheme.surface,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -117,8 +120,10 @@ class _PurchaseTabState extends State<PurchaseTab> {
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       hintText: loc.chooseSupplier,
+                      filled: true,
+                      fillColor: colorScheme.surfaceVariant,
                     ),
                     value: _selectedSupplierId,
                     items: _suppliers.map((s) {
@@ -143,6 +148,7 @@ class _PurchaseTabState extends State<PurchaseTab> {
           
           // Placeholder for future Items/Cart logic
           Card(
+            color: colorScheme.surface,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -150,7 +156,7 @@ class _PurchaseTabState extends State<PurchaseTab> {
                 children: [
                   Row(
                     children: [
-                      Text(loc.items, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(loc.items, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
                       const Spacer(),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.add),
@@ -164,12 +170,12 @@ class _PurchaseTabState extends State<PurchaseTab> {
                   Table(
                     children: [
                       TableRow(
-                        decoration: const BoxDecoration(color: Colors.grey),
+                        decoration: BoxDecoration(color: colorScheme.primaryContainer),
                         children: [
-                          Padding(padding: const EdgeInsets.all(8), child: Text(loc.item, style: const TextStyle(color: Colors.white))),
-                          Padding(padding: const EdgeInsets.all(8), child: Text(loc.quantity, style: const TextStyle(color: Colors.white))),
-                          Padding(padding: const EdgeInsets.all(8), child: Text(loc.price, style: const TextStyle(color: Colors.white))),
-                          Padding(padding: const EdgeInsets.all(8), child: Text(loc.total, style: const TextStyle(color: Colors.white))),
+                          Padding(padding: const EdgeInsets.all(8), child: Text(loc.item, style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold))),
+                          Padding(padding: const EdgeInsets.all(8), child: Text(loc.quantity, style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold))),
+                          Padding(padding: const EdgeInsets.all(8), child: Text(loc.price, style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold))),
+                          Padding(padding: const EdgeInsets.all(8), child: Text(loc.total, style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold))),
                         ],
                       ),
                     ],
@@ -186,9 +192,10 @@ class _PurchaseTabState extends State<PurchaseTab> {
               onPressed: () {}, // Save Logic to be implemented
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.green[700],
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
               ),
-              child: Text(loc.savePurchase, style: const TextStyle(fontSize: 16, color: Colors.white)),
+              child: Text(loc.savePurchase, style: const TextStyle(fontSize: 16)),
             ),
           ),
         ],
@@ -204,15 +211,16 @@ class SalesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.shopping_bag, size: 100, color: Colors.blue),
+          Icon(Icons.shopping_bag, size: 100, color: colorScheme.primary.withOpacity(0.5)),
           const SizedBox(height: 20),
-          Text(loc.salesRecord, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Text(loc.salesRecord, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
           const SizedBox(height: 10),
-          Text(loc.salesHistoryNote, style: const TextStyle(color: Colors.grey)),
+          Text(loc.salesHistoryNote, style: TextStyle(color: colorScheme.onSurfaceVariant)),
           const SizedBox(height: 30),
           ElevatedButton(
             onPressed: () => Navigator.pushNamed(context, '/sales'),
@@ -355,9 +363,53 @@ class _StockViewTabState extends State<StockViewTab> {
     }
   }
 
+  void _showStockDialog(Product product) {
+    final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final TextEditingController stockCtrl = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: colorScheme.surface,
+        title: Text(loc.adjustStock, style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${loc.current}: ${product.currentStock}', style: TextStyle(color: colorScheme.onSurface)),
+            const SizedBox(height: 10),
+            TextField(
+              controller: stockCtrl,
+              keyboardType: TextInputType.number,
+              style: TextStyle(color: colorScheme.onSurface),
+              decoration: InputDecoration(
+                labelText: loc.quantity,
+                filled: true,
+                fillColor: colorScheme.surfaceVariant,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurfaceVariant)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context), // Logic placeholder
+            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
+            child: Text(loc.save),
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
       padding: const EdgeInsets.all(10),
@@ -369,9 +421,11 @@ class _StockViewTabState extends State<StockViewTab> {
             onChanged: (val) => _firstLoad(),
             decoration: InputDecoration(
               labelText: loc.searchStock,
-              prefixIcon: const Icon(Icons.search),
+              prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+              filled: true,
+              fillColor: colorScheme.surfaceVariant,
             ),
           ),
           const SizedBox(height: 10),
@@ -381,15 +435,15 @@ class _StockViewTabState extends State<StockViewTab> {
             children: [
               Expanded(
                 child: Card(
-                  color: Colors.green[50],
+                  color: colorScheme.primaryContainer,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        Text(loc.totalItems, style: TextStyle(color: Colors.green[800], fontSize: 12)),
+                        Text(loc.totalItems, style: TextStyle(color: colorScheme.onPrimaryContainer, fontSize: 12)),
                         Text(
                           '$_totalItemsCount',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green[900]),
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onPrimaryContainer),
                         )
                       ],
                     ),
@@ -399,15 +453,15 @@ class _StockViewTabState extends State<StockViewTab> {
               const SizedBox(width: 10),
               Expanded(
                 child: Card(
-                  color: Colors.blue[50],
+                  color: colorScheme.secondaryContainer,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        Text(loc.stockValue, style: TextStyle(color: Colors.blue[800], fontSize: 12)),
+                        Text(loc.stockValue, style: TextStyle(color: colorScheme.onSecondaryContainer, fontSize: 12)),
                         Text(
                           'Rs ${_totalStockValue.toStringAsFixed(0)}',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue[900]),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSecondaryContainer),
                         )
                       ],
                     ),
@@ -423,7 +477,7 @@ class _StockViewTabState extends State<StockViewTab> {
             child: _isFirstLoadRunning
                 ? const Center(child: CircularProgressIndicator())
                 : items.isEmpty
-                    ? Center(child: Text(loc.noItemsFound))
+                    ? Center(child: Text(loc.noItemsFound, style: TextStyle(color: colorScheme.onSurface)))
                     : Column(
                         children: [
                           Expanded(
@@ -442,31 +496,33 @@ class _StockViewTabState extends State<StockViewTab> {
 
                                 return Card(
                                   margin: const EdgeInsets.symmetric(vertical: 4),
+                                  color: colorScheme.surface,
                                   elevation: 2,
                                   shape: RoundedRectangleBorder(
-                                      side: isLow ? const BorderSide(color: Colors.red, width: 1) : BorderSide.none,
+                                      side: isLow ? BorderSide(color: colorScheme.error, width: 1) : BorderSide.none,
                                       borderRadius: BorderRadius.circular(8)),
                                   child: ListTile(
+                                    onTap: () => _showStockDialog(item),
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                                     title: Text(
                                       item.nameEnglish,
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                                     ),
                                     subtitle: Text(
                                       '${loc.price}: $price | ${loc.total}: ${totalVal.toStringAsFixed(0)}',
-                                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                                      style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                                     ),
                                     trailing: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: isLow ? Colors.red[100] : Colors.green[100],
+                                        color: isLow ? colorScheme.errorContainer : colorScheme.primaryContainer,
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
                                         '$stock',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: isLow ? Colors.red[900] : Colors.green[900],
+                                          color: isLow ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
                                         ),
                                       ),
                                     ),

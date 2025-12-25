@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -59,15 +60,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: const Text('کیٹیگریز مينيجمنٹ'),
-        backgroundColor: Colors.orange[700],
+        title: Text(loc.categories, style: TextStyle(color: colorScheme.onPrimary)),
+        backgroundColor: colorScheme.primary,
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _showAddCategoryDialog,
-            tooltip: 'نیا کیٹیگری',
+            tooltip: loc.addItem,
           ),
         ],
       ),
@@ -77,11 +83,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: TextField(
+              style: TextStyle(color: colorScheme.onSurface),
               decoration: InputDecoration(
-                labelText: 'کیٹیگری تلاش کریں',
-                prefixIcon: const Icon(Icons.search),
+                labelText: loc.search,
+                labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: colorScheme.outline),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: colorScheme.outline),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
                 ),
               ),
               onChanged: (value) {
@@ -99,41 +116,45 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 final category = categories[index];
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
+                  color: colorScheme.surface,
+                  elevation: 2,
                   child: ExpansionTile(
+                    collapsedIconColor: colorScheme.onSurfaceVariant,
+                    iconColor: colorScheme.primary,
                     leading: Container(
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
+                        color: colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Center(
-                        child: Icon(Icons.category, color: Colors.orange),
+                      child: Center(
+                        child: Icon(Icons.category, color: colorScheme.onPrimaryContainer),
                       ),
                     ),
                     title: Text(
                       category['name_urdu'],
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontFamily: 'NooriNastaleeq'),
                     ),
-                    subtitle: Text(category['name_english']),
+                    subtitle: Text(category['name_english'], style: TextStyle(color: colorScheme.onSurfaceVariant)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.add, size: 18),
+                          icon: Icon(Icons.add, size: 20, color: colorScheme.primary),
                           onPressed: () {
                             _showAddSubcategoryDialog(category['id']);
                           },
-                          tooltip: 'سب کیٹیگری شامل کریں',
+                          tooltip: 'Add Subcategory',
                         ),
                         IconButton(
-                          icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                          icon: Icon(Icons.edit, size: 18, color: colorScheme.secondary),
                           onPressed: () {
                             _showEditCategoryDialog(category);
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                          icon: Icon(Icons.delete, size: 18, color: colorScheme.error),
                           onPressed: () {
                             _deleteCategory(category['id']);
                           },
@@ -145,38 +166,39 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(left: 40, right: 16, bottom: 8),
                               child: Card(
-                                color: Colors.grey[50],
+                                color: colorScheme.surfaceVariant.withOpacity(0.3),
+                                elevation: 0,
                                 child: ListTile(
                                   leading: Container(
                                     width: 30,
                                     height: 30,
                                     decoration: BoxDecoration(
-                                      color: Colors.grey.withOpacity(0.1),
+                                      color: colorScheme.surfaceVariant,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: const Center(
-                                      child: Icon(Icons.subdirectory_arrow_right, size: 16, color: Colors.grey),
+                                    child: Center(
+                                      child: Icon(Icons.subdirectory_arrow_right, size: 16, color: colorScheme.onSurfaceVariant),
                                     ),
                                   ),
                                   title: Text(
                                     subcategory['name_urdu'],
-                                    style: const TextStyle(fontSize: 14),
+                                    style: TextStyle(fontSize: 14, color: colorScheme.onSurface, fontFamily: 'NooriNastaleeq'),
                                   ),
                                   subtitle: Text(
                                     subcategory['name_english'],
-                                    style: const TextStyle(fontSize: 12),
+                                    style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                                   ),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.edit, size: 16, color: Colors.blue),
+                                        icon: Icon(Icons.edit, size: 16, color: colorScheme.secondary),
                                         onPressed: () {
                                           _showEditSubcategoryDialog(subcategory);
                                         },
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.delete, size: 16, color: Colors.red),
+                                        icon: Icon(Icons.delete, size: 16, color: colorScheme.error),
                                         onPressed: () {
                                           _deleteSubcategory(subcategory['id']);
                                         },
@@ -188,11 +210,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             );
                           }).toList()
                         : [
-                            const Padding(
-                              padding: EdgeInsets.only(left: 40, bottom: 16),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 40, bottom: 16),
                               child: Text(
-                                'کوئی سب کیٹیگری نہيں',
-                                style: TextStyle(color: Colors.grey),
+                                'No subcategories',
+                                style: TextStyle(color: colorScheme.onSurfaceVariant),
                               ),
                             ),
                           ],
@@ -205,20 +227,21 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddCategoryDialog,
-        backgroundColor: Colors.orange[700],
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: colorScheme.primary,
+        child: Icon(Icons.add, color: colorScheme.onPrimary),
       ),
     );
   }
 
   void _showAddCategoryDialog() {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => CategoryDialog(
         onSave: () {
           // Add category logic
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('کیٹیگری شامل ہو گئی')),
+            SnackBar(content: Text(loc.saveChangesSuccess)),
           );
         },
       ),
@@ -226,6 +249,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _showAddSubcategoryDialog(int parentId) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => CategoryDialog(
@@ -233,7 +257,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         onSave: () {
           // Add subcategory logic
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('سب کیٹیگری شامل ہو گئی')),
+            SnackBar(content: Text(loc.saveChangesSuccess)),
           );
         },
       ),
@@ -241,6 +265,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _showEditCategoryDialog(Map<String, dynamic> category) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => CategoryDialog(
@@ -248,7 +273,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         onSave: () {
           // Edit category logic
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('کیٹیگری اپ ڈیٹ ہو گئی')),
+            SnackBar(content: Text(loc.saveChangesSuccess)),
           );
         },
       ),
@@ -256,6 +281,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _showEditSubcategoryDialog(Map<String, dynamic> subcategory) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => CategoryDialog(
@@ -264,7 +290,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         onSave: () {
           // Edit subcategory logic
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('سب کیٹیگری اپ ڈیٹ ہو گئی')),
+            SnackBar(content: Text(loc.saveChangesSuccess)),
           );
         },
       ),
@@ -272,15 +298,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _deleteCategory(int id) {
+    final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تصدیق'),
-        content: const Text('کیا آپ واقعی اس کیٹیگری کو حذف کرنا چاہتے ہیں؟ تمام سب کیٹیگریز بھی حذف ہو جائیں گی۔'),
+        backgroundColor: colorScheme.surface,
+        title: Text(loc.confirm, style: TextStyle(color: colorScheme.onSurface)),
+        content: Text(loc.confirmDeleteItem, style: TextStyle(color: colorScheme.onSurface)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('نہيں'),
+            child: Text(loc.no, style: TextStyle(color: colorScheme.onSurface)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -290,11 +319,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               });
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('کیٹیگری حذف ہو گئی')),
+                SnackBar(content: Text(loc.itemDeleted), backgroundColor: colorScheme.primary),
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('ہاں، حذف کریں'),
+            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
+            child: Text(loc.yesDelete),
           ),
         ],
       ),
@@ -382,8 +411,11 @@ class _CategoryDialogState extends State<CategoryDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return AlertDialog(
-      title: Text(widget.isSubcategory ? 'نیا سب کیٹیگری' : 'نیا کیٹیگری'),
+      backgroundColor: colorScheme.surface,
+      title: Text(widget.isSubcategory ? 'New Subcategory' : loc.addItem, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -392,15 +424,18 @@ class _CategoryDialogState extends State<CategoryDialog> {
             children: [
               if (widget.isSubcategory) ...[
                 DropdownButtonFormField(
-                  decoration: const InputDecoration(
-                    labelText: 'مین کیٹیگری',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: 'Parent Category',
+                    labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    filled: true,
+                    fillColor: colorScheme.surfaceVariant,
                   ),
                   initialValue: _selectedParentCategory,
-                  items: const [
-                    DropdownMenuItem(value: '1', child: Text('چاول')),
-                    DropdownMenuItem(value: '2', child: Text('دالیں')),
-                    DropdownMenuItem(value: '3', child: Text('تیل اور گھی')),
+                  items: [
+                    DropdownMenuItem(value: '1', child: Text('Rice', style: TextStyle(color: colorScheme.onSurface))),
+                    DropdownMenuItem(value: '2', child: Text('Pulses', style: TextStyle(color: colorScheme.onSurface))),
+                    DropdownMenuItem(value: '3', child: Text('Oil', style: TextStyle(color: colorScheme.onSurface))),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -409,7 +444,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
                   },
                   validator: (value) {
                     if (widget.isSubcategory && (value == null || value.isEmpty)) {
-                      return 'براہ کرم مین کیٹیگری منتخب کریں';
+                      return loc.fieldRequired;
                     }
                     return null;
                   },
@@ -418,13 +453,17 @@ class _CategoryDialogState extends State<CategoryDialog> {
               ],
               TextFormField(
                 controller: _nameEnController,
-                decoration: const InputDecoration(
-                  labelText: 'انگریزی نام *',
-                  border: OutlineInputBorder(),
+                style: TextStyle(color: colorScheme.onSurface),
+                decoration: InputDecoration(
+                  labelText: loc.englishName,
+                  labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  filled: true,
+                  fillColor: colorScheme.surfaceVariant,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'براہ کرم نام درج کریں';
+                    return loc.fieldRequired;
                   }
                   return null;
                 },
@@ -432,13 +471,17 @@ class _CategoryDialogState extends State<CategoryDialog> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameUrController,
-                decoration: const InputDecoration(
-                  labelText: 'اردو نام *',
-                  border: OutlineInputBorder(),
+                style: TextStyle(color: colorScheme.onSurface, fontFamily: 'NooriNastaleeq'),
+                decoration: InputDecoration(
+                  labelText: loc.urduName,
+                  labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  filled: true,
+                  fillColor: colorScheme.surfaceVariant,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'براہ کرم اردو نام درج کریں';
+                    return loc.fieldRequired;
                   }
                   return null;
                 },
@@ -450,11 +493,12 @@ class _CategoryDialogState extends State<CategoryDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('منسوخ'),
+          child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface)),
         ),
         ElevatedButton(
           onPressed: _saveCategory,
-          child: const Text('محفوظ کریں'),
+          style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
+          child: Text(loc.save),
         ),
       ],
     );

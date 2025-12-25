@@ -119,12 +119,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Text(localizations.itemsManagement),
-        backgroundColor: Colors.green[700],
-        foregroundColor: Colors.white,
+        title: Text(localizations.itemsManagement, style: TextStyle(color: colorScheme.onPrimary)),
+        backgroundColor: colorScheme.primary,
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
         actions: [
           IconButton(icon: const Icon(Icons.add), onPressed: _showAddItemDialog),
         ],
@@ -136,16 +138,22 @@ class _ItemsScreenState extends State<ItemsScreen> {
             padding: const EdgeInsets.all(16),
             child: TextField(
               controller: searchController,
+              style: TextStyle(color: colorScheme.onSurface),
               onChanged: (value) {
                 // Debouncing could be added here for performance
                 _firstLoad(); 
               },
               decoration: InputDecoration(
                 labelText: localizations.searchItem,
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: colorScheme.outline)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: colorScheme.outline)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: colorScheme.primary, width: 2)),
+                filled: true,
+                fillColor: colorScheme.surfaceVariant,
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear),
+                  icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
                   onPressed: () {
                     searchController.clear();
                     _firstLoad();
@@ -160,7 +168,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
             child: _isFirstLoadRunning
                 ? const Center(child: CircularProgressIndicator())
                 : items.isEmpty
-                    ? Center(child: Text(localizations.noItemsFound))
+                    ? Center(child: Text(localizations.noItemsFound, style: TextStyle(color: colorScheme.onSurface)))
                     : Column(
                         children: [
                           Expanded(
@@ -169,21 +177,80 @@ class _ItemsScreenState extends State<ItemsScreen> {
                               itemCount: items.length,
                               itemBuilder: (context, index) {
                                 final item = items[index];
+                                final isLowStock = item.currentStock < 5;
+                                
                                 return Card(
-                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  elevation: 2,
+                                  shadowColor: colorScheme.shadow.withOpacity(0.2),
+                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                  color: colorScheme.surface,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   child: ListTile(
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                     leading: Container(
-                                      width: 40, height: 40,
-                                      decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                                      child: const Center(child: Icon(Icons.inventory, color: Colors.green)),
+                                      width: 48, height: 48,
+                                      decoration: BoxDecoration(
+                                        color: isLowStock ? colorScheme.errorContainer : colorScheme.primaryContainer,
+                                        borderRadius: BorderRadius.circular(12)
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.inventory_2_outlined, 
+                                          color: isLowStock ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer
+                                        )
+                                      ),
                                     ),
-                                    title: Text(item.nameUrdu ?? item.nameEnglish, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                    subtitle: Text('${localizations.stock}: ${item.currentStock} | ${localizations.price}: ${item.salePrice}'),
+                                    title: Text(
+                                      item.nameEnglish, 
+                                      style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 16)
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        if (item.nameUrdu != null && item.nameUrdu!.isNotEmpty)
+                                          Text(item.nameUrdu!, style: TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 14, color: colorScheme.onSurfaceVariant)),
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: isLowStock ? colorScheme.errorContainer : colorScheme.primaryContainer,
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                '${localizations.stock}: ${item.currentStock}',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isLowStock ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              'Rs ${item.salePrice}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: colorScheme.primary,
+                                                fontSize: 15
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _showEditItemDialog(item)),
-                                        IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () => _deleteItem(item.id!)),
+                                        IconButton(
+                                          icon: Icon(Icons.edit, color: colorScheme.secondary), 
+                                          onPressed: () => _showEditItemDialog(item)
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.delete, color: colorScheme.error), 
+                                          onPressed: () => _deleteItem(item.id!)
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -201,7 +268,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                           if (!_hasNextPage && items.isNotEmpty)
                              Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Center(child: Text(localizations.endOfList, style: const TextStyle(color: Colors.grey))),
+                              child: Center(child: Text(localizations.endOfList, style: TextStyle(color: colorScheme.onSurfaceVariant))),
                             ),
                         ],
                       ),
@@ -210,8 +277,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddItemDialog,
-        backgroundColor: Colors.green[700],
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: colorScheme.primary,
+        child: Icon(Icons.add, color: colorScheme.onPrimary),
       ),
     );
   }
@@ -219,8 +286,33 @@ class _ItemsScreenState extends State<ItemsScreen> {
   // ... [Dialog methods _showAddItemDialog, _showEditItemDialog, _deleteItem remain unchanged] ...
   
   // (Include previous helper methods here for complete file)
+  InputDecoration _buildInputDecoration(String label, IconData icon) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+      prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
+      filled: true,
+      fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: colorScheme.outline),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: colorScheme.outline),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   void _showAddItemDialog() {
     final localizations = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final nameEngController = TextEditingController();
     final nameUrduController = TextEditingController();
     final priceController = TextEditingController();
@@ -229,23 +321,43 @@ class _ItemsScreenState extends State<ItemsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(localizations.addItem),
+        backgroundColor: colorScheme.surface,
+        title: Text(localizations.addItem, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameEngController, decoration: InputDecoration(labelText: localizations.englishName)),
               const SizedBox(height: 10),
-              TextField(controller: nameUrduController, decoration: InputDecoration(labelText: localizations.urduName)),
-              const SizedBox(height: 10),
-              TextField(controller: priceController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: localizations.salePrice)),
-              const SizedBox(height: 10),
-              TextField(controller: stockController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: localizations.initialStock)),
+              TextField(
+                controller: nameEngController, 
+                decoration: _buildInputDecoration(localizations.englishName, Icons.inventory_2_outlined),
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameUrduController, 
+                decoration: _buildInputDecoration(localizations.urduName, Icons.translate),
+                style: TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 16, color: colorScheme.onSurface),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: priceController, 
+                keyboardType: TextInputType.number, 
+                decoration: _buildInputDecoration(localizations.salePrice, Icons.attach_money),
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: stockController, 
+                keyboardType: TextInputType.number, 
+                decoration: _buildInputDecoration(localizations.initialStock, Icons.warehouse),
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(localizations.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(localizations.cancel, style: TextStyle(color: colorScheme.onSurfaceVariant))),
           ElevatedButton(
             onPressed: () async {
               if (nameEngController.text.isNotEmpty) {
@@ -261,8 +373,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 if (!mounted) return;
                 Navigator.pop(context);
                 _firstLoad(); // Refresh list
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizations.saveChangesSuccess), backgroundColor: colorScheme.primary));
+              } else {
+                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${localizations.englishName} ${localizations.fieldRequired}"), backgroundColor: colorScheme.error));
               }
             },
+            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
             child: Text(localizations.save),
           ),
         ],
@@ -272,6 +388,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
   void _showEditItemDialog(Product item) {
     final localizations = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final nameEngController = TextEditingController(text: item.nameEnglish);
     final nameUrduController = TextEditingController(text: item.nameUrdu);
     final priceController = TextEditingController(text: item.salePrice.toString());
@@ -280,23 +397,43 @@ class _ItemsScreenState extends State<ItemsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(localizations.editItem),
+        backgroundColor: colorScheme.surface,
+        title: Text(localizations.editItem, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameEngController, decoration: InputDecoration(labelText: localizations.englishName)),
               const SizedBox(height: 10),
-              TextField(controller: nameUrduController, decoration: InputDecoration(labelText: localizations.urduName)),
-              const SizedBox(height: 10),
-              TextField(controller: priceController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: localizations.salePrice)),
-              const SizedBox(height: 10),
-              TextField(controller: stockController, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: localizations.stockUpdate)),
+              TextField(
+                controller: nameEngController, 
+                decoration: _buildInputDecoration(localizations.englishName, Icons.inventory_2_outlined),
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameUrduController, 
+                decoration: _buildInputDecoration(localizations.urduName, Icons.translate),
+                style: TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 16, color: colorScheme.onSurface),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: priceController, 
+                keyboardType: TextInputType.number, 
+                decoration: _buildInputDecoration(localizations.salePrice, Icons.attach_money),
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: stockController, 
+                keyboardType: TextInputType.number, 
+                decoration: _buildInputDecoration(localizations.stockUpdate, Icons.warehouse),
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(localizations.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(localizations.cancel, style: TextStyle(color: colorScheme.onSurfaceVariant))),
           ElevatedButton(
             onPressed: () async {
               final updatedProduct = item.copyWith(
@@ -311,7 +448,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
               if (!mounted) return;
               Navigator.pop(context);
               _firstLoad(); // Refresh
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizations.saveChangesSuccess), backgroundColor: colorScheme.primary));
             },
+            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
             child: Text(localizations.update),
           ),
         ],
@@ -321,17 +460,19 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
   Future<void> _deleteItem(int id) async {
     final localizations = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     
     final confirmed = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: colorScheme.surface,
         title: Text(localizations.confirm),
         content: Text(localizations.confirmDeleteItem),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(localizations.no)),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(localizations.no, style: TextStyle(color: colorScheme.onSurface))),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
             child: Text(localizations.yesDelete),
           ),
         ],
@@ -345,10 +486,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
         if (!mounted) return;
 
         _firstLoad();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizations.itemDeleted)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizations.itemDeleted), backgroundColor: colorScheme.primary));
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${localizations.error}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${localizations.error}: $e'), backgroundColor: colorScheme.error));
       }
     }
   }

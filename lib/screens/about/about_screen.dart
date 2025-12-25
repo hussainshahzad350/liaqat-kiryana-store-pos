@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart'; // Import AppColors
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -35,7 +34,7 @@ class AboutScreen extends StatelessWidget {
                       child: Icon( // Changed to non-const to allow dynamic color
                         Icons.store,
                         size: 60,
-                        color: colorScheme.primary, // Themed icon color
+                        color: colorScheme.onPrimaryContainer, // Themed icon color
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -146,7 +145,7 @@ class AboutScreen extends StatelessWidget {
                     '© 2024 لیاقت کرایانہ اسٹور',
                     style: textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 5),
@@ -217,7 +216,7 @@ class AboutScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: AppColors.success, size: 16), // Use AppColors.success
+          Icon(Icons.check_circle, color: colorScheme.primary, size: 16), // Use theme primary color
           const SizedBox(width: 10),
           Expanded(
               child: Text(

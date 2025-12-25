@@ -132,6 +132,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
   
   Future<void> _exportLedgerPdf(AppLocalizations loc) async {
+    final colorScheme = Theme.of(context).colorScheme;
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
     final customerName = _selectedCustomerForLedger?.nameEnglish ?? 'Customer';
 
@@ -181,7 +182,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 headers: headers,
                 data: data,
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
-                headerDecoration: const pw.BoxDecoration(color: PdfColors.green700),
+                headerDecoration: pw.BoxDecoration(color: PdfColor.fromInt(colorScheme.primary.value)),
                 cellAlignment: pw.Alignment.centerLeft,
                 columnWidths: {
                   0: const pw.FlexColumnWidth(2),
@@ -210,6 +211,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     required String address,
     required double limit,
   }) async {
+    final colorScheme = Theme.of(context).colorScheme;
     final loc = AppLocalizations.of(context)!;
 
     bool isUnique = await _isPhoneUnique(phone, excludeId: id);
@@ -228,10 +230,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
     if (id == null) {
       await _customersRepository.addCustomer(customer);
-      _showSnack(loc.customerAddedSuccess, Colors.green);
+      _showSnack(loc.customerAddedSuccess, colorScheme.primary);
     } else {
       await _customersRepository.updateCustomer(id, customer);
-      _showSnack(loc.customerUpdatedSuccess, Colors.green);
+      _showSnack(loc.customerUpdatedSuccess, colorScheme.primary);
     }
     _refreshData();
   }
@@ -248,17 +250,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   Future<void> _deleteCustomer(int id, double balance) async {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     
     if (!(await _canDelete(id, balance))) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(loc.warning, style: const TextStyle(color: Colors.black)),
-          content: Text(loc.cannotDeleteBal, style: const TextStyle(color: Colors.black)),
+          backgroundColor: colorScheme.surface,
+          title: Text(loc.warning, style: TextStyle(color: colorScheme.onSurface)),
+          content: Text(loc.cannotDeleteBal, style: TextStyle(color: colorScheme.onSurface)),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.ok, style: const TextStyle(color: Colors.black))),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.ok, style: TextStyle(color: colorScheme.onSurface))),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              style: ElevatedButton.styleFrom(backgroundColor: colorScheme.tertiary, foregroundColor: colorScheme.onTertiary),
               onPressed: () {
                 Navigator.pop(context);
                 _toggleArchiveStatus(id, true);
@@ -274,12 +278,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final bool? confirmed = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(loc.confirm, style: const TextStyle(color: Colors.black)),
-        content: Text(loc.confirmDeleteItem, style: const TextStyle(color: Colors.black)),
+        backgroundColor: colorScheme.surface,
+        title: Text(loc.confirm, style: TextStyle(color: colorScheme.onSurface)),
+        content: Text(loc.confirmDeleteItem, style: TextStyle(color: colorScheme.onSurface)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(loc.no, style: const TextStyle(color: Colors.black))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(loc.no, style: TextStyle(color: colorScheme.onSurface))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
             onPressed: () => Navigator.pop(context, true), 
             child: Text(loc.yesDelete)
           ),
@@ -290,11 +295,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
     if (confirmed == true) {
       await _customersRepository.deleteCustomer(id);
       _refreshData();
-      _showSnack(loc.itemDeleted, Colors.grey);
+      _showSnack(loc.itemDeleted, colorScheme.onSurfaceVariant);
     }
   }
 
-  void _showSnack(String msg, MaterialColor color) {
+  void _showSnack(String msg, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: color));
   }
 
@@ -303,12 +308,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Text(loc.customers, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.green[700], 
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(loc.customers, style: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold)),
+        backgroundColor: colorScheme.primary, 
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
         elevation: 0,
       ),
       body: Stack(
@@ -323,14 +330,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 child: TextField(
                   controller: searchController,
                   onChanged: (_) => _loadActiveCustomers(),
-                  style: const TextStyle(color: Colors.black),
+                  style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     hintText: loc.searchPlaceholder,
-                    hintStyle: TextStyle(color: Colors.grey[600]),
-                    prefixIcon: const Icon(Icons.search, color: Colors.green),
-                    filled: true, fillColor: Colors.white,
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.green, width: 1.5)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.green, width: 2.5)),
+                    hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                    prefixIcon: Icon(Icons.search, color: colorScheme.primary),
+                    filled: true, fillColor: colorScheme.surfaceVariant,
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.outline, width: 1.5)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.primary, width: 2.5)),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                   ),
                 ),
@@ -338,9 +345,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
               Expanded(
                 child: _isFirstLoadRunning
-                ? const Center(child: CircularProgressIndicator(color: Colors.green))
+                ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
                 : customers.isEmpty
-                  ? Center(child: Text(loc.noCustomersFound, style: const TextStyle(color: Colors.black)))
+                  ? Center(child: Text(loc.noCustomersFound, style: TextStyle(color: colorScheme.onSurface)))
                   : ListView.builder(
                       padding: const EdgeInsets.only(bottom: 80),
                       itemCount: customers.length,
@@ -356,9 +363,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green[700],
+        backgroundColor: colorScheme.primary,
         onPressed: () => _showAddDialog(),
-        child: const Icon(Icons.add, color: Colors.white),
+        child: Icon(Icons.add, color: colorScheme.onPrimary),
       ),
     );
   }
@@ -369,12 +376,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
       height: 115,
       child: Row(
         children: [
-          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, balTotal, Colors.green, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, balTotal, null)),
           const SizedBox(width: 8),
-          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, balActive, Colors.green, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, balActive, null)),
           const SizedBox(width: 8),
           Expanded(
-            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, balArchived, Colors.green, () { 
+            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, balArchived, () { 
                setState(() {
                  _showArchiveOverlay = true;
                  _loadArchivedCustomers();
@@ -386,16 +393,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildKpiCard(AppLocalizations loc, String title, int count, double amount, MaterialColor color, VoidCallback? onTap, {bool isOrange = false}) {
-    Color borderColor = isOrange ? Colors.orange[900]! : Colors.green[600]!;
-    final Color textColor = Colors.grey[900]!;
+  Widget _buildKpiCard(AppLocalizations loc, String title, int count, double amount, VoidCallback? onTap, {bool isOrange = false}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    final containerColor = isOrange ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
+    final contentColor = isOrange ? colorScheme.onTertiaryContainer : colorScheme.onPrimaryContainer;
+    final borderColor = isOrange ? colorScheme.tertiary : colorScheme.primary;
 
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
-          color: color[50],
+          color: containerColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: borderColor, width: 1.2), 
         ),
@@ -406,16 +416,16 @@ class _CustomersScreenState extends State<CustomersScreen> {
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text(title, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 13)),
+              child: Text(title, style: TextStyle(color: contentColor, fontWeight: FontWeight.bold, fontSize: 13)),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(Icons.people, size: 18, color: textColor), 
+                Icon(Icons.people, size: 18, color: contentColor), 
                 Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text("$count", style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 18)),
+                    child: Text("$count", style: TextStyle(color: contentColor, fontWeight: FontWeight.bold, fontSize: 18)),
                   ),
                 ),
               ],
@@ -423,7 +433,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text("${loc.balanceShort}: ${amount.toStringAsFixed(0)}", style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w600)),
+              child: Text("${loc.balanceShort}: ${amount.toStringAsFixed(0)}", style: TextStyle(color: contentColor, fontSize: 12, fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -432,6 +442,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   Widget _buildCustomerCard(Customer customer, {bool isOverlay = false}) {
+    final colorScheme = Theme.of(context).colorScheme;
     final double balance = customer.outstandingBalance.toDouble();
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
     final String name = isUrdu 
@@ -442,18 +453,18 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return Card(
       elevation: 2, 
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: Colors.green[900]!, width: 1)),
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: colorScheme.outlineVariant, width: 1)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), 
         dense: true,
         leading: CircleAvatar(
           radius: 18,
-          backgroundColor: Colors.green[50],
-          child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?', style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold)),
+          backgroundColor: colorScheme.primaryContainer,
+          child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?', style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold)),
         ),
-        title: Text(name, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: isUrdu ? 20 : 16, fontFamily: isUrdu ? 'NooriNastaleeq' : null)),
-        subtitle: Text(phone, style: const TextStyle(color: Colors.black, fontSize: 13)),
+        title: Text(name, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: isUrdu ? 20 : 16, fontFamily: isUrdu ? 'NooriNastaleeq' : null)),
+        subtitle: Text(phone, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -462,34 +473,34 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: balance > 0 ? Colors.red[50] : Colors.green[50],
+                  color: balance > 0 ? colorScheme.errorContainer : colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: balance > 0 ? Colors.red : Colors.green)
+                  border: Border.all(color: balance > 0 ? colorScheme.error : colorScheme.primary)
                 ),
-                child: Text(balance.toStringAsFixed(0), style: TextStyle(color: balance > 0 ? Colors.red[900] : Colors.green[900], fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text(balance.toStringAsFixed(0), style: TextStyle(color: balance > 0 ? colorScheme.error : colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             
             if (!isOverlay)
             IconButton(
-              icon: Icon(Icons.receipt_long, color: Colors.green[700]),
+              icon: Icon(Icons.receipt_long, color: colorScheme.primary),
               tooltip: "View Ledger",
               onPressed: () => _openLedger(customer),
             ),
 
             if (isOverlay)
-              IconButton(icon: const Icon(Icons.unarchive, color: Colors.green), onPressed: () => _toggleArchiveStatus(customer.id!, false))
+              IconButton(icon: Icon(Icons.unarchive, color: colorScheme.primary), onPressed: () => _toggleArchiveStatus(customer.id!, false))
             else
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: Colors.black), 
+                icon: Icon(Icons.more_vert, color: colorScheme.onSurface), 
                 onSelected: (value) {
                   if (value == 'edit') _showAddDialog(customer: customer);
                   if (value == 'archive') _toggleArchiveStatus(customer.id!, true);
                   if (value == 'delete') _deleteCustomer(customer.id!, balance);
                 },
                 itemBuilder: (context) => [
-                   const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18, color: Colors.black), SizedBox(width: 8), Text('Edit', style: TextStyle(color: Colors.black))])),
-                   const PopupMenuItem(value: 'archive', child: Row(children: [Icon(Icons.archive, size: 18, color: Colors.black), SizedBox(width: 8), Text('Archive', style: TextStyle(color: Colors.black))])),
-                   const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 18, color: Colors.red), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.red))])),
+                   PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18, color: colorScheme.onSurface), const SizedBox(width: 8), Text('Edit', style: TextStyle(color: colorScheme.onSurface))])),
+                   PopupMenuItem(value: 'archive', child: Row(children: [Icon(Icons.archive, size: 18, color: colorScheme.onSurface), const SizedBox(width: 8), Text('Archive', style: TextStyle(color: colorScheme.onSurface))])),
+                   PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 18, color: colorScheme.error), const SizedBox(width: 8), Text('Delete', style: TextStyle(color: colorScheme.error))])),
                 ],
               ),
           ],
@@ -500,6 +511,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   // --- LEDGER OVERLAY (GROUPED) ---
   Widget _buildLedgerOverlay(AppLocalizations loc) {
+    final colorScheme = Theme.of(context).colorScheme;
     final customer = _selectedCustomerForLedger!;
     final name = customer.nameEnglish;
     
@@ -514,36 +526,36 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
     return Stack(
       children: [
-        GestureDetector(onTap: () => setState(() => _showLedgerOverlay = false), child: Container(color: Colors.black.withOpacity(0.5))),
+        GestureDetector(onTap: () => setState(() => _showLedgerOverlay = false), child: Container(color: colorScheme.shadow.withOpacity(0.5))),
         Center(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.95,
             height: MediaQuery.of(context).size.height * 0.90, 
             padding: EdgeInsets.zero,
             decoration: BoxDecoration(
-              color: Colors.grey[100], 
+              color: colorScheme.surface, 
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.green[700]!, width: 2), 
+              border: Border.all(color: colorScheme.outline, width: 2), 
             ),
             child: Column(
               children: [
                 // Header (Totals)
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
                   ),
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                          Text(name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
                           Row(
                             children: [
-                              IconButton(icon: const Icon(Icons.print, color: Colors.green), onPressed: () => _exportLedgerPdf(loc), tooltip: "Export PDF"),
-                              IconButton(icon: const Icon(Icons.close, color: Colors.black), onPressed: () => setState(() => _showLedgerOverlay = false)),
+                              IconButton(icon: Icon(Icons.print, color: colorScheme.primary), onPressed: () => _exportLedgerPdf(loc), tooltip: "Export PDF"),
+                              IconButton(icon: Icon(Icons.close, color: colorScheme.onSurface), onPressed: () => setState(() => _showLedgerOverlay = false)),
                             ],
                           )
                         ],
@@ -551,29 +563,29 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       const SizedBox(height: 10),
                       Row(
                         children: [
-                          _buildSummaryBox("Bill Amount", totalDr, Colors.blue),
+                          _buildSummaryBox("Bill Amount", totalDr, colorScheme.tertiary),
                           const SizedBox(width: 8),
-                          _buildSummaryBox("Received", totalCr, Colors.green),
+                          _buildSummaryBox("Received", totalCr, colorScheme.primary),
                           const SizedBox(width: 8),
-                          _buildSummaryBox("Net Balance", netBalance, netBalance > 0 ? Colors.red : Colors.green),
+                          _buildSummaryBox("Net Balance", netBalance, netBalance > 0 ? colorScheme.error : colorScheme.primary),
                         ],
                       ),
                     ],
                   ),
                 ),
 
-                const Divider(height: 1),
+                Divider(height: 1, color: colorScheme.outlineVariant),
 
                 // Table Header
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                  color: Colors.green[700], 
-                  child: const Row(
+                  color: colorScheme.primary, 
+                  child: Row(
                     children: [
-                      Expanded(flex: 3, child: Text("Date / Details", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                      Expanded(flex: 2, child: Text("Bill Amt", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                      Expanded(flex: 2, child: Text("Recvd", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
-                      Expanded(flex: 2, child: Text("Bal", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.yellowAccent))),
+                      Expanded(flex: 3, child: Text("Date / Details", style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onPrimary))),
+                      Expanded(flex: 2, child: Text("Bill Amt", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onPrimary))),
+                      Expanded(flex: 2, child: Text("Recvd", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onPrimary))),
+                      Expanded(flex: 2, child: Text("Bal", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onPrimaryContainer))),
                     ],
                   ),
                 ),
@@ -581,10 +593,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 // Transaction List (Grouped)
                 Expanded(
                   child: _currentLedger.isEmpty
-                      ? const Center(child: Text("No transactions found", style: TextStyle(color: Colors.grey)))
+                      ? Center(child: Text("No transactions found", style: TextStyle(color: colorScheme.onSurfaceVariant)))
                       : ListView.separated(
                           itemCount: _currentLedger.length,
-                          separatorBuilder: (c, i) => const Divider(height: 1),
+                          separatorBuilder: (c, i) => Divider(height: 1, color: colorScheme.outlineVariant),
                           itemBuilder: (context, index) {
                             final row = _currentLedger[index];
                             final isPayment = row['type'] == 'PAYMENT';
@@ -595,7 +607,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             // 1. PAYMENT ROW
                             if (isPayment) {
                               return Container(
-                                color: Colors.green[50], 
+                                color: colorScheme.primaryContainer.withOpacity(0.3), 
                                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                                 child: Row(
                                   children: [
@@ -604,16 +616,16 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(dateStr, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                          Text("PAYMENT / RECOVERY", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green[900], fontSize: 13)),
+                                          Text(dateStr, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                                          Text("PAYMENT / RECOVERY", style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary, fontSize: 13)),
                                           if(row['desc'] != null && row['desc'] != '')
-                                            Text(row['desc'], style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
+                                            Text(row['desc'], style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: colorScheme.onSurfaceVariant)),
                                         ],
                                       )
                                     ),
                                     const Expanded(flex: 2, child: Text("-", textAlign: TextAlign.right)),
-                                    Expanded(flex: 2, child: Text(row['cr'].toString(), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green))),
-                                    Expanded(flex: 2, child: Text(balance.toStringAsFixed(0), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold))),
+                                    Expanded(flex: 2, child: Text(row['cr'].toString(), textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary))),
+                                    Expanded(flex: 2, child: Text(balance.toStringAsFixed(0), textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
                                   ],
                                 ),
                               );
@@ -622,8 +634,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             else {
                               final items = row['items'] as List<dynamic>;
                               return ExpansionTile(
-                                backgroundColor: Colors.white,
-                                collapsedBackgroundColor: Colors.white,
+                                backgroundColor: colorScheme.surface,
+                                collapsedBackgroundColor: colorScheme.surface,
                                 tilePadding: const EdgeInsets.symmetric(horizontal: 8),
                                 title: Row(
                                   children: [
@@ -632,19 +644,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(dateStr, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                          Text("BILL #${row['bill_no']}", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                          Text(dateStr, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                                          Text("BILL #${row['bill_no']}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colorScheme.onSurface)),
                                         ],
                                       )
                                     ),
-                                    Expanded(flex: 2, child: Text(row['dr'].toString(), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red))),
+                                    Expanded(flex: 2, child: Text(row['dr'].toString(), textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.error))),
                                     const Expanded(flex: 2, child: Text("-", textAlign: TextAlign.right)), 
-                                    Expanded(flex: 2, child: Text(balance.toStringAsFixed(0), textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold))),
+                                    Expanded(flex: 2, child: Text(balance.toStringAsFixed(0), textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
                                   ],
                                 ),
                                 children: [
                                   Container(
-                                    color: Colors.grey[50],
+                                    color: colorScheme.surfaceVariant.withOpacity(0.3),
                                     padding: const EdgeInsets.all(10),
                                     child: Column(
                                       children: [
@@ -657,9 +669,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                         ...items.map((item) => Padding(
                                           padding: const EdgeInsets.symmetric(vertical: 2),
                                           child: Row(children: [
-                                            Expanded(flex: 4, child: Text(item['name'], style: const TextStyle(fontSize: 12))),
-                                            Expanded(flex: 2, child: Text("${item['rate']} x ${item['qty']}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
-                                            Expanded(flex: 2, child: Text("${item['total']}", textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
+                                            Expanded(flex: 4, child: Text(item['name'], style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
+                                            Expanded(flex: 2, child: Text("${item['rate']} x ${item['qty']}", textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
+                                            Expanded(flex: 2, child: Text("${item['total']}", textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
                                           ]),
                                         ))
                                       ],
@@ -675,16 +687,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 // Footer
                 Container(
                   padding: const EdgeInsets.all(10),
-                  color: Colors.white,
+                  color: colorScheme.surface,
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green[700],
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
-                      icon: const Icon(Icons.attach_money, color: Colors.white),
-                      label: const Text("Receive Payment", style: TextStyle(color: Colors.white, fontSize: 16)),
+                      icon: Icon(Icons.attach_money, color: colorScheme.onPrimary),
+                      label: Text("Receive Payment", style: TextStyle(color: colorScheme.onPrimary, fontSize: 16)),
                       onPressed: _showPaymentDialog,
                     ),
                   ),
@@ -719,36 +732,37 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   void _showPaymentDialog() {
+    final colorScheme = Theme.of(context).colorScheme;
     final amountCtrl = TextEditingController();
     final notesCtrl = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.green[700]!, width: 2)),
-        title: const Text("Receive Payment", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: colorScheme.outline, width: 2)),
+        title: Text("Receive Payment", style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: amountCtrl,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.black),
+              style: TextStyle(color: colorScheme.onSurface),
               decoration: _cleanInput("Amount", Icons.money),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: notesCtrl,
-              style: const TextStyle(color: Colors.black),
+              style: TextStyle(color: colorScheme.onSurface),
               decoration: _cleanInput("Notes (Optional)", Icons.note),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel", style: TextStyle(color: Colors.black))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel", style: TextStyle(color: colorScheme.onSurface))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
             onPressed: () {
                if(amountCtrl.text.isNotEmpty) {
                  double amount = double.tryParse(amountCtrl.text) ?? 0.0;
@@ -767,34 +781,35 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   // --- ARCHIVE OVERLAY ---
   Widget _buildArchiveOverlay(AppLocalizations loc) {
+    final colorScheme = Theme.of(context).colorScheme;
     if (!_showArchiveOverlay) return const SizedBox.shrink();
 
     return Stack(
       children: [
-        GestureDetector(onTap: () => setState(() => _showArchiveOverlay = false), child: Container(color: Colors.black.withOpacity(0.5))),
+        GestureDetector(onTap: () => setState(() => _showArchiveOverlay = false), child: Container(color: colorScheme.shadow.withOpacity(0.5))),
         Center(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             height: MediaQuery.of(context).size.height * 0.7,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.green[700]!, width: 2), 
+              border: Border.all(color: colorScheme.outline, width: 2), 
             ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(loc.archivedCustomers, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
-                    IconButton(icon: const Icon(Icons.close, color: Colors.black), onPressed: () => setState(() => _showArchiveOverlay = false))
+                    Text(loc.archivedCustomers, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                    IconButton(icon: Icon(Icons.close, color: colorScheme.onSurface), onPressed: () => setState(() => _showArchiveOverlay = false))
                   ],
                 ),
-                const Divider(color: Colors.green),
+                Divider(color: colorScheme.primary),
                 Expanded(
                   child: archivedCustomers.isEmpty
-                      ? Center(child: Text(loc.noCustomersFound, style: const TextStyle(color: Colors.black)))
+                      ? Center(child: Text(loc.noCustomersFound, style: TextStyle(color: colorScheme.onSurface)))
                       : ListView.builder(itemCount: archivedCustomers.length, itemBuilder: (context, index) => _buildCustomerCard(archivedCustomers[index], isOverlay: true)),
                 ),
               ],
@@ -807,6 +822,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   // --- ADD/EDIT DIALOG ---
   void _showAddDialog({Customer? customer}) {
+    final colorScheme = Theme.of(context).colorScheme;
     final loc = AppLocalizations.of(context)!;
     final nameEnController = TextEditingController(text: customer?.nameEnglish ?? '');
     final nameUrController = TextEditingController(text: customer?.nameUrdu ?? '');
@@ -823,9 +839,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.green[700]!, width: 2)),
-              title: Text(customer == null ? loc.addCustomer : loc.editCustomer, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              backgroundColor: colorScheme.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: colorScheme.outline, width: 2)),
+              title: Text(customer == null ? loc.addCustomer : loc.editCustomer, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
               content: SingleChildScrollView(
                 child: SizedBox(
                   width: 400,
@@ -833,28 +849,28 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(height: 10),
-                      TextFormField(controller: nameEnController, decoration: _cleanInput("${loc.nameEnglish} *", Icons.person), style: const TextStyle(color: Colors.black)),
+                      TextFormField(controller: nameEnController, decoration: _cleanInput("${loc.nameEnglish} *", Icons.person), style: TextStyle(color: colorScheme.onSurface)),
                       const SizedBox(height: 12),
                       // ✅ FIXED: Removed TextDirection.rtl
-                      TextFormField(controller: nameUrController, textAlign: TextAlign.start, decoration: _cleanInput("${loc.nameUrdu} *", Icons.translate), style: const TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 18, color: Colors.black)),
+                      TextFormField(controller: nameUrController, textAlign: TextAlign.start, decoration: _cleanInput("${loc.nameUrdu} *", Icons.translate), style: TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 18, color: colorScheme.onSurface)),
                       const SizedBox(height: 12),
-                      TextFormField(controller: phoneController, decoration: _cleanInput("${loc.phoneLabel} *", Icons.phone), keyboardType: TextInputType.phone, style: const TextStyle(color: Colors.black)),
+                      TextFormField(controller: phoneController, decoration: _cleanInput("${loc.phoneLabel} *", Icons.phone), keyboardType: TextInputType.phone, style: TextStyle(color: colorScheme.onSurface)),
                       const SizedBox(height: 12),
-                      TextFormField(controller: addressController, decoration: _cleanInput(loc.addressLabel, Icons.location_on), maxLines: 2, style: const TextStyle(color: Colors.black)),
+                      TextFormField(controller: addressController, decoration: _cleanInput(loc.addressLabel, Icons.location_on), maxLines: 2, style: TextStyle(color: colorScheme.onSurface)),
                       const SizedBox(height: 12),
-                      TextFormField(controller: limitController, decoration: _cleanInput(loc.creditLimit, Icons.credit_card), keyboardType: TextInputType.number, style: const TextStyle(color: Colors.black)),
+                      TextFormField(controller: limitController, decoration: _cleanInput(loc.creditLimit, Icons.credit_card), keyboardType: TextInputType.number, style: TextStyle(color: colorScheme.onSurface)),
                     ],
                   ),
                 ),
               ),
               actions: [
-                TextButton(onPressed: isSaving ? null : () => Navigator.pop(context), child: Text(loc.cancel, style: const TextStyle(color: Colors.black))),
+                TextButton(onPressed: isSaving ? null : () => Navigator.pop(context), child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface))),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
+                  style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
                   onPressed: isSaving ? null : () async {
-                     if (nameEnController.text.trim().isEmpty) { _showSnack("${loc.nameEnglish} ${loc.requiredField}", Colors.red); return; }
-                     if (nameUrController.text.trim().isEmpty) { _showSnack("${loc.nameUrdu} ${loc.requiredField}", Colors.red); return; }
-                     if (phoneController.text.trim().isEmpty) { _showSnack("${loc.phoneLabel} ${loc.requiredField}", Colors.red); return; }
+                     if (nameEnController.text.trim().isEmpty) { _showSnack("${loc.nameEnglish} ${loc.requiredField}", colorScheme.error); return; }
+                     if (nameUrController.text.trim().isEmpty) { _showSnack("${loc.nameUrdu} ${loc.requiredField}", colorScheme.error); return; }
+                     if (phoneController.text.trim().isEmpty) { _showSnack("${loc.phoneLabel} ${loc.requiredField}", colorScheme.error); return; }
 
                      setStateDialog(() => isSaving = true);
                      try {
@@ -869,10 +885,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
                        if (context.mounted) Navigator.pop(context);
                      } catch (e) {
                        setStateDialog(() => isSaving = false);
-                       _showSnack(e.toString().replaceAll("Exception: ", ""), Colors.red);
+                       _showSnack(e.toString().replaceAll("Exception: ", ""), colorScheme.error);
                      }
                   },
-                  child: isSaving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white)) : Text(loc.save),
+                  child: isSaving ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: colorScheme.onPrimary)) : Text(loc.save),
                 ),
               ],
             );
@@ -883,13 +899,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   InputDecoration _cleanInput(String label, IconData icon) {
+    final colorScheme = Theme.of(context).colorScheme;
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: Colors.green[900]),
-      prefixIcon: Icon(icon, size: 20, color: Colors.green[900]),
-      filled: true, fillColor: Colors.white, 
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.green[900]!, width: 1.5)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.green[900]!, width: 2.5)),
+      labelStyle: TextStyle(color: colorScheme.primary),
+      prefixIcon: Icon(icon, size: 20, color: colorScheme.primary),
+      filled: true, fillColor: colorScheme.surface, 
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.primary, width: 1.5)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.primary, width: 2.5)),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16), isDense: true,
     );
   }

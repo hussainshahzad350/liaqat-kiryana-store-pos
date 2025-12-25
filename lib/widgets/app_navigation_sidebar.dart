@@ -24,21 +24,22 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: widget.isExpanded ? 240 : 70,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         border: BorderDirectional(
           end: BorderSide(
-            color: Colors.grey[300]!,
+            color: colorScheme.outlineVariant,
             width: 1,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: colorScheme.shadow.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(2, 0),
           ),
@@ -146,7 +147,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                     icon: Icons.logout,
                     title: localizations.logout,
                     route: '/logout',
-                    color: Colors.red,
+                    color: colorScheme.error,
                     onTap: () {
                       Navigator.pushReplacementNamed(context, '/');
                     },
@@ -164,6 +165,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
   }
   
   Widget _buildSidebarHeader(AppLocalizations localizations) {
+    final colorScheme = Theme.of(context).colorScheme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       height: 100,
@@ -172,8 +174,8 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.green[700]!,
-            Colors.green[600]!,
+            colorScheme.primary,
+            colorScheme.primary.withOpacity(0.8),
           ],
         ),
       ),
@@ -184,7 +186,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
             width: widget.isExpanded ? 55 : 35,
             height: widget.isExpanded ? 55 : 35,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -197,7 +199,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
             child: Icon(
               Icons.store,
               size: widget.isExpanded ? 28 : 20,
-              color: Colors.green[700],
+              color: colorScheme.primary,
             ),
           ),
           
@@ -207,10 +209,10 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
                 localizations.appTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                 ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
@@ -231,6 +233,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
     VoidCallback? onTap,
   }) {
     final isActive = widget.currentRoute == route;
+    final colorScheme = Theme.of(context).colorScheme;
     
     return InkWell(
       onTap: onTap ?? () {
@@ -242,10 +245,10 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
         height: 40,
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
-          color: isActive ? Colors.green[50] : Colors.transparent,
+          color: isActive ? colorScheme.primaryContainer : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: isActive
-              ? Border.all(color: Colors.green[700]!, width: 1.5)
+              ? Border.all(color: colorScheme.primary, width: 1.5)
               : null,
         ),
         child: Row(
@@ -258,7 +261,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
               child: Icon(
                 icon,
                 size: 22,
-                color: color ?? (isActive ? Colors.green[700] : Colors.grey[700]),
+                color: color ?? (isActive ? colorScheme.primary : colorScheme.onSurfaceVariant),
               ),
             ),
             
@@ -271,8 +274,8 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 13,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                    color: color ?? (isActive ? Colors.green[900] : Colors.grey[800]),
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                    color: color ?? (isActive ? colorScheme.onPrimaryContainer : colorScheme.onSurface),
                   ),
                 ),
               ),
@@ -284,11 +287,12 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
   }
   
   Widget _buildSidebarFooter(AppLocalizations localizations) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: colorScheme.surfaceVariant,
         border: Border(
-          top: BorderSide(color: Colors.grey[300]!, width: 1),
+          top: BorderSide(color: colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Column(
@@ -308,8 +312,8 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                       Container(
                         width: 6,
                         height: 6,
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -319,7 +323,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                           localizations.systemOnline,
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.grey[700],
+                            color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
@@ -333,7 +337,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                     'v1.0.0',
                     style: TextStyle(
                       fontSize: 9,
-                      color: Colors.grey[600],
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -350,7 +354,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   border: Border(
-                    top: BorderSide(color: Colors.grey[300]!, width: 1),
+                    top: BorderSide(color: colorScheme.outlineVariant, width: 1),
                   ),
                 ),
                 child: Icon(
@@ -358,7 +362,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                       ? Icons.chevron_left 
                       : Icons.chevron_right,
                   size: 20,
-                  color: Colors.grey[600],
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ),

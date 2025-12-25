@@ -479,6 +479,7 @@ class _BackupTabState extends State<BackupTab> {
                             content: Text(success
                               ? loc.backupCreated
                               : loc.backupFailed),
+                            // ignore: use_build_context_synchronously
                             backgroundColor: success ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.error,
                           )
                         );
@@ -1237,6 +1238,7 @@ class _VacuumDatabaseButtonState extends State<_VacuumDatabaseButton> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(success ? "Database Optimized" : "Optimization failed"),
+                // ignore: use_build_context_synchronously
                 backgroundColor: success ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.error,
               ),
             );
