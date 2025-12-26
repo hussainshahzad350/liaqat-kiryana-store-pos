@@ -10,9 +10,11 @@ import '../../core/repositories/sales_repository.dart';
 import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../core/routes/app_routes.dart';
+import '../../core/constants/desktop_dimensions.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -23,9 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final CustomersRepository _customersRepository = CustomersRepository();
   final ItemsRepository _itemsRepository = ItemsRepository();
   // State variables
-  String currentTime = '';
-  String currentDate = '';
-  Timer? timer;
+  final ScrollController _leftPanelScroller = ScrollController();
+  final ScrollController _activitiesScroller = ScrollController();
   Timer? dataTimer;
 
   bool _isRefreshing = false;
@@ -39,32 +40,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _updateDateTime();
-    timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateDateTime());
     dataTimer = Timer.periodic(const Duration(minutes: 5), (_) => _loadData());
     _loadData();
   }
 
   @override
   void dispose() {
-    timer?.cancel();
+    _leftPanelScroller.dispose();
+    _activitiesScroller.dispose();
     dataTimer?.cancel();
     super.dispose();
   }
 
-  void _updateDateTime() {
-    if (!mounted) return;
-    setState(() {
-      final now = DateTime.now();
-      currentTime = DateFormat('hh:mm a').format(now);
-      currentDate = DateFormat('dd MMM yyyy').format(now);
-    });
-  }
-
   Future<void> _loadData() async {
-    setState(() {
-      _isRefreshing = true;
-    });
+    if (mounted) {
+      setState(() => _isRefreshing = true);
+    }
 
     try {
       final results = await Future.wait([
@@ -81,14 +72,32 @@ class _HomeScreenState extends State<HomeScreen> {
         todayCustomers = results[1] as List<Map<String, dynamic>>;
         lowStockItems = results[2] as List<Map<String, dynamic>>;
         recentSales = results[3] as List<Map<String, dynamic>>;
-        _isRefreshing = false;
       });
     } catch (e) {
       print('Error loading data: $e');
       if (mounted) {
-        setState(() {
-          _isRefreshing = false;
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Failed to load dashboard data: $e')),
+              ],
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: _loadData,
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshing = false);
       }
     }
   }
@@ -106,6 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Widget build(BuildContext context) {
 
       final localizations = AppLocalizations.of(context)!;
+      final colorScheme = Theme.of(context).colorScheme;
 
       return Shortcuts(
         shortcuts: const <ShortcutActivator, Intent>{
@@ -128,84 +138,75 @@ class _HomeScreenState extends State<HomeScreen> {
             autofocus: true,
             child: Column(
               children: [
-
-          // 1. Header Bar
-
-          _buildHeaderBar(localizations),
-
-          
-
-          // 2. Action Bar
-
-          _buildActionBar(localizations),
-
-          
-
-          // 3. Dashboard Content
+                // 1. Header
+                const HeaderBar(),
+                // 2. Action Bar
+                _buildActionBar(localizations, colorScheme),
+                
           // 3. Dashboard Content - Desktop Layout
-
           Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                double sidebarWidth;
+                if (constraints.maxWidth < 1400) {
+                  sidebarWidth = 420.0; // Minimum fixed width
+                } else {
+                  sidebarWidth = 450.0; // Default fixed width
+                }
+                
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
 
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-
-                // LEFT PANEL: Main Dashboard (KPIs + Details)
-                Expanded(
-                  child: Scrollbar(
-                    thumbVisibility: true,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          // KPI Grid (Fixed at top)
-                          _buildKPIGrid(localizations),
-                          const SizedBox(height: 16),
-                          // Details Grid - Customers + Low Stock (Fixed)
-                          _buildDetailsGrid(localizations),
-                        ],
+                    // LEFT PANEL: Main Dashboard (KPIs + Details)
+                    Expanded(
+                      child: Scrollbar(
+                        controller: _leftPanelScroller,
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                          controller: _leftPanelScroller,
+                          padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                          child: Column(
+                            children: [
+                              // KPI Grid (Fixed at top)
+                              _buildKPIGrid(localizations, colorScheme),
+                              const SizedBox(height: DesktopDimensions.spacingMedium),
+                              // Details Grid - Customers + Low Stock (Fixed)
+                              _buildDetailsGrid(localizations, colorScheme),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 16),
-
-                // Vertical Divider
-                VerticalDivider(width: 1, color: Theme.of(context).colorScheme.outlineVariant),
-                
-
-                // SCROLLABLE SECTION (Only Recent Activities)
-
-                // RIGHT PANEL: Sidebar (Recent Activities)
-                SizedBox(
-                  width: 400,
-                  child: Container(
-                    color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: _buildRecentSalesCard(localizations),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    
+                    // RIGHT PANEL: Sidebar (Recent Activities)
+                    SizedBox(
+                      width: sidebarWidth.clamp(DesktopDimensions.sidebarMinWidth, DesktopDimensions.sidebarMaxWidth),
+                      child: Container(
+                        color: colorScheme.surface.withOpacity(0.5),
+                        padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: _buildRecentSalesCard(localizations, colorScheme),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-
-                  ),
-
-                ),
-
-              ],
-
+                  ],
+                );
+              },
             ),
-
           ),
 
           
 
           // 4. Footer Bar
 
-          _buildFooterBar(localizations),
+          _buildFooterBar(localizations, colorScheme),
 
         ],
 
@@ -214,120 +215,56 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-
-
-
-  // ========================================================================
-  // HEADER BAR
-  // ========================================================================
-  
-  Widget _buildHeaderBar(AppLocalizations localizations) {
+  void _showKeyboardShortcutsDialog() {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.keyboard),
+            SizedBox(width: DesktopDimensions.spacingSmall),
+            Text('Keyboard Shortcuts'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildShortcutItem('New Sale', 'Ctrl + N', colorScheme),
+            _buildShortcutItem('Refresh Dashboard', 'F5', colorScheme),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildShortcutItem(String label, String shortcut, ColorScheme colorScheme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // LEFT: Dashboard Label
-          SizedBox(
-            width: 100,
+          Text(label, style: TextStyle(color: colorScheme.onSurface)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceVariant,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: colorScheme.outlineVariant),
+            ),
             child: Text(
-              localizations.dashboard,
+              shortcut,
               style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onPrimary.withOpacity(0.9),
+                fontWeight: FontWeight.bold,
+                fontFamily: 'monospace',
+                color: colorScheme.onSurfaceVariant,
               ),
-            ),
-          ),
-          
-          // CENTER: Shop Name
-          Expanded(
-            child: Center(
-              child: Text(
-                localizations.appTitle,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onPrimary,
-                  letterSpacing: 0.5,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-          
-          // RIGHT: Clock + Profile
-          SizedBox(
-            width: 280,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  width: 200,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: colorScheme.onPrimary.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: colorScheme.onPrimary.withOpacity(0.3), width: 1),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.access_time, size: 14, color: colorScheme.onPrimary.withOpacity(0.9)),
-                          const SizedBox(width: 6),
-                          Text(
-                            currentTime,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        currentDate,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: colorScheme.onPrimary.withOpacity(0.8),
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(Icons.account_circle, color: colorScheme.onPrimary, size: 28),
-                  onPressed: () {
-                    Navigator.pushNamed(context, AppRoutes.settings);
-                  },
-                  tooltip: localizations.settings,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
             ),
           ),
         ],
@@ -339,11 +276,10 @@ class _HomeScreenState extends State<HomeScreen> {
   // ACTION BAR
   // ========================================================================
   
-  Widget _buildActionBar(AppLocalizations localizations) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildActionBar(AppLocalizations localizations, ColorScheme colorScheme) {
     return Container(
-      height: 70,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      height: DesktopDimensions.actionBarHeight,
+      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingLarge, vertical: 10),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(bottom: BorderSide(color: colorScheme.outlineVariant, width: 1)),
@@ -386,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             icon: Icon(Icons.add_shopping_cart, size: 22, color: colorScheme.primary),
             label: Text(
-              localizations.generateBill,
+              '${localizations.generateBill} (Ctrl+N)',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -395,43 +331,67 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           
-          const SizedBox(width: 12),
+          const SizedBox(width: DesktopDimensions.spacingSmall),
           
           // 2. Quick Action: Reports
-          _buildQuickActionButton(
-            icon: Icons.bar_chart,
-            label: localizations.reports,
-            color: colorScheme.primary,
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.reports);
-            },
+          Tooltip(
+            message: localizations.reports,
+            child: _buildQuickActionButton(
+              icon: Icons.bar_chart,
+              label: localizations.reports,
+              color: colorScheme.primary,
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.reports);
+              },
+              colorScheme: colorScheme,
+            ),
           ),
           
-          const SizedBox(width: 8),
+          const SizedBox(width: DesktopDimensions.spacingSmall),
           
           // 3. Quick Action: Stock
-          _buildQuickActionButton(
-            icon: Icons.inventory_2,
-            label: localizations.stockManagement,
-            color: colorScheme.primary,
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.stock);
-            },
+          Tooltip(
+            message: localizations.stockManagement,
+            child: _buildQuickActionButton(
+              icon: Icons.inventory_2,
+              label: localizations.stockManagement,
+              color: colorScheme.primary,
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.stock);
+              },
+              colorScheme: colorScheme,
+            ),
           ),
           
-          const SizedBox(width: 8),
+          const SizedBox(width: DesktopDimensions.spacingSmall),
           
           // 4. Quick Action: Cash Ledger
-          _buildQuickActionButton(
-            icon: Icons.account_balance_wallet,
-            label: localizations.cashLedger,
-            color: colorScheme.primary,
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.cashLedger);
-            },
+          Tooltip(
+            message: localizations.cashLedger,
+            child: _buildQuickActionButton(
+              icon: Icons.account_balance_wallet,
+              label: localizations.cashLedger,
+              color: colorScheme.primary,
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.cashLedger);
+              },
+              colorScheme: colorScheme,
+            ),
           ),
           
           const Spacer(),
+          
+          // Keyboard Shortcuts Button
+          Tooltip(
+            message: 'Keyboard Shortcuts',
+            child: _HoverableActionIcon(
+              icon: Icon(Icons.keyboard, size: 20, color: colorScheme.primary),
+              color: colorScheme.primary,
+              onTap: _showKeyboardShortcutsDialog,
+            ),
+          ),
+          
+          const SizedBox(width: DesktopDimensions.spacingSmall),
           
           // 5. Search Button
           _HoverableActionIcon(
@@ -444,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           
-          const SizedBox(width: 8),
+          const SizedBox(width: DesktopDimensions.spacingSmall),
           
           // 6. Refresh Button
           _HoverableActionIcon(
@@ -468,8 +428,8 @@ class _HomeScreenState extends State<HomeScreen> {
     required String label,
     required Color color,
     required VoidCallback onPressed,
+    required ColorScheme colorScheme,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: OutlinedButton.icon(
@@ -518,69 +478,74 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildKPIGrid(AppLocalizations localizations) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildKPIGrid(AppLocalizations localizations, ColorScheme colorScheme) {
     // Using SizedBox to constrain height for the Spacer() inside cards
     // Row + Expanded ensures equal width distribution without aspect ratio issues
     return SizedBox(
-      height: 150,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: _buildKPICard(
-              title: localizations.todaySales,
-              value: 'Rs ${todaySales.toStringAsFixed(0)}',
-              icon: Icons.attach_money,
-              color: colorScheme.primary,
-              trend: '+12%',
-              trendUp: true,
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.reports);
-              },
+      height: DesktopDimensions.kpiHeight,
+      child: FocusTraversalGroup(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _buildKPICard(
+                title: localizations.todaySales,
+                value: 'Rs ${todaySales.toStringAsFixed(0)}',
+                icon: Icons.attach_money,
+                color: colorScheme.primary,
+                trend: '+12%',
+                trendUp: true,
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.reports);
+                },
+                colorScheme: colorScheme,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildKPICard(
-              title: localizations.pendingAmount,
-              value: 'Rs ${_calculatePendingCredits().toStringAsFixed(0)}',
-              icon: Icons.credit_card,
-              color: colorScheme.secondary,
-              subtitle: '${todayCustomers.length} ${localizations.customers}',
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.customers);
-              },
+            const SizedBox(width: DesktopDimensions.spacingMedium),
+            Expanded(
+              child: _buildKPICard(
+                title: localizations.pendingAmount,
+                value: 'Rs ${_calculatePendingCredits().toStringAsFixed(0)}',
+                icon: Icons.credit_card,
+                color: colorScheme.secondary,
+                subtitle: '${todayCustomers.length} ${localizations.customers}',
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.customers);
+                },
+                colorScheme: colorScheme,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildKPICard(
-              title: localizations.lowStock,
-              value: '${lowStockItems.length}',
-              icon: Icons.warning_amber,
-              color: colorScheme.error,
-              subtitle: localizations.itemsNeedRestock,
-              isAlert: lowStockItems.length > 5,
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.stock);
-              },
+            const SizedBox(width: DesktopDimensions.spacingMedium),
+            Expanded(
+              child: _buildKPICard(
+                title: localizations.lowStock,
+                value: '${lowStockItems.length}',
+                icon: Icons.warning_amber,
+                color: colorScheme.error,
+                subtitle: localizations.itemsNeedRestock,
+                isAlert: lowStockItems.length > 5,
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.stock);
+                },
+                colorScheme: colorScheme,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: _buildKPICard(
-              title: localizations.totalCustomers,
-              value: '${todayCustomers.length}',
-              icon: Icons.people,
-              color: colorScheme.tertiary,
-              subtitle: localizations.activeToday,
-              onTap: () {
-                Navigator.pushNamed(context, AppRoutes.customers);
-              },
+            const SizedBox(width: DesktopDimensions.spacingMedium),
+            Expanded(
+              child: _buildKPICard(
+                title: localizations.totalCustomers,
+                value: '${todayCustomers.length}',
+                icon: Icons.people,
+                color: colorScheme.tertiary,
+                subtitle: localizations.activeToday,
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.customers);
+                },
+                colorScheme: colorScheme,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -611,25 +576,29 @@ class _HomeScreenState extends State<HomeScreen> {
     bool trendUp = true,
     bool isAlert = false,
     required VoidCallback onTap,
+    required ColorScheme colorScheme,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
     return _HoverableCard(
       onTap: onTap,
       color: color,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingMedium,
+          vertical: 8.0,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: color, size: 24),
+                  child: Icon(icon, color: color, size: DesktopDimensions.kpiIconSize),
                 ),
                 const Spacer(),
                 if (trend != null)
@@ -672,37 +641,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
               ],
             ),
-            const Spacer(),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: DesktopDimensions.kpiValueSize,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: DesktopDimensions.captionSize, color: colorScheme.onSurfaceVariant),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (subtitle != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
           ],
         ),
       ),
@@ -713,56 +687,58 @@ class _HomeScreenState extends State<HomeScreen> {
   // DETAILS GRID (CUSTOMERS + LOW STOCK)
   // ========================================================================
   
-  Widget _buildDetailsGrid(AppLocalizations localizations) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // LEFT COLUMN: Customer summaries, Sales summaries
-        Expanded(
-          child: Column(
-            children: [
-              _buildCustomersCard(localizations),
-            ],
+  Widget _buildDetailsGrid(AppLocalizations localizations, ColorScheme colorScheme) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 420),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // LEFT COLUMN: Customer summaries, Sales summaries
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(child: _buildCustomersCard(localizations, colorScheme)),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 16),
-        // RIGHT COLUMN: Low stock, Alerts or secondary cards
-        Expanded(
-          child: Column(
-            children: [
-              _buildLowStockCard(localizations),
-            ],
+          const SizedBox(width: DesktopDimensions.spacingMedium),
+          // RIGHT COLUMN: Low stock, Alerts or secondary cards
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(child: _buildLowStockCard(localizations, colorScheme)),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildCustomersCard(AppLocalizations localizations) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildCustomersCard(AppLocalizations localizations, ColorScheme colorScheme) {
     return Card(
-      elevation: 2,
+      elevation: Theme.of(context).cardTheme.elevation ?? DesktopDimensions.cardElevation,
       color: colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Icon(Icons.people, color: colorScheme.tertiary, size: 28),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesktopDimensions.spacingStandard),
                 Text(
                   localizations.todaysCustomers,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                  style: TextStyle(fontSize: DesktopDimensions.headingSize, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                 ),
               ],
             ),
             if (todayCustomers.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
               const Divider(),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesktopDimensions.spacingStandard),
               ...todayCustomers.take(5).map((customer) {
                 final name = customer['name_english']?.toString() ?? 
                              customer['name_urdu']?.toString() ?? 
@@ -777,11 +753,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         radius: 18,
                         child: Icon(Icons.person, size: 18, color: colorScheme.onTertiaryContainer),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: DesktopDimensions.spacingStandard),
                       Expanded(
                         child: Text(
                           name,
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                          style: TextStyle(fontSize: DesktopDimensions.bodySize, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -789,7 +765,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         'Rs ${amount.toStringAsFixed(0)}',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: DesktopDimensions.bodySize,
                           fontWeight: FontWeight.bold,
                           color: colorScheme.tertiary,
                         ),
@@ -799,10 +775,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }),
             ] else ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
                   child: Column(
                     children: [
                       Icon(Icons.people_outline, size: 48, color: colorScheme.outline),
@@ -822,31 +798,30 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildLowStockCard(AppLocalizations localizations) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildLowStockCard(AppLocalizations localizations, ColorScheme colorScheme) {
     return Card(
-      elevation: 2,
+      elevation: Theme.of(context).cardTheme.elevation ?? DesktopDimensions.cardElevation,
       color: colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Icon(Icons.warning_amber, color: colorScheme.error, size: 28),
-                const SizedBox(width: 12),
+                const SizedBox(width: DesktopDimensions.spacingStandard),
                 Text(
                   localizations.lowStock,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                  style: TextStyle(fontSize: DesktopDimensions.headingSize, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                 ),
               ],
             ),
             if (lowStockItems.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
               const Divider(),
-              const SizedBox(height: 12),
+              const SizedBox(height: DesktopDimensions.spacingStandard),
               ...lowStockItems.take(5).map((item) {
                 final name = item['name_english']?.toString() ?? 
                             item['name_urdu']?.toString() ?? 
@@ -865,20 +840,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Icon(Icons.inventory_2, size: 18, color: colorScheme.onErrorContainer),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: DesktopDimensions.spacingStandard),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               name,
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                              style: TextStyle(fontSize: DesktopDimensions.bodySize, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
                               _buildOnlyLeftText(localizations, stock, unit),
-                              style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+                              style: TextStyle(fontSize: DesktopDimensions.captionSize, color: colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -889,10 +864,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }),
             ] else ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
                   child: Column(
                     children: [
                       Icon(Icons.check_circle_outline, size: 48, color: colorScheme.primary),
@@ -916,25 +891,24 @@ class _HomeScreenState extends State<HomeScreen> {
   // RECENT ACTIVITIES
   // ========================================================================
   
-  Widget _buildRecentSalesCard(AppLocalizations localizations) {
-  final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildRecentSalesCard(AppLocalizations localizations, ColorScheme colorScheme) {
   return Card(
-    elevation: 2,
+    elevation: Theme.of(context).cardTheme.elevation ?? DesktopDimensions.cardElevation,
     color: colorScheme.surface,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // FIXED HEADER (Doesn't scroll)
         Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
           child: Row(
             children: [
               Icon(Icons.timeline, color: colorScheme.primary, size: 28),
-              const SizedBox(width: 12),
+              const SizedBox(width: DesktopDimensions.spacingStandard),
               Text(
                 localizations.recentActivities,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                style: TextStyle(fontSize: DesktopDimensions.headingSize, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
               ),
               const Spacer(),
               if (_isRefreshing)
@@ -947,12 +921,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         
-        Divider(height: 1, color: colorScheme.outlineVariant),
+        _buildDivider(colorScheme),
         
         // TABLE HEADER (Fixed)
         if (recentSales.isNotEmpty)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.cardPadding, vertical: 12),
             decoration: BoxDecoration(
               color: colorScheme.surfaceVariant,
               border: Border(
@@ -962,7 +936,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 Expanded(
-                  flex: 3,
+                  flex: 4,
                   child: Text(
                     localizations.name,
                     style: TextStyle(
@@ -973,7 +947,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Expanded(
-                  flex: 4,
+                  flex: 3,
                   child: Text(
                     localizations.activityType,
                     style: TextStyle(
@@ -983,8 +957,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                Expanded(
-                  flex: 2,
+                SizedBox(
+                  width: 70,
                   child: Text(
                     localizations.time,
                     style: TextStyle(
@@ -995,8 +969,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                Expanded(
-                  flex: 2,
+                SizedBox(
+                  width: 90,
                   child: Text(
                     localizations.status,
                     style: TextStyle(
@@ -1015,19 +989,16 @@ class _HomeScreenState extends State<HomeScreen> {
         if (recentSales.isNotEmpty)
           Expanded(
             child: Scrollbar(
+              controller: _activitiesScroller,
               thumbVisibility: true,
               child: ListView.separated(
+                controller: _activitiesScroller,
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 itemCount: recentSales.length,
-                separatorBuilder: (context, index) => Divider(
-                  height: 1,
-                  color: colorScheme.outlineVariant,
-                  indent: 20,
-                  endIndent: 20,
-                ),
+                separatorBuilder: (context, index) => _buildDivider(colorScheme, indent: 20, endIndent: 20),
                 itemBuilder: (context, index) {
                   final activity = recentSales[index];
-                  return _buildActivityRow(activity, localizations);
+                  return _buildActivityRow(activity, localizations, colorScheme);
                 },
               ),
             ),
@@ -1037,7 +1008,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(40),
+                padding: const EdgeInsets.all(DesktopDimensions.spacingLarge * 2),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1057,24 +1028,23 @@ class _HomeScreenState extends State<HomeScreen> {
   );
   }
   // NEW METHOD: Build individual activity row
-  Widget _buildActivityRow(Map<String, dynamic> activity, AppLocalizations localizations) {
-  final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildActivityRow(Map<String, dynamic> activity, AppLocalizations localizations, ColorScheme colorScheme) {
   final activityType = activity['activity_type']?.toString();
   final status = activity['status']?.toString();
   
   return _HoverableListItem(
     child: Container(
-    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.cardPadding, vertical: 8),
     child: Row(
       children: [
         // Column 1: Bill Number / Title with Icon
         Expanded(
-          flex: 3,
+          flex: 4,
           child: Row(
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: _getActivityColor(activityType, colorScheme).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -1085,7 +1055,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: 18,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1093,7 +1063,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       activity['title']?.toString() ?? localizations.unknown,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface,
                       ),
@@ -1104,7 +1074,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         activity['customer_name'].toString(),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: colorScheme.onSurfaceVariant,
                         ),
                         maxLines: 1,
@@ -1119,7 +1089,7 @@ class _HomeScreenState extends State<HomeScreen> {
         
         // Column 2: Activity Type (Translated)
         Expanded(
-          flex: 4,
+          flex: 3,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1147,12 +1117,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         
         // Column 3: Time
-        Expanded(
-          flex: 2,
+        SizedBox(
+          width: 70,
           child: Text(
             _getRelativeTime(activity['timestamp']?.toString(), localizations),
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
             ),
@@ -1163,10 +1133,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         
         // Column 4: Status Badge
-        Expanded(
-          flex: 2,
+        SizedBox(
+          width: 90,
           child: Center(
-            child: _buildStatusBadge(status, localizations),
+            child: _buildStatusBadge(status, localizations, colorScheme),
           ),
         ),
       ],
@@ -1176,8 +1146,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // NEW METHOD: Build status badge
-Widget _buildStatusBadge(String? status, AppLocalizations localizations) {
-  final colorScheme = Theme.of(context).colorScheme;
+Widget _buildStatusBadge(String? status, AppLocalizations localizations, ColorScheme colorScheme) {
   Color bgColor;
   Color textColor;
   String label;
@@ -1210,7 +1179,8 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations) {
   }
   
   return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    constraints: const BoxConstraints(minWidth: 85),
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
       color: bgColor,
       borderRadius: BorderRadius.circular(12),
@@ -1223,6 +1193,9 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations) {
         fontWeight: FontWeight.w600,
       ),
       textAlign: TextAlign.center,
+      maxLines: 1,
+      softWrap: false,
+      overflow: TextOverflow.ellipsis,
     ),
   );
   }
@@ -1321,15 +1294,23 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations) {
   }
 }
 
+  Widget _buildDivider(ColorScheme colorScheme, {double indent = 0, double endIndent = 0}) {
+    return Divider(
+      height: 1,
+      color: colorScheme.outlineVariant,
+      indent: indent,
+      endIndent: endIndent,
+    );
+  }
+
   // ========================================================================
   // FOOTER BAR
   // ========================================================================
   
-  Widget _buildFooterBar(AppLocalizations localizations) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildFooterBar(AppLocalizations localizations, ColorScheme colorScheme) {
     return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: DesktopDimensions.footerHeight,
+      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingLarge),
       decoration: BoxDecoration(
         color: colorScheme.surfaceVariant,
         border: Border(top: BorderSide(color: colorScheme.outlineVariant, width: 1)),
@@ -1340,21 +1321,21 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations) {
           const SizedBox(width: 6),
           Text(
             localizations.databaseConnected,
-            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+            style: TextStyle(fontSize: DesktopDimensions.captionSize, color: colorScheme.onSurfaceVariant),
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: DesktopDimensions.spacingLarge),
           Icon(Icons.backup, size: 14, color: colorScheme.tertiary),
           const SizedBox(width: 6),
           Text(
             '${localizations.lastBackup}: 2 hrs ago',
-            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+            style: TextStyle(fontSize: DesktopDimensions.captionSize, color: colorScheme.onSurfaceVariant),
           ),
           const Spacer(),
           Text(
             'v1.0.0',
-            style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+            style: TextStyle(fontSize: DesktopDimensions.captionSize, color: colorScheme.onSurfaceVariant),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: DesktopDimensions.spacingStandard),
           Container(
             width: 8,
             height: 8,
@@ -1364,7 +1345,7 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations) {
           Text(
             localizations.systemOk,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: DesktopDimensions.captionSize,
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
@@ -1398,6 +1379,167 @@ class _ToggleSidebarIntent extends Intent {
 // REUSABLE HOVER WIDGETS
 // ============================================================================
 
+class HeaderBar extends StatelessWidget {
+  const HeaderBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      height: DesktopDimensions.headerHeight,
+      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingLarge),
+      decoration: BoxDecoration(
+        color: colorScheme.primary,
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // LEFT: Dashboard Label
+          SizedBox(
+            width: 100, // Keeping fixed width for alignment
+            child: Text(
+              localizations.dashboard,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onPrimary.withOpacity(0.9),
+              ),
+            ),
+          ),
+          
+          // CENTER: Shop Name
+          Expanded(
+            child: Center(
+              child: Text(
+                localizations.appTitle,
+                style: TextStyle(
+                  fontSize: DesktopDimensions.appTitleSize,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onPrimary,
+                  letterSpacing: 0.5,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          
+          // RIGHT: Clock + Profile
+          SizedBox(
+            width: 280,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const LiveClock(),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(Icons.account_circle, color: colorScheme.onPrimary, size: 28),
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.settings);
+                  },
+                  tooltip: localizations.settings,
+                  padding: const EdgeInsets.all(8),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class LiveClock extends StatefulWidget {
+  const LiveClock({super.key});
+
+  @override
+  State<LiveClock> createState() => _LiveClockState();
+}
+
+class _LiveClockState extends State<LiveClock> {
+  late Timer _timer;
+  String _currentTime = '';
+  String _currentDate = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTime();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+  }
+
+  void _updateTime() {
+    if (!mounted) return;
+    final now = DateTime.now();
+    setState(() {
+      _currentTime = DateFormat('hh:mm a').format(now);
+      _currentDate = DateFormat('dd MMM yyyy').format(now);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: DesktopDimensions.clockWidth,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.onPrimary.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colorScheme.onPrimary.withOpacity(0.3), width: 1),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.access_time, size: 14, color: colorScheme.onPrimary.withOpacity(0.9)),
+              const SizedBox(width: 6),
+              Text(
+                _currentTime,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            _currentDate,
+            style: TextStyle(
+              fontSize: 10,
+              color: colorScheme.onPrimary.withOpacity(0.8),
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _HoverableCard extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
@@ -1415,10 +1557,12 @@ class _HoverableCard extends StatefulWidget {
 
 class _HoverableCardState extends State<_HoverableCard> {
   bool _isHovered = false;
+  bool _isFocused = false;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isHoveredOrFocused = _isHovered || _isFocused;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
@@ -1431,13 +1575,13 @@ class _HoverableCardState extends State<_HoverableCard> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.shadow.withOpacity(_isHovered ? 0.15 : 0.05),
-              blurRadius: _isHovered ? 8 : 2,
-              offset: Offset(0, _isHovered ? 4 : 2),
+              color: colorScheme.shadow.withOpacity(isHoveredOrFocused ? 0.15 : 0.05),
+              blurRadius: isHoveredOrFocused ? 8 : 2,
+              offset: Offset(0, isHoveredOrFocused ? 4 : 2),
             ),
           ],
           border: Border.all(
-            color: _isHovered ? widget.color.withOpacity(0.5) : Colors.transparent,
+            color: isHoveredOrFocused ? widget.color.withOpacity(0.5) : Colors.transparent,
             width: 1.5,
           ),
         ),
@@ -1445,6 +1589,7 @@ class _HoverableCardState extends State<_HoverableCard> {
           color: Colors.transparent,
           child: InkWell(
             onTap: widget.onTap,
+            onFocusChange: (value) => setState(() => _isFocused = value),
             borderRadius: BorderRadius.circular(12),
             hoverColor: widget.color.withOpacity(0.05),
             child: widget.child,
@@ -1472,9 +1617,11 @@ class _HoverableActionIcon extends StatefulWidget {
 
 class _HoverableActionIconState extends State<_HoverableActionIcon> {
   bool _isHovered = false;
+  bool _isFocused = false;
 
   @override
   Widget build(BuildContext context) {
+    final isHoveredOrFocused = _isHovered || _isFocused;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),
@@ -1483,6 +1630,7 @@ class _HoverableActionIconState extends State<_HoverableActionIcon> {
         color: Colors.transparent,
         child: InkWell(
           onTap: widget.onTap,
+          onFocusChange: (value) => setState(() => _isFocused = value),
           borderRadius: BorderRadius.circular(8),
           hoverColor: widget.color.withOpacity(0.1),
           child: AnimatedContainer(
@@ -1490,11 +1638,11 @@ class _HoverableActionIconState extends State<_HoverableActionIcon> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               border: Border.all(
-                color: _isHovered ? widget.color : widget.color.withOpacity(0.5),
+                color: isHoveredOrFocused ? widget.color : widget.color.withOpacity(0.5),
                 width: 1.5,
               ),
               borderRadius: BorderRadius.circular(8),
-              color: _isHovered ? widget.color.withOpacity(0.05) : Colors.transparent,
+              color: isHoveredOrFocused ? widget.color.withOpacity(0.05) : Colors.transparent,
             ),
             child: widget.icon,
           ),
@@ -1520,7 +1668,7 @@ class _HoverableListItemState extends State<_HoverableListItem> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
+      cursor: SystemMouseCursors.basic,
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
@@ -1536,11 +1684,7 @@ class _HoverableListItemState extends State<_HoverableListItem> {
         ),
         child: Material(
           color: Colors.transparent,
-          child: InkWell(
-            onTap: () {},
-            hoverColor: Colors.transparent,
-            child: widget.child,
-          ),
+          child: widget.child,
         ),
       ),
     );

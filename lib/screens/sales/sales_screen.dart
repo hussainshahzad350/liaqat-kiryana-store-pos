@@ -42,7 +42,6 @@ class _SalesScreenState extends State<SalesScreen> {
   List<Product> filteredProducts = []; 
   
   bool showCustomerList = false;
-  bool showProductList = false; 
 
   // Debounce Timers
   Timer? _productSearchDebounce;
@@ -154,14 +153,12 @@ class _SalesScreenState extends State<SalesScreen> {
   // --- Item Search Logic ---
   void _filterProducts(String query) {
     _productSearchDebounce?.cancel();
-    _productSearchDebounce = Timer(const Duration(milliseconds: 300), () {
+    _productSearchDebounce = Timer(const Duration(milliseconds: 100), () {
       if (!mounted) return;
       setState(() {
         if (query.isEmpty) {
           filteredProducts = products;
-          showProductList = false;
         } else {
-          showProductList = true;
           final q = query.toLowerCase();
           filteredProducts = products.where((p) {
             final nameEng = (p.nameEnglish).toLowerCase();
@@ -177,12 +174,11 @@ class _SalesScreenState extends State<SalesScreen> {
   void _filterCustomers(String query) {
     _customerSearchDebounce?.cancel();
     
-    _customerSearchDebounce = Timer(const Duration(milliseconds: 300), () {
+    _customerSearchDebounce = Timer(const Duration(milliseconds: 150), () {
       if (!mounted) return;
       setState(() {
         if (query.isEmpty) {
           filteredCustomers = customers;
-          showCustomerList = false;
         } else {
           showCustomerList = true;
           final q = query.toLowerCase();
@@ -377,10 +373,6 @@ class _SalesScreenState extends State<SalesScreen> {
         });
       }
 
-      if (showProductList) {
-        productSearchController.clear();
-        showProductList = false;
-      }
       _calculateTotals();
     });
   }
@@ -1150,409 +1142,481 @@ class _SalesScreenState extends State<SalesScreen> {
             IconButton(icon: const Icon(Icons.delete_sweep), onPressed: _clearCart), 
           ]
         ),
-        body: Row(children: [
-          // LEFT PANEL (Item Grid) 
-          Expanded(flex: 6, child: Column(children: [
-            // Item Search
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(children: [
-                TextField(
-                  controller: productSearchController,
-                  decoration: InputDecoration(
-                    hintText: loc.searchItemHint, 
-                    prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant), 
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
-                    filled: true, 
-                    fillColor: colorScheme.surfaceVariant
-                  ),
-                  onChanged: _filterProducts,
-                  onTap: () { 
-                    if(productSearchController.text.isNotEmpty) {
-                      _filterProducts(productSearchController.text); 
-                    }
-                  },
-                ),
-                if (showProductList && filteredProducts.isNotEmpty)
-                  Container(
-                    height: 200, 
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface, 
-                      border: Border.all(color: colorScheme.outline), 
-                      borderRadius: BorderRadius.circular(8), 
-                      boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.1), blurRadius: 4)]
-                    ),
-                    child: ListView.separated(
-                      itemCount: filteredProducts.length, 
-                      separatorBuilder: (c, i) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final p = filteredProducts[index];
-                        return ListTile(
-                          dense: true,
-                          title: Text(p.nameEnglish),
-                          subtitle: Text('Stock: ${p.currentStock} | Rs ${p.salePrice}'),
-                          onTap: () => _addToCart(p),
-                        );
-                      },
-                    ),
-                  ),
-              ]),
-            ),
-            
-            // Product Grid
+        body: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // LEFT PANEL (Products + Search) - 55%
             Expanded(
-              flex: 6,
-              child: GridView.builder(
-                padding: const EdgeInsets.all(8),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 6, 
-                  childAspectRatio: 1.0, 
-                  crossAxisSpacing: 5, 
-                  mainAxisSpacing: 5
-                ),
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return Card(
-                    elevation: 2,
-                    color: colorScheme.surface,
-                    child: InkWell(
-                      onTap: () => _addToCart(product),
-                      child: Padding(
-                        padding: const EdgeInsets.all(2.0), 
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center, 
-                          children: [
-                            Text(
-                              product.nameUrdu ?? '', 
-                              style: TextStyle(fontSize: 12, fontFamily: 'NooriNastaleeq', fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
-                              maxLines: 1, 
-                              overflow: TextOverflow.ellipsis
-                            ),
-                            Text(product.nameEnglish, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                            Text(CurrencyUtils.formatRupees(product.salePrice), style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 12)),
-                            Text('${loc.stock}:${product.currentStock}', style: TextStyle(fontSize: 9, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold)),
-                          ]
-                        )
-                      ),
-                    )
-                  );
-                },
-              ),
-            ),
-            const Divider(thickness: 2),
-            
-            // Recent Sales
-            Container(
-              height: 200, 
-              color: colorScheme.surface,
-              child: Column(children: [
-                Container(
-                  padding: const EdgeInsets.all(8), 
-                  color: colorScheme.surfaceVariant, 
-                  width: double.infinity, 
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(loc.recentSales, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant))
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: recentSales.length, 
-                    separatorBuilder: (c, i) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final sale = recentSales[index];
-                      return ListTile(
-                        dense: true, 
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                        leading: CircleAvatar(
-                          radius: 12, 
-                          backgroundColor: colorScheme.primaryContainer, 
-                          child: Text('${index+1}', style: TextStyle(fontSize: 10, color: colorScheme.onPrimaryContainer))
-                        ),
-                        title: Text(sale.customerName ?? loc.walkInCustomer, style: TextStyle(fontSize: 13, color: colorScheme.onSurface)),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(sale.billNumber, style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
-                            Text(
-                              sale.status == 'CANCELLED' ? loc.cancelled : loc.completed,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: sale.status == 'CANCELLED' ? colorScheme.error : colorScheme.primary,
-                              ),
-                            ),
-                          ]
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min, 
-                          children: [
-                            Text(CurrencyUtils.formatRupees(sale.grandTotal.toInt()), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
-                            IconButton(
-                              icon: Icon(Icons.cancel, size: 16, color: colorScheme.error), 
-                              onPressed: sale.status == 'CANCELLED'
-                                ? null
-                                : () => _cancelSale(sale.id!, sale.billNumber),
-                            ),
-                          ]
-                        ),
-                      );
-                    },
-                  )
-                ),
-              ]),
-            ),
-          ])),
-
-          // RIGHT PANEL (Cart & Customer)
-          Expanded(flex: 4, child: Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surface, 
-              border: BorderDirectional(start: BorderSide(color: colorScheme.outlineVariant))
-            ),
-            child: Column(children: [
-              // Customer Search Panel
-              Container(
-                padding: const EdgeInsets.all(8), 
-                color: colorScheme.surface, 
-                child: Column(children: [
-                  Row(children: [
-                    Expanded(
-                      child: TextField(
-                        controller: customerSearchController,
+              flex: 11, 
+              child: Column(
+                children: [
+                  // Item Search
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(children: [
+                      TextField(
+                        controller: productSearchController,
                         decoration: InputDecoration(
-                          labelText: loc.searchCustomerHint, 
-                          prefixIcon: Icon(Icons.person_search, color: colorScheme.onSurfaceVariant), 
-                          suffixIcon: selectedCustomerId != null ? IconButton(
-                            icon: const Icon(Icons.clear), 
-                            onPressed: () => _selectCustomer(null)
-                          ) : null, 
+                          hintText: loc.searchItemHint, 
+                          prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant), 
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
-                          isDense: true,
-                          filled: true,
+                          filled: true, 
                           fillColor: colorScheme.surfaceVariant
-                        ), 
-                        onChanged: _filterCustomers, 
+                        ),
+                        onChanged: _filterProducts,
                         onTap: () { 
-                          if(selectedCustomerId == null) {
-                            _filterCustomers(customerSearchController.text); 
+                          if(productSearchController.text.isNotEmpty) {
+                            _filterProducts(productSearchController.text); 
                           }
-                        }
-                      )
-                    ),
-                    const SizedBox(width: 5),
-                    SizedBox(
-                      height: 48, 
-                      width: 48, 
-                      child: ElevatedButton(
-                        onPressed: _showAddCustomerDialog, 
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero, 
-                          backgroundColor: colorScheme.primary, 
-                          foregroundColor: colorScheme.onPrimary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
-                        ), 
-                        child: const Icon(Icons.person_add)
-                      )
-                    ),
-                  ]),
-                  if (showCustomerList && filteredCustomers.isNotEmpty)
-                    Container(
-                      height: 150, 
-                      margin: const EdgeInsets.only(top: 5), 
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface, 
-                        border: Border.all(color: colorScheme.outline), 
-                        borderRadius: BorderRadius.circular(8), 
-                        boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.1), blurRadius: 4)]
-                      ), 
-                      child: ListView.separated(
-                        itemCount: filteredCustomers.length, 
-                        separatorBuilder: (c, i) => const Divider(height: 1), 
-                        itemBuilder: (context, index) { 
-                          final c = filteredCustomers[index]; 
-                          return ListTile(
-                            dense: true, 
-                            title: Text(c.nameEnglish), 
-                            // ignore: unnecessary_string_interpolations
-                            subtitle: Text('${c.contactPrimary ?? ''}'), 
-                            trailing: Text('${loc.currBal}: ${c.outstandingBalance}'), 
-                            onTap: () => _selectCustomer(c)
-                          ); 
-                        }
-                      )
-                    ),
-                ]),
-              ),
-              const Divider(height: 1),
-              
-              // Cart List
-              Expanded(
-                child: cartItems.isEmpty 
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.shopping_cart, size: 50, color: colorScheme.outline),
-                          const SizedBox(height: 10),
-                          Text(loc.cartEmpty, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16)),
-                        ],
+                        },
                       ),
-                    )
-                  : ListView.separated(
-                      itemCount: cartItems.length, 
-                      separatorBuilder: (c, i) => Divider(height: 1, color: colorScheme.outlineVariant),
-                      itemBuilder: (context, index) {
-                        final item = cartItems[index];
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8), 
-                          child: Row(children: [
-                            // Item Name
-                            Expanded(
-                              flex: 3, 
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    isRTL && item['name_urdu'] != null ? item['name_urdu'] : item['name_english'], 
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface), 
-                                    maxLines: 1, 
-                                    overflow: TextOverflow.ellipsis
-                                  ), 
-                                  Text(
-                                    '${loc.stock}: ${item['current_stock']}', 
-                                    style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.bold)
-                                  ),
-                                ]
-                              )
-                            ),
-                            
-                            // Price Box
-                            SizedBox(
-                              width: 80, 
-                              child: TextField( 
-                                controller: item['priceCtrl'],
-                                keyboardType: TextInputType.number,
-                                textAlign: TextAlign.center,
-                                decoration: InputDecoration(
-                                  isDense: true, 
-                                  contentPadding: const EdgeInsets.all(8), 
-                                  border: const OutlineInputBorder(), 
-                                  labelText: loc.price, 
-                                  labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant)
+                    ]),
+                  ),
+                  
+                  // Product Grid
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final int crossAxisCount = (constraints.maxWidth / 140).floor().clamp(3, 10);
+                        return GridView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            childAspectRatio: 1.0,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          itemCount: filteredProducts.length,
+                          itemBuilder: (context, index) {
+                            final product = filteredProducts[index];
+                            return Card(
+                              elevation: 2,
+                              margin: EdgeInsets.zero,
+                              clipBehavior: Clip.antiAlias,
+                              color: colorScheme.surface,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.3)),
+                              ),
+                              child: InkWell(
+                                onTap: () => _addToCart(product),
+                                hoverColor: colorScheme.primaryContainer.withOpacity(0.3),
+                                child: Stack(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.inventory_2_outlined, size: 16, color: colorScheme.primary.withOpacity(0.5)),
+                                              const SizedBox(width: 4),
+                                              Flexible(
+                                                child: Text(
+                                                  CurrencyUtils.formatRupees(product.salePrice),
+                                                  style: TextStyle(
+                                                    color: colorScheme.primary,
+                                                    fontWeight: FontWeight.w800,
+                                                    fontSize: 14,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            product.nameEnglish,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: colorScheme.onSurface,
+                                            ),
+                                          ),
+                                          if (product.nameUrdu != null && product.nameUrdu!.isNotEmpty)
+                                            Text(
+                                              product.nameUrdu!,
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontFamily: 'NooriNastaleeq',
+                                                color: colorScheme.onSurfaceVariant,
+                                                height: 1.2,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.center,
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: Text(
+                                        '${product.currentStock}',
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                          color: (product.currentStock) < 10 
+                                              ? colorScheme.error 
+                                              : colorScheme.outline,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
-                                onChanged: (_) => _updateCartItemFromField(index),
-                              )
-                            ),
-                            const SizedBox(width: 8),
-                            
-                            // Qty Box
-                            SizedBox(
-                              width: 60, 
-                              child: TextField( 
-                                controller: item['qtyCtrl'],
-                                keyboardType: TextInputType.number,
-                                textAlign: TextAlign.center,
-                                decoration: InputDecoration(
-                                  isDense: true, 
-                                  contentPadding: const EdgeInsets.all(8), 
-                                  border: const OutlineInputBorder(), 
-                                  labelText: loc.qty, 
-                                  labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant)
-                                ),
-                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
-                                onChanged: (_) => _updateCartItemFromField(index),
-                              )
-                            ),
-                            const SizedBox(width: 8),
-                            
-                            // Total
-                            SizedBox(
-                              width: 70, 
-                              child: Text(
-                                (item['total'] as double).toStringAsFixed(0), 
-                                textAlign: TextAlign.end,
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface)
-                              )
-                            ),
-                            
-                            // Delete Button
-                            InkWell(
-                              onTap: () => _removeCartItem(index), 
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0), 
-                                child: Icon(Icons.close, color: colorScheme.error, size: 24)
-                              )
-                            ), 
-                          ]),
+                              ),
+                            );
+                          },
                         );
                       },
-                    )
-              ),
-              
-              // Totals Section
-              Container(
-                padding: const EdgeInsets.all(12), 
-                color: colorScheme.surface, 
-                child: Column(children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-                    children: [
-                      Text(loc.totalItems, style: TextStyle(color: colorScheme.onSurface)), 
-                      Text('${cartItems.length}', style: TextStyle(color: colorScheme.onSurface))
-                    ]
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-                    children: [
-                      Text(loc.subtotal, style: TextStyle(color: colorScheme.onSurface)), 
-                      Text('Rs ${subtotal.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.onSurface))
-                    ]
-                  ),
-                  if (previousBalance > 0) 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-                      children: [
-                        Text(loc.prevBalance, style: TextStyle(color: colorScheme.error, fontSize: 12)), 
-                        Text('Rs ${previousBalance.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.error, fontSize: 12))
-                      ]
                     ),
-                  Divider(color: colorScheme.outlineVariant),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-                    children: [
-                      Text(loc.grandTotal, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface)), 
-                      Text(
-                        'Rs ${grandTotal.toStringAsFixed(0)}', 
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.primary)
-                      )
-                    ]
                   ),
-                  const SizedBox(height: 5),
-                  SizedBox(
-                    width: double.infinity, 
-                    height: 45, 
-                    child: ElevatedButton(
-                      onPressed: cartItems.isEmpty ? null : _showCheckoutDialog, 
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                      ), 
-                      child: Text(
-                        loc.checkoutButton, 
-                        style: TextStyle(
-                          fontSize: 16, 
-                          fontWeight: FontWeight.bold, 
-                          color: colorScheme.onPrimary
+                  
+                  // Recent Sales
+                  const Divider(thickness: 1, height: 1),
+                  Container(
+                    height: 180, 
+                    color: colorScheme.surface,
+                    child: Column(children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), 
+                        color: colorScheme.surfaceVariant.withOpacity(0.5), 
+                        width: double.infinity, 
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(loc.recentSales, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant))
+                      ),
+                      Expanded(
+                        child: ListView.separated(
+                          itemCount: recentSales.length, 
+                          separatorBuilder: (c, i) => const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final sale = recentSales[index];
+                            return ListTile(
+                              dense: true, 
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                              leading: CircleAvatar(
+                                radius: 12, 
+                                backgroundColor: colorScheme.primaryContainer, 
+                                child: Text('${index+1}', style: TextStyle(fontSize: 10, color: colorScheme.onPrimaryContainer))
+                              ),
+                              title: Text(sale.customerName ?? loc.walkInCustomer, style: TextStyle(fontSize: 13, color: colorScheme.onSurface)),
+                              subtitle: Row(
+                                children: [
+                                  Text(sale.billNumber, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    sale.status == 'CANCELLED' ? loc.cancelled : loc.completed,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: sale.status == 'CANCELLED' ? colorScheme.error : colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min, 
+                                children: [
+                                  Text(CurrencyUtils.formatRupees(sale.grandTotal.toInt()), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
+                                  if (sale.status != 'CANCELLED')
+                                    IconButton(
+                                      icon: Icon(Icons.cancel, size: 16, color: colorScheme.error), 
+                                      onPressed: () => _cancelSale(sale.id!, sale.billNumber),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                    ),
+                                ]
+                              ),
+                            );
+                          },
                         )
-                      )
-                    )
+                      ),
+                    ]),
                   ),
                 ]),
               ),
-            ])),
-          ),
-        ]),
+
+            // Vertical Divider
+            VerticalDivider(width: 1, thickness: 1, color: colorScheme.outlineVariant),
+
+            // RIGHT PANEL (Customer + Cart + Totals) - 45%
+            Expanded(
+              flex: 9, 
+              child: Container(
+                color: colorScheme.surface, 
+                child: Column(children: [
+                  // Customer Search Panel
+                  Container(
+                    padding: const EdgeInsets.all(12), 
+                    color: colorScheme.surface, 
+                    child: Column(children: [
+                      Row(children: [
+                        Expanded(
+                          child: TextField(
+                            controller: customerSearchController,
+                            decoration: InputDecoration(
+                              labelText: loc.searchCustomerHint, 
+                              prefixIcon: Icon(Icons.person_search, color: colorScheme.onSurfaceVariant), 
+                              suffixIcon: selectedCustomerId != null ? IconButton(
+                                icon: const Icon(Icons.clear), 
+                                onPressed: () => _selectCustomer(null)
+                              ) : null, 
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
+                              isDense: true,
+                              filled: true,
+                              fillColor: colorScheme.surfaceVariant
+                            ), 
+                            onChanged: _filterCustomers, 
+                            onTap: () { 
+                              if(selectedCustomerId == null) {
+                                setState(() {
+                                  if (customerSearchController.text.isEmpty) filteredCustomers = customers;
+                                  showCustomerList = true;
+                                });
+                              }
+                            }
+                          )
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 48, 
+                          child: ElevatedButton.icon(
+                            onPressed: _showAddCustomerDialog, 
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 16), 
+                              backgroundColor: colorScheme.primary, 
+                              foregroundColor: colorScheme.onPrimary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
+                            ), 
+                            icon: const Icon(Icons.person_add),
+                            label: const Text("Add"),
+                          )
+                        ),
+                      ]),
+                      if (showCustomerList)
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 300),
+                          margin: const EdgeInsets.only(top: 5), 
+                          decoration: BoxDecoration(
+                            color: colorScheme.surface, 
+                            border: Border.all(color: colorScheme.outline), 
+                            borderRadius: BorderRadius.circular(8), 
+                            boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.1), blurRadius: 4)]
+                          ), 
+                          child: filteredCustomers.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text(loc.noCustomersFound, style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                              )
+                            : ListView.separated(
+                                shrinkWrap: true,
+                                itemCount: filteredCustomers.length, 
+                                separatorBuilder: (c, i) => const Divider(height: 1), 
+                                itemBuilder: (context, index) { 
+                                  final c = filteredCustomers[index]; 
+                                  return ListTile(
+                                    dense: true, 
+                                    title: Text(c.nameEnglish, style: const TextStyle(fontWeight: FontWeight.bold)), 
+                                    subtitle: Text(c.contactPrimary ?? ''), 
+                                    trailing: Text('${loc.currBal}: ${c.outstandingBalance}'), 
+                                    onTap: () => _selectCustomer(c),
+                                    hoverColor: colorScheme.primaryContainer.withOpacity(0.1),
+                                  ); 
+                                }
+                              )
+                        ),
+                    ]),
+                  ),
+                  Divider(height: 1, color: colorScheme.outlineVariant),
+                  
+                  // Cart List
+                  Expanded(
+                    child: cartItems.isEmpty 
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.shopping_cart, size: 64, color: colorScheme.outline.withOpacity(0.5)),
+                              const SizedBox(height: 16),
+                              Text(loc.cartEmpty, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 18)),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(0),
+                          itemCount: cartItems.length, 
+                          separatorBuilder: (c, i) => Divider(height: 1, color: colorScheme.outlineVariant),
+                          itemBuilder: (context, index) {
+                            final item = cartItems[index];
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), 
+                              color: index % 2 == 0 ? colorScheme.surface : colorScheme.surfaceVariant.withOpacity(0.3),
+                              child: Row(children: [
+                                // Item Name
+                                Expanded(
+                                  flex: 4, 
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        isRTL && item['name_urdu'] != null ? item['name_urdu'] : item['name_english'], 
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: colorScheme.onSurface), 
+                                        maxLines: 1, 
+                                        overflow: TextOverflow.ellipsis
+                                      ), 
+                                      Text(
+                                        '${loc.stock}: ${item['current_stock']}', 
+                                        style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)
+                                      ),
+                                    ]
+                                  )
+                                ),
+                                
+                                // Price Box
+                                SizedBox(
+                                  width: 80, 
+                                  child: TextField( 
+                                    controller: item['priceCtrl'],
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    decoration: InputDecoration(
+                                      isDense: true, 
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4), 
+                                      border: const OutlineInputBorder(), 
+                                      labelText: loc.price, 
+                                      labelStyle: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)
+                                    ),
+                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
+                                    onChanged: (_) => _updateCartItemFromField(index),
+                                  )
+                                ),
+                                const SizedBox(width: 8),
+                                
+                                // Qty Box
+                                SizedBox(
+                                  width: 60, 
+                                  child: TextField( 
+                                    controller: item['qtyCtrl'],
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.center,
+                                    decoration: InputDecoration(
+                                      isDense: true, 
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4), 
+                                      border: const OutlineInputBorder(), 
+                                      labelText: loc.qty, 
+                                      labelStyle: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)
+                                    ),
+                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
+                                    onChanged: (_) => _updateCartItemFromField(index),
+                                  )
+                                ),
+                                const SizedBox(width: 12),
+                                
+                                // Total
+                                SizedBox(
+                                  width: 80, 
+                                  child: Text(
+                                    (item['total'] as double).toStringAsFixed(0), 
+                                    textAlign: TextAlign.end,
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: colorScheme.onSurface)
+                                  )
+                                ),
+                                
+                                // Delete Button
+                                InkWell(
+                                  onTap: () => _removeCartItem(index), 
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0), 
+                                    child: Icon(Icons.close, color: colorScheme.error, size: 20)
+                                  )
+                                ), 
+                              ]),
+                            );
+                          },
+                        )
+                  ),
+                  
+                  Divider(height: 1, color: colorScheme.outlineVariant),
+
+                  // Totals Section
+                  Container(
+                    padding: const EdgeInsets.all(16), 
+                    color: colorScheme.surface, 
+                    child: Column(children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                        children: [
+                          Text(loc.totalItems, style: TextStyle(color: colorScheme.onSurfaceVariant)), 
+                          Text('${cartItems.length}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))
+                        ]
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                        children: [
+                          Text(loc.subtotal, style: TextStyle(color: colorScheme.onSurfaceVariant)), 
+                          Text('Rs ${subtotal.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))
+                        ]
+                      ),
+                      if (previousBalance > 0) 
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                            children: [
+                              Text(loc.prevBalance, style: TextStyle(color: colorScheme.error, fontSize: 13)), 
+                              Text('Rs ${previousBalance.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.error, fontSize: 13, fontWeight: FontWeight.bold))
+                            ]
+                          ),
+                        ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                        children: [
+                          Text(loc.grandTotal, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface)), 
+                          Text(
+                            'Rs ${grandTotal.toStringAsFixed(0)}', 
+                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.primary)
+                          )
+                        ]
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity, 
+                        height: 50, 
+                        child: ElevatedButton(
+                          onPressed: cartItems.isEmpty ? null : _showCheckoutDialog, 
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
+                          ), 
+                          child: Text(
+                            loc.checkoutButton, 
+                            style: TextStyle(
+                              fontSize: 18, 
+                              fontWeight: FontWeight.bold, 
+                              color: colorScheme.onPrimary
+                            )
+                          )
+                        )
+                      ),
+                    ]),
+                  ),
+                ]),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
