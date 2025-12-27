@@ -28,7 +28,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 6, 
+      version: 9, 
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
@@ -109,6 +109,71 @@ class DatabaseHelper {
           ''');
   
           AppLogger.db('Performed migration to v6 (Added barcode & expense categories)');
+          break;
+
+        case 7:
+          if (!await _columnExists(db, 'sales', 'receipt_number')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN receipt_number TEXT");
+          }
+          if (!await _columnExists(db, 'sales', 'sale_snapshot')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN sale_snapshot TEXT");
+          }
+          if (!await _columnExists(db, 'sales', 'original_sale_id')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN original_sale_id INTEGER");
+          }
+          if (!await _columnExists(db, 'sales', 'printed_count')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN printed_count INTEGER DEFAULT 0");
+          }
+          if (!await _columnExists(db, 'sales', 'language_code')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN language_code TEXT DEFAULT 'ur'");
+          }
+
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS receipts (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              sale_id INTEGER NOT NULL,
+              receipt_type TEXT NOT NULL,
+              generated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE
+            )
+          ''');
+
+          AppLogger.db('Performed migration to v7 (Receipts & Snapshots)');
+          break;
+
+        case 8:
+          if (!await _columnExists(db, 'sales', 'receipt_language')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN receipt_language TEXT DEFAULT 'ur'");
+          }
+          if (!await _columnExists(db, 'sales', 'receipt_printed')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN receipt_printed INTEGER DEFAULT 0");
+          }
+          if (!await _columnExists(db, 'sales', 'receipt_print_count')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN receipt_print_count INTEGER DEFAULT 0");
+          }
+          if (!await _columnExists(db, 'sales', 'receipt_pdf_path')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN receipt_pdf_path TEXT");
+          }
+          if (!await _columnExists(db, 'sales', 'original_sale_id')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN original_sale_id INTEGER");
+          }
+          if (!await _columnExists(db, 'sales', 'edited_at')) {
+            await db.execute("ALTER TABLE sales ADD COLUMN edited_at TEXT");
+          }
+          AppLogger.db('Performed migration to v8 (Receipt & Audit columns)');
+          break;
+
+        case 9:
+          if (!await _columnExists(db, 'sale_items', 'item_name_english')) {
+            await db.execute("ALTER TABLE sale_items ADD COLUMN item_name_english TEXT");
+          }
+          if (!await _columnExists(db, 'sale_items', 'item_name_urdu')) {
+            await db.execute("ALTER TABLE sale_items ADD COLUMN item_name_urdu TEXT");
+          }
+          if (!await _columnExists(db, 'sale_items', 'unit_name')) {
+            await db.execute("ALTER TABLE sale_items ADD COLUMN unit_name TEXT");
+          }
+          AppLogger.db('Performed migration to v9 (Sale Items Snapshot)');
           break;
 
         default:
@@ -228,6 +293,17 @@ class DatabaseHelper {
         cancelled_at TEXT,
         cancelled_by TEXT,
         cancel_reason TEXT,
+        receipt_number TEXT UNIQUE,
+        sale_status TEXT,
+        original_sale_id INTEGER NULL,
+        sale_snapshot TEXT,
+        printed_count INTEGER DEFAULT 0,
+        language_code TEXT DEFAULT 'ur',
+        receipt_language TEXT DEFAULT 'ur',
+        receipt_printed INTEGER DEFAULT 0,
+        receipt_print_count INTEGER DEFAULT 0,
+        receipt_pdf_path TEXT,
+        edited_at TEXT,
         FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
       )
     ''');
@@ -241,6 +317,9 @@ class DatabaseHelper {
         quantity_sold INTEGER NOT NULL,
         unit_price INTEGER NOT NULL,
         total_price INTEGER NOT NULL,
+        item_name_english TEXT,
+        item_name_urdu TEXT,
+        unit_name TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
@@ -298,7 +377,18 @@ class DatabaseHelper {
       )
     ''');
 
-    // 11. Performance Indexes
+    // 11. Receipt Table
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS receipts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sale_id INTEGER NOT NULL,
+        receipt_type TEXT NOT NULL,
+        generated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE
+      )
+    ''');
+
+    // 12. Performance Indexes
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_customer ON sales(customer_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sale_items_sale ON sale_items(sale_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sale_items_product ON sale_items(product_id)');

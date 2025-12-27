@@ -1,3 +1,7 @@
+// WARNING:
+// All inputs are expected in PAISAS unless explicitly stated.
+// Never pass rupees directly to these methods.
+
 class CurrencyUtils {
   // 1. Human writes "10.50" -> Database stores 1050
   static int toPaisas(String amount) {

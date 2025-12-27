@@ -11,6 +11,7 @@ import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/constants/desktop_dimensions.dart';
+import '../../core/utils/currency_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isRefreshing = false;
   
   // Data variables
-  double todaySales = 0.0;
+  int todaySales = 0;
   List<Map<String, dynamic>> todayCustomers = [];
   List<Map<String, dynamic>> lowStockItems = [];
   List<Map<String, dynamic>> recentSales = [];
@@ -68,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
 
       setState(() {
-        todaySales = results[0] as double;
+        todaySales = results[0] as int;
         todayCustomers = results[1] as List<Map<String, dynamic>>;
         lowStockItems = results[2] as List<Map<String, dynamic>>;
         recentSales = results[3] as List<Map<String, dynamic>>;
@@ -102,10 +103,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  double _calculatePendingCredits() {
-    double total = 0.0;
+  int _calculatePendingCredits() {
+    int total = 0;
     for (var customer in todayCustomers) {
-      total += (customer['total_amount'] as num?)?.toDouble() ?? 0.0;
+      total += (customer['total_amount'] as num?)?.toInt() ?? 0;
     }
     return total;
   }
@@ -490,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _buildKPICard(
                 title: localizations.todaySales,
-                value: 'Rs ${todaySales.toStringAsFixed(0)}',
+                value: CurrencyUtils.formatRupees(todaySales),
                 icon: Icons.attach_money,
                 color: colorScheme.primary,
                 trend: '+12%',
@@ -505,7 +506,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _buildKPICard(
                 title: localizations.pendingAmount,
-                value: 'Rs ${_calculatePendingCredits().toStringAsFixed(0)}',
+                value: CurrencyUtils.formatRupees(_calculatePendingCredits()),
                 icon: Icons.credit_card,
                 color: colorScheme.secondary,
                 subtitle: '${todayCustomers.length} ${localizations.customers}',
@@ -743,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final name = customer['name_english']?.toString() ?? 
                              customer['name_urdu']?.toString() ?? 
                              localizations.cashSale;
-                final amount = (customer['total_amount'] as num?)?.toDouble() ?? 0.0;
+                final amount = (customer['total_amount'] as num?)?.toInt() ?? 0;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
@@ -763,7 +764,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Text(
-                        'Rs ${amount.toStringAsFixed(0)}',
+                        CurrencyUtils.formatRupees(amount),
                         style: TextStyle(
                           fontSize: DesktopDimensions.bodySize,
                           fontWeight: FontWeight.bold,
@@ -1257,12 +1258,12 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations, ColorSc
     final type = activity['activity_type']?.toString();
     switch (type) {
       case 'SALE':
-        final amount = (activity['amount'] as num?)?.toDouble() ?? 0.0;
+        final amount = (activity['amount'] as num?)?.toInt() ?? 0;
         final customer = activity['customer_name']?.toString() ?? localizations.cashSale;
-        return '$customer - Rs ${amount.toStringAsFixed(0)}';
+        return '$customer - ${CurrencyUtils.formatRupees(amount)}';
       case 'PAYMENT':
-        final amount = (activity['amount'] as num?)?.toDouble() ?? 0.0;
-        return 'Rs ${amount.toStringAsFixed(0)}';
+        final amount = (activity['amount'] as num?)?.toInt() ?? 0;
+        return CurrencyUtils.formatRupees(amount);
       case 'ALERT':
         final stock = activity['stock_level'];
         final unit = activity['unit_name']?.toString() ?? 'units';

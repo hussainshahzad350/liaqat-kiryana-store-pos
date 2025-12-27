@@ -8,6 +8,7 @@ import 'dart:async';
 import '../../core/repositories/sales_repository.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../core/repositories/customers_repository.dart';
+import '../../core/repositories/receipt_repository.dart';
 import '../../core/utils/currency_utils.dart';
 import '../../models/sale_model.dart';
 import '../../models/product_model.dart';
@@ -27,6 +28,7 @@ class _SalesScreenState extends State<SalesScreen> {
   final SalesRepository _salesRepository = SalesRepository();
   final ItemsRepository _itemsRepository = ItemsRepository();
   final CustomersRepository _customersRepository = CustomersRepository();
+  final ReceiptRepository _receiptRepository = ReceiptRepository();
   
   // --- Data Variables ---
   List<Product> products = [];
@@ -52,12 +54,16 @@ class _SalesScreenState extends State<SalesScreen> {
   Customer? selectedCustomerMap;
 
   // --- Totals ---
-  double subtotal = 0.0;
-  double grandTotal = 0.0;
-  double previousBalance = 0.0;
+  int subtotal = 0;
+  int discount = 0;
+  int grandTotal = 0;
+  int previousBalance = 0;
+  final TextEditingController discountController = TextEditingController();
 
   // --- Settings ---
   bool isSoundOn = true;
+
+  final FocusNode _productSearchFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -69,6 +75,8 @@ class _SalesScreenState extends State<SalesScreen> {
   void dispose() {
     productSearchController.dispose();
     customerSearchController.dispose();
+    discountController.dispose();
+    _productSearchFocusNode.dispose();
     _productSearchDebounce?.cancel();
     _customerSearchDebounce?.cancel();
     for (var item in cartItems) {
@@ -78,13 +86,6 @@ class _SalesScreenState extends State<SalesScreen> {
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _loadRecentSales();
-  }
-
-  // --- WillPopScope for back button warning ---
   Future<bool> _onWillPop() async {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
@@ -92,19 +93,48 @@ class _SalesScreenState extends State<SalesScreen> {
     if (cartItems.isNotEmpty) {
       final bool? shouldExit = await showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(loc.unsavedTitle),
-          content: Text(loc.unsavedMsg),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(loc.cancel),
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            width: 450,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(loc.unsavedTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context, false),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(loc.unsavedMsg, style: const TextStyle(fontSize: 16)),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text(loc.cancel),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text(loc.exit),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(loc.exit, style: TextStyle(color: colorScheme.error)),
-            ),
-          ],
+          ),
         ),
       );
       return shouldExit ?? false;
@@ -221,81 +251,112 @@ class _SalesScreenState extends State<SalesScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(loc.addNewCustomer),
-        content: SingleChildScrollView(
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          width: 600,
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(controller: nameEngCtrl, decoration: InputDecoration(labelText: loc.nameEnglish)),
-              TextField(controller: nameUrduCtrl, decoration: InputDecoration(labelText: loc.nameUrdu)),
-              TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: loc.phoneNum)),
-              TextField(controller: addressCtrl, decoration: InputDecoration(labelText: loc.address)),
-              TextField(controller: creditLimitCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: loc.creditLimit)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(loc.addNewCustomer, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              const Divider(),
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(controller: nameEngCtrl, decoration: InputDecoration(labelText: loc.nameEnglish)),
+                      TextField(controller: nameUrduCtrl, decoration: InputDecoration(labelText: loc.nameUrdu)),
+                      TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: loc.phoneNum)),
+                      TextField(controller: addressCtrl, decoration: InputDecoration(labelText: loc.address)),
+                      TextField(controller: creditLimitCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: loc.creditLimit)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
+                    onPressed: () async {
+                      // Validation 
+                      if (nameEngCtrl.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.nameRequired)));
+                        return;
+                      }
+                      String phoneNumber = phoneCtrl.text.trim();
+                      if (phoneNumber.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.phoneRequired)));
+                        return;
+                      }
+
+                      try {
+                        // Check if phone exists using repository
+                        final existingCustomers = await _customersRepository.searchCustomers(phoneNumber);
+                        final phoneExists = existingCustomers.any((c) => c.contactPrimary == phoneNumber);
+
+                        if (phoneExists) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${loc.phoneExists}: "$phoneNumber"'), 
+                              backgroundColor: colorScheme.error
+                            )
+                          );
+                          return; 
+                        }
+
+                        final newCustomer = Customer(
+                          nameEnglish: nameEngCtrl.text.trim(),
+                          nameUrdu: nameUrduCtrl.text.trim(),
+                          contactPrimary: phoneNumber,
+                          address: addressCtrl.text.trim(),
+                          creditLimit: (int.tryParse(creditLimitCtrl.text) ?? 0) * 100,
+                        );
+
+                        final int id = await _customersRepository.addCustomer(newCustomer);
+                        final Customer savedCustomer = newCustomer.copyWith(id: id);
+
+                        if (mounted) {
+                          _selectCustomer(savedCustomer);
+                          Navigator.of(context).pop();
+                          await _loadCustomers();
+                          
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("${loc.customerAdded}: '${nameEngCtrl.text}'"), 
+                              backgroundColor: colorScheme.primary
+                            )
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error));
+                      }
+                    },
+                    child: Text(loc.saveSelect),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
-            onPressed: () async {
-              // Validation 
-              if (nameEngCtrl.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.nameRequired)));
-                return;
-              }
-              String phoneNumber = phoneCtrl.text.trim();
-              if (phoneNumber.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.phoneRequired)));
-                return;
-              }
-
-              try {
-                // Check if phone exists using repository
-                final existingCustomers = await _customersRepository.searchCustomers(phoneNumber);
-                final phoneExists = existingCustomers.any((c) => c.contactPrimary == phoneNumber);
-
-                if (phoneExists) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${loc.phoneExists}: "$phoneNumber"'), 
-                      backgroundColor: colorScheme.error
-                    )
-                  );
-                  return; 
-                }
-
-                final newCustomer = Customer(
-                  nameEnglish: nameEngCtrl.text.trim(),
-                  nameUrdu: nameUrduCtrl.text.trim(),
-                  contactPrimary: phoneNumber,
-                  address: addressCtrl.text.trim(),
-                  creditLimit: (int.tryParse(creditLimitCtrl.text) ?? 0) * 100,
-                );
-
-                final int id = await _customersRepository.addCustomer(newCustomer);
-                final Customer savedCustomer = newCustomer.copyWith(id: id);
-
-                if (mounted) {
-                  _selectCustomer(savedCustomer);
-                  Navigator.of(context).pop();
-                  await _loadCustomers();
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("${loc.customerAdded}: '${nameEngCtrl.text}'"), 
-                      backgroundColor: colorScheme.primary
-                    )
-                  );
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error));
-              }
-            },
-            child: Text(loc.saveSelect),
-          ),
-        ],
       ),
     );
   }
@@ -351,23 +412,22 @@ class _SalesScreenState extends State<SalesScreen> {
           return;
         }
 
-        double price = (product.salePrice) / 100.0;
+        int price = product.salePrice;
         double qty = quantity;
 
-        String displayPrice = price % 1 == 0 ? price.toInt().toString() : price.toStringAsFixed(2);
-        String displayQty = quantity % 1 == 0 ? quantity.toInt().toString() : quantity.toStringAsFixed(2);
-
-        final pCtrl = TextEditingController(text: displayPrice);
-        final qCtrl = TextEditingController(text: displayQty);
+        final pCtrl = TextEditingController(text: CurrencyUtils.toDecimal(price));
+        final qCtrl = TextEditingController(text: qty % 1 == 0 ? qty.toInt().toString() : qty.toStringAsFixed(2));
 
         cartItems.add({
           'id': product.id,
           'name_urdu': product.nameUrdu,
           'name_english': product.nameEnglish,
+          'unit_name': product.unitType,
+          'item_code': product.itemCode,
           'current_stock': availableStock,
           'unit_price': price,
           'quantity': qty,
-          'total': price * qty,
+          'total': (price * qty).round(),
           'priceCtrl': pCtrl,
           'qtyCtrl': qCtrl,
         });
@@ -385,7 +445,7 @@ class _SalesScreenState extends State<SalesScreen> {
     String priceText = item['priceCtrl'].text;
     String qtyText = item['qtyCtrl'].text;
     
-    double newPrice = priceText.isEmpty ? 0.0 : double.tryParse(priceText) ?? 0.0;
+    int newPrice = CurrencyUtils.toPaisas(priceText);
     double newQty = qtyText.isEmpty ? 0.0 : double.tryParse(qtyText) ?? 0.0;
 
     if (newPrice < 0) {
@@ -396,7 +456,7 @@ class _SalesScreenState extends State<SalesScreen> {
           duration: const Duration(seconds: 2),
         ),
       );
-      item['priceCtrl'].text = item['unit_price'].toStringAsFixed(0);
+      item['priceCtrl'].text = CurrencyUtils.toDecimal(item['unit_price']);
       return;
     }
 
@@ -428,7 +488,7 @@ class _SalesScreenState extends State<SalesScreen> {
     setState(() {
       cartItems[index]['unit_price'] = newPrice;
       cartItems[index]['quantity'] = newQty;
-      cartItems[index]['total'] = newPrice * newQty;
+      cartItems[index]['total'] = (newPrice * newQty).round();
       _calculateTotals();
     });
   }
@@ -452,22 +512,51 @@ class _SalesScreenState extends State<SalesScreen> {
     
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(loc.clearCartTitle),
-        content: Text(loc.clearCartMsg),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(loc.cancel),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          width: 450,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(loc.clearCartTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(loc.clearCartMsg, style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(loc.cancel),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _performClearCart();
+                    },
+                    child: Text(loc.clearAll),
+                  ),
+                ],
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _performClearCart();
-            },
-            child: Text(loc.clearAll, style: TextStyle(color: colorScheme.error)),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -482,14 +571,26 @@ class _SalesScreenState extends State<SalesScreen> {
       selectedCustomerId = null;
       selectedCustomerMap = null;
       customerSearchController.clear();
+      discountController.clear();
       _calculateTotals();
     });
   }
 
   void _calculateTotals() {
-    subtotal = cartItems.fold(0.0, (sum, item) => sum + (item['total'] as double));
-    grandTotal = subtotal;
-    previousBalance = (selectedCustomerMap?.outstandingBalance ?? 0) / 100.0;
+    // 1. Calculate Subtotal
+    subtotal = cartItems.fold(0, (sum, item) => sum + (item['total'] as int));
+    
+    // 2. Parse Discount
+    int discVal = CurrencyUtils.toPaisas(discountController.text);
+    if (discVal > subtotal) discVal = subtotal;
+    discount = discVal;
+
+    // 3. Calculate Grand Total
+    grandTotal = subtotal - discount;
+    if (grandTotal < 0) grandTotal = 0;
+
+    // 4. Previous Balance
+    previousBalance = selectedCustomerMap?.outstandingBalance ?? 0;
   }
 
   // ========================================
@@ -506,9 +607,9 @@ class _SalesScreenState extends State<SalesScreen> {
     }
     
     // 2. Registered Customer Flow - Check Credit Limit
-    double creditLimit = (selectedCustomerMap?.creditLimit ?? 0) / 100.0;
-    double currentBalance = (selectedCustomerMap?.outstandingBalance ?? 0) / 100.0;
-    final double potentialBalance = currentBalance + grandTotal;
+    int creditLimit = selectedCustomerMap?.creditLimit ?? 0;
+    int currentBalance = selectedCustomerMap?.outstandingBalance ?? 0;
+    final int potentialBalance = currentBalance + grandTotal;
 
     if (potentialBalance > creditLimit) {
       _showCreditLimitWarningDialog(
@@ -529,10 +630,10 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   void _showCreditLimitWarningDialog({
-    required double creditLimit,
-    required double currentBalance,
-    required double billTotal,
-    required double potentialBalance,
+    required int creditLimit,
+    required int currentBalance,
+    required int billTotal,
+    required int potentialBalance,
     required Function() onContinueAnyway,
     required Function() onIncreaseLimit,
   }) {
@@ -542,77 +643,104 @@ class _SalesScreenState extends State<SalesScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.warning, color: colorScheme.error),
-            const SizedBox(width: 10),
-            Text(loc.creditLimitExceeded, style: TextStyle(color: colorScheme.error)),
-          ],
-        ),
-        content: SingleChildScrollView(
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          width: 600,
+          padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(loc.creditLimitWarningMsg(creditLimit.toStringAsFixed(0)), style: TextStyle(color: colorScheme.onSurface)),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(8),
+              Row(
+                children: [
+                  Icon(Icons.warning, color: colorScheme.error),
+                  const SizedBox(width: 10),
+                  Text(loc.creditLimitExceeded, style: TextStyle(color: colorScheme.error, fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              const Divider(),
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(loc.creditLimitWarningMsg(CurrencyUtils.formatRupees(creditLimit)), style: TextStyle(color: colorScheme.onSurface, fontSize: 16)),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.errorContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _infoRow('${loc.customerCreditLimit}:', CurrencyUtils.formatRupees(creditLimit), color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.currentBalance}:', CurrencyUtils.formatRupees(currentBalance), color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.billTotal}:', CurrencyUtils.formatRupees(billTotal), color: colorScheme.onErrorContainer),
+                            Divider(color: colorScheme.onErrorContainer.withOpacity(0.5)),
+                            _infoRow('${loc.totalBalance}:', CurrencyUtils.formatRupees(potentialBalance),
+                              isBold: true,
+                              color: colorScheme.error,
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              '${loc.excessAmount}: ${CurrencyUtils.formatRupees(potentialBalance - creditLimit)}',
+                              style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _infoRow('${loc.customerCreditLimit}:', 'Rs ${creditLimit.toStringAsFixed(0)}', color: colorScheme.onErrorContainer),
-                    _infoRow('${loc.currentBalance}:', 'Rs ${currentBalance.toStringAsFixed(0)}', color: colorScheme.onErrorContainer),
-                    _infoRow('${loc.billTotal}:', 'Rs ${billTotal.toStringAsFixed(0)}', color: colorScheme.onErrorContainer),
-                    Divider(color: colorScheme.onErrorContainer.withOpacity(0.5)),
-                    _infoRow('${loc.totalBalance}:', 'Rs ${potentialBalance.toStringAsFixed(0)}',
-                      isBold: true,
-                      color: colorScheme.error,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                  ),
+                  const SizedBox(width: 16),
+                  OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      onIncreaseLimit();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: colorScheme.primary),
+                      foregroundColor: colorScheme.primary,
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      '${loc.excessAmount}: Rs ${(potentialBalance - creditLimit).toStringAsFixed(0)}',
-                      style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold),
+                    child: Text(loc.increaseLimit),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      onContinueAnyway();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.error,
+                      foregroundColor: colorScheme.onError,
                     ),
-                  ],
-                ),
+                    child: Text(loc.continueAnyway),
+                  ),
+                ],
               ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurfaceVariant)),
-          ),
-          OutlinedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onIncreaseLimit();
-            },
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: colorScheme.primary),
-              foregroundColor: colorScheme.primary,
-            ),
-            child: Text(loc.increaseLimit),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onContinueAnyway();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.error,
-              foregroundColor: colorScheme.onError,
-            ),
-            child: Text(loc.continueAnyway),
-          ),
-        ],
       ),
     );
   }
@@ -622,78 +750,101 @@ class _SalesScreenState extends State<SalesScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final limitCtrl = TextEditingController();
 
-    double currentLimit = (selectedCustomerMap?.creditLimit ?? 0).toDouble();
-    currentLimit = currentLimit / 100.0;
-    limitCtrl.text = currentLimit.toStringAsFixed(0);
+    int currentLimit = selectedCustomerMap?.creditLimit ?? 0;
+    limitCtrl.text = CurrencyUtils.toDecimal(currentLimit);
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(loc.increaseCreditLimit),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('${loc.current}: ${currentLimit.toStringAsFixed(0)}'),
-              const SizedBox(height: 10),
-              TextField(
-                controller: limitCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: loc.newCreditLimit,
-                  border: const OutlineInputBorder(),
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            width: 500,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(loc.increaseCreditLimit, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const Divider(),
+                const SizedBox(height: 16),
+                Text('${loc.current}: ${CurrencyUtils.formatRupees(currentLimit)}', style: const TextStyle(fontSize: 16)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: limitCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: loc.newCreditLimit,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(loc.cancel),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        int newLimit = CurrencyUtils.toPaisas(limitCtrl.text);
+                        if (selectedCustomerId == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(loc.invalidLimit)),
+                          );
+                          return;
+                        }
+
+                        try {
+                          await _customersRepository.updateCustomerCreditLimit(
+                            selectedCustomerId!,
+                            newLimit.toDouble() // Repository expects double for some reason? Checking repo... Repo expects double.
+                          );
+
+                          setState(() {
+                            selectedCustomerMap = selectedCustomerMap!.copyWith(
+                              creditLimit: newLimit,
+                            );
+                          });
+
+                          if (mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('${loc.creditLimitUpdated}: ${CurrencyUtils.formatRupees(newLimit)}'),
+                                backgroundColor: colorScheme.primary,
+                              ),
+                            );
+                            onLimitUpdated(); 
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error),
+                            );
+                          }
+                        }
+                      },
+                      child: Text(loc.updateLimit),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(loc.cancel),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                double? newLimit = double.tryParse(limitCtrl.text);
-                if (newLimit == null || selectedCustomerId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(loc.invalidLimit)),
-                  );
-                  return;
-                }
-
-                try {
-                  await _customersRepository.updateCustomerCreditLimit(
-                    selectedCustomerId!,
-                    newLimit * 100
-                  );
-
-                  setState(() {
-                    selectedCustomerMap = selectedCustomerMap!.copyWith(
-                      creditLimit: (newLimit * 100).toInt(),
-                    );
-                  });
-
-                  if (mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${loc.creditLimitUpdated}: Rs ${newLimit.toStringAsFixed(0)}'),
-                        backgroundColor: colorScheme.primary,
-                      ),
-                    );
-                    onLimitUpdated(); 
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error),
-                    );
-                  }
-                }
-              },
-              child: Text(loc.updateLimit),
-            ),
-          ],
         );
       },
     );
@@ -703,8 +854,8 @@ class _SalesScreenState extends State<SalesScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     bool isRegistered = selectedCustomerId != null;
-    double billTotal = grandTotal;
-    double oldBalance = previousBalance;
+    int billTotal = grandTotal;
+    int oldBalance = previousBalance;
 
     final cashCtrl = TextEditingController();
     final bankCtrl = TextEditingController();
@@ -720,11 +871,11 @@ class _SalesScreenState extends State<SalesScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            double cash = double.tryParse(cashCtrl.text) ?? 0.0;
-            double bank = double.tryParse(bankCtrl.text) ?? 0.0;
-            double credit = double.tryParse(creditCtrl.text) ?? 0.0;
-            double totalPayment = cash + bank + credit;
-            double change = 0.0;
+            int cash = CurrencyUtils.toPaisas(cashCtrl.text);
+            int bank = CurrencyUtils.toPaisas(bankCtrl.text);
+            int credit = CurrencyUtils.toPaisas(creditCtrl.text);
+            int totalPayment = cash + bank + credit;
+            int change = 0;
             bool isValid = false;
 
             if (isRegistered) {
@@ -752,13 +903,13 @@ class _SalesScreenState extends State<SalesScreen> {
                 return;
               }
 
-              final creditLimit = selectedCustomerMap!.creditLimit.toDouble();
-              final potentialBalance = oldBalance + credit;
+              final int creditLimit = selectedCustomerMap!.creditLimit;
+              final int potentialBalance = oldBalance + credit;
 
-              if (potentialBalance > creditLimit / 100.0) {
+              if (potentialBalance > creditLimit) {
                 Navigator.pop(context);
                 _showCreditLimitWarningDialog(
-                  creditLimit: creditLimit / 100.0,
+                  creditLimit: creditLimit,
                   currentBalance: oldBalance,
                   billTotal: credit,
                   potentialBalance: potentialBalance,
@@ -772,114 +923,130 @@ class _SalesScreenState extends State<SalesScreen> {
               }
             }
 
-            return AlertDialog(
-              backgroundColor: colorScheme.surface,
+            return Dialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              title: Container(
-                color: colorScheme.primary,
-                padding: const EdgeInsets.all(12),
-                child: Row(
+              child: Container(
+                width: 800,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.shopping_cart, color: colorScheme.onPrimary),
-                    const SizedBox(width: 10),
-                    Text(loc.checkoutButton, style: TextStyle(color: colorScheme.onPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-                  ],
-                )
-              ),
-              titlePadding: EdgeInsets.zero,
-              content: SizedBox(
-                width: 400,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (isRegistered) ...[
-                        Text('${loc.searchCustomerHint}: ${selectedCustomerMap!.nameEnglish}', 
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface)),
-                        const SizedBox(height: 5),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: colorScheme.secondaryContainer, 
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: colorScheme.secondary)
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline, size: 16, color: colorScheme.secondary),
-                              const SizedBox(width: 5),
-                              Text('${loc.prevBalance}: Rs ${oldBalance.toStringAsFixed(0)}', 
-                                style: TextStyle(fontSize: 13, color: colorScheme.onSecondaryContainer)),
-                            ],
-                          ),
+                    Row(
+                      children: [
+                        Icon(Icons.shopping_cart, color: colorScheme.primary),
+                        const SizedBox(width: 10),
+                        Text(loc.checkoutButton, style: TextStyle(color: colorScheme.primary, fontSize: 22, fontWeight: FontWeight.bold)),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
                         ),
-                        const Divider(height: 20),
                       ],
-
-                      _infoRow(loc.billTotal, 'Rs ${billTotal.toStringAsFixed(0)}', isBold: true, size: 18, color: colorScheme.onSurface),
-                      const Divider(),
-                      
-                      const SizedBox(height: 10),
-                      Text(loc.paymentLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: colorScheme.onSurface)),
-                      const SizedBox(height: 10),
-                      
-                      _input(loc.cashInput, cashCtrl, (v) {
-                        setDialogState(() {
-                          if (isRegistered) {
-                            double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
-                            creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
-                          }
-                        });
-                      }),
-
-                      _input(loc.bankInput, bankCtrl, (v) {
-                        setDialogState(() {
-                          if (isRegistered) {
-                            double remaining = billTotal - (double.tryParse(cashCtrl.text) ?? 0.0) - (double.tryParse(bankCtrl.text) ?? 0.0);
-                            creditCtrl.text = remaining > 0 ? remaining.toStringAsFixed(0) : '0';
-                          }
-                        });
-                      }),
-
-                      if (isRegistered)
-                        _input(loc.creditInput, creditCtrl, (v) {
-                          setDialogState(() {});
-                        }),
-
-                      const SizedBox(height: 10),
-                      if (!isRegistered)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(loc.changeDue, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                            Text('Rs ${change.toStringAsFixed(0)}', 
-                              style: TextStyle(
-                                fontSize: 18, 
-                                fontWeight: FontWeight.bold, 
-                                color: change >= 0 ? colorScheme.primary : colorScheme.error
-                              )
-                            ),
+                            if (isRegistered) ...[
+                              Text('${loc.searchCustomerHint}: ${selectedCustomerMap!.nameEnglish}', 
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface)),
+                              const SizedBox(height: 5),
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.secondaryContainer, 
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: colorScheme.secondary)
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.info_outline, size: 16, color: colorScheme.secondary),
+                                    const SizedBox(width: 5),
+                                    Text('${loc.prevBalance}: ${CurrencyUtils.formatRupees(oldBalance)}', 
+                                      style: TextStyle(fontSize: 13, color: colorScheme.onSecondaryContainer)),
+                                  ],
+                                ),
+                              ),
+                              const Divider(height: 20),
+                            ],
+
+                            _infoRow(loc.billTotal, CurrencyUtils.formatRupees(billTotal), isBold: true, size: 18, color: colorScheme.onSurface),
+                            const Divider(),
+                            
+                            const SizedBox(height: 10),
+                            Text(loc.paymentLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: colorScheme.onSurface)),
+                            const SizedBox(height: 10),
+                            
+                            _input(loc.cashInput, cashCtrl, (v) {
+                              setDialogState(() {
+                                if (isRegistered) {
+                                  int remaining = billTotal - CurrencyUtils.toPaisas(cashCtrl.text) - CurrencyUtils.toPaisas(bankCtrl.text);
+                                  creditCtrl.text = remaining > 0 ? CurrencyUtils.toDecimal(remaining) : '0';
+                                }
+                              });
+                            }),
+
+                            _input(loc.bankInput, bankCtrl, (v) {
+                              setDialogState(() {
+                                if (isRegistered) {
+                                  int remaining = billTotal - CurrencyUtils.toPaisas(cashCtrl.text) - CurrencyUtils.toPaisas(bankCtrl.text);
+                                  creditCtrl.text = remaining > 0 ? CurrencyUtils.toDecimal(remaining) : '0';
+                                }
+                              });
+                            }),
+
+                            if (isRegistered)
+                              _input(loc.creditInput, creditCtrl, (v) {
+                                setDialogState(() {});
+                              }),
+
+                            const SizedBox(height: 10),
+                            if (!isRegistered)
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(loc.changeDue, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                                  Text(CurrencyUtils.formatRupees(change), 
+                                    style: TextStyle(
+                                      fontSize: 18, 
+                                      fontWeight: FontWeight.bold, 
+                                      color: change >= 0 ? colorScheme.primary : colorScheme.error
+                                    )
+                                  ),
+                                ],
+                              ),
                           ],
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(loc.cancel),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                          ),
+                          onPressed: isValid ? checkCreditLimitAndProcess : null,
+                          child: Text(loc.savePrint),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(loc.cancel),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                  ),
-                  onPressed: isValid ? checkCreditLimitAndProcess : null,
-                  child: Text(loc.savePrint),
-                ),
-              ],
             );
           }
         );
@@ -948,7 +1115,7 @@ class _SalesScreenState extends State<SalesScreen> {
   // PROCESS SALE - USING REPOSITORY
   // ========================================
   
-  Future<void> _processSale(double cash, double bank, double credit, double change) async {
+  Future<void> _processSale(int cash, int bank, int credit, int change) async {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -974,45 +1141,51 @@ class _SalesScreenState extends State<SalesScreen> {
       barrierDismissible: false,
       builder: (context) => WillPopScope(
         onWillPop: () async => false,
-        child: Center(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  Text(loc.processingSale),
-                ],
-              ),
+        child: Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            width: 300,
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 24),
+                Text(loc.processingSale, style: const TextStyle(fontSize: 16)),
+              ],
             ),
           ),
         ),
       ),
     );
 
+    final String currentLanguage = Localizations.localeOf(context).languageCode;
+
     // Prepare sale data
     final Map<String, dynamic> saleData = {
       'customer_id': selectedCustomerId,
-      'grand_total': (grandTotal * 100).round(),
-      'discount': 0.0,
-      'cash_amount': (cash * 100).round(),
-      'bank_amount': (bank * 100).round(),
-      'credit_amount': (credit * 100).round(),
+      'grand_total_paisas': grandTotal,
+      'discount_paisas': discount,
+      'cash_paisas': cash,
+      'bank_paisas': bank,
+      'credit_paisas': credit,
+      'receipt_language': currentLanguage,
       'items': cartItems.map((item) {
         return {
           'id': item['id'],
+          'name_english': item['name_english'],
+          'name_urdu': item['name_urdu'],
+          'unit_name': item['unit_name'],
           'quantity': item['quantity'],
-          'sale_price': (item['unit_price'] * 100).round(),
-          'total': (item['total'] * 100).round(),
+          'sale_price': item['unit_price'],
+          'total': item['total'],
         };
       }).toList(),
     };
 
     try {
       // Create sale using repository
-      await _salesRepository.createSale(saleData);
+      await _salesRepository.completeSaleWithSnapshot(saleData);
 
       // Dismiss loading indicator
       if (mounted) Navigator.pop(context);
@@ -1044,6 +1217,56 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   // ========================================
+  // RECEIPT & EDIT ACTIONS
+  // ========================================
+
+  Future<void> _handlePrintReceipt(Sale sale) async {
+    if (sale.status == 'CANCELLED') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot print cancelled sale')),
+      );
+      return;
+    }
+
+    try {
+      // 1. Generate Data
+      final receiptData = await _receiptRepository.generateReceiptData(sale);
+      
+      // 2. Track Print
+      await _receiptRepository.trackPrint(sale.id!);
+
+      // 3. Update UI (Print Count)
+      await _loadRecentSales();
+
+      // 4. Actual Printing (Placeholder for 80mm Thermal)
+      await _receiptRepository.printReceipt(receiptData);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Receipt sent to printer (Bill #${sale.billNumber})')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Print Error: $e'), backgroundColor: Theme.of(context).colorScheme.error),
+        );
+      }
+    }
+  }
+
+  void _handleEditSale(Sale sale) {
+    if (sale.status == 'CANCELLED') return;
+
+    // Logic-ready entry point
+    // This would navigate to an edit screen or populate the cart with this sale's items
+    // linked via original_sale_id.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Edit feature coming soon')),
+    );
+  }
+
+  // ========================================
   // CANCEL SALE - USING REPOSITORY
   // ========================================
   
@@ -1055,35 +1278,59 @@ class _SalesScreenState extends State<SalesScreen> {
 
     final bool? confirm = await showDialog(
       context: context,
-      builder: (c) => AlertDialog(
-        title: Text(loc.cancelSaleTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(loc.cancelSaleMessage),
-            const SizedBox(height: 10),
-            TextField(
-              controller: reasonCtrl,
-              decoration: InputDecoration(
-                labelText: loc.cancelReasonLabel,
+      builder: (c) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          width: 500,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(loc.cancelSaleTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(c, false),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Text(loc.cancelSaleMessage, style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonCtrl,
+                decoration: InputDecoration(
+                  labelText: loc.cancelReasonLabel,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(c, false),
+                    child: Text(loc.cancel),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.error,
+                      foregroundColor: colorScheme.onError,
+                    ),
+                    onPressed: () => Navigator.pop(c, true),
+                    child: Text(loc.cancelSale),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: Text(loc.cancel),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.error,
-              foregroundColor: colorScheme.onError,
-            ),
-            onPressed: () => Navigator.pop(c, true),
-            child: Text(loc.cancelSale),
-          ),
-        ],
       ),
     );
 
@@ -1130,9 +1377,37 @@ class _SalesScreenState extends State<SalesScreen> {
     final bool isRTL = Directionality.of(context) == TextDirection.rtl;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
+    return Shortcuts(
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.f9): CheckoutIntent(),
+        SingleActivator(LogicalKeyboardKey.escape): ClearCartIntent(),
+        SingleActivator(LogicalKeyboardKey.keyF, control: true): FocusSearchIntent(),
+        SingleActivator(LogicalKeyboardKey.keyN, control: true): AddCustomerIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          CheckoutIntent: CallbackAction<CheckoutIntent>(onInvoke: (_) {
+            if (cartItems.isNotEmpty) _showCheckoutDialog();
+            return null;
+          }),
+          ClearCartIntent: CallbackAction<ClearCartIntent>(onInvoke: (_) {
+            if (cartItems.isNotEmpty) _clearCart();
+            return null;
+          }),
+          FocusSearchIntent: CallbackAction<FocusSearchIntent>(onInvoke: (_) {
+            _productSearchFocusNode.requestFocus();
+            return null;
+          }),
+          AddCustomerIntent: CallbackAction<AddCustomerIntent>(onInvoke: (_) {
+            _showAddCustomerDialog();
+            return null;
+          }),
+        },
+        child: Focus(
+          autofocus: true,
+          child: WillPopScope(
+            onWillPop: _onWillPop,
+            child: Scaffold(
         appBar: AppBar(
           title: Text(loc.posTitle, style: TextStyle(color: colorScheme.onPrimary)), 
           backgroundColor: colorScheme.primary,
@@ -1152,12 +1427,14 @@ class _SalesScreenState extends State<SalesScreen> {
                 children: [
                   // Item Search
                   Padding(
-                    padding: const EdgeInsets.all(12.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: Column(children: [
                       TextField(
                         controller: productSearchController,
+                        focusNode: _productSearchFocusNode,
                         decoration: InputDecoration(
                           hintText: loc.searchItemHint, 
+                          isDense: true,
                           prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant), 
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
                           filled: true, 
@@ -1179,12 +1456,12 @@ class _SalesScreenState extends State<SalesScreen> {
                       builder: (context, constraints) {
                         final int crossAxisCount = (constraints.maxWidth / 140).floor().clamp(3, 10);
                         return GridView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.all(8),
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: crossAxisCount,
                             childAspectRatio: 1.0,
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 4,
+                            mainAxisSpacing: 4,
                           ),
                           itemCount: filteredProducts.length,
                           itemBuilder: (context, index) {
@@ -1204,7 +1481,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                 child: Stack(
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+                                      padding: const EdgeInsets.all(4),
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
@@ -1282,11 +1559,11 @@ class _SalesScreenState extends State<SalesScreen> {
                   // Recent Sales
                   const Divider(thickness: 1, height: 1),
                   Container(
-                    height: 180, 
+                    height: 250, 
                     color: colorScheme.surface,
                     child: Column(children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), 
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), 
                         color: colorScheme.surfaceVariant.withOpacity(0.5), 
                         width: double.infinity, 
                         alignment: AlignmentDirectional.centerStart,
@@ -1298,40 +1575,74 @@ class _SalesScreenState extends State<SalesScreen> {
                           separatorBuilder: (c, i) => const Divider(height: 1),
                           itemBuilder: (context, index) {
                             final sale = recentSales[index];
+                            final isCancelled = sale.status == 'CANCELLED';
+                            
                             return ListTile(
                               dense: true, 
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                               leading: CircleAvatar(
                                 radius: 12, 
-                                backgroundColor: colorScheme.primaryContainer, 
-                                child: Text('${index+1}', style: TextStyle(fontSize: 10, color: colorScheme.onPrimaryContainer))
+                                backgroundColor: isCancelled ? colorScheme.errorContainer : colorScheme.primaryContainer, 
+                                child: Text(
+                                  '${index+1}', 
+                                  style: TextStyle(fontSize: 10, color: isCancelled ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer)
+                                )
                               ),
-                              title: Text(sale.customerName ?? loc.walkInCustomer, style: TextStyle(fontSize: 13, color: colorScheme.onSurface)),
-                              subtitle: Row(
+                              title: Text(
+                                sale.customerName ?? loc.walkInCustomer, 
+                                style: TextStyle(
+                                  fontSize: 13, 
+                                  color: isCancelled ? colorScheme.onSurface.withOpacity(0.6) : colorScheme.onSurface,
+                                  decoration: isCancelled ? TextDecoration.lineThrough : null,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(sale.billNumber, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    sale.status == 'CANCELLED' ? loc.cancelled : loc.completed,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: sale.status == 'CANCELLED' ? colorScheme.error : colorScheme.primary,
+                                  Text(sale.billNumber, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                  if (isCancelled)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.error,
+                                        borderRadius: BorderRadius.circular(2)
+                                      ),
+                                      child: Text(
+                                        loc.cancelled,
+                                        style: TextStyle(fontSize: 9, color: colorScheme.onError),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min, 
                                 children: [
-                                  Text(CurrencyUtils.formatRupees(sale.grandTotal.toInt()), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
-                                  if (sale.status != 'CANCELLED')
-                                    IconButton(
-                                      icon: Icon(Icons.cancel, size: 16, color: colorScheme.error), 
-                                      onPressed: () => _cancelSale(sale.id!, sale.billNumber),
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                    ),
+                                  Text(
+                                    CurrencyUtils.formatRupees(sale.grandTotalPaisas), 
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)
+                                  ),
+                                  PopupMenuButton<String>(
+                                    icon: Icon(Icons.more_vert, size: 18, color: colorScheme.onSurfaceVariant),
+                                    padding: EdgeInsets.zero,
+                                    onSelected: (value) {
+                                      if (value == 'print') _handlePrintReceipt(sale);
+                                      if (value == 'edit') _handleEditSale(sale);
+                                      if (value == 'cancel') _cancelSale(sale.id!, sale.billNumber);
+                                    },
+                                    itemBuilder: (context) => [
+                                      if (!isCancelled) ...[
+                                        const PopupMenuItem(value: 'print', child: Row(children: [Icon(Icons.print, size: 16), SizedBox(width: 8), Text('Print')])),
+                                        const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text('Edit')])),
+                                        PopupMenuItem(value: 'cancel', child: Row(children: [Icon(Icons.cancel, size: 16, color: colorScheme.error), const SizedBox(width: 8), Text('Cancel', style: TextStyle(color: colorScheme.error))])),
+                                      ] else ...[
+                                        const PopupMenuItem(enabled: false, child: Text('Cancelled')),
+                                      ]
+                                    ],
+                                  )
                                 ]
                               ),
                             );
@@ -1354,7 +1665,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 child: Column(children: [
                   // Customer Search Panel
                   Container(
-                    padding: const EdgeInsets.all(12), 
+                    padding: const EdgeInsets.all(8), 
                     color: colorScheme.surface, 
                     child: Column(children: [
                       Row(children: [
@@ -1363,13 +1674,13 @@ class _SalesScreenState extends State<SalesScreen> {
                             controller: customerSearchController,
                             decoration: InputDecoration(
                               labelText: loc.searchCustomerHint, 
+                              isDense: true,
                               prefixIcon: Icon(Icons.person_search, color: colorScheme.onSurfaceVariant), 
                               suffixIcon: selectedCustomerId != null ? IconButton(
                                 icon: const Icon(Icons.clear), 
                                 onPressed: () => _selectCustomer(null)
                               ) : null, 
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
-                              isDense: true,
                               filled: true,
                               fillColor: colorScheme.surfaceVariant
                             ), 
@@ -1386,7 +1697,7 @@ class _SalesScreenState extends State<SalesScreen> {
                         ),
                         const SizedBox(width: 8),
                         SizedBox(
-                          height: 48, 
+                          height: 40, 
                           child: ElevatedButton.icon(
                             onPressed: _showAddCustomerDialog, 
                             style: ElevatedButton.styleFrom(
@@ -1425,7 +1736,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                     dense: true, 
                                     title: Text(c.nameEnglish, style: const TextStyle(fontWeight: FontWeight.bold)), 
                                     subtitle: Text(c.contactPrimary ?? ''), 
-                                    trailing: Text('${loc.currBal}: ${c.outstandingBalance}'), 
+                                    trailing: Text('${loc.currBal}: ${CurrencyUtils.formatRupees(c.outstandingBalance)}'), 
                                     onTap: () => _selectCustomer(c),
                                     hoverColor: colorScheme.primaryContainer.withOpacity(0.1),
                                   ); 
@@ -1436,6 +1747,25 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                   Divider(height: 1, color: colorScheme.outlineVariant),
                   
+                  // Cart Header
+                  Container(
+                    height: 28,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    color: colorScheme.surfaceVariant.withOpacity(0.5),
+                    child: Row(
+                      children: [
+                        Expanded(flex: 4, child: Text('Item', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colorScheme.onSurfaceVariant))),
+                        SizedBox(width: 70, child: Text(loc.price, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colorScheme.onSurfaceVariant))),
+                        const SizedBox(width: 8),
+                        SizedBox(width: 60, child: Text(loc.qty, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colorScheme.onSurfaceVariant))),
+                        const SizedBox(width: 8),
+                        SizedBox(width: 70, child: Text('Total', textAlign: TextAlign.end, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colorScheme.onSurfaceVariant))),
+                        const SizedBox(width: 32),
+                      ],
+                    ),
+                  ),
+                  Divider(height: 1, color: colorScheme.outlineVariant),
+
                   // Cart List
                   Expanded(
                     child: cartItems.isEmpty 
@@ -1452,48 +1782,39 @@ class _SalesScreenState extends State<SalesScreen> {
                       : ListView.separated(
                           padding: const EdgeInsets.all(0),
                           itemCount: cartItems.length, 
-                          separatorBuilder: (c, i) => Divider(height: 1, color: colorScheme.outlineVariant),
+                          separatorBuilder: (c, i) => const Divider(height: 1, thickness: 0.5),
                           itemBuilder: (context, index) {
                             final item = cartItems[index];
                             return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), 
+                              height: 36,
+                              padding: const EdgeInsets.symmetric(horizontal: 8), 
                               color: index % 2 == 0 ? colorScheme.surface : colorScheme.surfaceVariant.withOpacity(0.3),
                               child: Row(children: [
                                 // Item Name
                                 Expanded(
                                   flex: 4, 
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        isRTL && item['name_urdu'] != null ? item['name_urdu'] : item['name_english'], 
-                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: colorScheme.onSurface), 
-                                        maxLines: 1, 
-                                        overflow: TextOverflow.ellipsis
-                                      ), 
-                                      Text(
-                                        '${loc.stock}: ${item['current_stock']}', 
-                                        style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)
-                                      ),
-                                    ]
+                                  child: Text(
+                                    isRTL && item['name_urdu'] != null ? item['name_urdu'] : item['name_english'], 
+                                    style: TextStyle(fontSize: 13, color: colorScheme.onSurface, fontWeight: FontWeight.w500), 
+                                    maxLines: 1, 
+                                    overflow: TextOverflow.ellipsis
                                   )
                                 ),
                                 
                                 // Price Box
                                 SizedBox(
-                                  width: 80, 
+                                  width: 70, 
                                   child: TextField( 
                                     controller: item['priceCtrl'],
                                     keyboardType: TextInputType.number,
                                     textAlign: TextAlign.center,
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                       isDense: true, 
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4), 
-                                      border: const OutlineInputBorder(), 
-                                      labelText: loc.price, 
-                                      labelStyle: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)
+                                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      border: InputBorder.none,
+                                      hintText: '0',
                                     ),
-                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
+                                    style: TextStyle(fontSize: 13, color: colorScheme.onSurface), 
                                     onChanged: (_) => _updateCartItemFromField(index),
                                   )
                                 ),
@@ -1506,37 +1827,36 @@ class _SalesScreenState extends State<SalesScreen> {
                                     controller: item['qtyCtrl'],
                                     keyboardType: TextInputType.number,
                                     textAlign: TextAlign.center,
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                       isDense: true, 
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4), 
-                                      border: const OutlineInputBorder(), 
-                                      labelText: loc.qty, 
-                                      labelStyle: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)
+                                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                                      border: OutlineInputBorder(), 
                                     ),
                                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface), 
                                     onChanged: (_) => _updateCartItemFromField(index),
                                   )
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 8),
                                 
                                 // Total
                                 SizedBox(
-                                  width: 80, 
+                                  width: 70, 
                                   child: Text(
-                                    (item['total'] as double).toStringAsFixed(0), 
+                                    CurrencyUtils.formatRupees(item['total'] as int).replaceAll('Rs ', ''), 
                                     textAlign: TextAlign.end,
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: colorScheme.onSurface)
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)
                                   )
                                 ),
                                 
                                 // Delete Button
-                                InkWell(
-                                  onTap: () => _removeCartItem(index), 
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0), 
-                                    child: Icon(Icons.close, color: colorScheme.error, size: 20)
-                                  )
+                                SizedBox(
+                                  width: 32,
+                                  child: IconButton(
+                                    icon: Icon(Icons.close, color: colorScheme.error, size: 18),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () => _removeCartItem(index), 
+                                  ),
                                 ), 
                               ]),
                             );
@@ -1548,22 +1868,48 @@ class _SalesScreenState extends State<SalesScreen> {
 
                   // Totals Section
                   Container(
-                    padding: const EdgeInsets.all(16), 
-                    color: colorScheme.surface, 
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          offset: const Offset(0, -2),
+                          blurRadius: 4,
+                        )
+                      ],
+                    ),
                     child: Column(children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                         children: [
-                          Text(loc.totalItems, style: TextStyle(color: colorScheme.onSurfaceVariant)), 
-                          Text('${cartItems.length}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))
+                          Text(loc.subtotal, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14)), 
+                          Text(CurrencyUtils.formatRupees(subtotal), style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 14))
                         ]
                       ),
                       const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                         children: [
-                          Text(loc.subtotal, style: TextStyle(color: colorScheme.onSurfaceVariant)), 
-                          Text('Rs ${subtotal.toStringAsFixed(0)}', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))
+                          Text(loc.discount, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14)), 
+                          SizedBox(
+                            width: 90,
+                            height: 30,
+                            child: TextField(
+                              controller: discountController,
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.end,
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                                border: UnderlineInputBorder(),
+                                hintText: '0',
+                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 14),
+                              onChanged: (_) => setState(() => _calculateTotals()),
+                            ),
+                          ),
                         ]
                       ),
                       if (previousBalance > 0) 
@@ -1572,41 +1918,67 @@ class _SalesScreenState extends State<SalesScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                             children: [
-                              Text(loc.prevBalance, style: TextStyle(color: colorScheme.error, fontSize: 13)), 
-                              Text('Rs ${previousBalance.toStringAsFixed(0)}', style: TextStyle(color: colorScheme.error, fontSize: 13, fontWeight: FontWeight.bold))
+                              Text(loc.prevBalance, style: TextStyle(color: colorScheme.error, fontSize: 14)), 
+                              Text(CurrencyUtils.formatRupees(previousBalance), style: TextStyle(color: colorScheme.error, fontSize: 14, fontWeight: FontWeight.bold))
                             ]
                           ),
                         ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
+                      const Divider(),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                         children: [
-                          Text(loc.grandTotal, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface)), 
+                          Text(loc.grandTotal.toUpperCase(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colorScheme.onSurface)), 
                           Text(
-                            'Rs ${grandTotal.toStringAsFixed(0)}', 
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.primary)
+                            CurrencyUtils.formatRupees(grandTotal), 
+                            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: colorScheme.primary)
                           )
                         ]
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity, 
-                        height: 50, 
+                        height: 48, 
                         child: ElevatedButton(
                           onPressed: cartItems.isEmpty ? null : _showCheckoutDialog, 
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colorScheme.primary,
                             foregroundColor: colorScheme.onPrimary,
-                            elevation: 2,
+                            elevation: 4,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
                           ), 
-                          child: Text(
-                            loc.checkoutButton, 
-                            style: TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold, 
-                              color: colorScheme.onPrimary
-                            )
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.payment, size: 24),
+                              const SizedBox(width: 12),
+                              Text(
+                                loc.checkoutButton.toUpperCase(), 
+                                style: TextStyle(
+                                  fontSize: 20, 
+                                  fontWeight: FontWeight.bold, 
+                                  color: colorScheme.onPrimary,
+                                  letterSpacing: 1.0,
+                                )
+                              ),
+                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.onPrimary.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  "F9",
+                                  style: TextStyle(
+                                    color: colorScheme.onPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
                           )
                         )
                       ),
@@ -1618,6 +1990,25 @@ class _SalesScreenState extends State<SalesScreen> {
           ],
         ),
       ),
+      ),
+      ),
+      ),
     );
   }
+}
+
+class CheckoutIntent extends Intent {
+  const CheckoutIntent();
+}
+
+class ClearCartIntent extends Intent {
+  const ClearCartIntent();
+}
+
+class FocusSearchIntent extends Intent {
+  const FocusSearchIntent();
+}
+
+class AddCustomerIntent extends Intent {
+  const AddCustomerIntent();
 }
