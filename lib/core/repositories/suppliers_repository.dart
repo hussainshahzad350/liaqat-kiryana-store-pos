@@ -112,7 +112,7 @@ class SuppliersRepository {
   // ========================================
 
   /// Update supplier outstanding balance
-  Future<int> updateSupplierBalance(int supplierId, double balance) async {
+  Future<int> updateSupplierBalance(int supplierId, int balance) async {
     final db = await _dbHelper.database;
     return await db.update(
       'suppliers',
@@ -125,7 +125,7 @@ class SuppliersRepository {
   /// Adjust supplier balance (add or subtract)
   Future<int> adjustSupplierBalance(
     int supplierId,
-    double adjustment,
+    int adjustment,
   ) async {
     final db = await _dbHelper.database;
     
@@ -143,7 +143,7 @@ class SuppliersRepository {
         throw Exception('Supplier not found');
       }
 
-      final currentBalance = (result.first['outstanding_balance'] as num).toDouble();
+      final currentBalance = (result.first['outstanding_balance'] as num).toInt();
       final newBalance = currentBalance + adjustment;
 
       // Update balance
@@ -167,12 +167,12 @@ class SuppliersRepository {
   }
 
   /// Get total outstanding balance to suppliers
-  Future<double> getTotalOutstandingBalance() async {
+  Future<int> getTotalOutstandingBalance() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
       'SELECT SUM(outstanding_balance) as total FROM suppliers'
     );
-    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+    return (result.first['total'] as num?)?.toInt() ?? 0;
   }
 
   // ========================================
@@ -245,7 +245,7 @@ class SuppliersRepository {
     // For now, returning basic info
     return {
       'supplier': supplier,
-      'totalBalance': (supplier['outstanding_balance'] as num).toDouble(),
+      'totalBalance': (supplier['outstanding_balance'] as num).toInt(),
       'isActive': (supplier['is_active'] as int) == 1,
       // Add more metrics as needed:
       // 'totalPurchases': ...,

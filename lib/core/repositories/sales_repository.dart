@@ -544,11 +544,21 @@ class SalesRepository {
 
     return {
       'todaySales': (results[0] as List).isNotEmpty 
-          ? ((results[0] as List).first['total'] as num?)?.toDouble() ?? 0.0  
-          : 0.0,
+          ? ((results[0] as List).first['total'] as num?)?.toInt() ?? 0
+          : 0,
       'todayCustomers': (results[1] as List).map((e) => e as Map<String, dynamic>).toList(),
-      'lowStockItems': (results[2] as List).map((e) => e as Map<String, dynamic>).toList(),
-      'recentSales': (results[3] as List).map((e) => e as Map<String, dynamic>).toList(),
+      'lowStockItems': (results[2] as List).map((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        // Ensure sale_price is int (paisas)
+        map['sale_price'] = (map['sale_price'] as num?)?.toInt() ?? 0;
+        return map;
+      }).toList(),
+      'recentSales': (results[3] as List).map((e) {
+        final map = Map<String, dynamic>.from(e as Map);
+        // Ensure grand_total is int (paisas)
+        map['grand_total'] = (map['grand_total'] as num?)?.toInt() ?? 0;
+        return map;
+      }).toList(),
     };
   }
 
@@ -608,8 +618,17 @@ class SalesRepository {
         LIMIT 3
       ''');
       
-      activities.addAll(sales);
-      activities.addAll(payments);
+      // Sanitize amounts to ensure they are int (paisas)
+      activities.addAll(sales.map((e) {
+        final map = Map<String, dynamic>.from(e);
+        map['amount'] = (map['amount'] as num?)?.toInt() ?? 0;
+        return map;
+      }));
+      activities.addAll(payments.map((e) {
+        final map = Map<String, dynamic>.from(e);
+        map['amount'] = (map['amount'] as num?)?.toInt() ?? 0;
+        return map;
+      }));
       activities.addAll(lowStockAlerts);
       
       activities.sort((a, b) {

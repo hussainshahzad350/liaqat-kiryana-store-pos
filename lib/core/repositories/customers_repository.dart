@@ -130,7 +130,7 @@ class CustomersRepository {
 
   /// Update customer credit limit
   /// Moved from DatabaseHelper.updateCustomerCreditLimit()
-  Future<int> updateCustomerCreditLimit(int customerId, double newLimit) async {
+  Future<int> updateCustomerCreditLimit(int customerId, int newLimit) async {
     final db = await _dbHelper.database;
     return await db.update(
       'customers',
@@ -141,7 +141,7 @@ class CustomersRepository {
   }
 
   /// Update customer outstanding balance
-  Future<int> updateCustomerBalance(int customerId, double balance) async {
+  Future<int> updateCustomerBalance(int customerId, int balance) async {
     final db = await _dbHelper.database;
     return await db.update(
       'customers',
@@ -154,7 +154,7 @@ class CustomersRepository {
   /// Check if customer can make purchase (credit limit check)
   Future<Map<String, dynamic>> checkCreditLimit(
     int customerId,
-    double purchaseAmount,
+    int purchaseAmount,
   ) async {
     final customer = await getCustomerById(customerId);
     
@@ -165,8 +165,8 @@ class CustomersRepository {
       };
     }
 
-    final creditLimit = customer.creditLimit.toDouble();
-    final currentBalance = customer.outstandingBalance.toDouble();
+    final creditLimit = customer.creditLimit;
+    final currentBalance = customer.outstandingBalance;
     final potentialBalance = currentBalance + purchaseAmount;
 
     if (potentialBalance > creditLimit) {
@@ -198,7 +198,7 @@ class CustomersRepository {
   /// Moved from DatabaseHelper.addPayment()
   Future<int> addPayment(
     int customerId,
-    double amount,
+    int amount,
     String date,
     String notes,
   ) async {
@@ -226,9 +226,9 @@ class CustomersRepository {
       final res = await txn.rawQuery(
         'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
       );
-      double currentBalance = res.isNotEmpty 
-          ? (res.first['balance_after'] as num).toDouble() 
-          : 0.0;
+      int currentBalance = res.isNotEmpty 
+          ? (res.first['balance_after'] as num).toInt() 
+          : 0;
 
       await txn.insert('cash_ledger', {
         'transaction_date': dateStr,
@@ -402,12 +402,12 @@ class CustomersRepository {
     });
 
     // 7. Calculate Running Balance
-    double runningBal = 0.0;
+    int runningBal = 0;
     List<Map<String, dynamic>> finalLedger = [];
 
     for (var row in timeline) {
-      double dr = (row['dr'] as num).toDouble();
-      double cr = (row['cr'] as num).toDouble();
+      int dr = (row['dr'] as num).toInt();
+      int cr = (row['cr'] as num).toInt();
       runningBal += (dr - cr);
 
       Map<String, dynamic> newRow = Map.from(row);
@@ -456,12 +456,12 @@ class CustomersRepository {
     return {
       'customer': customer,
       'saleCount': sales['sale_count'] ?? 0,
-      'totalSales': (sales['total_sales'] as num?)?.toDouble() ?? 0.0,
-      'totalCredit': (sales['total_credit'] as num?)?.toDouble() ?? 0.0,
+      'totalSales': (sales['total_sales'] as num?)?.toInt() ?? 0,
+      'totalCredit': (sales['total_credit'] as num?)?.toInt() ?? 0,
       'paymentCount': payments['payment_count'] ?? 0,
-      'totalPayments': (payments['total_payments'] as num?)?.toDouble() ?? 0.0,
-      'currentBalance': customer.outstandingBalance.toDouble(),
-      'creditLimit': customer.creditLimit.toDouble(),
+      'totalPayments': (payments['total_payments'] as num?)?.toInt() ?? 0,
+      'currentBalance': customer.outstandingBalance,
+      'creditLimit': customer.creditLimit,
     };
   }
 
@@ -549,12 +549,12 @@ class CustomersRepository {
   }
 
   /// Get total outstanding balance across all customers
-  Future<double> getTotalOutstandingBalance() async {
+  Future<int> getTotalOutstandingBalance() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
       'SELECT SUM(outstanding_balance) as total FROM customers'
     );
-    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+    return (result.first['total'] as num?)?.toInt() ?? 0;
   }
 
   /// Get customer statistics for the dashboard
@@ -563,11 +563,11 @@ class CustomersRepository {
 
     final activeRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 1');
     final countActive = (activeRes.first['count'] as int?) ?? 0;
-    final balActive = (activeRes.first['total'] as num? ?? 0.0).toDouble();
+    final balActive = (activeRes.first['total'] as num? ?? 0).toInt();
 
     final archRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 0');
     final countArchived = (archRes.first['count'] as int?) ?? 0;
-    final balArchived = (archRes.first['total'] as num? ?? 0.0).toDouble();
+    final balArchived = (archRes.first['total'] as num? ?? 0).toInt();
 
     return {
       'countTotal': countActive + countArchived,

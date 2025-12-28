@@ -13,24 +13,24 @@ class CashRepository {
 
   /// Get current cash balance
   /// Moved from DatabaseHelper.getCurrentCashBalance()
-  Future<double> getCurrentCashBalance() async {
+  Future<int> getCurrentCashBalance() async {
     try {
       final db = await _dbHelper.database;
       final res = await db.rawQuery(
         'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
       );
       if (res.isNotEmpty) {
-        return (res.first['balance_after'] as num).toDouble();
+        return (res.first['balance_after'] as num).toInt();
       }
-      return 0.0;
+      return 0;
     } catch (e) {
       AppLogger.error('Error getting cash balance: $e', tag: 'CashRepo');
-      return 0.0;
+      return 0;
     }
   }
 
   /// Get cash balance at specific date
-  Future<double> getCashBalanceAtDate(String date) async {
+  Future<int> getCashBalanceAtDate(String date) async {
     try {
       final db = await _dbHelper.database;
       final res = await db.rawQuery('''
@@ -42,12 +42,12 @@ class CashRepository {
       ''', [date]);
       
       if (res.isNotEmpty) {
-        return (res.first['balance_after'] as num).toDouble();
+        return (res.first['balance_after'] as num).toInt();
       }
-      return 0.0;
+      return 0;
     } catch (e) {
       AppLogger.error('Error getting cash balance at date: $e', tag: 'CashRepo');
-      return 0.0;
+      return 0;
     }
   }
 
@@ -60,7 +60,7 @@ class CashRepository {
   Future<void> addCashEntry(
     String description,
     String type,
-    double amount,
+    int amount,
     String remarks,
   ) async {
     final db = await _dbHelper.database;
@@ -73,12 +73,12 @@ class CashRepository {
       final res = await txn.rawQuery(
         'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
       );
-      double currentBalance = 0.0;
+      int currentBalance = 0;
       if (res.isNotEmpty) {
-        currentBalance = (res.first['balance_after'] as num).toDouble();
+        currentBalance = (res.first['balance_after'] as num).toInt();
       }
 
-      double newBalance = currentBalance;
+      int newBalance = currentBalance;
       if (type == 'IN') {
         newBalance += amount;
       } else if (type == 'OUT') {
@@ -100,7 +100,7 @@ class CashRepository {
   /// Add cash IN entry (shorthand)
   Future<void> addCashIn(
     String description,
-    double amount, {
+    int amount, {
     String? remarks,
   }) async {
     await addCashEntry(description, 'IN', amount, remarks ?? '');
@@ -109,7 +109,7 @@ class CashRepository {
   /// Add cash OUT entry (shorthand)
   Future<void> addCashOut(
     String description,
-    double amount, {
+    int amount, {
     String? remarks,
   }) async {
     await addCashEntry(description, 'OUT', amount, remarks ?? '');
@@ -240,9 +240,9 @@ class CashRepository {
 
       if (result.isEmpty) {
         return {
-          'totalIn': 0.0,
-          'totalOut': 0.0,
-          'netChange': 0.0,
+          'totalIn': 0,
+          'totalOut': 0,
+          'netChange': 0,
           'inCount': 0,
           'outCount': 0,
           'totalTransactions': 0,
@@ -250,8 +250,8 @@ class CashRepository {
       }
 
       final data = result.first;
-      final totalIn = (data['total_in'] as num?)?.toDouble() ?? 0.0;
-      final totalOut = (data['total_out'] as num?)?.toDouble() ?? 0.0;
+      final totalIn = (data['total_in'] as num?)?.toInt() ?? 0;
+      final totalOut = (data['total_out'] as num?)?.toInt() ?? 0;
 
       return {
         'totalIn': totalIn,
@@ -266,9 +266,9 @@ class CashRepository {
     } catch (e) {
       AppLogger.error('Error getting cash summary: $e', tag: 'CashRepo');
       return {
-        'totalIn': 0.0,
-        'totalOut': 0.0,
-        'netChange': 0.0,
+        'totalIn': 0,
+        'totalOut': 0,
+        'netChange': 0,
         'inCount': 0,
         'outCount': 0,
         'totalTransactions': 0,
@@ -394,14 +394,14 @@ class CashRepository {
         limit: 1,
       );
 
-      double runningBalance = prevEntries.isNotEmpty
-          ? (prevEntries.first['balance_after'] as num).toDouble()
-          : 0.0;
+      int runningBalance = prevEntries.isNotEmpty
+          ? (prevEntries.first['balance_after'] as num).toInt()
+          : 0;
 
       // Recalculate balances for all subsequent entries
       for (var entry in entries) {
         final type = entry['type'] as String;
-        final amount = (entry['amount'] as num).toDouble();
+        final amount = (entry['amount'] as num).toInt();
 
         if (type == 'IN') {
           runningBalance += amount;
@@ -424,7 +424,7 @@ class CashRepository {
   // ========================================
 
   /// Get total cash IN for period
-  Future<double> getTotalCashIn(String startDate, String endDate) async {
+  Future<int> getTotalCashIn(String startDate, String endDate) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery('''
       SELECT SUM(amount) as total 
@@ -432,11 +432,11 @@ class CashRepository {
       WHERE type = 'IN' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
     
-    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+    return (result.first['total'] as num?)?.toInt() ?? 0;
   }
 
   /// Get total cash OUT for period
-  Future<double> getTotalCashOut(String startDate, String endDate) async {
+  Future<int> getTotalCashOut(String startDate, String endDate) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery('''
       SELECT SUM(amount) as total 
@@ -444,7 +444,7 @@ class CashRepository {
       WHERE type = 'OUT' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
     
-    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+    return (result.first['total'] as num?)?.toInt() ?? 0;
   }
 
   /// Get transaction count
@@ -469,7 +469,7 @@ class CashRepository {
   }
 
   /// Get average transaction amount
-  Future<double> getAverageTransactionAmount({
+  Future<int> getAverageTransactionAmount({
     String? type,
     String? startDate,
     String? endDate,
@@ -491,6 +491,6 @@ class CashRepository {
     }
     
     final result = await db.rawQuery(query, args);
-    return (result.first['avg'] as num?)?.toDouble() ?? 0.0;
+    return (result.first['avg'] as num?)?.toInt() ?? 0;
   }
 }

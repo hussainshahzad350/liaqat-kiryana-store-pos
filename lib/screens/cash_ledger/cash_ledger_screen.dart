@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:liaqat_store/core/repositories/cash_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cash_ledger_model.dart';
+import '../../core/utils/currency_utils.dart';
+import '../../domain/entities/money.dart';
 
 class CashLedgerScreen extends StatefulWidget {
   const CashLedgerScreen({super.key});
@@ -17,7 +19,7 @@ class CashLedgerScreen extends StatefulWidget {
 class _CashLedgerScreenState extends State<CashLedgerScreen> {
   final CashRepository _cashRepository = CashRepository();
   List<CashLedger> ledgerEntries = [];
-  double currentBalance = 0.0;
+  Money currentBalance = const Money(0);
   
   // Pagination
   bool _isFirstLoadRunning = true;
@@ -65,7 +67,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
     
     if (!mounted) return;
     setState(() {
-      currentBalance = bal;
+      currentBalance = Money(bal);
       ledgerEntries = data;
       _isFirstLoadRunning = false;
       if (data.length < _limit) _hasNextPage = false;
@@ -214,12 +216,12 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  final amount = double.tryParse(amountCtrl.text) ?? 0.0;
-                  if (amount > 0 && descCtrl.text.isNotEmpty) {
+                  final amount = CurrencyUtils.parse(amountCtrl.text);
+                  if (amount > const Money(0) && descCtrl.text.isNotEmpty) {
                     await _cashRepository.addCashEntry(
                       descCtrl.text, 
                       selectedType, 
-                      amount, 
+                      amount.paisas, 
                       remarksCtrl.text
                     );
                     if (context.mounted) {
@@ -265,7 +267,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                 children: [
                   Text(loc.currentBalance, style: TextStyle(fontSize: 16, color: colorScheme.onPrimaryContainer)),
                   Text(
-                    'Rs ${currentBalance.toStringAsFixed(0)}',
+                    CurrencyUtils.format(currentBalance),
                     style: TextStyle(
                       fontSize: 24, 
                       fontWeight: FontWeight.bold,
@@ -312,7 +314,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  '${isIncome ? '+' : '-'} ${entry.amount}',
+                                  '${isIncome ? '+' : '-'} ${CurrencyUtils.formatRupees((entry.amount as num).toInt())}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: isIncome ? colorScheme.primary : colorScheme.error,
@@ -320,7 +322,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'Bal: ${entry.balanceAfter?.toStringAsFixed(0)}',
+                                  'Bal: ${CurrencyUtils.formatRupees((entry.balanceAfter as num?)?.toInt() ?? 0)}',
                                   style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
                                 ),
                               ],

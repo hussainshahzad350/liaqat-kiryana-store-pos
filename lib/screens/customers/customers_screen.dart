@@ -123,7 +123,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
     }
   }
 
-  Future<void> _addPayment(double amount, String notes) async {
+  /// Add payment to the currently selected customer
+  /// and refresh the ledger data.
+  ///
+  /// [amount] is the amount to be added
+  /// [notes] is a brief description of the payment
+  ///
+  /// After adding the payment, the ledger data is refreshed
+  /// and the ledger overlay is shown with the updated data.
+  Future<void> _addPayment(int amount, String notes) async {
     if (_selectedCustomerForLedger == null) return;
     final date = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
     await _customersRepository.addPayment(_selectedCustomerForLedger!.id!, amount, date, notes);
@@ -765,10 +773,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
             onPressed: () {
                if(amountCtrl.text.isNotEmpty) {
-                 double amount = double.tryParse(amountCtrl.text) ?? 0.0;
+                 final double amount = double.tryParse(amountCtrl.text) ?? 0.0;
                  if(amount > 0) {
                    Navigator.pop(context);
-                   _addPayment(amount, notesCtrl.text);
+                   final int amountPaisas = (amount * 100).round();
+                   _addPayment(amountPaisas, notesCtrl.text);
                  }
                }
             },

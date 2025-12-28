@@ -105,7 +105,7 @@ class ItemsRepository {
   }
 
   /// Adjust stock (add or subtract)
-  Future<int> adjustStock(int id, double adjustment, {String? reason}) async {
+  Future<int> adjustStock(int id, num adjustment, {String? reason}) async {
     final db = await _dbHelper.database;
     
     return await db.transaction((txn) async {
@@ -142,8 +142,8 @@ class ItemsRepository {
   /// Update average cost price (FIFO/Weighted Average)
   Future<int> updateAverageCostPrice(
     int id,
-    double newPurchasePrice,
-    double purchaseQuantity,
+    int newPurchasePrice,
+    num purchaseQuantity,
   ) async {
     final db = await _dbHelper.database;
     
@@ -161,7 +161,7 @@ class ItemsRepository {
       }
 
       final currentStock = (result.first['current_stock'] as num).toDouble();
-      final currentAvgPrice = (result.first['avg_cost_price'] as num).toDouble();
+      final currentAvgPrice = (result.first['avg_cost_price'] as num).toInt();
 
       // Calculate new weighted average
       final totalValue = (currentStock * currentAvgPrice) + 
@@ -274,25 +274,25 @@ class ItemsRepository {
 
   /// Get total stock value (cost price based)
   /// Moved from DatabaseHelper.getTotalStockValue()
-  Future<double> getTotalStockValue() async {
+  Future<int> getTotalStockValue() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
       'SELECT SUM(current_stock * avg_cost_price) as total FROM products'
     );
-    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+    return (result.first['total'] as num?)?.round() ?? 0;
   }
 
   /// Get total stock value (sale price based)
-  Future<double> getTotalStockValueAtSalePrice() async {
+  Future<int> getTotalStockValueAtSalePrice() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
       'SELECT SUM(current_stock * sale_price) as total FROM products'
     );
-    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+    return (result.first['total'] as num?)?.round() ?? 0;
   }
 
   /// Get potential profit (difference between sale and cost)
-  Future<double> getPotentialProfit() async {
+  Future<int> getPotentialProfit() async {
     final saleValue = await getTotalStockValueAtSalePrice();
     final costValue = await getTotalStockValue();
     return saleValue - costValue;
@@ -345,8 +345,8 @@ class ItemsRepository {
     return {
       'saleCount': data['sale_count'] ?? 0,
       'totalSold': (data['total_sold'] as num?)?.toDouble() ?? 0.0,
-      'totalRevenue': (data['total_revenue'] as num?)?.toDouble() ?? 0.0,
-      'avgPrice': (data['avg_price'] as num?)?.toDouble() ?? 0.0,
+      'totalRevenue': (data['total_revenue'] as num?)?.toInt() ?? 0,
+      'avgPrice': (data['avg_price'] as num?)?.round() ?? 0,
     };
   }
 
@@ -464,8 +464,8 @@ class ItemsRepository {
   /// Update product prices
   Future<int> updateProductPrices(
     int id, {
-    double? costPrice,
-    double? salePrice,
+    int? costPrice,
+    int? salePrice,
   }) async {
     final db = await _dbHelper.database;
     
@@ -487,7 +487,7 @@ class ItemsRepository {
   Future<int> bulkUpdateSalePrices({
     int? categoryId,
     double? percentageIncrease,
-    double? fixedIncrease,
+    int? fixedIncrease,
   }) async {
     if (percentageIncrease == null && fixedIncrease == null) {
       throw Exception('Must provide either percentage or fixed increase');
@@ -497,7 +497,7 @@ class ItemsRepository {
     
     String updateClause;
     if (percentageIncrease != null) {
-      updateClause = 'sale_price = sale_price * (1 + ?)';
+      updateClause = 'sale_price = CAST(ROUND(sale_price * (1 + ?)) AS INTEGER)';
     } else {
       updateClause = 'sale_price = sale_price + ?';
     }

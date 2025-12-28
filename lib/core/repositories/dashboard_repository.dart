@@ -73,16 +73,24 @@ class DashboardRepository {
 
       return {
         'todaySales': (results[0] as List).isNotEmpty 
-            ? ((results[0] as List).first['total'] as num?)?.toDouble() ?? 0.0  
-            : 0.0,
+            ? ((results[0] as List).first['total'] as num?)?.toInt() ?? 0
+            : 0,
         'todayCustomers': (results[1] as List).map((e) => e as Map<String, dynamic>).toList(),
-        'lowStockItems': (results[2] as List).map((e) => e as Map<String, dynamic>).toList(),
-        'recentSales': (results[3] as List).map((e) => e as Map<String, dynamic>).toList(),
+        'lowStockItems': (results[2] as List).map((e) {
+          final map = Map<String, dynamic>.from(e as Map);
+          map['sale_price'] = (map['sale_price'] as num?)?.toInt() ?? 0;
+          return map;
+        }).toList(),
+        'recentSales': (results[3] as List).map((e) {
+          final map = Map<String, dynamic>.from(e as Map);
+          map['grand_total'] = (map['grand_total'] as num?)?.toInt() ?? 0;
+          return map;
+        }).toList(),
       };
     } catch (e) {
       AppLogger.error('Error getting dashboard data: $e', tag: 'DashboardRepo');
       return {
-        'todaySales': 0.0,
+        'todaySales': 0,
         'todayCustomers': [],
         'lowStockItems': [],
         'recentSales': [],
@@ -95,7 +103,7 @@ class DashboardRepository {
   // ========================================
 
   /// Get today's sales total
-  Future<double> getTodaySales() async {
+  Future<int> getTodaySales() async {
     try {
       final db = await _dbHelper.database;
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -104,15 +112,15 @@ class DashboardRepository {
         'SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ? AND status = ?',
         [today, 'COMPLETED']
       );
-      return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+      return (result.first['total'] as num?)?.toInt() ?? 0;
     } catch (e) {
       AppLogger.error("Error fetching today's sales: $e", tag: 'DashboardRepo');
-      return 0.0;
+      return 0;
     }
   }
 
   /// Get this week's sales
-  Future<double> getWeeklySales() async {
+  Future<int> getWeeklySales() async {
     try {
       final db = await _dbHelper.database;
       final now = DateTime.now();
@@ -126,15 +134,15 @@ class DashboardRepository {
         WHERE sale_date BETWEEN ? AND ? AND status = ?
       ''', [startDate, endDate, 'COMPLETED']);
       
-      return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+      return (result.first['total'] as num?)?.toInt() ?? 0;
     } catch (e) {
       AppLogger.error("Error fetching weekly sales: $e", tag: 'DashboardRepo');
-      return 0.0;
+      return 0;
     }
   }
 
   /// Get this month's sales
-  Future<double> getMonthlySales() async {
+  Future<int> getMonthlySales() async {
     try {
       final db = await _dbHelper.database;
       final now = DateTime.now();
@@ -149,15 +157,15 @@ class DashboardRepository {
         WHERE sale_date BETWEEN ? AND ? AND status = ?
       ''', [startDate, endDate, 'COMPLETED']);
       
-      return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+      return (result.first['total'] as num?)?.toInt() ?? 0;
     } catch (e) {
       AppLogger.error("Error fetching monthly sales: $e", tag: 'DashboardRepo');
-      return 0.0;
+      return 0;
     }
   }
 
   /// Get sales for date range
-  Future<double> getSalesByDateRange(String startDate, String endDate) async {
+  Future<int> getSalesByDateRange(String startDate, String endDate) async {
     try {
       final db = await _dbHelper.database;
       
@@ -167,10 +175,10 @@ class DashboardRepository {
         WHERE sale_date BETWEEN ? AND ? AND status = ?
       ''', [startDate, endDate, 'COMPLETED']);
       
-      return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+      return (result.first['total'] as num?)?.toInt() ?? 0;
     } catch (e) {
       AppLogger.error("Error fetching sales by date range: $e", tag: 'DashboardRepo');
-      return 0.0;
+      return 0;
     }
   }
 
@@ -376,8 +384,16 @@ class DashboardRepository {
         LIMIT 3
       ''');
       
-      activities.addAll(sales);
-      activities.addAll(payments);
+      activities.addAll(sales.map((e) {
+        final map = Map<String, dynamic>.from(e);
+        map['amount'] = (map['amount'] as num?)?.toInt() ?? 0;
+        return map;
+      }));
+      activities.addAll(payments.map((e) {
+        final map = Map<String, dynamic>.from(e);
+        map['amount'] = (map['amount'] as num?)?.toInt() ?? 0;
+        return map;
+      }));
       activities.addAll(lowStockAlerts);
       
       activities.sort((a, b) {
@@ -553,21 +569,21 @@ class DashboardRepository {
       final results = await batch.commit();
       
       return {
-        'todaySales': (results[0] as List).first['total'] ?? 0.0,
-        'totalCustomers': (results[1] as List).first['count'] ?? 0,
-        'totalProducts': (results[2] as List).first['count'] ?? 0,
-        'stockValue': (results[3] as List).first['total'] ?? 0.0,
-        'outstandingBalance': (results[4] as List).first['total'] ?? 0.0,
-        'lowStockCount': (results[5] as List).first['count'] ?? 0,
+        'todaySales': ((results[0] as List).first['total'] as num?)?.toInt() ?? 0,
+        'totalCustomers': ((results[1] as List).first['count'] as num?)?.toInt() ?? 0,
+        'totalProducts': ((results[2] as List).first['count'] as num?)?.toInt() ?? 0,
+        'stockValue': ((results[3] as List).first['total'] as num?)?.toInt() ?? 0,
+        'outstandingBalance': ((results[4] as List).first['total'] as num?)?.toInt() ?? 0,
+        'lowStockCount': ((results[5] as List).first['count'] as num?)?.toInt() ?? 0,
       };
     } catch (e) {
       AppLogger.error("Error fetching business metrics: $e", tag: 'DashboardRepo');
       return {
-        'todaySales': 0.0,
+        'todaySales': 0,
         'totalCustomers': 0,
         'totalProducts': 0,
-        'stockValue': 0.0,
-        'outstandingBalance': 0.0,
+        'stockValue': 0,
+        'outstandingBalance': 0,
         'lowStockCount': 0,
       };
     }
@@ -610,8 +626,8 @@ class DashboardRepository {
         };
       }
       
-      final revenue = (result.first['revenue'] as num?)?.toDouble() ?? 0.0;
-      final cost = (result.first['cost'] as num?)?.toDouble() ?? 0.0;
+      final revenue = (result.first['revenue'] as num?)?.toInt() ?? 0;
+      final cost = (result.first['cost'] as num?)?.toInt() ?? 0;
       final profit = revenue - cost;
       final margin = revenue > 0 ? (profit / revenue) * 100 : 0.0;
       
@@ -624,9 +640,9 @@ class DashboardRepository {
     } catch (e) {
       AppLogger.error("Error fetching profit estimate: $e", tag: 'DashboardRepo');
       return {
-        'revenue': 0.0,
-        'cost': 0.0,
-        'profit': 0.0,
+        'revenue': 0,
+        'cost': 0,
+        'profit': 0,
         'margin': 0.0,
       };
     }

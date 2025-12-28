@@ -6,6 +6,8 @@ import '../../l10n/app_localizations.dart';
 import '../../core/repositories/suppliers_repository.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../models/product_model.dart';
+import '../../core/utils/currency_utils.dart';
+import '../../domain/entities/money.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -249,7 +251,7 @@ class _StockViewTabState extends State<StockViewTab> {
 
   // Stats State
   int _totalItemsCount = 0;
-  double _totalStockValue = 0.0;
+  Money _totalStockValue = const Money(0);
 
   late ScrollController _scrollController;
   final TextEditingController _searchController = TextEditingController();
@@ -285,7 +287,7 @@ class _StockViewTabState extends State<StockViewTab> {
     if (mounted) {
       setState(() {
         _totalItemsCount = count;
-        _totalStockValue = value;
+        _totalStockValue = Money(value);
       });
     }
   }
@@ -454,7 +456,7 @@ class _StockViewTabState extends State<StockViewTab> {
                       children: [
                         Text(loc.stockValue, style: TextStyle(color: colorScheme.onSecondaryContainer, fontSize: 12)),
                         Text(
-                          'Rs ${_totalStockValue.toStringAsFixed(0)}',
+                          CurrencyUtils.format(_totalStockValue),
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSecondaryContainer),
                         )
                       ],
@@ -482,8 +484,8 @@ class _StockViewTabState extends State<StockViewTab> {
                                 final item = items[index];
                                 final stock = (item.currentStock as num?)?.toDouble() ?? 0.0;
                                 const minStock = 10.0; // Default alert threshold
-                                final price = ((item.salePrice as num?)?.toDouble() ?? 0.0) / 100.0;
-                                final totalVal = stock * price; // Or cost price if available
+                                final int pricePaisas = item.salePrice;
+                                final int totalValPaisas = (stock * pricePaisas).round();
 
                                 // Highlight low stock
                                 final isLow = stock <= minStock;
@@ -503,7 +505,7 @@ class _StockViewTabState extends State<StockViewTab> {
                                       style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                                     ),
                                     subtitle: Text(
-                                      '${loc.price}: $price | ${loc.total}: ${totalVal.toStringAsFixed(0)}',
+                                      '${loc.price}: ${CurrencyUtils.formatRupees(pricePaisas)} | ${loc.total}: ${CurrencyUtils.formatRupees(totalValPaisas)}',
                                       style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                                     ),
                                     trailing: Container(

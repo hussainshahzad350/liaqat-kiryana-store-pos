@@ -13,6 +13,7 @@ import '../../core/utils/currency_utils.dart';
 import '../../models/sale_model.dart';
 import '../../models/product_model.dart';
 import '../../models/customer_model.dart';
+import '../../domain/entities/money.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -54,10 +55,10 @@ class _SalesScreenState extends State<SalesScreen> {
   Customer? selectedCustomerMap;
 
   // --- Totals ---
-  int subtotal = 0;
-  int discount = 0;
-  int grandTotal = 0;
-  int previousBalance = 0;
+  Money subtotal = const Money(0);
+  Money discount = const Money(0);
+  Money grandTotal = const Money(0);
+  Money previousBalance = const Money(0);
   final TextEditingController discountController = TextEditingController();
 
   // --- Settings ---
@@ -328,7 +329,7 @@ class _SalesScreenState extends State<SalesScreen> {
                           nameUrdu: nameUrduCtrl.text.trim(),
                           contactPrimary: phoneNumber,
                           address: addressCtrl.text.trim(),
-                          creditLimit: (int.tryParse(creditLimitCtrl.text) ?? 0) * 100,
+                          creditLimit: CurrencyUtils.toPaisas(creditLimitCtrl.text),
                         );
 
                         final int id = await _customersRepository.addCustomer(newCustomer);
@@ -395,7 +396,7 @@ class _SalesScreenState extends State<SalesScreen> {
         }
 
         cartItems[index]['quantity'] = newQty;
-        cartItems[index]['total'] = newQty * cartItems[index]['unit_price'];
+        cartItems[index]['total'] = (newQty * cartItems[index]['unit_price']).round();
         
         String displayQty = newQty % 1 == 0 ? newQty.toInt().toString() : newQty.toString();
         cartItems[index]['qtyCtrl'].text = displayQty;
@@ -578,19 +579,20 @@ class _SalesScreenState extends State<SalesScreen> {
 
   void _calculateTotals() {
     // 1. Calculate Subtotal
-    subtotal = cartItems.fold(0, (sum, item) => sum + (item['total'] as int));
+    int subtotalPaisas = cartItems.fold(0, (sum, item) => sum + (item['total'] as int));
+    subtotal = Money(subtotalPaisas);
     
     // 2. Parse Discount
-    int discVal = CurrencyUtils.toPaisas(discountController.text);
+    Money discVal = CurrencyUtils.parse(discountController.text);
     if (discVal > subtotal) discVal = subtotal;
     discount = discVal;
 
     // 3. Calculate Grand Total
     grandTotal = subtotal - discount;
-    if (grandTotal < 0) grandTotal = 0;
+    if (grandTotal < const Money(0)) grandTotal = const Money(0);
 
     // 4. Previous Balance
-    previousBalance = selectedCustomerMap?.outstandingBalance ?? 0;
+    previousBalance = Money(selectedCustomerMap?.outstandingBalance ?? 0);
   }
 
   // ========================================
@@ -607,9 +609,9 @@ class _SalesScreenState extends State<SalesScreen> {
     }
     
     // 2. Registered Customer Flow - Check Credit Limit
-    int creditLimit = selectedCustomerMap?.creditLimit ?? 0;
-    int currentBalance = selectedCustomerMap?.outstandingBalance ?? 0;
-    final int potentialBalance = currentBalance + grandTotal;
+    Money creditLimit = Money(selectedCustomerMap?.creditLimit ?? 0);
+    Money currentBalance = Money(selectedCustomerMap?.outstandingBalance ?? 0);
+    final Money potentialBalance = currentBalance + grandTotal;
 
     if (potentialBalance > creditLimit) {
       _showCreditLimitWarningDialog(
@@ -630,10 +632,10 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   void _showCreditLimitWarningDialog({
-    required int creditLimit,
-    required int currentBalance,
-    required int billTotal,
-    required int potentialBalance,
+    required Money creditLimit,
+    required Money currentBalance,
+    required Money billTotal,
+    required Money potentialBalance,
     required Function() onContinueAnyway,
     required Function() onIncreaseLimit,
   }) {
@@ -673,7 +675,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(loc.creditLimitWarningMsg(CurrencyUtils.formatRupees(creditLimit)), style: TextStyle(color: colorScheme.onSurface, fontSize: 16)),
+                      Text(loc.creditLimitWarningMsg(CurrencyUtils.format(creditLimit)), style: TextStyle(color: colorScheme.onSurface, fontSize: 16)),
                       const SizedBox(height: 20),
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -684,17 +686,17 @@ class _SalesScreenState extends State<SalesScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _infoRow('${loc.customerCreditLimit}:', CurrencyUtils.formatRupees(creditLimit), color: colorScheme.onErrorContainer),
-                            _infoRow('${loc.currentBalance}:', CurrencyUtils.formatRupees(currentBalance), color: colorScheme.onErrorContainer),
-                            _infoRow('${loc.billTotal}:', CurrencyUtils.formatRupees(billTotal), color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.customerCreditLimit}:', CurrencyUtils.format(creditLimit), color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.currentBalance}:', CurrencyUtils.format(currentBalance), color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.billTotal}:', CurrencyUtils.format(billTotal), color: colorScheme.onErrorContainer),
                             Divider(color: colorScheme.onErrorContainer.withOpacity(0.5)),
-                            _infoRow('${loc.totalBalance}:', CurrencyUtils.formatRupees(potentialBalance),
+                            _infoRow('${loc.totalBalance}:', CurrencyUtils.format(potentialBalance),
                               isBold: true,
                               color: colorScheme.error,
                             ),
                             const SizedBox(height: 5),
                             Text(
-                              '${loc.excessAmount}: ${CurrencyUtils.formatRupees(potentialBalance - creditLimit)}',
+                              '${loc.excessAmount}: ${CurrencyUtils.format(potentialBalance - creditLimit)}',
                               style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -811,7 +813,7 @@ class _SalesScreenState extends State<SalesScreen> {
                         try {
                           await _customersRepository.updateCustomerCreditLimit(
                             selectedCustomerId!,
-                            newLimit.toDouble() // Repository expects double for some reason? Checking repo... Repo expects double.
+                            newLimit
                           );
 
                           setState(() {
@@ -854,8 +856,8 @@ class _SalesScreenState extends State<SalesScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     bool isRegistered = selectedCustomerId != null;
-    int billTotal = grandTotal;
-    int oldBalance = previousBalance;
+    Money billTotal = grandTotal;
+    Money oldBalance = previousBalance;
 
     final cashCtrl = TextEditingController();
     final bankCtrl = TextEditingController();
@@ -871,15 +873,15 @@ class _SalesScreenState extends State<SalesScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            int cash = CurrencyUtils.toPaisas(cashCtrl.text);
-            int bank = CurrencyUtils.toPaisas(bankCtrl.text);
-            int credit = CurrencyUtils.toPaisas(creditCtrl.text);
-            int totalPayment = cash + bank + credit;
-            int change = 0;
+            Money cash = CurrencyUtils.parse(cashCtrl.text);
+            Money bank = CurrencyUtils.parse(bankCtrl.text);
+            Money credit = CurrencyUtils.parse(creditCtrl.text);
+            Money totalPayment = cash + bank + credit;
+            Money change = const Money(0);
             bool isValid = false;
 
             if (isRegistered) {
-              isValid = (totalPayment - billTotal).abs() < 0.01;
+              isValid = totalPayment == billTotal;
             } else {
               isValid = (cash + bank) >= billTotal;
               if (isValid) {
@@ -889,7 +891,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
             void processSaleAction() {
               Navigator.pop(context);
-              _processSale(cash, bank, credit, change);
+              _processSale(cash.paisas, bank.paisas, credit.paisas, change.paisas);
             }
 
             void checkCreditLimitAndProcess() {
@@ -898,13 +900,13 @@ class _SalesScreenState extends State<SalesScreen> {
                 return;
               }
 
-              if (!isRegistered || credit <= 0) {
+              if (!isRegistered || credit <= const Money(0)) {
                 processSaleAction();
                 return;
               }
 
-              final int creditLimit = selectedCustomerMap!.creditLimit;
-              final int potentialBalance = oldBalance + credit;
+              final Money creditLimit = Money(selectedCustomerMap!.creditLimit);
+              final Money potentialBalance = oldBalance + credit;
 
               if (potentialBalance > creditLimit) {
                 Navigator.pop(context);
@@ -968,7 +970,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                   children: [
                                     Icon(Icons.info_outline, size: 16, color: colorScheme.secondary),
                                     const SizedBox(width: 5),
-                                    Text('${loc.prevBalance}: ${CurrencyUtils.formatRupees(oldBalance)}', 
+                                    Text('${loc.prevBalance}: ${CurrencyUtils.format(oldBalance)}', 
                                       style: TextStyle(fontSize: 13, color: colorScheme.onSecondaryContainer)),
                                   ],
                                 ),
@@ -976,7 +978,7 @@ class _SalesScreenState extends State<SalesScreen> {
                               const Divider(height: 20),
                             ],
 
-                            _infoRow(loc.billTotal, CurrencyUtils.formatRupees(billTotal), isBold: true, size: 18, color: colorScheme.onSurface),
+                            _infoRow(loc.billTotal, CurrencyUtils.format(billTotal), isBold: true, size: 18, color: colorScheme.onSurface),
                             const Divider(),
                             
                             const SizedBox(height: 10),
@@ -986,8 +988,8 @@ class _SalesScreenState extends State<SalesScreen> {
                             _input(loc.cashInput, cashCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  int remaining = billTotal - CurrencyUtils.toPaisas(cashCtrl.text) - CurrencyUtils.toPaisas(bankCtrl.text);
-                                  creditCtrl.text = remaining > 0 ? CurrencyUtils.toDecimal(remaining) : '0';
+                                  Money remaining = billTotal - CurrencyUtils.parse(cashCtrl.text) - CurrencyUtils.parse(bankCtrl.text);
+                                  creditCtrl.text = remaining > const Money(0) ? CurrencyUtils.toDecimalMoney(remaining) : '0';
                                 }
                               });
                             }),
@@ -995,8 +997,8 @@ class _SalesScreenState extends State<SalesScreen> {
                             _input(loc.bankInput, bankCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  int remaining = billTotal - CurrencyUtils.toPaisas(cashCtrl.text) - CurrencyUtils.toPaisas(bankCtrl.text);
-                                  creditCtrl.text = remaining > 0 ? CurrencyUtils.toDecimal(remaining) : '0';
+                                  Money remaining = billTotal - CurrencyUtils.parse(cashCtrl.text) - CurrencyUtils.parse(bankCtrl.text);
+                                  creditCtrl.text = remaining > const Money(0) ? CurrencyUtils.toDecimalMoney(remaining) : '0';
                                 }
                               });
                             }),
@@ -1012,11 +1014,11 @@ class _SalesScreenState extends State<SalesScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(loc.changeDue, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                                  Text(CurrencyUtils.formatRupees(change), 
+                                  Text(CurrencyUtils.format(change), 
                                     style: TextStyle(
                                       fontSize: 18, 
                                       fontWeight: FontWeight.bold, 
-                                      color: change >= 0 ? colorScheme.primary : colorScheme.error
+                                      color: change >= const Money(0) ? colorScheme.primary : colorScheme.error
                                     )
                                   ),
                                 ],
@@ -1164,8 +1166,8 @@ class _SalesScreenState extends State<SalesScreen> {
     // Prepare sale data
     final Map<String, dynamic> saleData = {
       'customer_id': selectedCustomerId,
-      'grand_total_paisas': grandTotal,
-      'discount_paisas': discount,
+      'grand_total_paisas': grandTotal.paisas,
+      'discount_paisas': discount.paisas,
       'cash_paisas': cash,
       'bank_paisas': bank,
       'credit_paisas': credit,
@@ -1885,7 +1887,7 @@ class _SalesScreenState extends State<SalesScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                         children: [
                           Text(loc.subtotal, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14)), 
-                          Text(CurrencyUtils.formatRupees(subtotal), style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 14))
+                          Text(CurrencyUtils.format(subtotal), style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 14))
                         ]
                       ),
                       const SizedBox(height: 4),
@@ -1912,14 +1914,14 @@ class _SalesScreenState extends State<SalesScreen> {
                           ),
                         ]
                       ),
-                      if (previousBalance > 0) 
+                      if (previousBalance > const Money(0)) 
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                             children: [
                               Text(loc.prevBalance, style: TextStyle(color: colorScheme.error, fontSize: 14)), 
-                              Text(CurrencyUtils.formatRupees(previousBalance), style: TextStyle(color: colorScheme.error, fontSize: 14, fontWeight: FontWeight.bold))
+                              Text(CurrencyUtils.format(previousBalance), style: TextStyle(color: colorScheme.error, fontSize: 14, fontWeight: FontWeight.bold))
                             ]
                           ),
                         ),
@@ -1931,7 +1933,7 @@ class _SalesScreenState extends State<SalesScreen> {
                         children: [
                           Text(loc.grandTotal.toUpperCase(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colorScheme.onSurface)), 
                           Text(
-                            CurrencyUtils.formatRupees(grandTotal), 
+                            CurrencyUtils.format(grandTotal), 
                             style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: colorScheme.primary)
                           )
                         ]
