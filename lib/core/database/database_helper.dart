@@ -392,6 +392,16 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_customer ON sales(customer_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sale_items_sale ON sale_items(sale_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sale_items_product ON sale_items(product_id)');
+
+    // Performance Indexes (Ensure these exist on fresh install)
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_products_name_english ON products(name_english)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_products_item_code ON products(item_code)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_name_english ON customers(name_english)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_contact ON customers(contact_primary)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_date ON sales(sale_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_status ON sales(status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_date_status ON sales(sale_date, status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_products_stock ON products(current_stock)');
   }
 
   Future<void> _insertSampleData(Database db) async {
@@ -423,8 +433,8 @@ class DatabaseHelper {
         'unit_type': 'KG',
         'min_stock_alert': 50,
         'current_stock': 45,
-        'avg_cost_price': 170,
-        'sale_price': 180,
+         'avg_cost_price': 17000, // 170 rupees in paisas
+         'sale_price': 18000,    // 180 rupees in paisas
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
       // Customers
@@ -432,8 +442,8 @@ class DatabaseHelper {
         'name_english': 'Ali Khan',
         'name_urdu': 'علی خان',
         'contact_primary': '0300-1111111',
-        'credit_limit': 10000,
-        'outstanding_balance': 2500,
+        'credit_limit': 1000000,
+        'outstanding_balance': 250000,
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
       // Suppliers

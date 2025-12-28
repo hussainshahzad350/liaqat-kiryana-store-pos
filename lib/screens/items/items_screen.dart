@@ -4,7 +4,9 @@
 import 'package:flutter/material.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../l10n/app_localizations.dart';
+
 import '../../models/product_model.dart';
+import '../../core/utils/currency_utils.dart';
 
 class ItemsScreen extends StatefulWidget {
   const ItemsScreen({super.key});
@@ -310,7 +312,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
   }
 
-  void _showAddItemDialog() {
+  Future<void> _showAddItemDialog() async {
     final localizations = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final nameEngController = TextEditingController();
@@ -318,7 +320,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     final priceController = TextEditingController();
     final stockController = TextEditingController();
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
@@ -364,7 +366,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 final newProduct = Product(
                   nameEnglish: nameEngController.text,
                   nameUrdu: nameUrduController.text,
-                  salePrice: int.tryParse(priceController.text) ?? 0,
+                  salePrice: CurrencyUtils.toPaisas(priceController.text),
                   currentStock: int.tryParse(stockController.text) ?? 0,
                 );
                 
@@ -384,9 +386,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
         ],
       ),
     );
+    
+    nameEngController.dispose();
+    nameUrduController.dispose();
+    priceController.dispose();
+    stockController.dispose();
   }
 
-  void _showEditItemDialog(Product item) {
+  Future<void> _showEditItemDialog(Product item) async {
     final localizations = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final nameEngController = TextEditingController(text: item.nameEnglish);
@@ -394,7 +401,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     final priceController = TextEditingController(text: item.salePrice.toString());
     final stockController = TextEditingController(text: item.currentStock.toString());
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
@@ -439,7 +446,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
               final updatedProduct = item.copyWith(
                 nameEnglish: nameEngController.text,
                 nameUrdu: nameUrduController.text,
-                salePrice: int.tryParse(priceController.text) ?? 0,
+                salePrice: CurrencyUtils.toPaisas(priceController.text),
                 currentStock: int.tryParse(stockController.text) ?? 0,
               );
               
@@ -456,6 +463,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
         ],
       ),
     );
+
+    nameEngController.dispose();
+    nameUrduController.dispose();
+    priceController.dispose();
+    stockController.dispose();
   }
 
   Future<void> _deleteItem(int id) async {

@@ -334,10 +334,16 @@ class SalesRepository {
       }
     }
 
-    if (txn != null) {
-      await performCancel(txn);
-    } else {
-      await db.transaction((t) => performCancel(t));
+    try {
+      if (txn != null) {
+        await performCancel(txn);
+      } else {
+        await db.transaction((t) => performCancel(t));
+      }
+      AppLogger.info('Sale cancelled successfully (ID: $saleId)', tag: 'SalesRepo');
+    } catch (e) {
+      AppLogger.error('Error cancelling sale: $e', tag: 'SalesRepo');
+      throw Exception('Cancellation Failed: ${e.toString()}');
     }
   }
 

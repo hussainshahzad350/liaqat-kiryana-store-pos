@@ -399,7 +399,7 @@ class _StockViewTabState extends State<StockViewTab> {
           )
         ],
       ),
-    );
+    ).then((_) => stockCtrl.dispose());
   }
 
   @override
@@ -456,7 +456,7 @@ class _StockViewTabState extends State<StockViewTab> {
                       children: [
                         Text(loc.stockValue, style: TextStyle(color: colorScheme.onSecondaryContainer, fontSize: 12)),
                         Text(
-                          CurrencyUtils.format(_totalStockValue),
+                          CurrencyUtils.formatNoDecimal(_totalStockValue),
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSecondaryContainer),
                         )
                       ],
@@ -505,7 +505,7 @@ class _StockViewTabState extends State<StockViewTab> {
                                       style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                                     ),
                                     subtitle: Text(
-                                      '${loc.price}: ${CurrencyUtils.formatRupees(pricePaisas)} | ${loc.total}: ${CurrencyUtils.formatRupees(totalValPaisas)}',
+                                      '${loc.price}: ${CurrencyUtils.formatNoDecimal(Money(pricePaisas))} | ${loc.total}: ${CurrencyUtils.formatNoDecimal(Money(totalValPaisas))}',
                                       style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
                                     ),
                                     trailing: Container(

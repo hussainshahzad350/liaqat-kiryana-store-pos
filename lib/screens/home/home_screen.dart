@@ -12,6 +12,7 @@ import '../../core/repositories/items_repository.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/utils/currency_utils.dart';
+import '../../domain/entities/money.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -112,9 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
     @override
-
     Widget build(BuildContext context) {
-
       final localizations = AppLocalizations.of(context)!;
       final colorScheme = Theme.of(context).colorScheme;
 
@@ -139,78 +138,76 @@ class _HomeScreenState extends State<HomeScreen> {
             autofocus: true,
             child: Column(
               children: [
-                // 1. Header
-                const HeaderBar(),
-                // 2. Action Bar
-                _buildActionBar(localizations, colorScheme),
+                // 1. Header (Fixed 64px)
+                const SizedBox(
+                  height: 64,
+                  child: HeaderBar(),
+                ),
                 
-          // 3. Dashboard Content - Desktop Layout
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                double sidebarWidth;
-                if (constraints.maxWidth < 1400) {
-                  sidebarWidth = 420.0; // Minimum fixed width
-                } else {
-                  sidebarWidth = 450.0; // Default fixed width
-                }
-                
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-
-                    // LEFT PANEL: Main Dashboard (KPIs + Details)
-                    Expanded(
-                      child: Scrollbar(
-                        controller: _leftPanelScroller,
-                        thumbVisibility: true,
-                        child: SingleChildScrollView(
-                          controller: _leftPanelScroller,
-                          padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
-                          child: Column(
-                            children: [
-                              // KPI Grid (Fixed at top)
-                              _buildKPIGrid(localizations, colorScheme),
-                              const SizedBox(height: DesktopDimensions.spacingMedium),
-                              // Details Grid - Customers + Low Stock (Fixed)
-                              _buildDetailsGrid(localizations, colorScheme),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(width: DesktopDimensions.spacingMedium),
-                    
-                    // RIGHT PANEL: Sidebar (Recent Activities)
-                    SizedBox(
-                      width: sidebarWidth.clamp(DesktopDimensions.sidebarMinWidth, DesktopDimensions.sidebarMaxWidth),
-                      child: Container(
-                        color: colorScheme.surface.withOpacity(0.5),
-                        padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                // 2. Main Content (Left + Right)
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // LEFT PANEL: Main Dashboard (Action Bar + KPIs + Details)
+                      Expanded(
                         child: Column(
                           children: [
+                            // Action Bar
+                            _buildActionBar(localizations, colorScheme),
+                            
+                            // Scrollable Content
                             Expanded(
-                              child: _buildRecentSalesCard(localizations, colorScheme),
+                              child: Scrollbar(
+                                controller: _leftPanelScroller,
+                                thumbVisibility: true,
+                                child: SingleChildScrollView(
+                                  controller: _leftPanelScroller,
+                                  padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                                  child: Column(
+                                    children: [
+                                      // KPI Grid
+                                      _buildKPIGrid(localizations, colorScheme),
+                                      const SizedBox(height: DesktopDimensions.spacingMedium),
+                                      // Details Grid
+                                      _buildDetailsGrid(localizations, colorScheme),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
 
-          
+                      // Vertical Divider
+                      VerticalDivider(width: 1, thickness: 1, color: colorScheme.outlineVariant),
 
-          // 4. Footer Bar
+                      // RIGHT PANEL: Sidebar (Fixed 400px)
+                      SizedBox(
+                        width: 480,
+                        child: Container(
+                          color: colorScheme.surface.withOpacity(0.5),
+                          padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: _buildRecentSalesCard(localizations, colorScheme),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-          _buildFooterBar(localizations, colorScheme),
-
-        ],
-
+                // 3. Footer Bar (Fixed 32px)
+                SizedBox(
+                  height: 32,
+                  child: _buildFooterBar(localizations, colorScheme),
+                ),
+              ],
             ),
           ),
         ),
@@ -470,7 +467,7 @@ class _HomeScreenState extends State<HomeScreen> {
         label: Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: color,
           ),
@@ -491,7 +488,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _buildKPICard(
                 title: localizations.todaySales,
-                value: CurrencyUtils.formatRupees(todaySales),
+                value: CurrencyUtils.formatNoDecimal(Money(todaySales)),
                 icon: Icons.attach_money,
                 color: colorScheme.primary,
                 trend: '+12%',
@@ -506,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _buildKPICard(
                 title: localizations.pendingAmount,
-                value: CurrencyUtils.formatRupees(_calculatePendingCredits()),
+                value: CurrencyUtils.formatNoDecimal(Money(_calculatePendingCredits())),
                 icon: Icons.credit_card,
                 color: colorScheme.secondary,
                 subtitle: '${todayCustomers.length} ${localizations.customers}',
@@ -764,7 +761,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Text(
-                        CurrencyUtils.formatRupees(amount),
+                        CurrencyUtils.formatNoDecimal(Money(amount)),
                         style: TextStyle(
                           fontSize: DesktopDimensions.bodySize,
                           fontWeight: FontWeight.bold,
@@ -941,7 +938,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     localizations.name,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -952,18 +949,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     localizations.activityType,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
                 SizedBox(
-                  width: 70,
+                  width: 85,
                   child: Text(
                     localizations.time,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -971,11 +968,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 SizedBox(
-                  width: 90,
+                  width: 100,
                   child: Text(
                     localizations.status,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -1064,7 +1061,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       activity['title']?.toString() ?? localizations.unknown,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface,
                       ),
@@ -1075,7 +1072,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(
                         activity['customer_name'].toString(),
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           color: colorScheme.onSurfaceVariant,
                         ),
                         maxLines: 1,
@@ -1097,7 +1094,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 _getActivityDescription(activity, localizations),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: colorScheme.onSurface,
                 ),
@@ -1107,7 +1104,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 _getActivityDetails(activity, localizations),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: colorScheme.onSurfaceVariant,
                 ),
                 maxLines: 1,
@@ -1119,11 +1116,11 @@ class _HomeScreenState extends State<HomeScreen> {
         
         // Column 3: Time
         SizedBox(
-          width: 70,
+          width: 85,
           child: Text(
             _getRelativeTime(activity['timestamp']?.toString(), localizations),
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 10,
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
             ),
@@ -1135,7 +1132,7 @@ class _HomeScreenState extends State<HomeScreen> {
         
         // Column 4: Status Badge
         SizedBox(
-          width: 90,
+          width: 100,
           child: Center(
             child: _buildStatusBadge(status, localizations, colorScheme),
           ),
@@ -1260,10 +1257,10 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations, ColorSc
       case 'SALE':
         final amount = (activity['amount'] as num?)?.toInt() ?? 0;
         final customer = activity['customer_name']?.toString() ?? localizations.cashSale;
-        return '$customer - ${CurrencyUtils.formatRupees(amount)}';
+        return '$customer - ${CurrencyUtils.formatNoDecimal(Money(amount))}';
       case 'PAYMENT':
         final amount = (activity['amount'] as num?)?.toInt() ?? 0;
-        return CurrencyUtils.formatRupees(amount);
+        return CurrencyUtils.formatNoDecimal(Money(amount));
       case 'ALERT':
         final stock = activity['stock_level'];
         final unit = activity['unit_name']?.toString() ?? 'units';

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import '../database/database_helper.dart';
 import '../../models/sale_model.dart';
 import '../utils/logger.dart';
@@ -105,8 +107,8 @@ class ReceiptRepository {
     }
   }
 
-  /// Generate and print 80mm thermal receipt
-  Future<void> printReceipt(Map<String, dynamic> receiptData) async {
+  /// Generate PDF Document (Internal Helper)
+  Future<pw.Document> _generatePdfDocument(Map<String, dynamic> receiptData) async {
     final pdf = pw.Document();
 
     // Load fonts for Urdu support
@@ -266,11 +268,82 @@ class ReceiptRepository {
         },
       ),
     );
+    return pdf;
+  }
+
+  /// Generate and print 80mm thermal receipt
+  Future<void> printReceipt(Map<String, dynamic> receiptData) async {
+    final pdf = await _generatePdfDocument(receiptData);
 
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdf.save(),
       name: 'Receipt-${receiptData['bill']['number']}',
     );
+  }
+
+  /// Save receipt as PDF to app documents
+  Future<String> saveReceiptAsPDF(Sale sale) async {
+    final receiptData = await generateReceiptData(sale);
+    final pdf = await _generatePdfDocument(receiptData);
+    final bytes = await pdf.save();
+
+    final appDocDir = await getApplicationDocumentsDirectory();
+    final dateFolder = DateFormat('yyyy-MM-dd').format(sale.date);
+    final fileName = '${sale.billNumber}.pdf';
+    
+    final directory = Directory('${appDocDir.path}/receipts/$dateFolder');
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    
+    final filePath = '${directory.path}/$fileName';
+    final file = File(filePath);
+    await file.writeAsBytes(bytes);
+
+    // Store path in sales.receipt_pdf_path
+    final db = await _dbHelper.database;
+    await db.update(
+      'sales',
+      {'receipt_pdf_path': filePath},
+      where: 'id = ?',
+      whereArgs: [sale.id],
+    );
+
+    return filePath;
+  }
+
+  /// Open saved receipt with system viewer
+  Future<void> openSavedReceipt(String path) async {
+    if (Platform.isWindows) {
+      await Process.run('explorer', [path]);
+    } else if (Platform.isMacOS) {
+      await Process.run('open', [path]);
+    } else if (Platform.isLinux) {
+      await Process.run('xdg-open', [path]);
+    }
+  }
+
+  /// Get all saved PDFs
+  Future<List<File>> getReceiptHistory() async {
+    try {
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final receiptsDir = Directory('${appDocDir.path}/receipts');
+      
+      if (await receiptsDir.exists()) {
+        final List<File> files = [];
+        await for (final entity in receiptsDir.list(recursive: true)) {
+          if (entity is File && entity.path.endsWith('.pdf')) {
+            files.add(entity);
+          }
+        }
+        // Sort by modification time desc
+        files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+        return files;
+      }
+    } catch (e) {
+      AppLogger.error('Error getting receipt history: $e', tag: 'ReceiptRepo');
+    }
+    return [];
   }
 
   pw.Widget _buildTotalRow(String label, int amount, {bool isBold = false, double fontSize = 10}) {

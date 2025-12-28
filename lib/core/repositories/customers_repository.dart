@@ -13,9 +13,14 @@ class CustomersRepository {
   // ========================================
 
   /// Get all customers
-  Future<List<Customer>> getAllCustomers() async {
+  Future<List<Customer>> getAllCustomers({int limit = 50, int offset = 0}) async {
     final db = await _dbHelper.database;
-    final result = await db.query('customers', orderBy: 'name_english ASC');
+    final result = await db.query(
+      'customers', 
+      orderBy: 'name_english ASC',
+      limit: limit,
+      offset: offset,
+    );
     return result.map((map) => Customer.fromMap(map)).toList();
   }
 
@@ -76,12 +81,12 @@ class CustomersRepository {
   }
 
   /// Search customers by name or phone
-  Future<List<Customer>> searchCustomers(String query, {bool activeOnly = false}) async {
+  Future<List<Customer>> searchCustomers(String query, {bool activeOnly = false, int limit = 50}) async {
     final db = await _dbHelper.database;
     final q = '%${query.toLowerCase()}%';
     
     String whereClause = '(LOWER(name_english) LIKE ? OR LOWER(name_urdu) LIKE ? OR contact_primary LIKE ?)';
-    List<dynamic> args = [q, q, query];
+    List<dynamic> args = [q, q, '%$query%'];
 
     if (activeOnly) {
       whereClause += ' AND is_active = 1';
@@ -92,6 +97,7 @@ class CustomersRepository {
       where: whereClause,
       whereArgs: args,
       orderBy: 'name_english ASC',
+      limit: limit,
     );
     return result.map((map) => Customer.fromMap(map)).toList();
   }
@@ -202,46 +208,55 @@ class CustomersRepository {
     String date,
     String notes,
   ) async {
+    if (amount <= 0) {
+      throw ArgumentError('Payment amount must be greater than zero');
+    }
+
     final db = await _dbHelper.database;
     
-    return await db.transaction((txn) async {
-      // Record the payment
-      int id = await txn.insert('payments', {
-        'customer_id': customerId,
-        'amount': amount,
-        'date': date,
-        'notes': notes
+    try {
+      return await db.transaction((txn) async {
+        // Record the payment
+        int id = await txn.insert('payments', {
+          'customer_id': customerId,
+          'amount': amount,
+          'date': date,
+          'notes': notes
+        });
+
+        // Update Customer Balance (Decrease balance by paid amount)
+        await txn.rawUpdate(
+          'UPDATE customers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
+          [amount, customerId]
+        );
+        
+        // Record in cash ledger as an 'IN' entry
+        final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        final timeStr = DateFormat('hh:mm a').format(DateTime.now());
+        
+        final res = await txn.rawQuery(
+          'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
+        );
+        int currentBalance = res.isNotEmpty 
+            ? (res.first['balance_after'] as num).toInt() 
+            : 0;
+
+        await txn.insert('cash_ledger', {
+          'transaction_date': dateStr,
+          'transaction_time': timeStr,
+          'description': 'Payment from Customer (ID: $customerId)',
+          'type': 'IN',
+          'amount': amount,
+          'balance_after': currentBalance + amount,
+          'remarks': notes,
+        });
+
+        return id;
       });
-
-      // Update Customer Balance (Decrease balance by paid amount)
-      await txn.rawUpdate(
-        'UPDATE customers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
-        [amount, customerId]
-      );
-      
-      // Record in cash ledger as an 'IN' entry
-      final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      final timeStr = DateFormat('hh:mm a').format(DateTime.now());
-      
-      final res = await txn.rawQuery(
-        'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
-      );
-      int currentBalance = res.isNotEmpty 
-          ? (res.first['balance_after'] as num).toInt() 
-          : 0;
-
-      await txn.insert('cash_ledger', {
-        'transaction_date': dateStr,
-        'transaction_time': timeStr,
-        'description': 'Payment from Customer (ID: $customerId)',
-        'type': 'IN',
-        'amount': amount,
-        'balance_after': currentBalance + amount,
-        'remarks': notes,
-      });
-
-      return id;
-    });
+    } catch (e) {
+      AppLogger.error('Error adding payment: $e', tag: 'CustomersRepo');
+      throw Exception('Payment Failed: ${e.toString()}');
+    }
   }
 
   /// Get all payments for a customer
