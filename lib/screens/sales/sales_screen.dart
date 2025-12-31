@@ -61,10 +61,16 @@ class _SalesScreenState extends State<SalesScreen> {
   bool get showCustomerList => _state.showCustomerList;
 
   void _refreshAllData() => context.read<SalesBloc>().add(SalesStarted());
-  void _performClearCart() => context.read<SalesBloc>().add(CartCleared());
+  void _performClearCart() {
+    context.read<SalesBloc>().add(CartCleared());
+    customerSearchController.clear();
+    discountController.clear();
+  }
   Future<void> _loadRecentSales() async => context.read<SalesBloc>().add(SalesStarted());
   void _calculateTotals() => context.read<SalesBloc>().add(DiscountChanged(discountController.text));
-  void _updateCartItemFromField(int index) {}
+  void _updateCartItem(int index, double quantity, int price) {
+    context.read<SalesBloc>().add(CartItemUpdated(index: index, quantity: quantity, price: price));
+  }
 
   @override
   void dispose() {
@@ -323,7 +329,7 @@ class _SalesScreenState extends State<SalesScreen> {
     
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           constraints: BoxConstraints(
@@ -354,17 +360,15 @@ class _SalesScreenState extends State<SalesScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => Navigator.pop(dialogContext),
                     child: Text(loc.cancel),
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
                     onPressed: () {
-                      Navigator.pop(context);
-                      context.read<SalesBloc>().add(CartCleared());
-                      customerSearchController.clear();
-                      discountController.clear();
+                      Navigator.pop(dialogContext);
+                      _performClearCart();
                     },
                     child: Text(loc.clearAll),
                   ),
@@ -539,13 +543,14 @@ class _SalesScreenState extends State<SalesScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final limitCtrl = TextEditingController();
+    final salesBloc = context.read<SalesBloc>();
 
     int currentLimit = selectedCustomerMap?.creditLimit ?? 0;
     limitCtrl.text = CurrencyUtils.toDecimal(currentLimit);
 
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Container(
@@ -564,7 +569,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     Text(loc.increaseCreditLimit, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                     IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(dialogContext),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -587,7 +592,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(dialogContext),
                       child: Text(loc.cancel),
                     ),
                     const SizedBox(width: 16),
@@ -607,12 +612,12 @@ class _SalesScreenState extends State<SalesScreen> {
                             newLimit
                           );
 
-                          context.read<SalesBloc>().add(CustomerSelected(
+                          salesBloc.add(CustomerSelected(
                             selectedCustomerMap!.copyWith(creditLimit: newLimit)
                           ));
 
                           if (mounted) {
-                            Navigator.pop(context);
+                            Navigator.pop(dialogContext);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('${loc.creditLimitUpdated}: ${CurrencyUtils.formatNoDecimal(Money(newLimit))}'),
@@ -984,20 +989,19 @@ class _SalesScreenState extends State<SalesScreen> {
 
     try {
       // Create sale using repository
-      await _salesRepository.completeSaleWithSnapshot(saleData);
+      final int saleId = await _salesRepository.completeSaleWithSnapshot(saleData);
+      final Sale? sale = await _salesRepository.getSaleById(saleId);
 
       // Dismiss loading indicator
       if (mounted) {
         Navigator.pop(context);
       }
 
-      _performClearCart();
-      _refreshAllData();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(loc.saleCompleted), backgroundColor: colorScheme.primary)
-        );
+      if (sale != null && mounted) {
+        _showPostSaleDialog(sale);
+      } else {
+        _performClearCart();
+        _refreshAllData();
       }
     } catch (e) {
       // Dismiss loading indicator
@@ -1017,6 +1021,99 @@ class _SalesScreenState extends State<SalesScreen> {
         );
       }
     }
+  }
+
+  void _showPostSaleDialog(Sale sale) {
+    final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WillPopScope(
+        onWillPop: () async => false,
+        child: Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 450),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green, size: 64),
+                const SizedBox(height: 16),
+                Text(loc.saleCompleted, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text('Bill #${sale.billNumber}', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                const SizedBox(height: 32),
+                
+                // Print
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _handlePrintReceipt(sale),
+                    icon: const Icon(Icons.print),
+                    label: const Text('Print Receipt'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Save PDF
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      try {
+                        final path = await _receiptRepository.saveReceiptAsPDF(sale);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Receipt saved to: $path')),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error saving PDF: $e'), backgroundColor: colorScheme.error),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.picture_as_pdf),
+                    label: const Text('Save as PDF (80mm)'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // New Sale
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _performClearCart();
+                      _refreshAllData();
+                    },
+                    icon: const Icon(Icons.add_shopping_cart),
+                    label: const Text('Start New Sale'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   // ========================================
@@ -1231,8 +1328,10 @@ class _SalesScreenState extends State<SalesScreen> {
                   const SizedBox(width: 16),
                 ],
               ),
-              body: LayoutBuilder(
-                builder: (context, constraints) {
+            body: BlocBuilder<SalesBloc, SalesState>(
+              builder: (context, state) {
+                return LayoutBuilder(
+                  builder: (context, constraints) {
                   // Responsive Right Panel Width
                   double rightPanelWidth = 500;
                   if (constraints.maxWidth >= 2560) {
@@ -1313,7 +1412,7 @@ class _SalesScreenState extends State<SalesScreen> {
                             ),
 
                             // Recent Sales
-                            _buildRecentSalesSection(loc, colorScheme),
+                             _buildRecentSalesSection(loc, colorScheme),
                           ],
                         ),
                       ),
@@ -1369,79 +1468,13 @@ class _SalesScreenState extends State<SalesScreen> {
                                         separatorBuilder: (c, i) => const Divider(height: 1, thickness: 0.5),
                                         itemBuilder: (context, index) {
                                           final item = cartItems[index];
-                                          return Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                            color: index % 2 == 0 ? colorScheme.surface : colorScheme.surfaceVariant.withOpacity(0.2),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  flex: 4,
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                        isRTL && item['name_urdu'] != null ? item['name_urdu'] : item['name_english'],
-                                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow.ellipsis,
-                                                      ),
-                                                      if (item['item_code'] != null)
-                                                        Text(item['item_code'], style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
-                                                    ],
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  width: 70,
-                                                  child: TextField(
-                                                    controller: item['priceCtrl'],
-                                                    keyboardType: TextInputType.number,
-                                                    textAlign: TextAlign.center,
-                                                    decoration: const InputDecoration(
-                                                      isDense: true,
-                                                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                                                      border: InputBorder.none,
-                                                      hintText: '0',
-                                                    ),
-                                                    style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
-                                                    onChanged: (_) => _updateCartItemFromField(index),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                SizedBox(
-                                                  width: 60,
-                                                  child: TextField(
-                                                    controller: item['qtyCtrl'],
-                                                    keyboardType: TextInputType.number,
-                                                    textAlign: TextAlign.center,
-                                                    decoration: const InputDecoration(
-                                                      isDense: true,
-                                                      contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                                                      border: OutlineInputBorder(),
-                                                    ),
-                                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
-                                                    onChanged: (_) => _updateCartItemFromField(index),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                SizedBox(
-                                                  width: 70,
-                                                  child: Text(
-                                                    CurrencyUtils.formatNoDecimal(Money(item['total'] as int)).replaceAll('Rs ', ''),
-                                                    textAlign: TextAlign.end,
-                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface),
-                                                  ),
-                                                ),
-                                                SizedBox(
-                                                  width: 32,
-                                                  child: IconButton(
-                                                    icon: Icon(Icons.close, color: colorScheme.error, size: 18),
-                                                    padding: EdgeInsets.zero,
-                                                    constraints: const BoxConstraints(),
-                                                    onPressed: () => _removeCartItem(index),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                          return _CartItemRow(
+                                            item: item,
+                                            index: index,
+                                            isRTL: isRTL,
+                                            colorScheme: colorScheme,
+                                            onRemove: _removeCartItem,
+                                            onUpdate: _updateCartItem,
                                           );
                                         },
                                       ),
@@ -1458,7 +1491,9 @@ class _SalesScreenState extends State<SalesScreen> {
                     ],
                   );
                 },
-              ),
+                );
+              },
+            ),
             ),
           ),
         ),
@@ -1841,6 +1876,150 @@ class FocusSearchIntent extends Intent {
 
 class AddCustomerIntent extends Intent {
   const AddCustomerIntent();
+}
+
+class _CartItemRow extends StatefulWidget {
+  final Map<String, dynamic> item;
+  final int index;
+  final bool isRTL;
+  final ColorScheme colorScheme;
+  final Function(int) onRemove;
+  final Function(int, double, int) onUpdate;
+
+  const _CartItemRow({
+    required this.item,
+    required this.index,
+    required this.isRTL,
+    required this.colorScheme,
+    required this.onRemove,
+    required this.onUpdate,
+  });
+
+  @override
+  State<_CartItemRow> createState() => _CartItemRowState();
+}
+
+class _CartItemRowState extends State<_CartItemRow> {
+  late TextEditingController _priceCtrl;
+  late TextEditingController _qtyCtrl;
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _priceCtrl = TextEditingController(text: CurrencyUtils.toDecimal(widget.item['unit_price']));
+    _qtyCtrl = TextEditingController(text: widget.item['quantity'].toString());
+  }
+
+  @override
+  void didUpdateWidget(_CartItemRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.item['quantity'] != oldWidget.item['quantity']) {
+       if (double.tryParse(_qtyCtrl.text) != widget.item['quantity']) {
+          _qtyCtrl.text = widget.item['quantity'].toString();
+       }
+    }
+    if (widget.item['unit_price'] != oldWidget.item['unit_price']) {
+       if (CurrencyUtils.toPaisas(_priceCtrl.text) != widget.item['unit_price']) {
+          _priceCtrl.text = CurrencyUtils.toDecimal(widget.item['unit_price']);
+       }
+    }
+  }
+
+  @override
+  void dispose() {
+    _priceCtrl.dispose();
+    _qtyCtrl.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      final double qty = double.tryParse(_qtyCtrl.text) ?? 1.0;
+      final int price = CurrencyUtils.toPaisas(_priceCtrl.text);
+      widget.onUpdate(widget.index, qty, price);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: widget.index % 2 == 0 ? widget.colorScheme.surface : widget.colorScheme.surfaceVariant.withOpacity(0.2),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.isRTL && widget.item['name_urdu'] != null ? widget.item['name_urdu'] : widget.item['name_english'],
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: widget.colorScheme.onSurface),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (widget.item['item_code'] != null)
+                  Text(widget.item['item_code'], style: TextStyle(fontSize: 10, color: widget.colorScheme.onSurfaceVariant)),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 70,
+            child: TextField(
+              controller: _priceCtrl,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                border: InputBorder.none,
+                hintText: '0',
+              ),
+              style: TextStyle(fontSize: 13, color: widget.colorScheme.onSurface),
+              onChanged: (_) => _onChanged(),
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 60,
+            child: TextField(
+              controller: _qtyCtrl,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                border: OutlineInputBorder(),
+              ),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: widget.colorScheme.onSurface),
+              onChanged: (_) => _onChanged(),
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 70,
+            child: Text(
+              CurrencyUtils.formatNoDecimal(Money(widget.item['total'] as int)).replaceAll('Rs ', ''),
+              textAlign: TextAlign.end,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: widget.colorScheme.onSurface),
+            ),
+          ),
+          SizedBox(
+            width: 32,
+            child: IconButton(
+              icon: Icon(Icons.close, color: widget.colorScheme.error, size: 18),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              onPressed: () => widget.onRemove(widget.index),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // Add missing closing braces for the build method and class

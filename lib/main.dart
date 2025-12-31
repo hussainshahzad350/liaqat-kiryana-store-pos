@@ -3,6 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/sales_bloc.dart';
+import 'bloc/sales_event.dart';
+import 'core/repositories/sales_repository.dart';
+import 'core/repositories/items_repository.dart';
+import 'core/repositories/customers_repository.dart';
 import 'core/repositories/settings_repository.dart';
 import 'core/theme/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
@@ -128,7 +134,17 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
           routes: {
             '/': (context) => const LoginScreen(),
             AppRoutes.home: (context) => const MainLayout(currentRoute: AppRoutes.home, child: HomeScreen()),
-            AppRoutes.sales: (context) => const MainLayout(currentRoute: AppRoutes.sales, child: SalesScreen()),
+            AppRoutes.sales: (context) => MainLayout(
+                  currentRoute: AppRoutes.sales,
+                  child: BlocProvider(
+                    create: (context) => SalesBloc(
+                      salesRepository: SalesRepository(),
+                      itemsRepository: ItemsRepository(),
+                      customersRepository: CustomersRepository(),
+                    )..add(SalesStarted()),
+                    child: const SalesScreen(),
+                  ),
+                ),
             AppRoutes.stock: (context) => const MainLayout(currentRoute: AppRoutes.stock, child: StockScreen()),
             AppRoutes.items: (context) => const MainLayout(currentRoute: AppRoutes.items, child: ItemsScreen()),
             AppRoutes.customers: (context) => const MainLayout(currentRoute: AppRoutes.customers, child: CustomersScreen()),

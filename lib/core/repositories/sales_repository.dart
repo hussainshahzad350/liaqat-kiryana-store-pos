@@ -145,7 +145,7 @@ class SalesRepository {
   }
 
   /// Complete a sale and store its snapshot
-  Future<void> completeSaleWithSnapshot(Map<String, dynamic> saleData) async {
+  Future<int> completeSaleWithSnapshot(Map<String, dynamic> saleData) async {
     final db = await _dbHelper.database;
 
     // 1. Fetch Shop Profile
@@ -196,7 +196,7 @@ class SalesRepository {
     };
     
     saleData['sale_snapshot'] = jsonEncode(snapshotMap);
-    await createSale(saleData);
+    return await createSale(saleData);
   }
 
   /// Edit an existing sale (Void old -> Create new)
