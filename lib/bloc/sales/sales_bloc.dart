@@ -2,11 +2,11 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'sales_event.dart';
 import 'sales_state.dart';
-import '../../../../core/repositories/sales_repository.dart';
-import '../../../../core/repositories/items_repository.dart';
-import '../../../../core/repositories/customers_repository.dart';
-import '../../../../core/utils/currency_utils.dart';
-import '../../../../domain/entities/money.dart';
+import '../../../../../core/repositories/sales_repository.dart';
+import '../../../../../core/repositories/items_repository.dart';
+import '../../../../../core/repositories/customers_repository.dart';
+import '../../../../../core/utils/currency_utils.dart';
+import '../../../../../domain/entities/money.dart';
 
 class SalesBloc extends Bloc<SalesEvent, SalesState> {
   final SalesRepository _salesRepository;

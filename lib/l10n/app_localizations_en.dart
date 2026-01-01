@@ -1470,4 +1470,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirmPayment => 'Confirm Payment';
+
+  @override
+  String get paymentMustEqual => 'Payment must equal';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get baseUnit => 'Base Unit';
+
+  @override
+  String get codeInputLabel => 'Code (e.g. BOX)';
+
+  @override
+  String get multiplier => 'Multiplier';
+
+  @override
+  String get viewUnit => 'View Unit';
+
+  @override
+  String get systemUnitWarning => 'System units cannot be modified.';
+
+  @override
+  String get codeUniqueError => 'Code must be unique';
+
+  @override
+  String get numericError => 'Numeric only';
+
+  @override
+  String get greaterThanOneError => 'Must be > 1';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get systemUnit => 'System Unit';
+
+  @override
+  String get categoryLength => 'Length';
+
+  @override
+  String get categoryWeight => 'Weight';
+
+  @override
+  String get categoryCount => 'Count';
 }

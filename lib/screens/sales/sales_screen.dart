@@ -4,9 +4,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/sales_bloc.dart';
-import '../../bloc/sales_event.dart';
-import '../../bloc/sales_state.dart';
+import '../../bloc/sales/sales_bloc.dart';
+import '../../bloc/sales/sales_event.dart';
+import '../../bloc/sales/sales_state.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
 import '../../core/repositories/sales_repository.dart';

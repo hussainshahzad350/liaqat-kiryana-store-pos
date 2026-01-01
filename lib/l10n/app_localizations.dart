@@ -2971,6 +2971,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm Payment'**
   String get confirmPayment;
+
+  /// No description provided for @paymentMustEqual.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment must equal'**
+  String get paymentMustEqual;
+
+  /// No description provided for @category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get category;
+
+  /// No description provided for @baseUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Base Unit'**
+  String get baseUnit;
+
+  /// No description provided for @codeInputLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Code (e.g. BOX)'**
+  String get codeInputLabel;
+
+  /// No description provided for @multiplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiplier'**
+  String get multiplier;
+
+  /// No description provided for @viewUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'View Unit'**
+  String get viewUnit;
+
+  /// No description provided for @systemUnitWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'System units cannot be modified.'**
+  String get systemUnitWarning;
+
+  /// No description provided for @codeUniqueError.
+  ///
+  /// In en, this message translates to:
+  /// **'Code must be unique'**
+  String get codeUniqueError;
+
+  /// No description provided for @numericError.
+  ///
+  /// In en, this message translates to:
+  /// **'Numeric only'**
+  String get numericError;
+
+  /// No description provided for @greaterThanOneError.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be > 1'**
+  String get greaterThanOneError;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @systemUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'System Unit'**
+  String get systemUnit;
+
+  /// No description provided for @categoryLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Length'**
+  String get categoryLength;
+
+  /// No description provided for @categoryWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get categoryWeight;
+
+  /// No description provided for @categoryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get categoryCount;
 }
 
 class _AppLocalizationsDelegate

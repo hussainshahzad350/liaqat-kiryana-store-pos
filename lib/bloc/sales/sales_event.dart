@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import '../../../../models/product_model.dart';
-import '../../../../models/customer_model.dart';
+import '../../../../../models/product_model.dart';
+import '../../../../../models/customer_model.dart';
 
 abstract class SalesEvent extends Equatable {
   const SalesEvent();

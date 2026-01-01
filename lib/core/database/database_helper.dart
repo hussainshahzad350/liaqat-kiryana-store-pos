@@ -28,7 +28,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 9, 
+      version: 10, 
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
@@ -174,6 +174,49 @@ class DatabaseHelper {
             await db.execute("ALTER TABLE sale_items ADD COLUMN unit_name TEXT");
           }
           AppLogger.db('Performed migration to v9 (Sale Items Snapshot)');
+          break;
+
+        case 10:
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS unit_categories (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              is_system INTEGER DEFAULT 0,
+              created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+          ''');
+
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS units (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              code TEXT NOT NULL,
+              category_id INTEGER NOT NULL,
+              is_system INTEGER DEFAULT 0,
+              base_unit_id INTEGER,
+              multiplier INTEGER DEFAULT 1,
+              is_active INTEGER DEFAULT 1,
+              created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (category_id) REFERENCES unit_categories (id) ON DELETE CASCADE,
+              FOREIGN KEY (base_unit_id) REFERENCES units (id) ON DELETE SET NULL
+            )
+          ''');
+
+          // Insert default categories
+          await db.insert('unit_categories', {'id': 1, 'name': 'Weight', 'is_system': 1});
+          await db.insert('unit_categories', {'id': 2, 'name': 'Volume', 'is_system': 1});
+          await db.insert('unit_categories', {'id': 3, 'name': 'Count', 'is_system': 1});
+          await db.insert('unit_categories', {'id': 4, 'name': 'Length', 'is_system': 1});
+
+          // Insert default units
+          await db.insert('units', {'name': 'Kilogram', 'code': 'KG', 'category_id': 1, 'is_system': 1, 'multiplier': 1});
+          await db.insert('units', {'name': 'Gram', 'code': 'G', 'category_id': 1, 'is_system': 1, 'multiplier': 1});
+          await db.insert('units', {'name': 'Liter', 'code': 'L', 'category_id': 2, 'is_system': 1, 'multiplier': 1});
+          await db.insert('units', {'name': 'Milliliter', 'code': 'ML', 'category_id': 2, 'is_system': 1, 'multiplier': 1});
+          await db.insert('units', {'name': 'Piece', 'code': 'PCS', 'category_id': 3, 'is_system': 1, 'multiplier': 1});
+          await db.insert('units', {'name': 'Dozen', 'code': 'DZN', 'category_id': 3, 'is_system': 1, 'multiplier': 12});
+
+          AppLogger.db('Performed migration to v10 (Units & Unit Categories)');
           break;
 
         default:
@@ -388,6 +431,33 @@ class DatabaseHelper {
       )
     ''');
 
+    // 13. Unit Categories
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS unit_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        is_system INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    // 14. Units
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS units (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        code TEXT NOT NULL,
+        category_id INTEGER NOT NULL,
+        is_system INTEGER DEFAULT 0,
+        base_unit_id INTEGER,
+        multiplier INTEGER DEFAULT 1,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES unit_categories (id) ON DELETE CASCADE,
+        FOREIGN KEY (base_unit_id) REFERENCES units (id) ON DELETE SET NULL
+      )
+    ''');
+
     // 12. Performance Indexes
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_customer ON sales(customer_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_sale_items_sale ON sale_items(sale_id)');
@@ -452,6 +522,20 @@ class DatabaseHelper {
         'name_urdu': 'علی ٹریڈرز',
         'contact_primary': '0321-0000001',
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      // Unit Categories
+      await db.insert('unit_categories', {'id': 1, 'name': 'Weight', 'is_system': 1});
+      await db.insert('unit_categories', {'id': 2, 'name': 'Volume', 'is_system': 1});
+      await db.insert('unit_categories', {'id': 3, 'name': 'Count', 'is_system': 1});
+      await db.insert('unit_categories', {'id': 4, 'name': 'Length', 'is_system': 1});
+
+      // Units
+      await db.insert('units', {'name': 'Kilogram', 'code': 'KG', 'category_id': 1, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Gram', 'code': 'G', 'category_id': 1, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Liter', 'code': 'L', 'category_id': 2, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Milliliter', 'code': 'ML', 'category_id': 2, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Piece', 'code': 'PCS', 'category_id': 3, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Dozen', 'code': 'DZN', 'category_id': 3, 'is_system': 1, 'multiplier': 12});
 
       AppLogger.db('Sample data inserted');
     } catch (e) {

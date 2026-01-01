@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
-import '../../../../models/product_model.dart';
-import '../../../../models/customer_model.dart';
-import '../../../../models/sale_model.dart';
-import '../../../../domain/entities/money.dart';
+import '../../../../../models/product_model.dart';
+import '../../../../../models/customer_model.dart';
+import '../../../../../models/sale_model.dart';
+import '../../../../../domain/entities/money.dart';
 
 enum SalesStatus { initial, loading, ready, success, error }
 

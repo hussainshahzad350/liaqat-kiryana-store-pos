@@ -72,7 +72,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get allStockAvailable => 'سب آئٹمز اسٹاک میں ہیں';
 
   @override
-  String get recentSales => 'حالیہ فروخت';
+  String get recentSales => 'حالیہ سیلز';
 
   @override
   String get noSalesYet => 'ابھی تک کوئی فروخت نہیں ہوئی';
@@ -141,7 +141,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get save => 'محفوظ کریں';
 
   @override
-  String get cancel => 'منسوخ';
+  String get cancel => 'منسوخ کریں';
 
   @override
   String get editItem => 'آئٹم میں ترمیم کریں';
@@ -1467,4 +1467,49 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get confirmPayment => 'ادائیگی کنفرم؟';
+
+  @override
+  String get paymentMustEqual => 'ادائیگی برابر ہونی چاہیے';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get baseUnit => 'Base Unit';
+
+  @override
+  String get codeInputLabel => 'Code (e.g. BOX)';
+
+  @override
+  String get multiplier => 'Multiplier';
+
+  @override
+  String get viewUnit => 'View Unit';
+
+  @override
+  String get systemUnitWarning => 'System units cannot be modified.';
+
+  @override
+  String get codeUniqueError => 'Code must be unique';
+
+  @override
+  String get numericError => 'Numeric only';
+
+  @override
+  String get greaterThanOneError => 'Must be > 1';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get systemUnit => 'System Unit';
+
+  @override
+  String get categoryLength => 'Length';
+
+  @override
+  String get categoryWeight => 'Weight';
+
+  @override
+  String get categoryCount => 'Count';
 }

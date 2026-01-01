@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import '../database/database_helper.dart';
 import '../../models/sale_model.dart';
@@ -112,10 +113,10 @@ class ReceiptRepository {
     final pdf = pw.Document();
 
     // Load fonts for Urdu support
-    // Note: In a strictly offline environment, these fonts should be bundled in assets
-    // and loaded via rootBundle. For now, we use PdfGoogleFonts which caches them.
-    final font = await PdfGoogleFonts.notoNaskhArabicRegular();
-    final fontBold = await PdfGoogleFonts.notoNaskhArabicBold();
+    // Load local font asset for offline support
+    final fontData = await rootBundle.load('assets/fonts/NooriNastaleeq.ttf');
+    final font = pw.Font.ttf(fontData);
+    final fontBold = font; // Using same font for bold as specific bold asset wasn't provided
 
     final isRtl = receiptData['meta']['direction'] == 'RTL';
     final textDirection = isRtl ? pw.TextDirection.rtl : pw.TextDirection.ltr;

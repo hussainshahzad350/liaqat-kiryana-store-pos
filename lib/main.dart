@@ -4,12 +4,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'bloc/sales_bloc.dart';
-import 'bloc/sales_event.dart';
+import 'bloc/sales/sales_bloc.dart';
+import 'bloc/units/units_bloc.dart';
+import 'bloc/units/units_event.dart';
 import 'core/repositories/sales_repository.dart';
 import 'core/repositories/items_repository.dart';
 import 'core/repositories/customers_repository.dart';
 import 'core/repositories/settings_repository.dart';
+import 'core/repositories/units_repository.dart';
 import 'core/theme/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -35,6 +37,9 @@ void main() async {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
 
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+
     WindowOptions windowOptions = const WindowOptions(
       size: Size(1366, 768),
       minimumSize: Size(1280, 720),
@@ -49,11 +54,6 @@ void main() async {
         await windowManager.focus();
       }
     );
-  }
-    
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
   }
 
   final SettingsRepository settingsRepository = SettingsRepository();
@@ -141,7 +141,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                       salesRepository: SalesRepository(),
                       itemsRepository: ItemsRepository(),
                       customersRepository: CustomersRepository(),
-                    )..add(SalesStarted()),
+                    ),
                     child: const SalesScreen(),
                   ),
                 ),
@@ -150,7 +150,13 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
             AppRoutes.customers: (context) => const MainLayout(currentRoute: AppRoutes.customers, child: CustomersScreen()),
             AppRoutes.suppliers: (context) => const MainLayout(currentRoute: AppRoutes.suppliers, child: SuppliersScreen()),
             AppRoutes.categories: (context) => const MainLayout(currentRoute: AppRoutes.categories, child: CategoriesScreen()),
-            AppRoutes.units: (context) => const MainLayout(currentRoute: AppRoutes.units, child: UnitsScreen()),
+            AppRoutes.units: (context) => MainLayout(
+                  currentRoute: AppRoutes.units,
+                  child: BlocProvider(
+                    create: (context) => UnitsBloc(UnitsRepository())..add(LoadUnits()),
+                    child: const UnitsScreen(),
+                  ),
+                ),
             AppRoutes.reports: (context) => const MainLayout(currentRoute: AppRoutes.reports, child: ReportsScreen()),
             AppRoutes.cashLedger: (context) => const MainLayout(currentRoute: AppRoutes.cashLedger, child: CashLedgerScreen()),
             AppRoutes.settings: (context) => const MainLayout(currentRoute: AppRoutes.settings, child: SettingsScreen()),
