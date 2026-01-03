@@ -28,7 +28,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 10, 
+      version: 12, 
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
@@ -219,6 +219,56 @@ class DatabaseHelper {
           AppLogger.db('Performed migration to v10 (Units & Unit Categories)');
           break;
 
+        case 11:
+          // Create Departments
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS departments (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name_english TEXT NOT NULL,
+              name_urdu TEXT,
+              is_active INTEGER DEFAULT 1,
+              created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+          ''');
+
+          // Create Subcategories
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS subcategories (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              category_id INTEGER NOT NULL,
+              name_english TEXT NOT NULL,
+              name_urdu TEXT,
+              is_active INTEGER DEFAULT 1,
+              created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
+            )
+          ''');
+
+          // Update Categories
+          if (!await _columnExists(db, 'categories', 'department_id')) {
+            await db.execute("ALTER TABLE categories ADD COLUMN department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL");
+          }
+          if (!await _columnExists(db, 'categories', 'is_active')) {
+            await db.execute("ALTER TABLE categories ADD COLUMN is_active INTEGER DEFAULT 1");
+          }
+          
+          AppLogger.db('Performed migration to v11 (Departments, Subcategories)');
+          break;
+
+        case 12:
+          // Add is_visible_in_pos to departments, categories, subcategories
+          if (!await _columnExists(db, 'departments', 'is_visible_in_pos')) {
+            await db.execute("ALTER TABLE departments ADD COLUMN is_visible_in_pos INTEGER DEFAULT 1");
+          }
+          if (!await _columnExists(db, 'categories', 'is_visible_in_pos')) {
+            await db.execute("ALTER TABLE categories ADD COLUMN is_visible_in_pos INTEGER DEFAULT 1");
+          }
+          if (!await _columnExists(db, 'subcategories', 'is_visible_in_pos')) {
+            await db.execute("ALTER TABLE subcategories ADD COLUMN is_visible_in_pos INTEGER DEFAULT 1");
+          }
+          AppLogger.db('Performed migration to v12 (Visibility flags)');
+          break;
+
         default:
           AppLogger.db('No migration logic defined for v$i');
       }
@@ -273,17 +323,47 @@ class DatabaseHelper {
       )
     ''');
 
-    // 2. Categories
+    // 2. Departments
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS categories (
+      CREATE TABLE IF NOT EXISTS departments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name_urdu TEXT NOT NULL,
         name_english TEXT NOT NULL,
+        name_urdu TEXT,
+        is_active INTEGER DEFAULT 1,
+        is_visible_in_pos INTEGER DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
 
-    // 3. Products
+    // 3. Categories
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        department_id INTEGER,
+        name_urdu TEXT NOT NULL,
+        name_english TEXT NOT NULL,
+        is_active INTEGER DEFAULT 1,
+        is_visible_in_pos INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
+      )
+    ''');
+
+    // 4. SubCategories
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS subcategories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category_id INTEGER NOT NULL,
+        name_english TEXT NOT NULL,
+        name_urdu TEXT,
+        is_active INTEGER DEFAULT 1,
+        is_visible_in_pos INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // 5. Products
     await db.execute('''
       CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -300,7 +380,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 4. Customers
+    // 6. Customers
     await db.execute('''
       CREATE TABLE IF NOT EXISTS customers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -315,7 +395,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 5. Sales
+    // 7. Sales
     await db.execute('''
       CREATE TABLE IF NOT EXISTS sales (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -351,7 +431,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 6. Sale Items
+    // 8. Sale Items
     await db.execute('''
       CREATE TABLE IF NOT EXISTS sale_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -367,7 +447,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 7. Suppliers
+    // 9. Suppliers
     await db.execute('''
       CREATE TABLE IF NOT EXISTS suppliers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -381,7 +461,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 8. Cash Ledger
+    // 10. Cash Ledger
     await db.execute('''
       CREATE TABLE IF NOT EXISTS cash_ledger (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -395,7 +475,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 9. Payments Table
+    // 11. Payments Table
     await db.execute('''
       CREATE TABLE IF NOT EXISTS payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -410,7 +490,7 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_payments_customer ON payments(customer_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(date)');
 
-    // 10. Expense Categories
+    // 12. Expense Categories
     await db.execute('''
       CREATE TABLE IF NOT EXISTS expense_categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -420,7 +500,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 11. Receipt Table
+    // 13. Receipt Table
     await db.execute('''
       CREATE TABLE IF NOT EXISTS receipts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -431,7 +511,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 13. Unit Categories
+    // 14. Unit Categories
     await db.execute('''
       CREATE TABLE IF NOT EXISTS unit_categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -441,7 +521,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 14. Units
+    // 15. Units
     await db.execute('''
       CREATE TABLE IF NOT EXISTS units (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -484,15 +564,23 @@ class DatabaseHelper {
         'contact_primary': '0300-1234567',
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
+      // Departments
+      await db.insert('departments', {'id': 1, 'name_english': 'Food', 'name_urdu': 'خوراک'}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('departments', {'id': 2, 'name_english': 'Cosmetics', 'name_urdu': 'کاسمیٹکس'}, conflictAlgorithm: ConflictAlgorithm.ignore);
+
       // Categories
       List<Map<String, dynamic>> categories = [
-        {'name_urdu': 'چاول', 'name_english': 'Rice'},
-        {'name_urdu': 'دال', 'name_english': 'Pulses'},
-        {'name_urdu': 'تیل', 'name_english': 'Oil'},
+        {'name_urdu': 'چاول', 'name_english': 'Rice', 'department_id': 1},
+        {'name_urdu': 'دال', 'name_english': 'Pulses', 'department_id': 1},
+        {'name_urdu': 'تیل', 'name_english': 'Oil', 'department_id': 1},
       ];
       for(var cat in categories) {
         await db.insert('categories', cat, conflictAlgorithm: ConflictAlgorithm.ignore);
       }
+
+      // Subcategories
+      await db.insert('subcategories', {'category_id': 1, 'name_english': 'Basmati', 'name_urdu': 'باسمتی'}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('subcategories', {'category_id': 1, 'name_english': 'Irri', 'name_urdu': 'ایری'}, conflictAlgorithm: ConflictAlgorithm.ignore);
 
       // Products
       await db.insert('products', {
