@@ -4,7 +4,12 @@ class Product {
   final String nameEnglish;
   final String? nameUrdu;
   final int? categoryId;
+  final int? subCategoryId;
+  final String? brand;
+  final int? unitId;
   final String? unitType;
+  final String? packingType;
+  final String? searchTags;
   final int minStockAlert;
   final int currentStock;
   final int avgCostPrice;
@@ -17,7 +22,12 @@ class Product {
     required this.nameEnglish,
     this.nameUrdu,
     this.categoryId,
+    this.subCategoryId,
+    this.brand,
+    this.unitId,
     this.unitType,
+    this.packingType,
+    this.searchTags,
     this.minStockAlert = 10,
     this.currentStock = 0,
     this.avgCostPrice = 0,
@@ -33,7 +43,12 @@ class Product {
       nameEnglish: map['name_english'] as String? ?? '',
       nameUrdu: map['name_urdu'] as String?,
       categoryId: map['category_id'] as int?,
+      subCategoryId: map['sub_category_id'] as int?,
+      brand: map['brand'] as String?,
+      unitId: map['unit_id'] as int?,
       unitType: map['unit_type'] as String?,
+      packingType: map['packing_type'] as String?,
+      searchTags: map['search_tags'] as String?,
       minStockAlert: (map['min_stock_alert'] ?? 10) as int,
       currentStock: (map['current_stock'] ?? 0) as int,
       avgCostPrice: (map['avg_cost_price'] ?? 0) as int,
@@ -52,7 +67,12 @@ class Product {
       'name_english': nameEnglish,
       'name_urdu': nameUrdu,
       'category_id': categoryId,
+      'sub_category_id': subCategoryId,
+      'brand': brand,
+      'unit_id': unitId,
       'unit_type': unitType,
+      'packing_type': packingType,
+      'search_tags': searchTags,
       'min_stock_alert': minStockAlert,
       'current_stock': currentStock,
       'avg_cost_price': avgCostPrice,
@@ -68,7 +88,12 @@ class Product {
     String? nameEnglish,
     String? nameUrdu,
     int? categoryId,
+    int? subCategoryId,
+    String? brand,
+    int? unitId,
     String? unitType,
+    String? packingType,
+    String? searchTags,
     int? minStockAlert,
     int? currentStock,
     int? avgCostPrice,
@@ -81,7 +106,12 @@ class Product {
       nameEnglish: nameEnglish ?? this.nameEnglish,
       nameUrdu: nameUrdu ?? this.nameUrdu,
       categoryId: categoryId ?? this.categoryId,
+      subCategoryId: subCategoryId ?? this.subCategoryId,
+      brand: brand ?? this.brand,
+      unitId: unitId ?? this.unitId,
       unitType: unitType ?? this.unitType,
+      packingType: packingType ?? this.packingType,
+      searchTags: searchTags ?? this.searchTags,
       minStockAlert: minStockAlert ?? this.minStockAlert,
       currentStock: currentStock ?? this.currentStock,
       avgCostPrice: avgCostPrice ?? this.avgCostPrice,

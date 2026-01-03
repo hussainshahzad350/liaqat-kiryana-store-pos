@@ -162,4 +162,41 @@ class CategoriesRepository {
     ''', [deptId]);
     return (result.first['count'] as num?)?.toInt() ?? 0;
   }
+
+  // --- Validation ---
+  Future<bool> departmentExists(String nameEn, {int? excludeId}) async {
+    final db = await _dbHelper.database;
+    final where = excludeId != null 
+        ? 'LOWER(name_english) = ? AND id != ?' 
+        : 'LOWER(name_english) = ?';
+    final args = excludeId != null 
+        ? [nameEn.toLowerCase(), excludeId] 
+        : [nameEn.toLowerCase()];
+    final result = await db.query('departments', where: where, whereArgs: args);
+    return result.isNotEmpty;
+  }
+
+  Future<bool> categoryExists(int deptId, String nameEn, {int? excludeId}) async {
+    final db = await _dbHelper.database;
+    final where = excludeId != null 
+        ? 'department_id = ? AND LOWER(name_english) = ? AND id != ?' 
+        : 'department_id = ? AND LOWER(name_english) = ?';
+    final args = excludeId != null 
+        ? [deptId, nameEn.toLowerCase(), excludeId] 
+        : [deptId, nameEn.toLowerCase()];
+    final result = await db.query('categories', where: where, whereArgs: args);
+    return result.isNotEmpty;
+  }
+
+  Future<bool> subCategoryExists(int catId, String nameEn, {int? excludeId}) async {
+    final db = await _dbHelper.database;
+    final where = excludeId != null 
+        ? 'category_id = ? AND LOWER(name_english) = ? AND id != ?' 
+        : 'category_id = ? AND LOWER(name_english) = ?';
+    final args = excludeId != null 
+        ? [catId, nameEn.toLowerCase(), excludeId] 
+        : [catId, nameEn.toLowerCase()];
+    final result = await db.query('subcategories', where: where, whereArgs: args);
+    return result.isNotEmpty;
+  }
 }

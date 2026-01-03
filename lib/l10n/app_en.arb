@@ -532,6 +532,8 @@
   "systemUnit": "System Unit",
   "categoryLength": "Length",
   "categoryWeight": "Weight",
-  "categoryCount": "Count"
-
+  "categoryCount": "Count",
+  "packingType": "Packing Type",
+  "searchTags": "Search Tags",
+  "deleteItem": "Delete Item"
 }

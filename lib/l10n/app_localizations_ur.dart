@@ -1512,4 +1512,13 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get categoryCount => 'Count';
+
+  @override
+  String get packingType => 'پیکنگ کی قسم';
+
+  @override
+  String get searchTags => 'تلاش کے الفاظ';
+
+  @override
+  String get deleteItem => 'آئٹم حذف کریں';
 }

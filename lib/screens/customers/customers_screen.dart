@@ -3,12 +3,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:liaqat_store/core/utils/currency_utils.dart';
 import 'package:liaqat_store/core/repositories/customers_repository.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
+import 'package:liaqat_store/core/repositories/sales_repository.dart';
+import 'package:liaqat_store/services/ledger_export_service.dart';
+import 'package:liaqat_store/models/sale_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/customer_model.dart';
+import '../../domain/entities/money.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -19,6 +21,8 @@ class CustomersScreen extends StatefulWidget {
 
 class _CustomersScreenState extends State<CustomersScreen> {
   final CustomersRepository _customersRepository = CustomersRepository();
+  final SalesRepository _salesRepository = SalesRepository();
+  final LedgerExportService _ledgerExportService = LedgerExportService();
   // --- STATE VARIABLES ---
   List<Customer> customers = [];
   List<Customer> archivedCustomers = [];
@@ -28,14 +32,21 @@ class _CustomersScreenState extends State<CustomersScreen> {
   bool _showLedgerOverlay = false;
   List<Map<String, dynamic>> _currentLedger = [];
   Customer? _selectedCustomerForLedger;
+  
+  // Ledger Filters
+  DateTime? _ledgerStartDate;
+  DateTime? _ledgerEndDate;
+  String _ledgerFilterType = 'ALL'; // ALL, SALE, RECEIPT
+  String _ledgerSearchQuery = '';
+  final TextEditingController _ledgerSearchCtrl = TextEditingController();
 
   bool _isFirstLoadRunning = true;
   final TextEditingController searchController = TextEditingController();
 
   // Stats
-  int countTotal = 0; double balTotal = 0.0;
-  int countActive = 0; double balActive = 0.0;
-  int countArchived = 0; double balArchived = 0.0;
+  int countTotal = 0; int balTotal = 0;
+  int countActive = 0; int balActive = 0;
+  int countArchived = 0; int balArchived = 0;
 
   @override
   void initState() {
@@ -46,6 +57,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   @override
   void dispose() {
     searchController.dispose();
+    _ledgerSearchCtrl.dispose();
     super.dispose();
   }
 
@@ -58,36 +70,49 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   Future<void> _loadStats() async {
-    final stats = await _customersRepository.getCustomerStats();
-    
-    if (mounted) {
-      setState(() {
-        countTotal = stats['countTotal'] as int;
-        balTotal = stats['balTotal'] as double;
-        countActive = stats['countActive'] as int;
-        balActive = stats['balActive'] as double;
-        countArchived = stats['countArchived'] as int;
-        balArchived = stats['balArchived'] as double;
-      });
+    try {
+      final stats = await _customersRepository.getCustomerStats();
+      
+      if (mounted) {
+        setState(() {
+          countTotal = (stats['countTotal'] as num?)?.toInt() ?? 0;
+          balTotal = (stats['balTotal'] as num?)?.toInt() ?? 0;
+          countActive = (stats['countActive'] as num?)?.toInt() ?? 0;
+          balActive = (stats['balActive'] as num?)?.toInt() ?? 0;
+          countArchived = (stats['countArchived'] as num?)?.toInt() ?? 0;
+          balArchived = (stats['balArchived'] as num?)?.toInt() ?? 0;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading stats: $e");
     }
   }
 
   Future<void> _loadActiveCustomers() async {
-    setState(() => _isFirstLoadRunning = true);
-    final searchText = searchController.text.trim();
-    
-    List<Customer> result;
-    if (searchText.isEmpty) {
-      result = await _customersRepository.getActiveCustomers();
-    } else {
-      result = await _customersRepository.searchCustomers(searchText, activeOnly: true);
+    if (customers.isEmpty) {
+      setState(() => _isFirstLoadRunning = true);
     }
+    try {
+      final searchText = searchController.text.trim();
+      
+      List<Customer> result;
+      if (searchText.isEmpty) {
+        result = await _customersRepository.getActiveCustomers();
+      } else {
+        result = await _customersRepository.searchCustomers(searchText, activeOnly: true);
+      }
 
-    if (mounted) {
-      setState(() {
-        customers = result;
-        _isFirstLoadRunning = false;
-      });
+      if (mounted) {
+        setState(() {
+          customers = result;
+          _isFirstLoadRunning = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading customers: $e");
+      if (mounted) {
+        setState(() => _isFirstLoadRunning = false);
+      }
     }
   }
 
@@ -100,7 +125,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return await _customersRepository.isPhoneUnique(phone, excludeId: excludeId);
   }
 
-  Future<bool> _canDelete(int id, double balance) async {
+  Future<bool> _canDelete(int id, int balance) async {
     if (balance != 0) return false;
     return true; 
   }
@@ -112,15 +137,45 @@ class _CustomersScreenState extends State<CustomersScreen> {
       _selectedCustomerForLedger = customer;
       _showLedgerOverlay = true;
       _currentLedger = []; 
+      // Reset filters
+      _ledgerStartDate = null;
+      _ledgerEndDate = null;
+      _ledgerFilterType = 'ALL';
+      _ledgerSearchQuery = '';
+      _ledgerSearchCtrl.clear();
     });
-    
+    await _loadLedgerData();
+  }
+
+  Future<void> _loadLedgerData() async {
+    if (_selectedCustomerForLedger == null) return;
     try {
-      // ✅ Using the Grouped Logic
-      final ledgerData = await _customersRepository.getCustomerLedgerGrouped(customer.id!);
-      setState(() => _currentLedger = ledgerData);
+      final data = await _customersRepository.getCustomerLedger(
+        _selectedCustomerForLedger!.id!,
+        startDate: _ledgerStartDate,
+        endDate: _ledgerEndDate,
+      );
+      if (mounted) setState(() => _currentLedger = data);
     } catch (e) {
       debugPrint("Error loading ledger: $e");
     }
+  }
+
+  List<Map<String, dynamic>> get _filteredLedgerRows {
+    return _currentLedger.where((row) {
+      // 1. Type Filter
+      if (_ledgerFilterType == 'SALE' && row['type'] != 'SALE') return false;
+      if (_ledgerFilterType == 'RECEIPT' && row['type'] != 'PAYMENT' && row['type'] != 'RECEIPT') return false;
+
+      // 2. Search Filter
+      if (_ledgerSearchQuery.isNotEmpty) {
+        final q = _ledgerSearchQuery.toLowerCase();
+        final docNo = row['ref_no'].toString().toLowerCase();
+        final desc = (row['description'] ?? '').toString().toLowerCase();
+        return docNo.contains(q) || desc.contains(q);
+      }
+      return true;
+    }).toList();
   }
 
   /// Add payment to the currently selected customer
@@ -136,77 +191,53 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final date = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
     await _customersRepository.addPayment(_selectedCustomerForLedger!.id!, amount, date, notes);
     await _refreshData(); 
-    await _openLedger(_selectedCustomerForLedger!); 
+    await _loadLedgerData(); // Refresh ledger data
   }
   
-  Future<void> _exportLedgerPdf(AppLocalizations loc) async {
-    final colorScheme = Theme.of(context).colorScheme;
+  Future<void> _handleExport(AppLocalizations loc) async {
+    if (_selectedCustomerForLedger == null || _currentLedger.isEmpty) return;
+    
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
-    final customerName = _selectedCustomerForLedger?.nameEnglish ?? 'Customer';
-
-    // Fonts
-    final font = isUrdu ? await PdfGoogleFonts.notoSansArabicRegular() : await PdfGoogleFonts.notoSansRegular();
-    final doc = pw.Document();
-
-    // Headers
-    final headers = isUrdu 
-      ? ['تاریخ', 'تفصیل', 'Udhar (Dr)', 'Jama (Cr)', 'بیلنس']
-      : ['Date', 'Description', 'Bill Amt (Dr)', 'Received (Cr)', 'Balance'];
-
-    // Data Preparation (Flattening for PDF)
-    final data = _currentLedger.map((row) {
-      final date = row['date'].toString().substring(0, 10);
-      final desc = row['type'] == 'BILL' ? "Bill #${row['bill_no']}" : "Payment / Recovery";
-      
-      return [
-        date,
-        desc, // Simplified description for PDF
-        row['dr'] > 0 ? row['dr'].toString() : '-',
-        row['cr'] > 0 ? row['cr'].toString() : '-',
-        row['balance'].toStringAsFixed(0),
-      ];
-    }).toList();
-
-    doc.addPage(
-      pw.Page(
-        theme: pw.ThemeData.withFont(base: font).copyWith(textAlign: pw.TextAlign.start),
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Header(
-                level: 0, 
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(isUrdu ? "$customerName :لیجر" : "Ledger: $customerName", style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                    pw.Text(DateFormat('dd-MM-yyyy').format(DateTime.now())),
-                  ],
-                )
-              ),
-              pw.SizedBox(height: 20),
-              pw.Table.fromTextArray(
-                context: context,
-                headers: headers,
-                data: data,
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
-                headerDecoration: pw.BoxDecoration(color: PdfColor.fromInt(colorScheme.primary.value)),
-                cellAlignment: pw.Alignment.centerLeft,
-                columnWidths: {
-                  0: const pw.FlexColumnWidth(2),
-                  1: const pw.FlexColumnWidth(4),
-                  2: const pw.FlexColumnWidth(2),
-                  3: const pw.FlexColumnWidth(2),
-                  4: const pw.FlexColumnWidth(2),
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+              title: const Text('Print / PDF'),
+              onTap: () {
+                Navigator.pop(context);
+                _ledgerExportService.exportToPdf(
+                  _currentLedger, 
+                  _selectedCustomerForLedger!, 
+                  isUrdu: isUrdu
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.table_chart, color: Colors.green),
+              title: const Text('Export to Excel (CSV)'),
+              onTap: () async {
+                Navigator.pop(context);
+                final path = await _ledgerExportService.exportToCsv(
+                  _currentLedger, 
+                  _selectedCustomerForLedger!
+                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Saved to: $path'))
+                  );
                 }
-              ),
-            ],
-          );
-        },
+              },
+            ),
+          ],
+        ),
       ),
     );
-
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => doc.save());
   }
 
   // --- ACTIONS ---
@@ -217,7 +248,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     required String nameUrdu,
     required String phone,
     required String address,
-    required double limit,
+    required int limit,
   }) async {
     final colorScheme = Theme.of(context).colorScheme;
     final loc = AppLocalizations.of(context)!;
@@ -231,7 +262,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       nameUrdu: nameUrdu,
       contactPrimary: phone,
       address: address,
-      creditLimit: limit.toInt(),
+      creditLimit: limit,
       outstandingBalance: 0,
       isActive: true,
     );
@@ -256,7 +287,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     if (_showArchiveOverlay) _loadArchivedCustomers(); 
   }
 
-  Future<void> _deleteCustomer(int id, double balance) async {
+  Future<void> _deleteCustomer(int id, int balance) async {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     
@@ -401,7 +432,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildKpiCard(AppLocalizations loc, String title, int count, double amount, VoidCallback? onTap, {bool isOrange = false}) {
+  Widget _buildKpiCard(AppLocalizations loc, String title, int count, int amount, VoidCallback? onTap, {bool isOrange = false}) {
     final colorScheme = Theme.of(context).colorScheme;
     
     final containerColor = isOrange ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
@@ -441,7 +472,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text("${loc.balanceShort}: ${amount.toStringAsFixed(0)}", style: TextStyle(color: contentColor, fontSize: 12, fontWeight: FontWeight.w600)),
+              child: Text("${loc.balanceShort}: ${CurrencyUtils.formatNoDecimal(Money(amount))}", style: TextStyle(color: contentColor, fontSize: 12, fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -451,7 +482,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   Widget _buildCustomerCard(Customer customer, {bool isOverlay = false}) {
     final colorScheme = Theme.of(context).colorScheme;
-    final double balance = customer.outstandingBalance.toDouble();
+    final int balance = customer.outstandingBalance;
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
     final String name = isUrdu 
         ? (customer.nameUrdu != null && customer.nameUrdu!.isNotEmpty ? customer.nameUrdu! : customer.nameEnglish) 
@@ -472,7 +503,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
           child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?', style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold)),
         ),
         title: Text(name, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: isUrdu ? 20 : 16, fontFamily: isUrdu ? 'NooriNastaleeq' : null)),
-        subtitle: Text(phone, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(phone, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
+            if (customer.creditLimit > 0)
+              Text("${AppLocalizations.of(context)!.creditLimit}: ${customer.creditLimit}", style: TextStyle(fontSize: 11, color: colorScheme.secondary)),
+          ],
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -485,7 +523,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(color: balance > 0 ? colorScheme.error : colorScheme.primary)
                 ),
-                child: Text(balance.toStringAsFixed(0), style: TextStyle(color: balance > 0 ? colorScheme.error : colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text(CurrencyUtils.formatNoDecimal(Money(balance)), style: TextStyle(color: balance > 0 ? colorScheme.error : colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             
             if (!isOverlay)
@@ -519,197 +557,47 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   // --- LEDGER OVERLAY (GROUPED) ---
   Widget _buildLedgerOverlay(AppLocalizations loc) {
-    final colorScheme = Theme.of(context).colorScheme;
     final customer = _selectedCustomerForLedger!;
-    final name = customer.nameEnglish;
-    
-    // Calculate Totals for Header
-    double totalDr = 0;
-    double totalCr = 0;
-    for(var row in _currentLedger) {
-      totalDr += (row['dr'] as num).toDouble();
-      totalCr += (row['cr'] as num).toDouble();
-    }
-    double netBalance = totalDr - totalCr;
 
     return Stack(
       children: [
-        GestureDetector(onTap: () => setState(() => _showLedgerOverlay = false), child: Container(color: colorScheme.shadow.withOpacity(0.5))),
+        GestureDetector(onTap: () => setState(() => _showLedgerOverlay = false), child: Container(color: Colors.black54)),
         Center(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.95,
-            height: MediaQuery.of(context).size.height * 0.90, 
-            padding: EdgeInsets.zero,
+            height: MediaQuery.of(context).size.height * 0.95,
             decoration: BoxDecoration(
-              color: colorScheme.surface, 
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: colorScheme.outline, width: 2), 
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [BoxShadow(blurRadius: 20, color: Colors.black26)],
             ),
             child: Column(
               children: [
-                // Header (Totals)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                          Row(
-                            children: [
-                              IconButton(icon: Icon(Icons.print, color: colorScheme.primary), onPressed: () => _exportLedgerPdf(loc), tooltip: "Export PDF"),
-                              IconButton(icon: Icon(Icons.close, color: colorScheme.onSurface), onPressed: () => setState(() => _showLedgerOverlay = false)),
-                            ],
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          _buildSummaryBox("Bill Amount", totalDr, colorScheme.tertiary),
-                          const SizedBox(width: 8),
-                          _buildSummaryBox("Received", totalCr, colorScheme.primary),
-                          const SizedBox(width: 8),
-                          _buildSummaryBox("Net Balance", netBalance, netBalance > 0 ? colorScheme.error : colorScheme.primary),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                // ZONE A: HEADER
+                _buildLedgerHeader(customer, loc),
+                
+                // ZONE B: FILTER BAR
+                _buildLedgerFilterBar(loc),
 
-                Divider(height: 1, color: colorScheme.outlineVariant),
+                // ZONE C: TABLE HEADER
+                _buildLedgerTableHeader(),
 
-                // Table Header
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                  color: colorScheme.primary, 
-                  child: Row(
-                    children: [
-                      Expanded(flex: 3, child: Text("Date / Details", style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onPrimary))),
-                      Expanded(flex: 2, child: Text("Bill Amt", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onPrimary))),
-                      Expanded(flex: 2, child: Text("Recvd", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onPrimary))),
-                      Expanded(flex: 2, child: Text("Bal", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onPrimaryContainer))),
-                    ],
-                  ),
-                ),
-
-                // Transaction List (Grouped)
+                // ZONE C: TABLE BODY
                 Expanded(
-                  child: _currentLedger.isEmpty
-                      ? Center(child: Text("No transactions found", style: TextStyle(color: colorScheme.onSurfaceVariant)))
-                      : ListView.separated(
-                          itemCount: _currentLedger.length,
-                          separatorBuilder: (c, i) => Divider(height: 1, color: colorScheme.outlineVariant),
+                  child: _filteredLedgerRows.isEmpty
+                      ? Center(child: Text("No transactions found", style: TextStyle(color: Colors.grey[600])))
+                      : ListView.builder(
+                          itemCount: _filteredLedgerRows.length,
                           itemBuilder: (context, index) {
-                            final row = _currentLedger[index];
-                            final isPayment = row['type'] == 'PAYMENT';
-                            final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
-                            final dateStr = DateFormat('dd-MM-yy').format(date);
-                            final balance = (row['balance'] as num).toDouble();
-                            
-                            // 1. PAYMENT ROW
-                            if (isPayment) {
-                              return Container(
-                                color: colorScheme.primaryContainer.withOpacity(0.3), 
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      flex: 3, 
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(dateStr, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
-                                          Text("PAYMENT / RECOVERY", style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary, fontSize: 13)),
-                                          if(row['desc'] != null && row['desc'] != '')
-                                            Text(row['desc'], style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: colorScheme.onSurfaceVariant)),
-                                        ],
-                                      )
-                                    ),
-                                    const Expanded(flex: 2, child: Text("-", textAlign: TextAlign.right)),
-                                    Expanded(flex: 2, child: Text(row['cr'].toString(), textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary))),
-                                    Expanded(flex: 2, child: Text(balance.toStringAsFixed(0), textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
-                                  ],
-                                ),
-                              );
-                            } 
-                            // 2. BILL ROW (Expandable)
-                            else {
-                              final items = row['items'] as List<dynamic>;
-                              return ExpansionTile(
-                                backgroundColor: colorScheme.surface,
-                                collapsedBackgroundColor: colorScheme.surface,
-                                tilePadding: const EdgeInsets.symmetric(horizontal: 8),
-                                title: Row(
-                                  children: [
-                                    Expanded(
-                                      flex: 3, 
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(dateStr, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
-                                          Text("BILL #${row['bill_no']}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colorScheme.onSurface)),
-                                        ],
-                                      )
-                                    ),
-                                    Expanded(flex: 2, child: Text(row['dr'].toString(), textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.error))),
-                                    const Expanded(flex: 2, child: Text("-", textAlign: TextAlign.right)), 
-                                    Expanded(flex: 2, child: Text(balance.toStringAsFixed(0), textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
-                                  ],
-                                ),
-                                children: [
-                                  Container(
-                                    color: colorScheme.surfaceVariant.withOpacity(0.3),
-                                    padding: const EdgeInsets.all(10),
-                                    child: Column(
-                                      children: [
-                                        const Row(children: [
-                                          Expanded(flex: 4, child: Text("Item Name", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                                          Expanded(flex: 2, child: Text("Rate x Qty", textAlign: TextAlign.right, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                                          Expanded(flex: 2, child: Text("Total", textAlign: TextAlign.right, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-                                        ]),
-                                        const Divider(),
-                                        ...items.map((item) => Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 2),
-                                          child: Row(children: [
-                                            Expanded(flex: 4, child: Text(item['name'], style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-                                            Expanded(flex: 2, child: Text("${item['rate']} x ${item['qty']}", textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-                                            Expanded(flex: 2, child: Text("${item['total']}", textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-                                          ]),
-                                        ))
-                                      ],
-                                    ),
-                                  )
-                                ],
-                              );
-                            }
+                            final row = _filteredLedgerRows[index];
+                            return _LedgerRow(
+                              row: row,
+                              isEven: index % 2 == 0,
+                              salesRepository: _salesRepository,
+                            );
                           },
                         ),
                 ),
-
-                // Footer
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  color: colorScheme.surface,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      icon: Icon(Icons.attach_money, color: colorScheme.onPrimary),
-                      label: Text("Receive Payment", style: TextStyle(color: colorScheme.onPrimary, fontSize: 16)),
-                      onPressed: _showPaymentDialog,
-                    ),
-                  ),
-                )
               ],
             ),
           ),
@@ -717,27 +605,200 @@ class _CustomersScreenState extends State<CustomersScreen> {
       ],
     );
   }
-  
-  // Helper for Top Stats
-  Widget _buildSummaryBox(String label, double value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.5)),
-        ),
-        child: Column(
-          children: [
-            Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            FittedBox(child: Text(value.toStringAsFixed(0), style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold))),
-          ],
-        ),
+
+  Widget _buildLedgerHeader(Customer customer, AppLocalizations loc) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final balance = customer.outstandingBalance;
+    final isDebit = balance > 0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), offset: const Offset(0, 2), blurRadius: 4)],
+      ),
+      child: Row(
+        children: [
+          // Customer Info
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(customer.nameEnglish, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87)),
+              if (customer.nameUrdu != null)
+                Text(customer.nameUrdu!, style: const TextStyle(fontSize: 18, fontFamily: 'NooriNastaleeq', color: Colors.black54)),
+              const SizedBox(height: 4),
+              Text(customer.contactPrimary ?? '', style: const TextStyle(fontSize: 14, color: Colors.black87)),
+              if (customer.address != null)
+                Text(customer.address!, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+            ],
+          ),
+          const Spacer(),
+          // Financials
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text("Current Balance", style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.bold)),
+              Text(
+                CurrencyUtils.formatNoDecimal(Money(balance)),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'RobotoMono',
+                  color: isDebit ? Colors.red[700] : Colors.green[700],
+                ),
+              ),
+              if (customer.creditLimit > 0)
+                Text("Limit: ${CurrencyUtils.formatNoDecimal(Money(customer.creditLimit))}", style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            ],
+          ),
+          const SizedBox(width: 24),
+          // Actions
+          Row(
+            children: [
+              ElevatedButton.icon(
+                onPressed: _showPaymentDialog,
+                icon: const Icon(Icons.add),
+                label: const Text("Receive Payment"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.print),
+                onPressed: () => _handleExport(loc),
+                tooltip: "Export",
+                color: Colors.grey[700],
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(() => _showLedgerOverlay = false),
+                tooltip: "Close",
+                color: Colors.grey[700],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
+
+  Widget _buildLedgerFilterBar(AppLocalizations loc) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.grey[100],
+      child: Row(
+        children: [
+          // Date Range
+          OutlinedButton.icon(
+            onPressed: () async {
+              final picked = await showDateRangePicker(
+                context: context,
+                firstDate: DateTime(2020),
+                lastDate: DateTime.now(),
+                initialDateRange: _ledgerStartDate != null && _ledgerEndDate != null 
+                  ? DateTimeRange(start: _ledgerStartDate!, end: _ledgerEndDate!) 
+                  : null,
+              );
+              if (picked != null) {
+                setState(() {
+                  _ledgerStartDate = picked.start;
+                  _ledgerEndDate = picked.end;
+                });
+                _loadLedgerData();
+              }
+            },
+            icon: const Icon(Icons.calendar_today, size: 16),
+            label: Text(_ledgerStartDate == null 
+              ? "Date Range" 
+              : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}"
+            ),
+            style: OutlinedButton.styleFrom(backgroundColor: Colors.white),
+          ),
+          if (_ledgerStartDate != null)
+            IconButton(
+              icon: const Icon(Icons.clear, size: 16), 
+              onPressed: () {
+                setState(() { _ledgerStartDate = null; _ledgerEndDate = null; });
+                _loadLedgerData();
+              }
+            ),
+          
+          const SizedBox(width: 16),
+          // Type Filter
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: 'ALL', label: Text('All')),
+              ButtonSegment(value: 'SALE', label: Text('Sales')),
+              ButtonSegment(value: 'RECEIPT', label: Text('Receipts')),
+            ],
+            selected: {_ledgerFilterType},
+            onSelectionChanged: (Set<String> newSelection) {
+              setState(() => _ledgerFilterType = newSelection.first);
+            },
+            style: ButtonStyle(
+              visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              backgroundColor: MaterialStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(MaterialState.selected)) return Theme.of(context).colorScheme.primaryContainer;
+                return Colors.white;
+              }),
+            ),
+          ),
+          
+          const Spacer(),
+          // Search
+          SizedBox(
+            width: 250,
+            child: TextField(
+              controller: _ledgerSearchCtrl,
+              decoration: InputDecoration(
+                hintText: "Search Doc # or Desc...",
+                prefixIcon: const Icon(Icons.search, size: 18),
+                suffixIcon: _ledgerSearchQuery.isNotEmpty 
+                  ? IconButton(icon: const Icon(Icons.clear, size: 16), onPressed: () {
+                      _ledgerSearchCtrl.clear();
+                      setState(() => _ledgerSearchQuery = '');
+                    }) 
+                  : null,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(4), borderSide: BorderSide(color: Colors.grey[400]!)),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              onChanged: (val) => setState(() => _ledgerSearchQuery = val),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLedgerTableHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+      ),
+      child: const Row(
+        children: [
+          Expanded(flex: 2, child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+          Expanded(flex: 2, child: Text("Doc No", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+          Expanded(flex: 2, child: Text("Type", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+          Expanded(flex: 4, child: Text("Description", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+          Expanded(flex: 2, child: Text("Debit", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+          Expanded(flex: 2, child: Text("Credit", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+          Expanded(flex: 2, child: Text("Balance", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+        ],
+      ),
+    );
+  }
+  
 
   void _showPaymentDialog() {
     final colorScheme = Theme.of(context).colorScheme;
@@ -840,6 +901,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     String currentLimit = (customer?.creditLimit ?? 0).toString();
     final limitController = TextEditingController(text: currentLimit == "0" ? "" : currentLimit);
     bool isSaving = false;
+    final bool isEdit = customer != null;
 
     showDialog(
       context: context,
@@ -858,12 +920,32 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(height: 10),
-                      TextFormField(controller: nameEnController, decoration: _cleanInput("${loc.nameEnglish} *", Icons.person), style: TextStyle(color: colorScheme.onSurface)),
+                      TextFormField(
+                        controller: nameEnController, 
+                        decoration: _cleanInput("${loc.nameEnglish} *", Icons.person), 
+                        style: TextStyle(color: colorScheme.onSurface),
+                        readOnly: isEdit,
+                        enabled: !isEdit,
+                      ),
                       const SizedBox(height: 12),
                       // ✅ FIXED: Removed TextDirection.rtl
-                      TextFormField(controller: nameUrController, textAlign: TextAlign.start, decoration: _cleanInput("${loc.nameUrdu} *", Icons.translate), style: TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 18, color: colorScheme.onSurface)),
+                      TextFormField(
+                        controller: nameUrController, 
+                        textAlign: TextAlign.start, 
+                        decoration: _cleanInput("${loc.nameUrdu} *", Icons.translate), 
+                        style: TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 18, color: colorScheme.onSurface),
+                        readOnly: isEdit,
+                        enabled: !isEdit,
+                      ),
                       const SizedBox(height: 12),
-                      TextFormField(controller: phoneController, decoration: _cleanInput("${loc.phoneLabel} *", Icons.phone), keyboardType: TextInputType.phone, style: TextStyle(color: colorScheme.onSurface)),
+                      TextFormField(
+                        controller: phoneController, 
+                        decoration: _cleanInput("${loc.phoneLabel} *", Icons.phone), 
+                        keyboardType: TextInputType.phone, 
+                        style: TextStyle(color: colorScheme.onSurface),
+                        readOnly: isEdit,
+                        enabled: !isEdit,
+                      ),
                       const SizedBox(height: 12),
                       TextFormField(controller: addressController, decoration: _cleanInput(loc.addressLabel, Icons.location_on), maxLines: 2, style: TextStyle(color: colorScheme.onSurface)),
                       const SizedBox(height: 12),
@@ -889,7 +971,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                          nameUrdu: nameUrController.text.trim(), 
                          phone: phoneController.text.trim(), 
                          address: addressController.text.trim(), 
-                         limit: double.tryParse(limitController.text) ?? 0.0
+                         limit: CurrencyUtils.toPaisas(limitController.text)
                        );
                        if (context.mounted) Navigator.pop(context);
                      } catch (e) {
@@ -919,4 +1001,144 @@ class _CustomersScreenState extends State<CustomersScreen> {
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16), isDense: true,
     );
   }
+}
+
+class _LedgerRow extends StatefulWidget {
+  final Map<String, dynamic> row;
+  final bool isEven;
+  final SalesRepository salesRepository;
+
+  const _LedgerRow({
+    required this.row,
+    required this.isEven,
+    required this.salesRepository,
+  });
+
+  @override
+  State<_LedgerRow> createState() => _LedgerRowState();
+}
+
+class _LedgerRowState extends State<_LedgerRow> {
+  bool _isExpanded = false;
+  List<SaleItem>? _items;
+  bool _isLoadingItems = false;
+  String? _error;
+
+  Future<void> _toggleExpand() async {
+    if (widget.row['type'] != 'SALE') return; // Only expand sales
+
+    setState(() => _isExpanded = !_isExpanded);
+
+    if (_isExpanded && _items == null) {
+      setState(() => _isLoadingItems = true);
+      setState(() => _error = null);
+      try {
+        // Lazy Load Items
+        final saleId = widget.row['ref_no'] as int; // ref_no is ref_id in simple query
+        final items = await widget.salesRepository.getSaleItems(saleId);
+        if (mounted) setState(() => _items = items);
+      } catch (e) {
+        if (mounted) setState(() => _error = "Failed to load details");
+      } finally {
+        if (mounted) setState(() => _isLoadingItems = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final row = widget.row;
+    final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
+    final dateStr = DateFormat('dd-MM-yyyy').format(date); // Fixed width format
+    final debit = (row['debit'] as num).toInt();
+    final credit = (row['credit'] as num).toInt();
+    final balance = (row['balance'] as num).toInt();
+    final isSale = row['type'] == 'SALE';
+    final isReceipt = row['type'] == 'PAYMENT' || row['type'] == 'RECEIPT';
+    
+    // Visual Styles
+    final bgColor = _isExpanded 
+        ? Colors.blue[50] 
+        : (isReceipt ? Colors.green[50]!.withOpacity(0.3) : (widget.isEven ? Colors.white : Colors.grey[50]));
+    
+    const textStyle = TextStyle(fontSize: 13, color: Colors.black87);
+    const monoStyle = TextStyle(fontSize: 13, fontFamily: 'RobotoMono', color: Colors.black87);
+
+    return Column(
+      children: [
+        InkWell(
+          onTap: isSale ? _toggleExpand : null,
+          hoverColor: Colors.blue[50],
+          child: Container(
+            color: bgColor,
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
+            ),
+            child: Row(
+              children: [
+                Expanded(flex: 2, child: Text(dateStr, style: monoStyle)),
+                Expanded(flex: 2, child: Text(isSale ? "INV-${row['ref_no']}" : "RCP-${row['ref_no']}", style: monoStyle)),
+                Expanded(flex: 2, child: Text(isSale ? "SALE" : "RECEIPT", style: textStyle.copyWith(fontWeight: FontWeight.bold, color: isSale ? Colors.blue[800] : Colors.green[800]))),
+                Expanded(flex: 4, child: Row(
+                  children: [
+                    if (isSale) 
+                      Icon(_isExpanded ? Icons.arrow_drop_down : Icons.arrow_right, size: 16, color: Colors.grey[600]),
+                    Expanded(child: Text(row['description'] ?? '', style: textStyle, overflow: TextOverflow.ellipsis)),
+                  ],
+                )),
+                Expanded(flex: 2, child: Text(debit > 0 ? (debit/100).toStringAsFixed(0) : '-', textAlign: TextAlign.right, style: monoStyle)),
+                Expanded(flex: 2, child: Text(credit > 0 ? (credit/100).toStringAsFixed(0) : '-', textAlign: TextAlign.right, style: monoStyle)),
+                Expanded(flex: 2, child: Text((balance/100).toStringAsFixed(0), textAlign: TextAlign.right, style: monoStyle.copyWith(fontWeight: FontWeight.bold, color: balance > 0 ? Colors.red[700] : Colors.green[700]))),
+              ],
+            ),
+          ),
+        ),
+        if (_isExpanded)
+          Container(
+            color: Colors.grey[50],
+            padding: const EdgeInsets.fromLTRB(48, 8, 16, 16),
+            child: _isLoadingItems
+                ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)))
+                : _error != null 
+                  ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
+                  : _items == null || _items!.isEmpty
+                    ? const Center(child: Text("No items found", style: TextStyle(fontStyle: FontStyle.italic)))
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Table(
+                            border: TableBorder(bottom: BorderSide(color: Colors.grey[300]!)),
+                            columnWidths: const {
+                              0: FlexColumnWidth(4),
+                              1: FlexColumnWidth(2),
+                              2: FlexColumnWidth(2),
+                              3: FlexColumnWidth(2),
+                            },
+                            children: [
+                              TableRow(
+                                decoration: BoxDecoration(color: Colors.grey[200]),
+                                children: const [
+                                  Padding(padding: EdgeInsets.all(4), child: Text("Item", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                                  Padding(padding: EdgeInsets.all(4), child: Text("Qty", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                                  Padding(padding: EdgeInsets.all(4), child: Text("Rate", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                                  Padding(padding: EdgeInsets.all(4), child: Text("Total", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                                ]
+                              ),
+                              ..._items!.map((item) => TableRow(children: [
+                                Padding(padding: const EdgeInsets.all(4), child: Text(item.itemName, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(item.quantity.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text((item.pricePaisas/100).toStringAsFixed(0), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text((item.totalPaisas/100).toStringAsFixed(0), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                              ]
+                            ),
+                          )
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
 }

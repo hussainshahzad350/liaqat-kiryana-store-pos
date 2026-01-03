@@ -3061,6 +3061,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Count'**
   String get categoryCount;
+
+  /// No description provided for @packingType.
+  ///
+  /// In en, this message translates to:
+  /// **'Packing Type'**
+  String get packingType;
+
+  /// No description provided for @searchTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Tags'**
+  String get searchTags;
+
+  /// No description provided for @deleteItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Item'**
+  String get deleteItem;
 }
 
 class _AppLocalizationsDelegate

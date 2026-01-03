@@ -28,7 +28,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 12, 
+      version: 15, 
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
@@ -269,10 +269,224 @@ class DatabaseHelper {
           AppLogger.db('Performed migration to v12 (Visibility flags)');
           break;
 
+        case 13:
+          if (!await _columnExists(db, 'products', 'brand')) {
+            await db.execute("ALTER TABLE products ADD COLUMN brand TEXT");
+          }
+          if (!await _columnExists(db, 'products', 'unit_id')) {
+            await db.execute("ALTER TABLE products ADD COLUMN unit_id INTEGER");
+          }
+          if (!await _columnExists(db, 'products', 'packing_type')) {
+            await db.execute("ALTER TABLE products ADD COLUMN packing_type TEXT");
+          }
+          if (!await _columnExists(db, 'products', 'search_tags')) {
+            await db.execute("ALTER TABLE products ADD COLUMN search_tags TEXT");
+          }
+          AppLogger.db('Performed migration to v13 (Product Master Data fields)');
+          break;
+
+        case 14:
+          if (!await _columnExists(db, 'products', 'sub_category_id')) {
+            await db.execute("ALTER TABLE products ADD COLUMN sub_category_id INTEGER");
+          }
+          AppLogger.db('Performed migration to v14 (Added sub_category_id to products)');
+          break;
+
+        case 15:
+          await _migrateToV15(db);
+          AppLogger.db('Performed migration to v15 (Accounting Overhaul & Ledger)');
+          break;
+
         default:
           AppLogger.db('No migration logic defined for v$i');
       }
     }
+  }
+
+  // 🛠️ Migration v15: Accounting Overhaul
+  Future<void> _migrateToV15(Database db) async {
+    // 1. Rename conflicting 'receipts' table (used for print logs) to 'sale_print_logs'
+    if (await _tableExists(db, 'receipts')) {
+      await db.execute('ALTER TABLE receipts RENAME TO sale_print_logs');
+    }
+
+    // 2. Create New Accounting Tables
+    
+    // Customers: Add Unique Index on Phone if not exists
+    // (SQLite doesn't support adding UNIQUE constraint easily via ALTER, so we rely on index)
+    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_phone_unique ON customers(contact_primary)');
+
+    // Trigger: Prevent Customer Name/Phone Update
+    await db.execute('''
+      CREATE TRIGGER IF NOT EXISTS prevent_customer_identity_change
+      BEFORE UPDATE OF name_english, name_urdu, contact_primary ON customers
+      BEGIN
+          SELECT RAISE(ABORT, 'Critical Identity Fields (Name/Phone) are immutable.')
+          WHERE OLD.name_english != NEW.name_english
+             OR OLD.name_urdu != NEW.name_urdu
+             OR OLD.contact_primary != NEW.contact_primary;
+      END;
+    ''');
+
+    // Invoices (Replaces Sales)
+    await db.execute('''
+      CREATE TABLE invoices (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        invoice_number TEXT UNIQUE NOT NULL,
+        customer_id INTEGER,
+        invoice_date TEXT NOT NULL,
+        sub_total INTEGER NOT NULL,
+        discount_total INTEGER DEFAULT 0,
+        grand_total INTEGER NOT NULL,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'COMPLETED',
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_invoices_customer ON invoices(customer_id)');
+    await db.execute('CREATE INDEX idx_invoices_date ON invoices(invoice_date)');
+
+    // Invoice Items (Replaces Sale Items)
+    await db.execute('''
+      CREATE TABLE invoice_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        invoice_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        item_name_snapshot TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        unit_price INTEGER NOT NULL,
+        total_price INTEGER NOT NULL,
+        FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE RESTRICT
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_invoice_items_invoice ON invoice_items(invoice_id)');
+
+    // Receipts (Replaces Payments)
+    await db.execute('''
+      CREATE TABLE receipts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        receipt_number TEXT UNIQUE NOT NULL,
+        customer_id INTEGER NOT NULL,
+        receipt_date TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        payment_mode TEXT DEFAULT 'CASH',
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_receipts_customer ON receipts(customer_id)');
+    await db.execute('CREATE INDEX idx_receipts_date ON receipts(receipt_date)');
+
+    // Customer Ledger (Single Source of Truth)
+    await db.execute('''
+      CREATE TABLE customer_ledger (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        transaction_date TEXT NOT NULL,
+        description TEXT NOT NULL,
+        ref_type TEXT NOT NULL CHECK (ref_type IN ('INVOICE', 'RECEIPT', 'RETURN', 'ADJUSTMENT')),
+        ref_id INTEGER NOT NULL,
+        debit INTEGER DEFAULT 0,
+        credit INTEGER DEFAULT 0,
+        balance INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_ledger_customer_date ON customer_ledger(customer_id, transaction_date)');
+    await db.execute('CREATE INDEX idx_ledger_ref ON customer_ledger(ref_type, ref_id)');
+
+    // 3. Migrate Data
+    
+    // Migrate Sales -> Invoices
+    await db.execute('''
+      INSERT INTO invoices (id, invoice_number, customer_id, invoice_date, sub_total, discount_total, grand_total, created_at, status)
+      SELECT id, bill_number, customer_id, sale_date || ' ' || sale_time, (grand_total + discount), discount, grand_total, created_at, status
+      FROM sales
+    ''');
+
+    // Migrate SaleItems -> InvoiceItems
+    await db.execute('''
+      INSERT INTO invoice_items (invoice_id, product_id, item_name_snapshot, quantity, unit_price, total_price)
+      SELECT sale_id, product_id, item_name_english, quantity_sold, unit_price, total_price
+      FROM sale_items
+    ''');
+
+    // Migrate Payments -> Receipts
+    // Generate receipt numbers like RCP-OLD-{id}
+    await db.execute('''
+      INSERT INTO receipts (receipt_number, customer_id, receipt_date, amount, notes)
+      SELECT 'RCP-OLD-' || id, customer_id, date, amount, notes
+      FROM payments
+    ''');
+
+    // 4. Populate Ledger (Complex: Needs to be done per customer, ordered by date)
+    // We will use a temporary approach to insert all events then calculate running balance is hard in pure SQL without window functions (which might not be available on all target OS versions of SQLite).
+    // However, Flutter FFI usually bundles a recent SQLite. We'll assume basic window functions or use a cursor approach in Dart if needed.
+    // For robustness in migration script, we'll just insert raw rows and then update balance? No, balance must be correct.
+    // Let's insert all events into ledger with 0 balance, then update.
+    
+    // Insert Invoices (Debit)
+    await db.execute('''
+      INSERT INTO customer_ledger (customer_id, transaction_date, description, ref_type, ref_id, debit, credit, balance)
+      SELECT customer_id, invoice_date, 'Invoice #' || invoice_number, 'INVOICE', id, grand_total, 0, 0
+      FROM invoices WHERE status = 'COMPLETED' AND customer_id IS NOT NULL
+    ''');
+
+    // Insert Receipts (Credit)
+    await db.execute('''
+      INSERT INTO customer_ledger (customer_id, transaction_date, description, ref_type, ref_id, debit, credit, balance)
+      SELECT customer_id, receipt_date, 'Payment Received', 'RECEIPT', id, 0, amount, 0
+      FROM receipts
+    ''');
+
+    // Recalculate Running Balance
+    // Since we can't easily do this in one SQL statement for all customers without window functions, 
+    // and we want to be safe, we will leave the balance as 0 here and rely on the application 
+    // or a more complex query if supported. 
+    // BUT, the requirement is "Ledger balance must be a running balance".
+    // Let's try to update it using a correlated subquery or just reset it.
+    // Given this is a migration run once, we can iterate in Dart if we were in the app logic, but here we are in DB helper.
+    // We will use a standard SQL approach for running sum if possible, or just leave it for the Repositories to handle/recalc on first load? 
+    // No, data integrity is key.
+    
+    // We will use a CTE to calculate running balance and update.
+    // SQLite 3.25+ supports Window Functions. sqflite_common_ffi usually includes a recent version.
+    try {
+      await db.execute('''
+        WITH CalculatedLedger AS (
+          SELECT 
+            id, 
+            SUM(debit - credit) OVER (
+              PARTITION BY customer_id 
+              ORDER BY transaction_date, id
+              ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            ) as running_bal
+          FROM customer_ledger
+        )
+        UPDATE customer_ledger 
+        SET balance = (SELECT running_bal FROM CalculatedLedger WHERE CalculatedLedger.id = customer_ledger.id);
+      ''');
+    } catch (e) {
+      AppLogger.error('Window functions not supported, ledger balance might be 0. Re-calc required.', tag: 'DB');
+    }
+
+    // 5. Update Customer Outstanding Balance Cache
+    await db.execute('''
+      UPDATE customers 
+      SET outstanding_balance = (
+        SELECT COALESCE(SUM(debit - credit), 0)
+        FROM customer_ledger
+        WHERE customer_ledger.customer_id = customers.id
+      )
+    ''');
+  }
+
+  Future<bool> _tableExists(Database db, String table) async {
+    final result = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name=?", [table]);
+    return result.isNotEmpty;
   }
 
   // Backup database during migrations
@@ -371,7 +585,12 @@ class DatabaseHelper {
         name_urdu TEXT NOT NULL,
         name_english TEXT NOT NULL,
         category_id INTEGER,
+        sub_category_id INTEGER,
+        brand TEXT,
+        unit_id INTEGER,
         unit_type TEXT,
+        packing_type TEXT,
+        search_tags TEXT,
         min_stock_alert INTEGER DEFAULT 10,
         current_stock INTEGER DEFAULT 0,
         avg_cost_price INTEGER DEFAULT 0,

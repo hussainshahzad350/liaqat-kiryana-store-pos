@@ -207,6 +207,7 @@ class CustomersRepository {
     int amount,
     String date,
     String notes,
+    {String paymentMode = 'CASH'}
   ) async {
     if (amount <= 0) {
       throw ArgumentError('Payment amount must be greater than zero');
@@ -216,21 +217,49 @@ class CustomersRepository {
     
     try {
       return await db.transaction((txn) async {
-        // Record the payment
-        int id = await txn.insert('payments', {
+        // 1. Record the Receipt (Financial Event)
+        final receiptNumber = 'RCP-${DateTime.now().millisecondsSinceEpoch}';
+        int receiptId = await txn.insert('receipts', {
+          'receipt_number': receiptNumber,
           'customer_id': customerId,
           'amount': amount,
-          'date': date,
-          'notes': notes
+          'receipt_date': date,
+          'notes': notes,
+          'payment_mode': paymentMode
         });
 
-        // Update Customer Balance (Decrease balance by paid amount)
+        // 2. Insert into Ledger
+        // Get current balance first (to ensure running balance integrity, though we calculate it)
+        // Actually, for running balance, we need the previous balance.
+        final lastEntry = await txn.rawQuery(
+          'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+          [customerId]
+        );
+        
+        // Edge Case: Overpayment is allowed (results in negative balance)
+        int previousBalance = lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
+        // Rule: balance = previous balance - credit
+        int newBalance = previousBalance - amount;
+
+        await txn.insert('customer_ledger', {
+          'customer_id': customerId,
+          'transaction_date': date,
+          'description': 'Payment Received ($notes)',
+          'ref_type': 'RECEIPT',
+          'ref_id': receiptId,
+          // Rule: credit = received amount
+          'debit': 0,
+          'credit': amount,
+          'balance': newBalance,
+        });
+
+        // 3. Update Customer Cache
         await txn.rawUpdate(
           'UPDATE customers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
           [amount, customerId]
         );
         
-        // Record in cash ledger as an 'IN' entry
+        // 4. Record in cash ledger as an 'IN' entry (Shop Cash Flow)
         final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
         final timeStr = DateFormat('hh:mm a').format(DateTime.now());
         
@@ -251,7 +280,7 @@ class CustomersRepository {
           'remarks': notes,
         });
 
-        return id;
+        return receiptId;
       });
     } catch (e) {
       AppLogger.error('Error adding payment: $e', tag: 'CustomersRepo');
@@ -263,10 +292,10 @@ class CustomersRepository {
   Future<List<Map<String, dynamic>>> getCustomerPayments(int customerId) async {
     final db = await _dbHelper.database;
     return await db.query(
-      'payments',
+      'receipts',
       where: 'customer_id = ?',
       whereArgs: [customerId],
-      orderBy: 'date DESC',
+      orderBy: 'receipt_date DESC',
     );
   }
 
@@ -282,10 +311,10 @@ class CustomersRepository {
         c.name_english,
         c.name_urdu,
         c.contact_primary
-      FROM payments p
+      FROM receipts p
       JOIN customers c ON p.customer_id = c.id
-      WHERE p.date BETWEEN ? AND ?
-      ORDER BY p.date DESC
+      WHERE p.receipt_date BETWEEN ? AND ?
+      ORDER BY p.receipt_date DESC
     ''', [startDate, endDate]);
   }
 
@@ -295,142 +324,129 @@ class CustomersRepository {
 
   /// Get customer ledger (simple view)
   /// Moved from DatabaseHelper.getCustomerLedger()
-  Future<List<Map<String, dynamic>>> getCustomerLedger(int customerId) async {
+  Future<List<Map<String, dynamic>>> getCustomerLedger(
+    int customerId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
     final db = await _dbHelper.database;
 
-    // Fetch Sales (Debits)
-    final salesResult = await db.rawQuery('''
+    String whereClause = 'customer_id = ?';
+    List<dynamic> args = [customerId];
+
+    if (startDate != null) {
+      whereClause += ' AND transaction_date >= ?';
+      args.add(DateFormat('yyyy-MM-dd').format(startDate));
+    }
+
+    if (endDate != null) {
+      whereClause += ' AND transaction_date <= ?';
+      args.add('${DateFormat('yyyy-MM-dd').format(endDate)} 23:59:59');
+    }
+
+    // Query the single source of truth
+    final result = await db.rawQuery('''
       SELECT 
-        'SALE' as type,
-        s.sale_date as date,
-        s.bill_number as ref_no,
-        si.product_id as prod_id,
-        p.name_english || ' (' || si.quantity_sold || ' x ' || si.unit_price || ')' as description,
-        si.quantity_sold as qty,
-        si.unit_price as rate,
-        si.total_price as debit,
-        0 as credit
-      FROM sales s
-      JOIN sale_items si ON s.id = si.sale_id
-      JOIN products p ON si.product_id = p.id
-      WHERE s.customer_id = ? AND s.status = 'COMPLETED'
-    ''', [customerId]);
-
-    // Fetch Payments (Credits)
-    final paymentsResult = await db.rawQuery('''
-      SELECT 
-        'PAYMENT' as type,
-        date as date,
-        id as ref_no,
-        notes as description,
-        0 as qty,
-        0 as rate,
-        0 as debit,
-        amount as credit
-      FROM payments
-      WHERE customer_id = ?
-    ''', [customerId]);
-
-    // Combine and Sort by Date (Descending)
-    List<Map<String, dynamic>> ledger = [...salesResult, ...paymentsResult];
-    ledger.sort((a, b) => b['date'].toString().compareTo(a['date'].toString()));
-
-    return ledger;
+        CASE WHEN ref_type = 'INVOICE' THEN 'SALE' ELSE 'PAYMENT' END as type,
+        transaction_date as date,
+        ref_id as ref_no,
+        description,
+        debit,
+        credit,
+        balance
+      FROM customer_ledger
+      WHERE $whereClause
+      ORDER BY transaction_date DESC, id DESC
+    ''', args);
+    
+    return result;
   }
 
   /// Get customer ledger (grouped by bills with items)
   /// Moved from DatabaseHelper.getCustomerLedgerGrouped()
   Future<List<Map<String, dynamic>>> getCustomerLedgerGrouped(
-    int customerId
+    int customerId, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }
   ) async {
     final db = await _dbHelper.database;
 
-    // 1. Fetch Sales (Bills) - The Parent Rows
-    final sales = await db.rawQuery('''
-      SELECT 
-        'BILL' as type,
-        id as ref_id,
-        sale_date as date,
-        bill_number as bill_no,
-        grand_total as dr,
-        0 as cr,
-        '' as desc
-      FROM sales 
-      WHERE customer_id = ? AND status = 'COMPLETED'
-    ''', [customerId]);
+    String whereClause = 'customer_id = ?';
+    List<dynamic> args = [customerId];
+    
+    // For items query
+    String itemsWhereClause = 'i.customer_id = ?';
+    List<dynamic> itemsArgs = [customerId];
 
-    // 2. Fetch Items - The Child Rows
-    final saleItems = await db.rawQuery('''
-      SELECT 
-        si.sale_id,
-        p.name_english || ' (' || p.name_urdu || ')' as name,
-        si.quantity_sold as qty,
-        si.unit_price as rate,
-        si.total_price as total
-      FROM sale_items si
-      JOIN sales s ON si.sale_id = s.id
-      JOIN products p ON si.product_id = p.id
-      WHERE s.customer_id = ? AND s.status = 'COMPLETED'
-    ''', [customerId]);
+    if (startDate != null) {
+      final startStr = DateFormat('yyyy-MM-dd').format(startDate);
+      whereClause += ' AND transaction_date >= ?';
+      args.add(startStr);
+      
+      itemsWhereClause += ' AND i.invoice_date >= ?';
+      itemsArgs.add(startStr);
+    }
 
-    // 3. Fetch Payments
-    final payments = await db.rawQuery('''
-      SELECT 
-        'PAYMENT' as type,
-        id as ref_id,
-        date as date,
-        'Payment Received' as bill_no,
-        0 as dr,
-        amount as cr,
-        notes as desc
-      FROM payments
-      WHERE customer_id = ?
-    ''', [customerId]);
+    if (endDate != null) {
+      final endStr = '${DateFormat('yyyy-MM-dd').format(endDate)} 23:59:59';
+      whereClause += ' AND transaction_date <= ?';
+      args.add(endStr);
+      
+      itemsWhereClause += ' AND i.invoice_date <= ?';
+      itemsArgs.add(endStr);
+    }
 
-    // 4. Organize Items by Sale ID
+    // 1. Fetch Ledger Entries
+    final ledgerEntries = await db.rawQuery('''
+      SELECT 
+        CASE WHEN ref_type = 'INVOICE' THEN 'BILL' ELSE 'PAYMENT' END as type,
+        ref_id,
+        transaction_date as date,
+        description as desc,
+        debit as dr,
+        credit as cr,
+        balance
+      FROM customer_ledger
+      WHERE $whereClause
+      ORDER BY transaction_date ASC, id ASC
+    ''', args);
+
+    if (ledgerEntries.isEmpty) return [];
+
+    // 2. Fetch Items for Invoices (Filtered by same date range for performance)
+    final invoiceItems = await db.rawQuery('''
+      SELECT 
+        ii.invoice_id,
+        ii.item_name_snapshot as name,
+        ii.quantity as qty,
+        ii.unit_price as rate,
+        ii.total_price as total
+      FROM invoice_items ii
+      JOIN invoices i ON ii.invoice_id = i.id
+      WHERE $itemsWhereClause
+    ''', itemsArgs);
+
+    // 3. Organize Items by Invoice ID
     Map<int, List<Map<String, dynamic>>> itemsMap = {};
-    for (var item in saleItems) {
-      int saleId = item['sale_id'] as int;
-      if (!itemsMap.containsKey(saleId)) itemsMap[saleId] = [];
-      itemsMap[saleId]!.add(item);
+    for (var item in invoiceItems) {
+      int invId = item['invoice_id'] as int;
+      if (!itemsMap.containsKey(invId)) itemsMap[invId] = [];
+      itemsMap[invId]!.add(item);
     }
 
-    // 5. Merge Sales & Payments into one Timeline
-    List<Map<String, dynamic>> timeline = [];
-
-    for (var sale in sales) {
-      int saleId = sale['ref_id'] as int;
-      Map<String, dynamic> row = Map.from(sale);
-      row['items'] = itemsMap[saleId] ?? [];
-      timeline.add(row);
-    }
-
-    for (var pay in payments) {
-      timeline.add(pay);
-    }
-
-    // 6. Sort by Date (OLDEST First) to calculate Running Balance
-    timeline.sort((a, b) {
-      DateTime dA = DateTime.tryParse(a['date'].toString()) ?? DateTime(1900);
-      DateTime dB = DateTime.tryParse(b['date'].toString()) ?? DateTime(1900);
-      return dA.compareTo(dB);
-    });
-
-    // 7. Calculate Running Balance
-    int runningBal = 0;
+    // 4. Merge
     List<Map<String, dynamic>> finalLedger = [];
-
-    for (var row in timeline) {
-      int dr = (row['dr'] as num).toInt();
-      int cr = (row['cr'] as num).toInt();
-      runningBal += (dr - cr);
-
+    for (var row in ledgerEntries) {
       Map<String, dynamic> newRow = Map.from(row);
-      newRow['balance'] = runningBal;
+      if (row['type'] == 'BILL') {
+        newRow['bill_no'] = (row['desc'] as String).replaceAll('Invoice #', '');
+        newRow['items'] = itemsMap[row['ref_id']] ?? [];
+      }
       finalLedger.add(newRow);
     }
 
-    // 8. Return Reversed (Newest First) for Display
+    // 5. Return Reversed (Newest First) for Display
     return finalLedger.reversed.toList();
   }
 
@@ -450,9 +466,8 @@ class CustomersRepository {
     final salesResult = await db.rawQuery('''
       SELECT 
         COUNT(*) as sale_count,
-        SUM(grand_total) as total_sales,
-        SUM(credit_amount) as total_credit
-      FROM sales
+        SUM(grand_total) as total_sales
+      FROM invoices
       WHERE customer_id = ? AND status = 'COMPLETED'
     ''', [customerId]);
 
@@ -461,7 +476,7 @@ class CustomersRepository {
       SELECT 
         COUNT(*) as payment_count,
         SUM(amount) as total_payments
-      FROM payments
+      FROM receipts
       WHERE customer_id = ?
     ''', [customerId]);
 
@@ -472,7 +487,7 @@ class CustomersRepository {
       'customer': customer,
       'saleCount': sales['sale_count'] ?? 0,
       'totalSales': (sales['total_sales'] as num?)?.toInt() ?? 0,
-      'totalCredit': (sales['total_credit'] as num?)?.toInt() ?? 0,
+      'totalCredit': 0, // Deprecated concept, use balance
       'paymentCount': payments['payment_count'] ?? 0,
       'totalPayments': (payments['total_payments'] as num?)?.toInt() ?? 0,
       'currentBalance': customer.outstandingBalance,
@@ -495,11 +510,11 @@ class CustomersRepository {
         SELECT 
           c.name_urdu, 
           c.name_english, 
-          SUM(s.grand_total) as total_amount,
-          COUNT(s.id) as sale_count
-        FROM sales s
-        LEFT JOIN customers c ON s.customer_id = c.id
-        WHERE s.sale_date = ? AND c.id IS NOT NULL AND s.status = 'COMPLETED'
+          SUM(i.grand_total) as total_amount,
+          COUNT(i.id) as sale_count
+        FROM invoices i
+        LEFT JOIN customers c ON i.customer_id = c.id
+        WHERE i.invoice_date LIKE ? AND c.id IS NOT NULL AND i.status = 'COMPLETED'
         GROUP BY c.id
         ORDER BY total_amount DESC
         LIMIT 5
@@ -556,9 +571,9 @@ class CustomersRepository {
     
     final result = await db.rawQuery('''
       SELECT COUNT(DISTINCT customer_id) as count
-      FROM sales
-      WHERE sale_date >= ? AND status = 'COMPLETED'
-    ''', [dateStr]);
+      FROM invoices
+      WHERE invoice_date >= ? AND status = 'COMPLETED'
+    ''', [dateStr]); // Note: invoice_date is datetime string, might need substring for date comparison if not careful, but >= works for ISO8601
     
     return (result.first['count'] as int?) ?? 0;
   }

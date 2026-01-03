@@ -1,0 +1,159 @@
+import 'dart:io';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import '../models/customer_model.dart';
+
+class LedgerExportService {
+  
+  /// Generate and Print/Share PDF Ledger
+  Future<void> exportToPdf(
+    List<Map<String, dynamic>> ledgerData, 
+    Customer customer, 
+    {bool isUrdu = false}
+  ) async {
+    final doc = pw.Document();
+    
+    // Load Fonts
+    // Ensure you have this font asset or fallback to a standard font
+    pw.Font font;
+    try {
+      final fontData = await rootBundle.load('assets/fonts/NooriNastaleeq.ttf');
+      font = pw.Font.ttf(fontData);
+    } catch (e) {
+      font = pw.Font.courier();
+    }
+    
+    final baseFont = isUrdu ? font : pw.Font.courier();
+
+    // Headers
+    final headers = ['Date', 'Doc No', 'Description', 'Debit', 'Credit', 'Balance'];
+    
+    // Map Data
+    final data = ledgerData.map((row) {
+      final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
+      final dateStr = DateFormat('dd-MM-yyyy').format(date);
+      
+      // Handle potential key mismatch from repo (dr/debit)
+      final debit = (row['debit'] ?? row['dr'] ?? 0) as int;
+      final credit = (row['credit'] ?? row['cr'] ?? 0) as int;
+      final balance = (row['balance'] ?? 0) as int;
+      
+      final type = row['type'].toString();
+      final refId = row['ref_no'].toString();
+      final docNo = type == 'SALE' ? 'INV-$refId' : 'RCP-';
+
+      return [
+        dateStr,
+        docNo,
+        row['description'] ?? '',
+        debit > 0 ? (debit / 100).toStringAsFixed(0) : '-',
+        credit > 0 ? (credit / 100).toStringAsFixed(0) : '-',
+        (balance / 100).toStringAsFixed(0),
+      ];
+    }).toList();
+
+    doc.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        theme: pw.ThemeData.withFont(base: baseFont),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Header
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(customer.nameEnglish, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                      pw.Text(customer.contactPrimary ?? '', style: const pw.TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text('CUSTOMER LEDGER', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                      pw.Text('Generated: ${DateFormat('dd-MM-yyyy HH:mm').format(DateTime.now())}', style: const pw.TextStyle(fontSize: 10)),
+                    ],
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 20),
+              
+              // Table
+              pw.Table.fromTextArray(
+                headers: headers,
+                data: data,
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+                headerDecoration: const pw.BoxDecoration(color: PdfColors.grey800),
+                cellAlignment: pw.Alignment.centerLeft,
+                cellAlignments: {
+                  0: pw.Alignment.centerLeft,
+                  1: pw.Alignment.centerLeft,
+                  2: pw.Alignment.centerLeft,
+                  3: pw.Alignment.centerRight,
+                  4: pw.Alignment.centerRight,
+                  5: pw.Alignment.centerRight,
+                },
+                columnWidths: {
+                  0: const pw.FlexColumnWidth(2), // Date
+                  1: const pw.FlexColumnWidth(2), // Doc No
+                  2: const pw.FlexColumnWidth(4), // Desc
+                  3: const pw.FlexColumnWidth(2), // Dr
+                  4: const pw.FlexColumnWidth(2), // Cr
+                  5: const pw.FlexColumnWidth(2), // Bal
+                }
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => doc.save(),
+      name: 'Ledger_${customer.nameEnglish}_${DateFormat('yyyyMMdd').format(DateTime.now())}',
+    );
+  }
+
+  /// Generate CSV for Excel
+  Future<String> exportToCsv(List<Map<String, dynamic>> ledgerData, Customer customer) async {
+    final buffer = StringBuffer();
+    
+    // CSV Header
+    buffer.writeln('Date,Doc No,Description,Debit,Credit,Balance');
+
+    for (var row in ledgerData) {
+      final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
+      final dateStr = DateFormat('yyyy-MM-dd').format(date); // ISO format better for Excel
+      
+      final debit = (row['debit'] ?? row['dr'] ?? 0) as int;
+      final credit = (row['credit'] ?? row['cr'] ?? 0) as int;
+      final balance = (row['balance'] ?? 0) as int;
+      
+      final type = row['type'].toString();
+      final refId = row['ref_no'].toString();
+      final docNo = type == 'SALE' ? 'INV-$refId' : 'RCP-$refId';
+      
+      // Escape description for CSV
+      String desc = row['description'] ?? '';
+      if (desc.contains(',')) desc = '"$desc"';
+
+      buffer.writeln('$dateStr,$docNo,$desc,${debit/100},${credit/100},${balance/100}');
+    }
+
+    // Save File
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/Ledger_${customer.nameEnglish}_${DateTime.now().millisecondsSinceEpoch}.csv';
+    final file = File(path);
+    await file.writeAsString(buffer.toString());
+    
+    return path;
+  }
+}

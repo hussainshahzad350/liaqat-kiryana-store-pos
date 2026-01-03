@@ -57,9 +57,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     final depts = await _repository.getAllDepartments();
 
+    if (!mounted) return;
     setState(() {
       _departments = depts;
       _isLoading = false;
@@ -89,6 +91,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Future<void> _loadCategories(int deptId) async {
+    if (!mounted) return;
     setState(() => _isLoadingCategories = true);
     final cats = await _repository.getCategoriesByDepartment(deptId);
     if (mounted) {
@@ -164,6 +167,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   // --- CRUD Dialogs ---
 
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+        ],
+      ),
+    );
+  }
+
   void _showDepartmentDialog({Department? department}) {
     final nameEnController = TextEditingController(text: department?.nameEn);
     final nameUrController = TextEditingController(text: department?.nameUr);
@@ -184,9 +200,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ElevatedButton(
             onPressed: () async {
               if (nameEnController.text.isEmpty) return;
+              
+              final exists = await _repository.departmentExists(nameEnController.text.trim(), excludeId: department?.id);
+              if (exists) {
+                if (context.mounted) _showErrorDialog('Department with this name already exists.');
+                return;
+              }
+
               final dept = Department(
                 id: department?.id,
-                nameEn: nameEnController.text,
+                nameEn: nameEnController.text.trim(),
                 nameUr: nameUrController.text,
                 isActive: department?.isActive ?? true,
                 isVisibleInPOS: department?.isVisibleInPOS ?? true,
@@ -234,10 +257,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ElevatedButton(
               onPressed: () async {
                 if (nameEnController.text.isEmpty || selectedDeptId == null) return;
+
+                final exists = await _repository.categoryExists(selectedDeptId!, nameEnController.text.trim(), excludeId: category?.id);
+                if (exists) {
+                  if (context.mounted) _showErrorDialog('Category with this name already exists in the selected department.');
+                  return;
+                }
+
                 final cat = Category(
                   id: category?.id,
                   departmentId: selectedDeptId,
-                  nameEn: nameEnController.text,
+                  nameEn: nameEnController.text.trim(),
                   nameUr: nameUrController.text,
                   isActive: category?.isActive ?? true,
                   isVisibleInPOS: category?.isVisibleInPOS ?? true,
@@ -288,10 +318,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ElevatedButton(
               onPressed: () async {
                 if (nameEnController.text.isEmpty || selectedCatId == null) return;
+
+                final exists = await _repository.subCategoryExists(selectedCatId!, nameEnController.text.trim(), excludeId: subCategory?.id);
+                if (exists) {
+                  if (context.mounted) _showErrorDialog('Subcategory with this name already exists in the selected category.');
+                  return;
+                }
+
                 final sub = SubCategory(
                   id: subCategory?.id,
                   categoryId: selectedCatId!,
-                  nameEn: nameEnController.text,
+                  nameEn: nameEnController.text.trim(),
                   nameUr: nameUrController.text,
                   isActive: subCategory?.isActive ?? true,
                   isVisibleInPOS: subCategory?.isVisibleInPOS ?? true,
@@ -315,7 +352,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Future<void> _deleteItem() async {
     if (_selectionLevel == 0) return;
 
-    final bool confirm = await showDialog(
+    final bool confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Delete'),

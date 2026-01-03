@@ -1515,4 +1515,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categoryCount => 'Count';
+
+  @override
+  String get packingType => 'Packing Type';
+
+  @override
+  String get searchTags => 'Search Tags';
+
+  @override
+  String get deleteItem => 'Delete Item';
 }
