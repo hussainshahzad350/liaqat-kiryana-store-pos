@@ -2,6 +2,7 @@
 import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
+import '../../models/supplier_model.dart';
 
 class SuppliersRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -85,6 +86,36 @@ class SuppliersRepository {
     ''', [q, q, query]);
   }
 
+  /// Get paged suppliers with optional search
+  Future<List<Supplier>> getSuppliersPaged({
+    required int limit,
+    required int offset,
+    String? query,
+  }) async {
+    final db = await _dbHelper.database;
+    List<Map<String, dynamic>> maps;
+
+    if (query != null && query.isNotEmpty) {
+      final q = '%$query%';
+      maps = await db.query(
+        'suppliers',
+        where: 'name_english LIKE ? OR name_urdu LIKE ? OR contact_primary LIKE ?',
+        whereArgs: [q, q, q],
+        orderBy: 'name_english ASC',
+        limit: limit,
+        offset: offset,
+      );
+    } else {
+      maps = await db.query(
+        'suppliers',
+        orderBy: 'name_english ASC',
+        limit: limit,
+        offset: offset,
+      );
+    }
+    return maps.map((e) => Supplier.fromMap(e)).toList();
+  }
+
   /// Get active suppliers only
   Future<List<Map<String, dynamic>>> getActiveSuppliers() async {
     final db = await _dbHelper.database;
@@ -152,6 +183,24 @@ class SuppliersRepository {
         {'outstanding_balance': newBalance},
         where: 'id = ?',
         whereArgs: [supplierId],
+      );
+    });
+  }
+
+  /// Add payment and update balance transactionally
+  Future<void> addPayment(int supplierId, int amount, String notes) async {
+    final db = await _dbHelper.database;
+    await db.transaction((txn) async {
+      await txn.insert('supplier_payments', {
+        'supplier_id': supplierId,
+        'amount': amount,
+        'payment_date': DateTime.now().toIso8601String(),
+        'notes': notes,
+      });
+
+      await txn.rawUpdate(
+        'UPDATE suppliers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
+        [amount, supplierId]
       );
     });
   }
@@ -254,6 +303,28 @@ class SuppliersRepository {
     };
   }
 
+  /// Get supplier statistics
+  Future<Map<String, dynamic>> getSupplierStats() async {
+    final db = await _dbHelper.database;
+
+    final activeRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM suppliers WHERE is_active = 1');
+    final countActive = (activeRes.first['count'] as int?) ?? 0;
+    final balActive = (activeRes.first['total'] as num? ?? 0).toInt();
+
+    final archRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM suppliers WHERE is_active = 0');
+    final countArchived = (archRes.first['count'] as int?) ?? 0;
+    final balArchived = (archRes.first['total'] as num? ?? 0).toInt();
+
+    return {
+      'countTotal': countActive + countArchived,
+      'balTotal': balActive + balArchived,
+      'countActive': countActive,
+      'balActive': balActive,
+      'countArchived': countArchived,
+      'balArchived': balArchived,
+    };
+  }
+
   // ========================================
   // BULK OPERATIONS
   // ========================================
@@ -342,27 +413,115 @@ class SuppliersRepository {
   // ========================================
 
   /// Get purchase history for supplier
-  /// TODO: Implement when purchase management is added
   Future<List<Map<String, dynamic>>> getSupplierPurchaseHistory(
     int supplierId,
   ) async {
-    // Placeholder for future implementation
-    return [];
+    final db = await _dbHelper.database;
+    return await db.query(
+      'purchases',
+      where: 'supplier_id = ?',
+      whereArgs: [supplierId],
+      orderBy: 'purchase_date DESC',
+    );
   }
 
   /// Get payment history for supplier
-  /// TODO: Implement when supplier payment tracking is added
   Future<List<Map<String, dynamic>>> getSupplierPaymentHistory(
     int supplierId,
   ) async {
-    // Placeholder for future implementation
-    return [];
+    final db = await _dbHelper.database;
+    return await db.query(
+      'supplier_payments',
+      where: 'supplier_id = ?',
+      whereArgs: [supplierId],
+      orderBy: 'payment_date DESC',
+    );
   }
 
   /// Get supplier ledger
-  /// TODO: Implement similar to customer ledger
-  Future<List<Map<String, dynamic>>> getSupplierLedger(int supplierId) async {
-    // Placeholder for future implementation
-    return [];
+  Future<List<Map<String, dynamic>>> getSupplierLedger(int supplierId, {DateTime? startDate, DateTime? endDate}) async {
+    final db = await _dbHelper.database;
+
+    // 1. Fetch Purchases (Bills)
+    final purchases = await db.rawQuery('''
+        SELECT 
+          'BILL' as type,
+          id as ref_id,
+          purchase_date as date,
+          invoice_number as bill_no,
+          total_amount as cr, -- We owe them (Credit)
+          0 as dr,
+          'Bill #' || COALESCE(invoice_number, '-') as desc
+        FROM purchases 
+        WHERE supplier_id = ?
+      ''', [supplierId]);
+
+    // 2. Fetch Payments
+    final payments = await db.rawQuery('''
+        SELECT 
+          'PAYMENT' as type,
+          id as ref_id,
+          payment_date as date,
+          'Payment Sent' as bill_no,
+          0 as cr,
+          amount as dr, -- We paid them (Debit)
+          notes as desc
+        FROM supplier_payments
+        WHERE supplier_id = ?
+      ''', [supplierId]);
+
+    // Combine
+    List<Map<String, dynamic>> timeline = [...purchases, ...payments];
+
+    // Sort by Date
+    timeline.sort((a, b) {
+      DateTime dA = DateTime.tryParse(a['date'].toString()) ?? DateTime(1900);
+      DateTime dB = DateTime.tryParse(b['date'].toString()) ?? DateTime(1900);
+      return dA.compareTo(dB);
+    });
+
+    // Calculate Running Balance
+    double runningBal = 0.0;
+    List<Map<String, dynamic>> finalLedger = [];
+
+    for (var row in timeline) {
+      int cr = (row['cr'] as num).toInt(); // Bill
+      int dr = (row['dr'] as num).toInt(); // Payment
+      runningBal += (cr - dr); // Payable Balance
+      if (runningBal < 0) runningBal = 0; // Balance always >= 0
+
+      Map<String, dynamic> newRow = Map.from(row);
+      newRow['balance'] = runningBal;
+      finalLedger.add(newRow);
+    }
+
+    // Filter by date after calculation to preserve running balance
+    if (startDate != null || endDate != null) {
+      final start = startDate ?? DateTime(1900);
+      final end = endDate != null ? DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59) : DateTime(2100);
+      finalLedger = finalLedger.where((row) {
+        final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
+        return date.isAfter(start.subtract(const Duration(seconds: 1))) && date.isBefore(end);
+      }).toList();
+    }
+
+    return finalLedger.reversed.toList();
+  }
+
+  /// Get items for a specific purchase bill
+  Future<List<Map<String, dynamic>>> getBillItems(int billId) async {
+    final db = await _dbHelper.database;
+    return await db.rawQuery('''
+        SELECT 
+          pi.quantity,
+          pi.cost_price,
+          pi.total_amount,
+          p.name_english,
+          p.name_urdu,
+          p.unit_type
+        FROM purchase_items pi
+        LEFT JOIN products p ON pi.product_id = p.id
+        WHERE pi.purchase_id = ?
+      ''', [billId]);
   }
 }

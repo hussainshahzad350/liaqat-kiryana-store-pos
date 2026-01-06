@@ -6,6 +6,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/customer_model.dart';
+import '../models/supplier_model.dart';
+import '../core/utils/currency_utils.dart';
 
 class LedgerExportService {
   
@@ -122,6 +124,86 @@ class LedgerExportService {
     );
   }
 
+  /// Generate and Print/Share PDF Ledger for Supplier
+  Future<void> exportSupplierLedgerToPdf(
+    List<Map<String, dynamic>> ledgerData, 
+    Supplier supplier, 
+    {bool isUrdu = false, PdfColor? headerColor}
+  ) async {
+    final doc = pw.Document();
+    
+    pw.Font font;
+    try {
+      final fontData = await rootBundle.load('assets/fonts/NooriNastaleeq.ttf');
+      font = pw.Font.ttf(fontData);
+    } catch (e) {
+      font = pw.Font.courier();
+    }
+    final baseFont = isUrdu ? font : pw.Font.courier();
+
+    final headers = ['Date', 'Description', 'Purchase Bill', 'Payment Sent', 'Payable Balance'];
+    
+    final data = ledgerData.map((row) {
+      final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
+      final dateStr = DateFormat('dd-MM-yyyy').format(date);
+      
+      final cr = (row['cr'] as num?)?.toInt() ?? 0;
+      final dr = (row['dr'] as num?)?.toInt() ?? 0;
+      final balance = (row['balance'] as num?)?.toInt() ?? 0;
+
+      return [
+        dateStr,
+        row['desc'] ?? '',
+        cr > 0 ? CurrencyUtils.formatRupees(cr) : '-',
+        dr > 0 ? CurrencyUtils.formatRupees(dr) : '-',
+        CurrencyUtils.formatRupees(balance),
+      ];
+    }).toList();
+
+    doc.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        theme: pw.ThemeData.withFont(base: baseFont),
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Header(
+                level: 0,
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(supplier.nameEnglish, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('SUPPLIER LEDGER', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              pw.Table.fromTextArray(
+                headers: headers,
+                data: data,
+                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+                headerDecoration: pw.BoxDecoration(color: headerColor ?? PdfColors.grey800),
+                cellAlignments: {
+                  0: pw.Alignment.centerLeft,
+                  1: pw.Alignment.centerLeft,
+                  2: pw.Alignment.centerRight,
+                  3: pw.Alignment.centerRight,
+                  4: pw.Alignment.centerRight,
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => doc.save(),
+      name: 'Supplier_Ledger_${supplier.nameEnglish}_${DateFormat('yyyyMMdd').format(DateTime.now())}',
+    );
+  }
+
   /// Generate CSV for Excel
   Future<String> exportToCsv(List<Map<String, dynamic>> ledgerData, Customer customer) async {
     final buffer = StringBuffer();
@@ -151,6 +233,37 @@ class LedgerExportService {
     // Save File
     final directory = await getApplicationDocumentsDirectory();
     final path = '${directory.path}/Ledger_${customer.nameEnglish}_${DateTime.now().millisecondsSinceEpoch}.csv';
+    final file = File(path);
+    await file.writeAsString(buffer.toString());
+    
+    return path;
+  }
+
+  /// Generate CSV for Supplier Ledger
+  Future<String> exportSupplierLedgerToCsv(List<Map<String, dynamic>> ledgerData, Supplier supplier) async {
+    final buffer = StringBuffer();
+    
+    // CSV Header
+    buffer.writeln('Date,Description,Purchase Bill,Payment Sent,Payable Balance');
+
+    for (var row in ledgerData) {
+      final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+      
+      final cr = (row['cr'] as num?)?.toInt() ?? 0;
+      final dr = (row['dr'] as num?)?.toInt() ?? 0;
+      final balance = (row['balance'] as num?)?.toInt() ?? 0;
+      
+      // Escape description
+      String desc = row['desc'] ?? '';
+      if (desc.contains(',')) desc = '"$desc"';
+
+      buffer.writeln('$dateStr,$desc,${cr/100},${dr/100},${balance/100}');
+    }
+
+    // Save File
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/Supplier_Ledger_${supplier.nameEnglish}_${DateTime.now().millisecondsSinceEpoch}.csv';
     final file = File(path);
     await file.writeAsString(buffer.toString());
     

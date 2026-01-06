@@ -28,7 +28,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 15, 
+      version: 16, 
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
@@ -295,6 +295,44 @@ class DatabaseHelper {
         case 15:
           await _migrateToV15(db);
           AppLogger.db('Performed migration to v15 (Accounting Overhaul & Ledger)');
+          break;
+
+        case 16:
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS purchases (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              supplier_id INTEGER NOT NULL,
+              invoice_number TEXT,
+              purchase_date TEXT,
+              total_amount INTEGER DEFAULT 0,
+              notes TEXT,
+              created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS purchase_items (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              purchase_id INTEGER NOT NULL,
+              product_id INTEGER,
+              quantity INTEGER DEFAULT 0,
+              cost_price INTEGER DEFAULT 0,
+              total_amount INTEGER DEFAULT 0,
+              FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS supplier_payments (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              supplier_id INTEGER NOT NULL,
+              amount INTEGER DEFAULT 0,
+              payment_date TEXT,
+              notes TEXT,
+              created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
+            )
+          ''');
+          AppLogger.db('Performed migration to v16 (Supplier Tables)');
           break;
 
         default:
@@ -674,6 +712,7 @@ class DatabaseHelper {
         name_urdu TEXT,
         contact_primary TEXT,
         address TEXT,
+        supplier_type TEXT,
         outstanding_balance INTEGER DEFAULT 0,
         is_active INTEGER DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -754,6 +793,44 @@ class DatabaseHelper {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (category_id) REFERENCES unit_categories (id) ON DELETE CASCADE,
         FOREIGN KEY (base_unit_id) REFERENCES units (id) ON DELETE SET NULL
+      )
+    ''');
+
+    // 16. Supplier Tables
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS purchases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        supplier_id INTEGER NOT NULL,
+        invoice_number TEXT,
+        purchase_date TEXT,
+        total_amount INTEGER DEFAULT 0,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS purchase_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        purchase_id INTEGER NOT NULL,
+        product_id INTEGER,
+        quantity INTEGER DEFAULT 0,
+        cost_price INTEGER DEFAULT 0,
+        total_amount INTEGER DEFAULT 0,
+        FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS supplier_payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        supplier_id INTEGER NOT NULL,
+        amount INTEGER DEFAULT 0,
+        payment_date TEXT,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
       )
     ''');
 
