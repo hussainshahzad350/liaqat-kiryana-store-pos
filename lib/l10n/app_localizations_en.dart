@@ -1524,4 +1524,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteItem => 'Delete Item';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get yes => 'Yes';
 }

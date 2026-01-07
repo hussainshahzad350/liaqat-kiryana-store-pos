@@ -1521,4 +1521,10 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get deleteItem => 'آئٹم حذف کریں';
+
+  @override
+  String get all => 'سب';
+
+  @override
+  String get yes => 'ہاں';
 }

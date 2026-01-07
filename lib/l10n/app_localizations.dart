@@ -3079,6 +3079,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete Item'**
   String get deleteItem;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
 }
 
 class _AppLocalizationsDelegate

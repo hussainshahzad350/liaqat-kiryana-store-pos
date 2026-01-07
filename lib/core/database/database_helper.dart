@@ -633,6 +633,7 @@ class DatabaseHelper {
         current_stock INTEGER DEFAULT 0,
         avg_cost_price INTEGER DEFAULT 0,
         sale_price INTEGER DEFAULT 0,
+        barcode TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
@@ -645,62 +646,44 @@ class DatabaseHelper {
         name_urdu TEXT,
         contact_primary TEXT,
         address TEXT,
+        email TEXT,
         credit_limit INTEGER DEFAULT 0,
         outstanding_balance INTEGER DEFAULT 0,
         is_active INTEGER DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
+    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_phone_unique ON customers(contact_primary)');
 
-    // 7. Sales
+
+    // 7. Invoices (Replaces Sales)
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS sales (
+      CREATE TABLE IF NOT EXISTS invoices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        bill_number TEXT NOT NULL UNIQUE,
+        invoice_number TEXT UNIQUE NOT NULL,
         customer_id INTEGER,
-        sale_date TEXT NOT NULL,
-        sale_time TEXT NOT NULL,
-        grand_total INTEGER NOT NULL DEFAULT 0.0,
-        cash_amount INTEGER NOT NULL DEFAULT 0.0,
-        bank_amount INTEGER NOT NULL DEFAULT 0.0,
-        credit_amount INTEGER NOT NULL DEFAULT 0.0,
-        total_paid INTEGER NOT NULL DEFAULT 0.0,
-        remaining_balance INTEGER NOT NULL DEFAULT 0.0,
-        discount INTEGER DEFAULT 0,
-        created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
-        updated_at TEXT,
-        status TEXT NOT NULL DEFAULT 'COMPLETED',
-        cancelled_at TEXT,
-        cancelled_by TEXT,
-        cancel_reason TEXT,
-        receipt_number TEXT UNIQUE,
-        sale_status TEXT,
-        original_sale_id INTEGER NULL,
-        sale_snapshot TEXT,
-        printed_count INTEGER DEFAULT 0,
-        language_code TEXT DEFAULT 'ur',
-        receipt_language TEXT DEFAULT 'ur',
-        receipt_printed INTEGER DEFAULT 0,
-        receipt_print_count INTEGER DEFAULT 0,
-        receipt_pdf_path TEXT,
-        edited_at TEXT,
-        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
+        invoice_date TEXT NOT NULL,
+        sub_total INTEGER NOT NULL,
+        discount_total INTEGER DEFAULT 0,
+        grand_total INTEGER NOT NULL,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'COMPLETED',
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
       )
     ''');
 
-    // 8. Sale Items
+    // 8. Invoice Items (Replaces Sale Items)
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS sale_items (
+      CREATE TABLE IF NOT EXISTS invoice_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sale_id INTEGER NOT NULL,
+        invoice_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
-        quantity_sold INTEGER NOT NULL,
+        item_name_snapshot TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
         unit_price INTEGER NOT NULL,
         total_price INTEGER NOT NULL,
-        item_name_english TEXT,
-        item_name_urdu TEXT,
-        unit_name TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE RESTRICT
       )
     ''');
 
@@ -728,25 +711,25 @@ class DatabaseHelper {
         description TEXT NOT NULL,
         type TEXT NOT NULL,
         amount INTEGER NOT NULL,
-        balance_after INTEGER, 
+        balance_after INTEGER,
         remarks TEXT
       )
     ''');
 
-    // 11. Payments Table
+    // 11. Receipts (Replaces Payments)
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS payments (
+      CREATE TABLE IF NOT EXISTS receipts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        receipt_number TEXT UNIQUE NOT NULL,
         customer_id INTEGER NOT NULL,
+        receipt_date TEXT NOT NULL,
         amount INTEGER NOT NULL,
-        date TEXT NOT NULL,
+        payment_mode TEXT DEFAULT 'CASH',
         notes TEXT,
-        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
       )
     ''');
-
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_payments_customer ON payments(customer_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(date)');
 
     // 12. Expense Categories
     await db.execute('''
@@ -758,14 +741,13 @@ class DatabaseHelper {
       )
     ''');
 
-    // 13. Receipt Table
+    // 13. sale_print_logs (was old receipts table)
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS receipts (
+      CREATE TABLE IF NOT EXISTS sale_print_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         sale_id INTEGER NOT NULL,
         receipt_type TEXT NOT NULL,
-        generated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE
+        generated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
     ''');
 
@@ -796,7 +778,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 16. Supplier Tables
+    // 16. Supplier Purchases
     await db.execute('''
       CREATE TABLE IF NOT EXISTS purchases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -822,6 +804,7 @@ class DatabaseHelper {
       )
     ''');
 
+    // 17. Supplier Payments
     await db.execute('''
       CREATE TABLE IF NOT EXISTS supplier_payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -834,20 +817,37 @@ class DatabaseHelper {
       )
     ''');
 
-    // 12. Performance Indexes
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_customer ON sales(customer_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_sale_items_sale ON sale_items(sale_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_sale_items_product ON sale_items(product_id)');
+    // 18. Customer Ledger
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS customer_ledger (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        transaction_date TEXT NOT NULL,
+        description TEXT NOT NULL,
+        ref_type TEXT NOT NULL CHECK (ref_type IN ('INVOICE', 'RECEIPT', 'RETURN', 'ADJUSTMENT')),
+        ref_id INTEGER NOT NULL,
+        debit INTEGER DEFAULT 0,
+        credit INTEGER DEFAULT 0,
+        balance INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+      )
+    ''');
+
 
     // Performance Indexes (Ensure these exist on fresh install)
     await db.execute('CREATE INDEX IF NOT EXISTS idx_products_name_english ON products(name_english)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_products_item_code ON products(item_code)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_name_english ON customers(name_english)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_contact ON customers(contact_primary)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_date ON sales(sale_date)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_status ON sales(status)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_sales_date_status ON sales(sale_date, status)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_products_stock ON products(current_stock)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(invoice_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_receipts_customer ON receipts(customer_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_receipts_date ON receipts(receipt_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ledger_customer_date ON customer_ledger(customer_id, transaction_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ledger_ref ON customer_ledger(ref_type, ref_id)');
   }
 
   Future<void> _insertSampleData(Database db) async {

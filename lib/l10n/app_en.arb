@@ -535,5 +535,7 @@
   "categoryCount": "Count",
   "packingType": "Packing Type",
   "searchTags": "Search Tags",
-  "deleteItem": "Delete Item"
+  "deleteItem": "Delete Item",
+  "all": "All",
+  "yes": "Yes"
 }

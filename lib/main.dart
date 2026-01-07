@@ -1,17 +1,27 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:liaqat_store/core/repositories/suppliers_repository.dart';
+import 'package:liaqat_store/core/repositories/categories_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/sales/sales_bloc.dart';
 import 'bloc/units/units_bloc.dart';
 import 'bloc/units/units_event.dart';
+import 'bloc/stock/stock_overveiw/stock_overview_bloc.dart';
+import 'bloc/stock/stock_overveiw/stock_overview_event.dart';
+import 'bloc/stock/stock_filter/stock_filter_bloc.dart';
+import 'bloc/stock/stock_filter/stock_filter_event.dart';
+import 'bloc/stock/stock_activity/stock_activity_bloc.dart';
+import 'bloc/stock/stock_activity/stock_activity_event.dart';
 import 'core/repositories/sales_repository.dart';
 import 'core/repositories/items_repository.dart';
 import 'core/repositories/customers_repository.dart';
 import 'core/repositories/settings_repository.dart';
 import 'core/repositories/units_repository.dart';
+import 'core/repositories/stock_repository.dart';
+import 'core/repositories/stock_activity_repository.dart';
 import 'core/theme/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -145,7 +155,23 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                     child: const SalesScreen(),
                   ),
                 ),
-            AppRoutes.stock: (context) => const MainLayout(currentRoute: AppRoutes.stock, child: StockScreen()),
+            AppRoutes.stock: (context) => MainLayout(
+                  currentRoute: AppRoutes.stock,
+                  child: MultiBlocProvider(
+                    providers: [
+                      BlocProvider(
+                        create: (context) => StockOverviewBloc(StockRepository())..add(const LoadStockOverview()),
+                      ),
+                      BlocProvider(
+                        create: (context) => StockFilterBloc(SuppliersRepository(), CategoriesRepository())..add(LoadFilters()),
+                      ),
+                      BlocProvider(
+                        create: (context) => StockActivityBloc(StockActivityRepository())..add(LoadStockActivities()),
+                      ),
+                    ],
+                    child: const StockScreen(),
+                  ),
+                ),
             AppRoutes.items: (context) => const MainLayout(currentRoute: AppRoutes.items, child: ItemsScreen()),
             AppRoutes.customers: (context) => const MainLayout(currentRoute: AppRoutes.customers, child: CustomersScreen()),
             AppRoutes.suppliers: (context) => const MainLayout(currentRoute: AppRoutes.suppliers, child: SuppliersScreen()),

@@ -542,5 +542,7 @@
   "error": "خرابی",
   "packingType": "پیکنگ کی قسم",
   "searchTags": "تلاش کے الفاظ",
-  "deleteItem": "آئٹم حذف کریں"
+  "deleteItem": "آئٹم حذف کریں",
+  "all": "سب",
+  "yes": "ہاں"
 }
