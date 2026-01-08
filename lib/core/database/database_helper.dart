@@ -28,7 +28,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 16, 
+      version: 20, 
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
       onUpgrade: _upgradeDB,
@@ -306,6 +306,7 @@ class DatabaseHelper {
               purchase_date TEXT,
               total_amount INTEGER DEFAULT 0,
               notes TEXT,
+              status TEXT DEFAULT 'COMPLETED',
               created_at TEXT DEFAULT CURRENT_TIMESTAMP,
               FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
             )
@@ -318,6 +319,8 @@ class DatabaseHelper {
               quantity INTEGER DEFAULT 0,
               cost_price INTEGER DEFAULT 0,
               total_amount INTEGER DEFAULT 0,
+              batch_number TEXT,
+              expiry_date TEXT,
               FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE
             )
           ''');
@@ -333,6 +336,58 @@ class DatabaseHelper {
             )
           ''');
           AppLogger.db('Performed migration to v16 (Supplier Tables)');
+          break;
+
+        case 17:
+          if (!await _columnExists(db, 'purchases', 'status')) {
+            await db.execute("ALTER TABLE purchases ADD COLUMN status TEXT DEFAULT 'COMPLETED'");
+          }
+          if (!await _columnExists(db, 'purchase_items', 'batch_number')) {
+            await db.execute("ALTER TABLE purchase_items ADD COLUMN batch_number TEXT");
+          }
+          if (!await _columnExists(db, 'purchase_items', 'expiry_date')) {
+            await db.execute("ALTER TABLE purchase_items ADD COLUMN expiry_date TEXT");
+          }
+          AppLogger.db('Performed migration to v17 (Purchase Batch & Expiry)');
+          break;
+
+        case 18:
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS stock_adjustments (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              product_id INTEGER NOT NULL,
+              adjustment_date TEXT NOT NULL,
+              quantity_change REAL NOT NULL,
+              reason TEXT NOT NULL,
+              reference TEXT,
+              user TEXT DEFAULT 'Admin',
+              created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+              FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+            )
+          ''');
+          AppLogger.db('Performed migration to v18 (Stock Adjustments)');
+          break;
+
+        case 19:
+          if (!await _columnExists(db, 'products', 'expiry_date')) {
+            await db.execute("ALTER TABLE products ADD COLUMN expiry_date TEXT");
+          }
+          AppLogger.db('Performed migration to v19 (Product Expiry Date)');
+          break;
+
+
+        case 20:
+          if (!await _columnExists(db, 'purchase_items', 'batch_number')) {
+            await db.execute(
+              "ALTER TABLE purchase_items ADD COLUMN batch_number TEXT"
+            );
+          }
+
+          if (!await _columnExists(db, 'purchase_items', 'expiry_date')) {
+            await db.execute(
+              "ALTER TABLE purchase_items ADD COLUMN expiry_date TEXT"
+            );
+          }
           break;
 
         default:
@@ -634,6 +689,7 @@ class DatabaseHelper {
         avg_cost_price INTEGER DEFAULT 0,
         sale_price INTEGER DEFAULT 0,
         barcode TEXT,
+        expiry_date TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
@@ -787,6 +843,7 @@ class DatabaseHelper {
         purchase_date TEXT,
         total_amount INTEGER DEFAULT 0,
         notes TEXT,
+        status TEXT DEFAULT 'COMPLETED',
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
       )
@@ -800,6 +857,8 @@ class DatabaseHelper {
         quantity INTEGER DEFAULT 0,
         cost_price INTEGER DEFAULT 0,
         total_amount INTEGER DEFAULT 0,
+        batch_number TEXT,
+        expiry_date TEXT,
         FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE
       )
     ''');

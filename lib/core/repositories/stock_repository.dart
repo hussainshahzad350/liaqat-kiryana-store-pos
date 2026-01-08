@@ -31,11 +31,7 @@ class StockRepository {
     } else if (status == 'OUT') {
       whereClause += ' AND p.current_stock <= 0';
     } else if (status == 'EXPIRED') {
-      // TODO: Implement expiry date tracking to enable this filter.
-      // This will require:
-      // 1. A new `expiry_date` TEXT column in the `products` table (with a DB migration).
-      // 2. UI changes in the product add/edit screen to manage this date.
-      // 3. Logic here to filter based on `expiry_date <= DATE('now', '+30 day')` for near-expiry, etc.
+      whereClause += " AND p.expiry_date IS NOT NULL AND DATE(p.expiry_date) <= DATE('now', '+30 day')";
     } else if (status == 'OLD') {
       whereClause += " AND DATE(p.created_at) <= DATE('now', '-90 day')";
     }
@@ -89,14 +85,18 @@ class StockRepository {
       'SELECT COUNT(*) as count FROM products WHERE current_stock <= 0'
     );
 
+    // 4. Expiry Count
+    final expiryRes = await db.rawQuery(
+      "SELECT COUNT(*) as count FROM products WHERE expiry_date IS NOT NULL AND DATE(expiry_date) <= DATE('now', '+30 day')"
+    );
+
     return StockSummaryEntity(
       totalItemsCount: totalItems,
       totalStockCost: Money(totalCost),
       totalStockSalesValue: Money(totalSale),
       lowStockItemsCount: Sqflite.firstIntValue(lowStockRes) ?? 0,
       outOfStockItemsCount: Sqflite.firstIntValue(outStockRes) ?? 0,
-      // TODO: Implement expiry date tracking in products table
-      expiredOrNearExpiryCount: 0, 
+      expiredOrNearExpiryCount: Sqflite.firstIntValue(expiryRes) ?? 0,
       lastUpdated: DateTime.now(),
     );
   }
@@ -137,6 +137,7 @@ class StockRepository {
       salePrice: Money((row['sale_price'] as num?)?.toInt() ?? 0),
       categoryName: row['category_name'] as String?,
       lastUpdated: DateTime.now(), // DB doesn't have update_at on products yet
+      expiryDate: row['expiry_date'] != null ? DateTime.tryParse(row['expiry_date'] as String) : null,
     );
   }
 }

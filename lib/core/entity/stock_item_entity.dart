@@ -15,6 +15,7 @@ class StockItemEntity {
   final Money salePrice;
   final String? categoryName;
   final DateTime lastUpdated;
+  final DateTime? expiryDate;
 
   const StockItemEntity({
     required this.id,
@@ -29,6 +30,7 @@ class StockItemEntity {
     required this.salePrice,
     this.categoryName,
     required this.lastUpdated,
+    this.expiryDate,
   });
 
   // Domain Logic

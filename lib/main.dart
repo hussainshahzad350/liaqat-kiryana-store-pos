@@ -15,6 +15,8 @@ import 'bloc/stock/stock_filter/stock_filter_bloc.dart';
 import 'bloc/stock/stock_filter/stock_filter_event.dart';
 import 'bloc/stock/stock_activity/stock_activity_bloc.dart';
 import 'bloc/stock/stock_activity/stock_activity_event.dart';
+import 'bloc/purchase/purchase_bloc.dart';
+import 'bloc/purchase/purchase_event.dart';
 import 'core/repositories/sales_repository.dart';
 import 'core/repositories/items_repository.dart';
 import 'core/repositories/customers_repository.dart';
@@ -22,6 +24,7 @@ import 'core/repositories/settings_repository.dart';
 import 'core/repositories/units_repository.dart';
 import 'core/repositories/stock_repository.dart';
 import 'core/repositories/stock_activity_repository.dart';
+import 'core/repositories/purchase_repository.dart';
 import 'core/theme/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -29,6 +32,7 @@ import 'screens/sales/sales_screen.dart';
 import 'screens/stock/stock_screen.dart';
 import 'screens/items/items_screen.dart';
 import 'screens/customers/customers_screen.dart';
+import 'screens/purchase/purchase_screen.dart';
 import 'screens/suppliers/suppliers_screen.dart';
 import 'screens/categories/categories_screen.dart';
 import 'screens/units/units_screen.dart';
@@ -166,10 +170,26 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                         create: (context) => StockFilterBloc(SuppliersRepository(), CategoriesRepository())..add(LoadFilters()),
                       ),
                       BlocProvider(
-                        create: (context) => StockActivityBloc(StockActivityRepository())..add(LoadStockActivities()),
+                        create: (context) => StockActivityBloc(
+                          StockActivityRepository(),
+                          ItemsRepository(),
+                          PurchaseRepository(),
+                          SalesRepository(),
+                        )..add(LoadStockActivities()),
                       ),
                     ],
                     child: const StockScreen(),
+                  ),
+                ),
+            AppRoutes.purchase: (context) => MainLayout(
+                  currentRoute: AppRoutes.stock,
+                  child: BlocProvider(
+                    create: (context) => PurchaseBloc(
+                      purchaseRepository: PurchaseRepository(),
+                      suppliersRepository: SuppliersRepository(),
+                      itemsRepository: ItemsRepository(),
+                    )..add(InitializePurchase()),
+                    child: const PurchaseScreen(),
                   ),
                 ),
             AppRoutes.items: (context) => const MainLayout(currentRoute: AppRoutes.items, child: ItemsScreen()),

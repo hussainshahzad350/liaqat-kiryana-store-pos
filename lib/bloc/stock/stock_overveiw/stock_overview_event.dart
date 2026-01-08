@@ -20,4 +20,6 @@ class LoadStockOverview extends StockOverviewEvent {
   List<Object?> get props => [query, status, supplierId, categoryId];
 }
 
+class LoadMoreStockOverview extends StockOverviewEvent {}
+
 class RefreshStockOverview extends StockOverviewEvent {}

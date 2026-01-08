@@ -105,7 +105,7 @@ class ItemsRepository {
   }
 
   /// Adjust stock (add or subtract)
-  Future<int> adjustStock(int id, num adjustment, {String? reason}) async {
+  Future<int> adjustStock(int id, num adjustment, {String? reason, String? reference}) async {
     final db = await _dbHelper.database;
     
     return await db.transaction((txn) async {
@@ -128,6 +128,16 @@ class ItemsRepository {
       if (newStock < 0) {
         throw Exception('Stock cannot be negative');
       }
+
+      // Log Adjustment
+      await txn.insert('stock_adjustments', {
+        'product_id': id,
+        'adjustment_date': DateTime.now().toIso8601String(),
+        'quantity_change': adjustment,
+        'reason': reason ?? 'Manual Adjustment',
+        'reference': reference,
+        'user': 'Admin', // Replace with actual user if auth exists
+      });
 
       // Update stock
       return await txn.update(

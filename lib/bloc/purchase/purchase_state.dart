@@ -1,12 +1,11 @@
-import 'package:flutter/foundation.dart';
+import 'package:equatable/equatable.dart';
 import '../../../core/entity/purchase_bill_entity.dart';
-import '../../../models/product_model.dart';
 import '../../../domain/entities/money.dart';
+import '../../../models/product_model.dart';
 
 enum PurchaseStatus { initial, loading, ready, submitting, success, failure }
 
-@immutable
-class PurchaseState {
+class PurchaseState extends Equatable {
   final PurchaseStatus status;
   final List<Map<String, dynamic>> suppliers;
   final List<Product> products;
@@ -24,11 +23,9 @@ class PurchaseState {
   });
 
   Money get totalAmount {
-    int total = 0;
-    for (var item in cartItems) {
-      total += item.totalCost.paisas;
-    }
-    return Money(total);
+    // Fix: Use totalAmount.paisas (int) instead of undefined totalCost or double calculations
+    int totalPaisas = cartItems.fold(0, (sum, item) => sum + item.totalAmount.paisas);
+    return Money(totalPaisas);
   }
 
   PurchaseState copyWith({
@@ -48,4 +45,7 @@ class PurchaseState {
       error: error ?? this.error,
     );
   }
+
+  @override
+  List<Object?> get props => [status, suppliers, products, selectedSupplierId, cartItems, error];
 }

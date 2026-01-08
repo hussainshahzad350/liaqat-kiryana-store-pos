@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/repositories/purchase_repository.dart';
 import '../../../core/repositories/suppliers_repository.dart';
@@ -67,17 +68,23 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
     emit(state.copyWith(status: PurchaseStatus.submitting));
 
     try {
-      final bill = PurchaseBillEntity(
-        supplierId: state.selectedSupplierId!,
-        invoiceNumber: event.invoiceNumber,
-        purchaseDate: DateTime.now(),
-        totalAmount: state.totalAmount,
-        notes: event.notes,
-        items: state.cartItems,
-        createdAt: DateTime.now(),
-      );
+      final purchaseData = {
+        'supplier_id': state.selectedSupplierId,
+        'invoice_number': event.invoiceNumber,
+        'purchase_date': DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()),
+        'total_amount': state.totalAmount.paisas,
+        'notes': event.notes,
+        'items': state.cartItems.map((item) => {
+          'product_id': item.productId,
+          'quantity': item.quantity,
+          'cost_price': item.costPrice.paisas,
+          'total_amount': item.totalAmount.paisas,
+          'batch_number': item.batchNumber,
+          'expiry_date': item.expiryDate,
+        }).toList(),
+      };
 
-      await _purchaseRepository.createPurchase(bill);
+      await _purchaseRepository.createPurchase(purchaseData);
       emit(state.copyWith(status: PurchaseStatus.success));
     } catch (e) {
       emit(state.copyWith(status: PurchaseStatus.failure, error: e.toString()));

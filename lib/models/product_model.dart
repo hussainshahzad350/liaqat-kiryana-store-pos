@@ -14,6 +14,7 @@ class Product {
   final int currentStock;
   final int avgCostPrice;
   final int salePrice;
+  final DateTime? expiryDate;
   final DateTime createdAt;
 
   Product({
@@ -32,6 +33,7 @@ class Product {
     this.currentStock = 0,
     this.avgCostPrice = 0,
     this.salePrice = 0,
+    this.expiryDate,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -53,6 +55,7 @@ class Product {
       currentStock: (map['current_stock'] ?? 0) as int,
       avgCostPrice: (map['avg_cost_price'] ?? 0) as int,
       salePrice: (map['sale_price'] ?? 0) as int,
+      expiryDate: map['expiry_date'] != null ? DateTime.tryParse(map['expiry_date'] as String) : null,
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'] as String) ?? DateTime.now()
           : DateTime.now(),
@@ -77,6 +80,7 @@ class Product {
       'current_stock': currentStock,
       'avg_cost_price': avgCostPrice,
       'sale_price': salePrice,
+      'expiry_date': expiryDate?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -98,6 +102,7 @@ class Product {
     int? currentStock,
     int? avgCostPrice,
     int? salePrice,
+    DateTime? expiryDate,
     DateTime? createdAt,
   }) {
     return Product(
@@ -116,6 +121,7 @@ class Product {
       currentStock: currentStock ?? this.currentStock,
       avgCostPrice: avgCostPrice ?? this.avgCostPrice,
       salePrice: salePrice ?? this.salePrice,
+      expiryDate: expiryDate ?? this.expiryDate,
       createdAt: createdAt ?? this.createdAt,
     );
   }

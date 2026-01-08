@@ -1,121 +1,107 @@
 import '../database/database_helper.dart';
-import '../entity/purchase_bill_entity.dart';
-import '../../domain/entities/money.dart';
+import '../utils/logger.dart';
 
 class PurchaseRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  /// Create a new purchase bill
-  /// 1. Inserts Bill
-  /// 2. Inserts Items
-  /// 3. Updates Product Stock & Avg Cost
-  /// 4. Updates Supplier Balance
-  Future<int> createPurchase(PurchaseBillEntity bill) async {
+  Future<int> createPurchase(Map<String, dynamic> purchaseData) async {
     final db = await _dbHelper.database;
-
     return await db.transaction((txn) async {
-      // 1. Insert Purchase Record
+      // 1. Insert Purchase
       final purchaseId = await txn.insert('purchases', {
-        'supplier_id': bill.supplierId,
-        'invoice_number': bill.invoiceNumber,
-        'purchase_date': bill.purchaseDate.toIso8601String(),
-        'total_amount': bill.totalAmount.paisas,
-        'notes': bill.notes,
+        'supplier_id': purchaseData['supplier_id'],
+        'invoice_number': purchaseData['invoice_number'],
+        'purchase_date': purchaseData['purchase_date'],
+        'total_amount': purchaseData['total_amount'],
+        'notes': purchaseData['notes'],
+        'status': 'COMPLETED',
       });
 
-      // 2. Process Items
-      for (var item in bill.items) {
-        // Insert Item
+      // 2. Insert Items & Update Stock
+      for (var item in purchaseData['items']) {
         await txn.insert('purchase_items', {
           'purchase_id': purchaseId,
-          'product_id': item.productId,
-          'quantity': item.quantity,
-          'cost_price': item.costPrice.paisas,
-          'total_amount': item.totalCost.paisas,
+          'product_id': item['product_id'],
+          'quantity': item['quantity'],
+          'cost_price': item['cost_price'],
+          'total_amount': item['total_amount'],
+          'batch_number': item['batch_number'],
+          'expiry_date': item['expiry_date'],
         });
 
-        // 3. Update Product (Stock + Weighted Avg Cost)
-        // Fetch current state
-        final productRes = await txn.query(
-          'products',
-          columns: ['current_stock', 'avg_cost_price'],
-          where: 'id = ?',
-          whereArgs: [item.productId],
+        // Update Product Stock
+        await txn.rawUpdate(
+          'UPDATE products SET current_stock = current_stock + ? WHERE id = ?',
+          [item['quantity'], item['product_id']]
         );
-
-        if (productRes.isNotEmpty) {
-          final currentStock = (productRes.first['current_stock'] as num).toDouble();
-          final currentCost = (productRes.first['avg_cost_price'] as num).toInt();
-
-          final newStock = currentStock + item.quantity;
-          
-          // Weighted Average Formula:
-          // ((OldStock * OldCost) + (NewQty * NewCost)) / TotalStock
-          final oldTotalVal = currentStock * currentCost;
-          final newTotalVal = item.quantity * item.costPrice.paisas;
-          
-          int newAvgCost = currentCost;
-          if (newStock > 0) {
-            newAvgCost = ((oldTotalVal + newTotalVal) / newStock).round();
-          }
-
-          await txn.update(
-            'products',
-            {
-              'current_stock': newStock,
-              'avg_cost_price': newAvgCost,
-            },
-            where: 'id = ?',
-            whereArgs: [item.productId],
-          );
-        }
+      }
+      
+      // 3. Update Supplier Balance (Payable increases)
+      if (purchaseData['supplier_id'] != null) {
+        await txn.rawUpdate(
+          'UPDATE suppliers SET outstanding_balance = outstanding_balance + ? WHERE id = ?',
+          [purchaseData['total_amount'], purchaseData['supplier_id']]
+        );
       }
 
-      // 4. Update Supplier Balance (We owe them money)
-      await txn.rawUpdate(
-        'UPDATE suppliers SET outstanding_balance = outstanding_balance + ? WHERE id = ?',
-        [bill.totalAmount.paisas, bill.supplierId],
-      );
-
+      AppLogger.info('Purchase created successfully: $purchaseId', tag: 'PurchaseRepo');
       return purchaseId;
     });
   }
 
-  /// Get purchase details by ID
-  Future<PurchaseBillEntity?> getPurchaseById(int id) async {
+  /// Cancel a purchase and revert all effects (Stock, Balance)
+  Future<void> cancelPurchase(int purchaseId, {String reason = 'Cancelled'}) async {
     final db = await _dbHelper.database;
-    
-    // Fetch Bill
-    final billRes = await db.query('purchases', where: 'id = ?', whereArgs: [id]);
-    if (billRes.isEmpty) return null;
-    final billRow = billRes.first;
+    await db.transaction((txn) async {
+      // 1. Fetch Purchase
+      final purchaseRes = await txn.query(
+        'purchases',
+        where: 'id = ?',
+        whereArgs: [purchaseId],
+      );
 
-    // Fetch Items
-    final itemsRes = await db.rawQuery('''
-      SELECT pi.*, p.name_english as product_name 
-      FROM purchase_items pi
-      LEFT JOIN products p ON pi.product_id = p.id
-      WHERE pi.purchase_id = ?
-    ''', [id]);
+      if (purchaseRes.isEmpty) throw Exception('Purchase not found');
+      final purchase = purchaseRes.first;
 
-    final items = itemsRes.map((row) => PurchaseItemEntity(
-      id: row['id'] as int,
-      productId: row['product_id'] as int,
-      productName: row['product_name'] as String? ?? 'Unknown',
-      quantity: (row['quantity'] as num).toDouble(),
-      costPrice: Money((row['cost_price'] as num).toInt()),
-      totalCost: Money((row['total_amount'] as num).toInt()),
-    )).toList();
+      if (purchase['status'] == 'CANCELLED') {
+        throw Exception('Purchase is already cancelled');
+      }
 
-    return PurchaseBillEntity(
-      id: billRow['id'] as int,
-      supplierId: billRow['supplier_id'] as int,
-      invoiceNumber: billRow['invoice_number'] as String,
-      purchaseDate: DateTime.parse(billRow['purchase_date'] as String),
-      totalAmount: Money((billRow['total_amount'] as num).toInt()),
-      notes: billRow['notes'] as String?,
-      items: items,
-      createdAt: DateTime.parse(billRow['created_at'] as String),
-    );
+      // 2. Fetch Items
+      final items = await txn.query(
+        'purchase_items',
+        where: 'purchase_id = ?',
+        whereArgs: [purchaseId],
+      );
+
+      // 3. Reverse Stock (Subtract quantity)
+      for (var item in items) {
+        await txn.rawUpdate(
+          'UPDATE products SET current_stock = current_stock - ? WHERE id = ?',
+          [item['quantity'], item['product_id']]
+        );
+      }
+
+      // 4. Reverse Supplier Balance (Decrease payable)
+      if (purchase['supplier_id'] != null) {
+        await txn.rawUpdate(
+          'UPDATE suppliers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
+          [purchase['total_amount'], purchase['supplier_id']]
+        );
+      }
+
+      // 5. Mark Cancelled
+      await txn.update(
+        'purchases',
+        {
+          'status': 'CANCELLED',
+          'notes': '${purchase['notes'] ?? ''}\n[Cancelled: $reason]',
+        },
+        where: 'id = ?',
+        whereArgs: [purchaseId],
+      );
+
+      AppLogger.info('Purchase #$purchaseId cancelled', tag: 'PurchaseRepo');
+    });
   }
 }

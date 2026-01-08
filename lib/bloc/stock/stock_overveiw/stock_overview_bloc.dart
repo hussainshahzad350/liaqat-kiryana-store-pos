@@ -1,16 +1,22 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/repositories/stock_repository.dart';
-import 'stock_overview_event.dart';
-import 'stock_overview_state.dart';
+import '../../../../bloc/stock/stock_overveiw/stock_overview_event.dart';
+import '../../../../bloc/stock/stock_overveiw/stock_overview_state.dart';
 
 class StockOverviewBloc extends Bloc<StockOverviewEvent, StockOverviewState> {
   final StockRepository _stockRepository;
 
+  // Track current filters for pagination
+  String? _currentQuery;
+  String? _currentStatus;
+  int? _currentSupplierId;
+  int? _currentCategoryId;
+
   StockOverviewBloc(this._stockRepository) : super(StockOverviewInitial()) {
     on<LoadStockOverview>(_onLoadStockOverview);
+    on<LoadMoreStockOverview>(_onLoadMoreStockOverview);
     on<RefreshStockOverview>((event, emit) {
-      // Re-trigger load with defaults or keep current state params if we tracked them
-      add(const LoadStockOverview());
+      add(LoadStockOverview(query: _currentQuery, status: _currentStatus, supplierId: _currentSupplierId, categoryId: _currentCategoryId));
     });
   }
 
@@ -18,6 +24,12 @@ class StockOverviewBloc extends Bloc<StockOverviewEvent, StockOverviewState> {
     LoadStockOverview event,
     Emitter<StockOverviewState> emit,
   ) async {
+    // Update current filters
+    _currentQuery = event.query;
+    _currentStatus = event.status;
+    _currentSupplierId = event.supplierId;
+    _currentCategoryId = event.categoryId;
+
     emit(StockOverviewLoading());
     try {
       // Fetch items with filters
@@ -26,6 +38,7 @@ class StockOverviewBloc extends Bloc<StockOverviewEvent, StockOverviewState> {
         status: event.status,
         supplierId: event.supplierId,
         categoryId: event.categoryId,
+        offset: 0,
       );
 
       // Fetch KPIs
@@ -34,9 +47,35 @@ class StockOverviewBloc extends Bloc<StockOverviewEvent, StockOverviewState> {
       emit(StockOverviewLoaded(
         items: items,
         summary: summary,
+        hasReachedMax: items.length < 100, // Assuming default limit is 100 in Repo
       ));
     } catch (e) {
       emit(StockOverviewError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadMoreStockOverview(
+    LoadMoreStockOverview event,
+    Emitter<StockOverviewState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is StockOverviewLoaded && !currentState.hasReachedMax) {
+      try {
+        final moreItems = await _stockRepository.getStockItems(
+          query: _currentQuery,
+          status: _currentStatus,
+          supplierId: _currentSupplierId,
+          categoryId: _currentCategoryId,
+          offset: currentState.items.length,
+        );
+
+        emit(currentState.copyWith(
+          items: currentState.items + moreItems,
+          hasReachedMax: moreItems.isEmpty,
+        ));
+      } catch (e) {
+        // Ignore error on pagination or handle gracefully
+      }
     }
   }
 }
