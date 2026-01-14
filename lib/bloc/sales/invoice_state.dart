@@ -1,18 +1,18 @@
-import 'package.equatable/equatable.dart';
-import '../../../../../models/product_model.dart';
-import '../../../../../models/customer_model.dart';
-import '../../../../../models/sale_model.dart';
-import '../../../../../domain/entities/money.dart';
-import '../../../../../models/cart_item_model.dart';
+import 'package:equatable/equatable.dart';
+import '../../models/product_model.dart';
+import '../../models/customer_model.dart';
+import '../../models/invoice_model.dart';
+import '../../domain/entities/money.dart';
+import '../../models/cart_item_model.dart';
 
-enum SalesStatus { initial, loading, ready, success, error }
+enum InvoiceStatus { initial, loading, ready, success, error }
 
-class SalesState extends Equatable {
-  final SalesStatus status;
+class InvoiceState extends Equatable {
+  final InvoiceStatus status;
   final List<Product> products;
   final List<Product> filteredProducts;
   final List<Customer> filteredCustomers;
-  final List<Sale> recentSales;
+  final List<Invoice> recentInvoices;
   final List<CartItem> cartItems;
   final Customer? selectedCustomer;
   final Money subtotal;
@@ -23,12 +23,12 @@ class SalesState extends Equatable {
   final String? successMessage;
   final bool showCustomerList;
 
-  const SalesState({
-    this.status = SalesStatus.initial,
+  const InvoiceState({
+    this.status = InvoiceStatus.initial,
     this.products = const [],
     this.filteredProducts = const [],
     this.filteredCustomers = const [],
-    this.recentSales = const [],
+    this.recentInvoices = const [],
     this.cartItems = const [],
     this.selectedCustomer,
     this.subtotal = const Money(0),
@@ -40,12 +40,12 @@ class SalesState extends Equatable {
     this.showCustomerList = false,
   });
 
-  SalesState copyWith({
-    SalesStatus? status,
+  InvoiceState copyWith({
+    InvoiceStatus? status,
     List<Product>? products,
     List<Product>? filteredProducts,
     List<Customer>? filteredCustomers,
-    List<Sale>? recentSales,
+    List<Invoice>? recentInvoices,
     List<CartItem>? cartItems,
     Customer? selectedCustomer,
     bool clearCustomer = false,
@@ -57,12 +57,12 @@ class SalesState extends Equatable {
     String? successMessage,
     bool? showCustomerList,
   }) {
-    return SalesState(
+    return InvoiceState(
       status: status ?? this.status,
       products: products ?? this.products,
       filteredProducts: filteredProducts ?? this.filteredProducts,
       filteredCustomers: filteredCustomers ?? this.filteredCustomers,
-      recentSales: recentSales ?? this.recentSales,
+      recentInvoices: recentInvoices ?? this.recentInvoices,
       cartItems: cartItems ?? this.cartItems,
       selectedCustomer: clearCustomer ? null : (selectedCustomer ?? this.selectedCustomer),
       subtotal: subtotal ?? this.subtotal,
@@ -81,7 +81,7 @@ class SalesState extends Equatable {
         products,
         filteredProducts,
         filteredCustomers,
-        recentSales,
+        recentInvoices,
         cartItems,
         selectedCustomer,
         subtotal,

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
-import '../../core/repositories/sales_repository.dart';
+import '../../core/repositories/invoice_repository.dart';
 import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../core/routes/app_routes.dart';
@@ -23,7 +23,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final SalesRepository _salesRepository = SalesRepository();
+  final InvoiceRepository _invoiceRepository = InvoiceRepository();
   final CustomersRepository _customersRepository = CustomersRepository();
   final ItemsRepository _itemsRepository = ItemsRepository();
   // State variables
@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int todaySales = 0;
   List<Map<String, dynamic>> todayCustomers = [];
   List<Map<String, dynamic>> lowStockItems = [];
-  List<Map<String, dynamic>> recentSales = [];
+  List<Invoice> recentSales = [];
 
   @override
   void initState() {
@@ -61,10 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final results = await Future.wait([
-        _salesRepository.getTodaySales(),
+        _invoiceRepository.getTodayInvoiceTotal(),
         _customersRepository.getTodayCustomers(),
         _itemsRepository.getLowStockItems(),
-        _salesRepository.getRecentActivities(limit: 10),
+        _invoiceRepository.getRecentInvoices(limit: 10),
       ]);
 
       if (!mounted) return;
@@ -73,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
         todaySales = results[0] as int;
         todayCustomers = results[1] as List<Map<String, dynamic>>;
         lowStockItems = results[2] as List<Map<String, dynamic>>;
-        recentSales = results[3] as List<Map<String, dynamic>>;
+        recentSales = results[3] as List<Invoice>;
       });
     } catch (e) {
       print('Error loading data: $e');
@@ -1026,9 +1026,9 @@ class _HomeScreenState extends State<HomeScreen> {
   );
   }
   // NEW METHOD: Build individual activity row
-  Widget _buildActivityRow(Map<String, dynamic> activity, AppLocalizations localizations, ColorScheme colorScheme) {
-  final activityType = activity['activity_type']?.toString();
-  final status = activity['status']?.toString();
+  Widget _buildActivityRow(Invoice activity, AppLocalizations localizations, ColorScheme colorScheme) {
+  final activityType = 'SALE';
+  final status = activity.status;
   
   return _HoverableListItem(
     child: Container(
@@ -1059,7 +1059,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      activity['title']?.toString() ?? localizations.unknown,
+                      activity.invoiceNumber,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -1068,9 +1068,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (activity['customer_name'] != null)
+                    if (activity.customerName != null)
                       Text(
-                        activity['customer_name'].toString(),
+                        activity.customerName!,
                         style: TextStyle(
                           fontSize: 10,
                           color: colorScheme.onSurfaceVariant,
@@ -1251,30 +1251,15 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations, ColorSc
     }
   }
 
-  String _getActivityDetails(Map<String, dynamic> activity, AppLocalizations localizations) {
-    final type = activity['activity_type']?.toString();
-    switch (type) {
-      case 'SALE':
-        final amount = (activity['amount'] as num?)?.toInt() ?? 0;
-        final customer = activity['customer_name']?.toString() ?? localizations.cashSale;
-        return '$customer - ${CurrencyUtils.formatNoDecimal(Money(amount))}';
-      case 'PAYMENT':
-        final amount = (activity['amount'] as num?)?.toInt() ?? 0;
-        return CurrencyUtils.formatNoDecimal(Money(amount));
-      case 'ALERT':
-        final stock = activity['stock_level'];
-        final unit = activity['unit_name']?.toString() ?? 'units';
-        return _buildOnlyLeftText(localizations, stock, unit);
-      default:
-        return '';
-    }
+  String _getActivityDetails(Invoice activity, AppLocalizations localizations) {
+    final amount = activity.grandTotal;
+    final customer = activity.customerName ?? localizations.cashSale;
+    return '$customer - ${CurrencyUtils.formatNoDecimal(Money(amount))}';
   }
 
-  String _getRelativeTime(String? timestamp, AppLocalizations localizations) {
-  if (timestamp == null || timestamp.isEmpty) return '';
-  
+  String _getRelativeTime(DateTime timestamp, AppLocalizations localizations) {
   try {
-    final activityTime = DateTime.parse(timestamp);
+    final activityTime = timestamp;
     final now = DateTime.now();
     final difference = now.difference(activityTime);
 

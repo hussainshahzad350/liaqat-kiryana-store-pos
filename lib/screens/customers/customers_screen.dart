@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:liaqat_store/core/utils/currency_utils.dart';
 import 'package:liaqat_store/core/repositories/customers_repository.dart';
-import 'package:liaqat_store/core/repositories/sales_repository.dart';
+import 'package:liaqat_store/core/repositories/invoice_repository.dart';
 import 'package:liaqat_store/services/ledger_export_service.dart';
-import 'package:liaqat_store/models/sale_model.dart';
+import 'package:liaqat_store/models/invoice_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/customer_model.dart';
 import '../../domain/entities/money.dart';
@@ -21,7 +21,7 @@ class CustomersScreen extends StatefulWidget {
 
 class _CustomersScreenState extends State<CustomersScreen> {
   final CustomersRepository _customersRepository = CustomersRepository();
-  final SalesRepository _salesRepository = SalesRepository();
+  final InvoiceRepository _invoiceRepository = InvoiceRepository();
   final LedgerExportService _ledgerExportService = LedgerExportService();
   // --- STATE VARIABLES ---
   List<Customer> customers = [];
@@ -415,12 +415,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
       height: 115,
       child: Row(
         children: [
-          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, balTotal, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, Money(balTotal), null)),
           const SizedBox(width: 8),
-          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, balActive, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, Money(balActive), null)),
           const SizedBox(width: 8),
           Expanded(
-            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, balArchived, () { 
+            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, Money(balArchived), () {
                setState(() {
                  _showArchiveOverlay = true;
                  _loadArchivedCustomers();
@@ -541,7 +541,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 onSelected: (value) {
                   if (value == 'edit') _showAddDialog(customer: customer);
                   if (value == 'archive') _toggleArchiveStatus(customer.id!, true);
-                  if (value == 'delete') _deleteCustomer(customer.id!, balance);
+                  if (value == 'delete') _deleteCustomer(customer.id!, balance.paisas);
                 },
                 itemBuilder: (context) => [
                    PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18, color: colorScheme.onSurface), const SizedBox(width: 8), Text('Edit', style: TextStyle(color: colorScheme.onSurface))])),
@@ -593,7 +593,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             return _LedgerRow(
                               row: row,
                               isEven: index % 2 == 0,
-                              salesRepository: _salesRepository,
+                              invoiceRepository: _invoiceRepository,
                             );
                           },
                         ),
@@ -1005,12 +1005,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
 class _LedgerRow extends StatefulWidget {
   final Map<String, dynamic> row;
   final bool isEven;
-  final SalesRepository salesRepository;
+  final InvoiceRepository invoiceRepository;
 
   const _LedgerRow({
     required this.row,
     required this.isEven,
-    required this.salesRepository,
+    required this.invoiceRepository,
   });
 
   @override
@@ -1019,7 +1019,7 @@ class _LedgerRow extends StatefulWidget {
 
 class _LedgerRowState extends State<_LedgerRow> {
   bool _isExpanded = false;
-  List<SaleItem>? _items;
+  List<InvoiceItem>? _items;
   bool _isLoadingItems = false;
   String? _error;
 
@@ -1033,8 +1033,8 @@ class _LedgerRowState extends State<_LedgerRow> {
       setState(() => _error = null);
       try {
         // Lazy Load Items
-        final saleId = widget.row['ref_no'] as int; // ref_no is ref_id in simple query
-        final items = await widget.salesRepository.getSaleItems(saleId);
+        final invoiceId = widget.row['ref_no'] as int; // ref_no is ref_id in simple query
+        final items = await widget.invoiceRepository.getInvoiceItems(invoiceId);
         if (mounted) setState(() => _items = items);
       } catch (e) {
         if (mounted) setState(() => _error = "Failed to load details");
@@ -1127,8 +1127,8 @@ class _LedgerRowState extends State<_LedgerRow> {
                               ..._items!.map((item) => TableRow(children: [
                                 Padding(padding: const EdgeInsets.all(4), child: Text(item.itemName, style: const TextStyle(fontSize: 11))),
                                 Padding(padding: const EdgeInsets.all(4), child: Text(item.quantity.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11))),
-                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.pricePaisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
-                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.totalPaisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.rate).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.subtotal).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
                               ]
                             ),
                           )

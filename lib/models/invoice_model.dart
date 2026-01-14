@@ -1,123 +1,147 @@
 import 'package:intl/intl.dart';
 
-/// Represents a line item within an invoice.
-/// Stores a snapshot of the product details at the time of sale.
 class InvoiceItem {
   final int? id;
   final int? invoiceId;
   final int productId;
   final String itemName;
-  final String unit; // e.g., 'kg', 'pcs' (Snapshot)
-  final int quantity; // Scaled Integer (e.g., 1500 = 1.500)
-  final int rate; // Unit Price in Paisas
-  final int subtotal; // Total Price in Paisas (qty * rate / scale)
+  final String? unit;
+  final int quantity;
+  final int rate;
+  final int subtotal;
 
   const InvoiceItem({
     this.id,
     this.invoiceId,
     required this.productId,
     required this.itemName,
-    required this.unit,
+    this.unit,
     required this.quantity,
     required this.rate,
     required this.subtotal,
   });
 
-  /// Convert to database map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'invoice_id': invoiceId,
       'product_id': productId,
       'item_name_snapshot': itemName,
-      // 'unit_name': unit, // Assumes column exists or is handled via join/snapshot
       'quantity': quantity,
       'unit_price': rate,
       'total_price': subtotal,
     };
   }
 
-  /// Create from database map
   factory InvoiceItem.fromMap(Map<String, dynamic> map) {
     return InvoiceItem(
-      id: map['id'] as int?,
-      invoiceId: map['invoice_id'] as int?,
-      productId: map['product_id'] as int,
-      itemName: map['item_name_snapshot'] as String,
-      unit: map['unit_name'] ?? '', // Handle missing column gracefully or via join
-      quantity: (map['quantity'] as num).toInt(),
-      rate: (map['unit_price'] as num).toInt(),
-      subtotal: (map['total_price'] as num).toInt(),
+      id: map['id'],
+      invoiceId: map['invoiceId'] ?? map['invoice_id'],
+      productId: map['productId'] ?? map['product_id'],
+      itemName: map['name'] ?? map['item_name_snapshot'] ?? 'Unknown',
+      quantity: (map['quantity'] ?? map['quantity_sold'] as num).toInt(),
+      rate: (map['price'] ?? map['unit_price'] as num).toInt(),
+      subtotal: (map['total'] ?? map['total_price'] as num).toInt(),
+      unit: map['unit_name'] as String?,
     );
   }
 }
 
-/// Represents a finalized financial document (Sale).
-/// Strictly stores totals and metadata. No balance info.
 class Invoice {
   final int? id;
-  final String invoiceNumber; // e.g., SB-23100001
-  final int customerId;
+  final int? customerId;
+  final String? customerName;
+  final String invoiceNumber;
+
+  final int subTotal;
+  final int discount;
+  final int grandTotal;
+
   final DateTime date;
-  
-  // Financials (Integer Paisas)
-  final int totalAmount; // The Grand Total (Payable)
-  final int discount;    // Document-level discount
-  
-  final String status;   // 'DRAFT', 'POSTED', 'VOID'
+  final String status;
   final String? notes;
   final List<InvoiceItem> items;
 
+  final String? saleSnapshot;
+  final int? originalSaleId;
+  final int printedCount;
+  final String receiptLanguage;
+  final String? receiptPdfPath;
+
   const Invoice({
     this.id,
+    this.customerId,
+    this.customerName,
     required this.invoiceNumber,
-    required this.customerId,
+    required this.subTotal,
+    required this.discount,
+    required this.grandTotal,
     required this.date,
-    required this.totalAmount,
-    this.discount = 0,
-    this.status = 'DRAFT',
+    this.status = 'COMPLETED',
     this.notes,
     this.items = const [],
+    this.saleSnapshot,
+    this.originalSaleId,
+    this.printedCount = 0,
+    this.receiptLanguage = 'ur',
+    this.receiptPdfPath,
   });
 
-  /// Business Rule: Invoice is read-only if posted.
   bool get isReadOnly => status == 'POSTED' || status == 'VOID';
 
-  /// Business Rule: Integrity Check
-  /// Returns true if the sum of items (minus discount) equals the total amount.
   bool get isMathematicallyValid {
     final sumItems = items.fold<int>(0, (sum, item) => sum + item.subtotal);
-    return (sumItems - discount) == totalAmount;
+    return (sumItems - discount) == grandTotal;
   }
 
-  /// Convert to database map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'invoice_number': invoiceNumber,
       'customer_id': customerId,
-      'invoice_date': DateFormat('yyyy-MM-dd HH:mm').format(date),
-      'sub_total': totalAmount + discount, // Derived for DB schema
+      'invoice_date': DateFormat('yyyy-MM-dd HH:mm:ss').format(date),
+      'sub_total': subTotal,
       'discount_total': discount,
-      'grand_total': totalAmount,
+      'grand_total': grandTotal,
       'status': status,
       'notes': notes,
+      'sale_snapshot': saleSnapshot,
+      'original_sale_id': originalSaleId,
+      'printed_count': printedCount,
+      'receipt_language': receiptLanguage,
+      'receipt_pdf_path': receiptPdfPath,
     };
   }
 
-  /// Create from database map
   factory Invoice.fromMap(Map<String, dynamic> map) {
+    DateTime parsedDate;
+    final dateString = map['invoice_date'] ?? map['sale_date'];
+    try {
+      parsedDate = DateTime.parse(dateString as String);
+    } catch (e) {
+      parsedDate = DateTime.now();
+    }
+
     return Invoice(
       id: map['id'] as int?,
-      invoiceNumber: map['invoice_number'] as String,
-      customerId: map['customer_id'] as int,
-      date: DateTime.tryParse(map['invoice_date'] as String) ?? DateTime.now(),
-      totalAmount: (map['grand_total'] as num).toInt(),
-      discount: (map['discount_total'] as num?)?.toInt() ?? 0,
-      status: map['status'] ?? 'POSTED',
+      invoiceNumber: map['invoice_number'] ?? map['bill_number'] as String,
+      customerId: map['customer_id'] as int?,
+      customerName: map['customer_name'] as String?,
+      date: parsedDate,
+      subTotal: (map['sub_total'] as num?)?.toInt() ?? 0,
+      discount: (map['discount_total'] ?? map['discount'] as num?)?.toInt() ?? 0,
+      grandTotal: (map['grand_total'] as num).toInt(),
+      status: map['status'] as String? ?? 'COMPLETED',
       notes: map['notes'] as String?,
-      // Items are usually loaded separately via join or second query
-      items: [], 
+      saleSnapshot: map['sale_snapshot'] as String?,
+      originalSaleId: map['original_sale_id'] as int?,
+      printedCount: (map['printed_count'] as num?)?.toInt() ?? 0,
+      receiptLanguage: map['receipt_language'] as String? ?? 'ur',
+      receiptPdfPath: map['receipt_pdf_path'] as String?,
+      items: (map['items'] as List?)
+              ?.map((item) => InvoiceItem.fromMap(item as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }

@@ -16,8 +16,8 @@ import 'bloc/stock/stock_filter/stock_filter_event.dart';
 import 'bloc/stock/stock_activity/stock_activity_bloc.dart';
 import 'bloc/stock/stock_activity/stock_activity_event.dart';
 import 'bloc/purchase/purchase_bloc.dart';
-import 'bloc/purchase/purchase_event.dart';
-import 'core/repositories/sales_repository.dart';
+import 'bloc/sales/invoice_bloc.dart';
+import 'core/repositories/invoice_repository.dart';
 import 'core/repositories/items_repository.dart';
 import 'core/repositories/customers_repository.dart';
 import 'core/repositories/settings_repository.dart';
@@ -151,8 +151,8 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
             AppRoutes.sales: (context) => MainLayout(
                   currentRoute: AppRoutes.sales,
                   child: BlocProvider(
-                    create: (context) => SalesBloc(
-                      salesRepository: SalesRepository(),
+                    create: (context) => InvoiceBloc(
+                      invoiceRepository: InvoiceRepository(),
                       itemsRepository: ItemsRepository(),
                       customersRepository: CustomersRepository(),
                     ),
@@ -174,7 +174,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                           StockActivityRepository(),
                           ItemsRepository(),
                           PurchaseRepository(),
-                          SalesRepository(),
+                          InvoiceRepository(),
                         )..add(LoadStockActivities()),
                       ),
                     ],
