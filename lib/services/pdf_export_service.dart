@@ -6,7 +6,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../core/entity/stock_activity_entity.dart';
-import '../core/utils/currency_utils.dart';
 import '../core/utils/logger.dart';
 
 class PdfExportService {
@@ -86,7 +85,7 @@ class PdfExportService {
                 _buildDetailRow('Quantity Impact:', '${activity.quantityChange > 0 ? '+' : ''}${activity.quantityChange}', textDirection),
               
               if (activity.financialImpact != null)
-                _buildDetailRow('Financial Impact:', CurrencyUtils.format(activity.financialImpact!), textDirection),
+                _buildDetailRow('Financial Impact:', activity.financialImpact!.formatted, textDirection),
 
               // Footer
               pw.Spacer(),

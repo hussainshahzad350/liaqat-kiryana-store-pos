@@ -12,7 +12,6 @@ import 'dart:async';
 import '../../core/repositories/sales_repository.dart';
 import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/receipt_repository.dart';
-import '../../core/utils/currency_utils.dart';
 import '../../models/sale_model.dart';
 import '../../models/product_model.dart';
 import '../../models/customer_model.dart';
@@ -269,7 +268,7 @@ class _SalesScreenState extends State<SalesScreen> {
                           nameUrdu: nameUrduCtrl.text.trim(),
                           contactPrimary: phoneNumber,
                           address: addressCtrl.text.trim(),
-                          creditLimit: CurrencyUtils.toPaisas(creditLimitCtrl.text),
+                          creditLimit: Money.fromRupeesString(creditLimitCtrl.text).paisas,
                         );
 
                         final int id = await customersRepo.addCustomer(newCustomer);
@@ -1534,7 +1533,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          Money(product.salePrice).toString(),
+                          product.salePrice.formatted,
                           style: TextStyle(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.w800,
@@ -1643,7 +1642,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(Money(sale.grandTotalPaisas).toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
+                      Text(sale.grandTotal.formatted, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
                       const SizedBox(width: 8),
                       PopupMenuButton<String>(
                         icon: Icon(Icons.more_vert, size: 18, color: colorScheme.onSurfaceVariant),

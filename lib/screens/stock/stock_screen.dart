@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
-import '../../core/utils/currency_utils.dart';
 import '../../bloc/stock/stock_overveiw/stock_overview_bloc.dart';
 import '../../bloc/stock/stock_overveiw/stock_overview_state.dart';
 import '../../bloc/stock/stock_overveiw/stock_overview_event.dart';
@@ -213,8 +212,8 @@ class _StockScreenState extends State<StockScreen> {
               _buildDetailRow('Description', activity.description),
               if (activity.quantityChange != 0)
                 _buildDetailRow('Quantity Change', '${activity.quantityChange > 0 ? '+' : ''}${activity.quantityChange}'),
-              if (activity.financialImpact != null)
-                _buildDetailRow('Financial Impact', CurrencyUtils.format(activity.financialImpact!)),
+                if (activity.financialImpact != null)
+                _buildDetailRow('Financial Impact', activity.financialImpact!.formatted),
             ],
           ),
         ),
@@ -526,8 +525,8 @@ class _StockScreenState extends State<StockScreen> {
       child: Row(
         children: [
           _buildKPICard(loc.totalItems, '${summary.totalItemsCount}', Colors.blue),
-          _buildKPICard(loc.stockValue, CurrencyUtils.formatNoDecimal(summary.totalStockSalesValue), Colors.green),
-          _buildKPICard('Total Cost', CurrencyUtils.formatNoDecimal(summary.totalStockCost), Colors.grey),
+          _buildKPICard(loc.stockValue, summary.totalStockSalesValue.formattedNoDecimal, Colors.green),
+          _buildKPICard('Total Cost', summary.totalStockCost.formattedNoDecimal, Colors.grey),
           _buildKPICard('Low Stock', '${summary.lowStockItemsCount}', Colors.orange),
           _buildKPICard('Out of Stock', '${summary.outOfStockItemsCount}', Colors.red),
           _buildKPICard('Expired', '${summary.expiredOrNearExpiryCount}', Colors.purple),
@@ -761,10 +760,10 @@ class _StockScreenState extends State<StockScreen> {
                     cells: [
                       DataCell(Text(item.nameEnglish, style: const TextStyle(fontWeight: FontWeight.w500))),
                       DataCell(Text(item.categoryName ?? '-')),
-                      DataCell(Text(CurrencyUtils.formatNoDecimal(item.costPrice))),
-                      DataCell(Text(CurrencyUtils.formatNoDecimal(item.salePrice))),
+                      DataCell(Text(item.costPrice.formattedNoDecimal)),
+                      DataCell(Text(item.salePrice.formattedNoDecimal)),
                       DataCell(Text(item.currentStock.toString())),
-                      DataCell(Text(CurrencyUtils.formatNoDecimal(item.totalSalesValue))),
+                      DataCell(Text(item.totalSalesValue.formattedNoDecimal)),
                       DataCell(
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

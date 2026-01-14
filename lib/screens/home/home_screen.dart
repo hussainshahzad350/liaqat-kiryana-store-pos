@@ -11,7 +11,6 @@ import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/constants/desktop_dimensions.dart';
-import '../../core/utils/currency_utils.dart';
 import '../../domain/entities/money.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -488,7 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _buildKPICard(
                 title: localizations.todaySales,
-                value: CurrencyUtils.formatNoDecimal(Money(todaySales)),
+                value: Money(todaySales).formattedNoDecimal,
                 icon: Icons.attach_money,
                 color: colorScheme.primary,
                 trend: '+12%',
@@ -503,7 +502,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _buildKPICard(
                 title: localizations.pendingAmount,
-                value: CurrencyUtils.formatNoDecimal(Money(_calculatePendingCredits())),
+                value: Money(_calculatePendingCredits()).formattedNoDecimal,
                 icon: Icons.credit_card,
                 color: colorScheme.secondary,
                 subtitle: '${todayCustomers.length} ${localizations.customers}',
@@ -761,7 +760,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Text(
-                        CurrencyUtils.formatNoDecimal(Money(amount)),
+                        Money(amount).formattedNoDecimal,
                         style: TextStyle(
                           fontSize: DesktopDimensions.bodySize,
                           fontWeight: FontWeight.bold,
@@ -1257,10 +1256,10 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations, ColorSc
       case 'SALE':
         final amount = (activity['amount'] as num?)?.toInt() ?? 0;
         final customer = activity['customer_name']?.toString() ?? localizations.cashSale;
-        return '$customer - ${CurrencyUtils.formatNoDecimal(Money(amount))}';
+        return '$customer - ${Money(amount).formattedNoDecimal}';
       case 'PAYMENT':
         final amount = (activity['amount'] as num?)?.toInt() ?? 0;
-        return CurrencyUtils.formatNoDecimal(Money(amount));
+        return Money(amount).formattedNoDecimal;
       case 'ALERT':
         final stock = activity['stock_level'];
         final unit = activity['unit_name']?.toString() ?? 'units';

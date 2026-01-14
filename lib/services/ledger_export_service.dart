@@ -7,7 +7,7 @@ import 'package:printing/printing.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/customer_model.dart';
 import '../models/supplier_model.dart';
-import '../core/utils/currency_utils.dart';
+import '../domain/entities/money.dart';
 
 class LedgerExportService {
   
@@ -52,9 +52,9 @@ class LedgerExportService {
         dateStr,
         docNo,
         row['description'] ?? '',
-        debit > 0 ? (debit / 100).toStringAsFixed(0) : '-',
-        credit > 0 ? (credit / 100).toStringAsFixed(0) : '-',
-        (balance / 100).toStringAsFixed(0),
+        debit > 0 ? Money(debit).formattedNoDecimal : '-',
+        credit > 0 ? Money(credit).formattedNoDecimal : '-',
+        Money(balance).formattedNoDecimal,
       ];
     }).toList();
 
@@ -154,9 +154,9 @@ class LedgerExportService {
       return [
         dateStr,
         row['desc'] ?? '',
-        cr > 0 ? CurrencyUtils.formatRupees(cr) : '-',
-        dr > 0 ? CurrencyUtils.formatRupees(dr) : '-',
-        CurrencyUtils.formatRupees(balance),
+        cr > 0 ? Money(cr).formattedNoDecimal : '-',
+        dr > 0 ? Money(dr).formattedNoDecimal : '-',
+        Money(balance).formattedNoDecimal,
       ];
     }).toList();
 

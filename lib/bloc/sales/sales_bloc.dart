@@ -5,7 +5,6 @@ import 'sales_state.dart';
 import '../../../../../core/repositories/sales_repository.dart';
 import '../../../../../core/repositories/items_repository.dart';
 import '../../../../../core/repositories/customers_repository.dart';
-import '../../../../../core/utils/currency_utils.dart';
 import '../../../../../domain/entities/money.dart';
 import '../../../../../models/cart_item_model.dart';
 
@@ -114,15 +113,15 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       }
 
       updatedCart.add(CartItem(
-        id: event.product.id,
-        nameUrdu: event.product.nameUrdu,
+        id: event.product.id ?? 0,
+        nameUrdu: event.product.nameUrdu ?? '',
         nameEnglish: event.product.nameEnglish,
         unitName: event.product.unitType,
         itemCode: event.product.itemCode,
         currentStock: availableStock,
-        unitPrice: Money(event.product.salePrice),
+        unitPrice: event.product.salePrice,
         quantity: event.quantity,
-        total: Money((event.product.salePrice * event.quantity).round()),
+        total: event.product.salePrice * event.quantity,
       ));
     }
 

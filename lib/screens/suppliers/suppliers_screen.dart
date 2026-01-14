@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import '../../core/repositories/suppliers_repository.dart';
-import '../../core/utils/currency_utils.dart';
+import '../../domain/entities/money.dart';
 import '../../models/supplier_model.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
@@ -434,7 +434,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final phoneCtrl = TextEditingController(text: supplier?.contactPrimary);
     final addressCtrl = TextEditingController(text: supplier?.address);
     final typeCtrl = TextEditingController(text: supplier?.supplierType);
-    final balanceCtrl = TextEditingController(text: supplier != null ? CurrencyUtils.toDecimal(supplier.outstandingBalance) : '0');
+    final balanceCtrl = TextEditingController(text: supplier != null ? Money(supplier.outstandingBalance).toRupeesString() : '0');
 
     showDialog(
       context: context,
@@ -489,7 +489,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface))),
           ElevatedButton(
             onPressed: () {
-              final balance = CurrencyUtils.toPaisas(balanceCtrl.text);
+              final balance = Money.fromRupeesString(balanceCtrl.text).paisas;
               if (isEdit) {
                 _updateSupplier(
                   supplier.id!, 
@@ -648,7 +648,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           children: [
             Text(title, style: TextStyle(color: contentColor, fontWeight: FontWeight.bold)),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Icon(Icons.business, color: contentColor), Text("$count", style: TextStyle(color: contentColor, fontSize: 18, fontWeight: FontWeight.bold))]),
-            Text(CurrencyUtils.formatRupees(amount), style: TextStyle(color: contentColor, fontSize: 12, fontWeight: FontWeight.bold)),
+            Text(Money(amount).formattedNoDecimal, style: TextStyle(color: contentColor, fontSize: 12, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -705,7 +705,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  CurrencyUtils.formatRupees(supplier.outstandingBalance),
+                  Money(supplier.outstandingBalance).formattedNoDecimal,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colorScheme.primary),
                 ),
                 Text(loc.balance, style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
@@ -904,7 +904,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(label, style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
-          Text(CurrencyUtils.formatRupees(amount), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+          Text(Money(amount).formattedNoDecimal, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
         ],
       ),
     );
@@ -946,9 +946,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 ),
                 Expanded(flex: 2, child: Text(dateStr, style: TextStyle(fontSize: 13, color: colorScheme.onSurface))),
                 Expanded(flex: 3, child: Text(row['desc'] ?? '', style: TextStyle(fontSize: 13, color: colorScheme.onSurface))),
-                Expanded(flex: 2, child: Text(row['cr'] > 0 ? CurrencyUtils.formatRupees(row['cr']) : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.error))),
-                Expanded(flex: 2, child: Text(row['dr'] > 0 ? CurrencyUtils.formatRupees(row['dr']) : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.primary))),
-                Expanded(flex: 2, child: Text(CurrencyUtils.formatRupees(row['balance']), textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
+                Expanded(flex: 2, child: Text(row['cr'] > 0 ? Money(row['cr']).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.error))),
+                Expanded(flex: 2, child: Text(row['dr'] > 0 ? Money(row['dr']).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.primary))),
+                Expanded(flex: 2, child: Text(Money(row['balance']).formattedNoDecimal, textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
               ],
             ),
           ),
@@ -1000,8 +1000,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['name_english'] ?? item['name_urdu'] ?? 'Unknown', style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['quantity'].toString(), textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['unit_type'] ?? '-', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['cost_price'] != null ? CurrencyUtils.formatRupees(item['cost_price']) : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['total_amount'] != null ? CurrencyUtils.formatRupees(item['total_amount']) : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['cost_price'] != null ? Money(item['cost_price']).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['total_amount'] != null ? Money(item['total_amount']).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
           ],
         )),
       ],
@@ -1034,7 +1034,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                             child: ListTile(
                               leading: const Icon(Icons.archive),
                               title: Text(s.nameEnglish),
-                              subtitle: Text("Bal: ${CurrencyUtils.formatRupees(s.outstandingBalance)}"),
+                              subtitle: Text("Bal: ${Money(s.outstandingBalance).formattedNoDecimal}"),
                               trailing: IconButton(
                                 icon: const Icon(Icons.unarchive),
                                 onPressed: () => _toggleArchiveStatus(s.id!, false),
@@ -1084,7 +1084,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           ElevatedButton(
             onPressed: () {
               if (amountCtrl.text.isNotEmpty) {
-                final amount = CurrencyUtils.toPaisas(amountCtrl.text);
+                final amount = Money.fromRupeesString(amountCtrl.text).paisas;
                 if (amount > 0) {
                   Navigator.pop(context);
                   _addPayment(_selectedSupplierForLedger!.id!, amount, notesCtrl.text);

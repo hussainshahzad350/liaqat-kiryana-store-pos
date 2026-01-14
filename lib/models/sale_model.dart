@@ -1,11 +1,13 @@
+import 'package:liaqat_store/domain/entities/money.dart';
+
 class SaleItem {
   final int? id;
   final int saleId;
   final int itemId;
   final String itemName;
   final int quantity;
-  final int pricePaisas;
-  final int totalPaisas;
+  final Money price;
+  final Money total;
   final String itemNameEnglish;
   final String itemNameUrdu;
   final String unitName;
@@ -16,25 +18,21 @@ class SaleItem {
     required this.itemId,
     required this.itemName,
     required this.quantity,
-    required this.pricePaisas,
-    required this.totalPaisas,
+    required this.price,
+    required this.total,
     required this.itemNameEnglish,
     required this.itemNameUrdu,
     required this.unitName,
   });
 
   /// Convert SaleItem to a database map
-  ///
-  /// Returns a map containing the fields 'saleId', 'itemId', 'quantity', 'price', and 'total'.
-  ///
-  /// This map is used to store the sale items in the database.
   Map<String, dynamic> toMap() {
     return {
       'saleId': saleId,
       'itemId': itemId,
       'quantity': quantity,
-      'price': pricePaisas,
-      'total': totalPaisas,
+      'price': price.paisas,
+      'total': total.paisas,
     };
   }
 
@@ -45,8 +43,8 @@ class SaleItem {
       itemId: map['itemId'] ?? map['product_id'] ?? 0,
       itemName: map['name'] ?? 'Unknown',
       quantity: map['quantity'] ?? map['quantity_sold'] ?? 0,
-      pricePaisas: (map['price'] ?? map['unit_price'] ?? 0) as int,
-      totalPaisas: (map['total'] ?? map['total_price'] ?? 0) as int,
+      price: Money((map['price'] ?? map['unit_price'] ?? 0) as int),
+      total: Money((map['total'] ?? map['total_price'] ?? 0) as int),
       itemNameEnglish: map['item_name_english'] ?? '',
       itemNameUrdu: map['item_name_urdu'] ?? '',
       unitName: map['unit_name'] ?? '',
@@ -57,16 +55,15 @@ class SaleItem {
 class Sale {
   final int? id;
   final int? customerId;
-  final String? customerName; // Added
-  final String billNumber;   // Changed from invoiceId
+  final String? customerName; 
+  final String billNumber;   
 
-  // ALL PAISAS
-  final int subTotalPaisas;
-  final int discountPaisas;
-  final int grandTotalPaisas;
-  final int cashPaisas;
-  final int bankPaisas;
-  final int creditPaisas;
+  final Money subTotal;
+  final Money discount;
+  final Money grandTotal;
+  final Money cash;
+  final Money bank;
+  final Money credit;
   final DateTime date;
   final String status;
   final String? saleStatus;
@@ -84,12 +81,12 @@ class Sale {
     this.customerId,
     this.customerName,
     required this.billNumber,
-    required this.subTotalPaisas,
-    required this.discountPaisas,
-    required this.grandTotalPaisas,
-    required this.cashPaisas,
-    required this.bankPaisas,
-    required this.creditPaisas,
+    required this.subTotal,
+    required this.discount,
+    required this.grandTotal,
+    required this.cash,
+    required this.bank,
+    required this.credit,
     required this.date,
     this.status = 'COMPLETED',
     this.saleStatus,
@@ -104,7 +101,6 @@ class Sale {
   });
 
   factory Sale.fromMap(Map<String, dynamic> map) {
-    // Combine date and time if available for accurate timestamp
     DateTime parsedDate;
     if (map['sale_date'] != null && map['sale_time'] != null) {
       try {
@@ -121,12 +117,12 @@ class Sale {
       customerId: map['customer_id'],
       customerName: map['customer_name'],
       billNumber: map['bill_number'] ?? 'N/A',
-      subTotalPaisas: ((map['grand_total'] ?? 0) as num).toInt() + ((map['discount'] ?? 0) as num).toInt(),
-      discountPaisas: ((map['discount'] ?? 0) as num).toInt(),
-      grandTotalPaisas: ((map['grand_total'] ?? 0) as num).toInt(),
-      cashPaisas: ((map['cash_amount'] ?? 0) as num).toInt(),
-      bankPaisas: ((map['bank_amount'] ?? 0) as num).toInt(),
-      creditPaisas: ((map['credit_amount'] ?? 0) as num).toInt(),
+      subTotal: Money(((map['grand_total'] ?? 0) as num).toInt() + ((map['discount'] ?? 0) as num).toInt()), // Reconstruct subtotal
+      discount: Money(((map['discount'] ?? 0) as num).toInt()),
+      grandTotal: Money(((map['grand_total'] ?? 0) as num).toInt()),
+      cash: Money(((map['cash_amount'] ?? 0) as num).toInt()),
+      bank: Money(((map['bank_amount'] ?? 0) as num).toInt()),
+      credit: Money(((map['credit_amount'] ?? 0) as num).toInt()),
       date: parsedDate,
       status: map['status'] ?? 'COMPLETED',
       saleStatus: map['sale_status'],
@@ -141,36 +137,15 @@ class Sale {
     );
   }
 
-/// Convert this Sale object to a Map<String, dynamic> for database storage
-///
-/// This method is used to serialize the Sale object into a format that can be stored in the database.
-///
-/// The resulting Map contains the following fields:
-///
-/// - `bill_number`: The bill number of the sale.
-/// - `customer_id`: The ID of the customer associated with the sale.
-/// - `grand_total`: The grand total of the sale.
-/// - `discount`: The discount applied to the sale.
-/// - `cash_amount`: The amount of cash paid for the sale.
-/// - `bank_amount`: The amount of bank payment made for the sale.
-/// - `credit_amount`: The amount of credit given to the customer for the sale.
-/// - `sale_time`: The timestamp of when the sale was made, in ISO 8601 format.
-/// - `created_at`: The timestamp of when the sale record was created in the database, in ISO 8601 format.
-/// - `status`: The status of the sale, either 'COMPLETED' or 'CANCELLED'.
-/// - `sale_status`: The status of the sale, either 'COMPLETED', 'CANCELLED', or 'PENDING'.
-/// - `receipt_number`: The number of the receipt associated with the sale.
-/// - `sale_snapshot`: A JSON string representing the sale record at the time it was created.
-/// - `original_sale_id`: The ID of the original sale if this sale is a cancelled sale.
-/// - `printed_count`: The number of times the sale has been printed.
   Map<String, dynamic> toMap() {
     return {
       'bill_number': billNumber,
       'customer_id': customerId,
-      'grand_total': grandTotalPaisas,
-      'discount': discountPaisas,
-      'cash_amount': cashPaisas,
-      'bank_amount': bankPaisas,
-      'credit_amount': creditPaisas,
+      'grand_total': grandTotal.paisas,
+      'discount': discount.paisas,
+      'cash_amount': cash.paisas,
+      'bank_amount': bank.paisas,
+      'credit_amount': credit.paisas,
       'sale_time': date.toIso8601String(),
       'created_at': date.toIso8601String(),
       'status': status,

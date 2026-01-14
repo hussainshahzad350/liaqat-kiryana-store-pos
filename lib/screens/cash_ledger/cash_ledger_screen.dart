@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:liaqat_store/core/repositories/cash_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cash_ledger_model.dart';
-import '../../core/utils/currency_utils.dart';
 import '../../domain/entities/money.dart';
 
 class CashLedgerScreen extends StatefulWidget {
@@ -216,7 +215,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  final amount = CurrencyUtils.parse(amountCtrl.text);
+                  final amount = Money.fromRupeesString(amountCtrl.text);
                   if (amount > const Money(0) && descCtrl.text.isNotEmpty) {
                     await _cashRepository.addCashEntry(
                       descCtrl.text, 
@@ -271,7 +270,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                 children: [
                   Text(loc.currentBalance, style: TextStyle(fontSize: 16, color: colorScheme.onPrimaryContainer)),
                   Text(
-                    CurrencyUtils.formatNoDecimal(currentBalance),
+                    currentBalance.formattedNoDecimal,
                     style: TextStyle(
                       fontSize: 24, 
                       fontWeight: FontWeight.bold,
@@ -318,7 +317,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  '${isIncome ? '+' : '-'} ${CurrencyUtils.formatNoDecimal(Money((entry.amount as num).toInt()))}',
+                                  '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: isIncome ? colorScheme.primary : colorScheme.error,
@@ -326,7 +325,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'Bal: ${CurrencyUtils.formatNoDecimal(Money((entry.balanceAfter as num?)?.toInt() ?? 0))}',
+                                  'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
                                   style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
                                 ),
                               ],

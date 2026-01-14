@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import '../../core/utils/currency_utils.dart';
+import '../../domain/entities/money.dart';
 
 class ReceiptRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -62,12 +62,12 @@ class ReceiptRepository {
         'number': sale.billNumber,
         'date': DateFormat('yyyy-MM-dd').format(sale.date),
         'time': DateFormat('hh:mm a').format(sale.date),
-        'grand_total': sale.grandTotalPaisas,
-        'sub_total': sale.subTotalPaisas,
-        'discount': sale.discountPaisas,
-        'cash_received': sale.cashPaisas,
-        'bank_received': sale.bankPaisas,
-        'change': (sale.cashPaisas + sale.bankPaisas) - sale.grandTotalPaisas, // int calculation
+        'grand_total': sale.grandTotal.paisas,
+        'sub_total': sale.subTotal.paisas,
+        'discount': sale.discount.paisas,
+        'cash_received': sale.cash.paisas,
+        'bank_received': sale.bank.paisas,
+        'change': (sale.cash.paisas + sale.bank.paisas) - sale.grandTotal.paisas, // int calculation
         'prev_balance': customer?['outstanding_balance'] ?? 0, // Note: This is current balance, logic might need snapshot for historical balance
       },
       'customer': customer != null ? {
@@ -215,7 +215,7 @@ class ReceiptRepository {
                       pw.Expanded(
                         flex: 2, 
                         child: pw.Text(
-                          CurrencyUtils.formatRupees(item['price']).replaceAll('Rs ', ''), 
+                          Money(item['price']).formattedNoDecimal.replaceAll('Rs ', ''), 
                           style: const pw.TextStyle(fontSize: 9),
                           textAlign: alignOpposite
                         )
@@ -223,7 +223,7 @@ class ReceiptRepository {
                       pw.Expanded(
                         flex: 2, 
                         child: pw.Text(
-                          CurrencyUtils.formatRupees(item['total']).replaceAll('Rs ', ''), 
+                          Money(item['total']).formattedNoDecimal.replaceAll('Rs ', ''), 
                           style: const pw.TextStyle(fontSize: 9),
                           textAlign: alignOpposite
                         )
@@ -353,7 +353,7 @@ class ReceiptRepository {
       children: [
         pw.Text(label, style: pw.TextStyle(fontSize: fontSize, fontWeight: isBold ? pw.FontWeight.bold : null)),
         pw.Text(
-          CurrencyUtils.formatRupees(amount),
+          Money(amount).formattedNoDecimal,
           style: pw.TextStyle(fontSize: fontSize, fontWeight: isBold ? pw.FontWeight.bold : null),
         ),
       ],

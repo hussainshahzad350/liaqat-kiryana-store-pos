@@ -1,3 +1,5 @@
+import 'package:liaqat_store/domain/entities/money.dart';
+
 class Product {
   final int? id;
   final String? itemCode;
@@ -12,8 +14,8 @@ class Product {
   final String? searchTags;
   final int minStockAlert;
   final int currentStock;
-  final int avgCostPrice;
-  final int salePrice;
+  final Money avgCostPrice;
+  final Money salePrice;
   final DateTime? expiryDate;
   final DateTime createdAt;
 
@@ -31,8 +33,8 @@ class Product {
     this.searchTags,
     this.minStockAlert = 10,
     this.currentStock = 0,
-    this.avgCostPrice = 0,
-    this.salePrice = 0,
+    this.avgCostPrice = const Money(0),
+    this.salePrice = const Money(0),
     this.expiryDate,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
@@ -53,8 +55,8 @@ class Product {
       searchTags: map['search_tags'] as String?,
       minStockAlert: (map['min_stock_alert'] ?? 10) as int,
       currentStock: (map['current_stock'] ?? 0) as int,
-      avgCostPrice: (map['avg_cost_price'] ?? 0) as int,
-      salePrice: (map['sale_price'] ?? 0) as int,
+      avgCostPrice: Money((map['avg_cost_price'] ?? 0) as int),
+      salePrice: Money((map['sale_price'] ?? 0) as int),
       expiryDate: map['expiry_date'] != null ? DateTime.tryParse(map['expiry_date'] as String) : null,
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'] as String) ?? DateTime.now()
@@ -78,8 +80,8 @@ class Product {
       'search_tags': searchTags,
       'min_stock_alert': minStockAlert,
       'current_stock': currentStock,
-      'avg_cost_price': avgCostPrice,
-      'sale_price': salePrice,
+      'avg_cost_price': avgCostPrice.paisas,
+      'sale_price': salePrice.paisas,
       'expiry_date': expiryDate?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
     };
@@ -100,8 +102,8 @@ class Product {
     String? searchTags,
     int? minStockAlert,
     int? currentStock,
-    int? avgCostPrice,
-    int? salePrice,
+    Money? avgCostPrice,
+    Money? salePrice,
     DateTime? expiryDate,
     DateTime? createdAt,
   }) {
@@ -130,7 +132,7 @@ class Product {
   bool get isLowStock => currentStock <= minStockAlert;
 
   /// Get profit per unit
-  int get profitPerUnit => salePrice - avgCostPrice;
+  Money get profitPerUnit => salePrice - avgCostPrice;
 
   @override
   String toString() {

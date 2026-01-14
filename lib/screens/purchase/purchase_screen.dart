@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/repositories/purchase_repository.dart';
 import '../../core/repositories/suppliers_repository.dart';
 import '../../core/repositories/items_repository.dart';
-import '../../core/utils/currency_utils.dart';
+import '../../domain/entities/money.dart';
 import '../../core/routes/app_routes.dart';
 
 class PurchaseScreen extends StatefulWidget {
@@ -141,7 +141,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
 
   void _showItemDetailsDialog(Map<String, dynamic> item) {
     final qtyCtrl = TextEditingController(text: '1');
-    final costCtrl = TextEditingController(text: CurrencyUtils.toDecimal(item['avg_cost_price'] ?? 0));
+    final costCtrl = TextEditingController(text: Money(item['avg_cost_price'] ?? 0).toRupeesString());
     final batchCtrl = TextEditingController();
     final expiryCtrl = TextEditingController();
 
@@ -193,7 +193,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
           ElevatedButton(
             onPressed: () {
               final qty = double.tryParse(qtyCtrl.text) ?? 0;
-              final cost = CurrencyUtils.toPaisas(costCtrl.text);
+              final cost = Money.fromRupeesString(costCtrl.text).paisas;
               
               if (qty > 0 && cost >= 0) {
                 setState(() {
@@ -382,7 +382,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(CurrencyUtils.formatRupees(item['total_amount'])),
+                            Text(Money(item['total_amount']).formattedNoDecimal),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () => setState(() => _cartItems.removeAt(index)),
@@ -410,7 +410,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                   label: const Text('Add Item'),
                 ),
                 Text(
-                  'Total: ${CurrencyUtils.formatRupees(_totalAmount.toInt())}',
+                  'Total: ${Money(_totalAmount.toInt()).formattedNoDecimal}',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.primary),
                 ),
               ],
