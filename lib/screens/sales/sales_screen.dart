@@ -16,6 +16,7 @@ import '../../core/utils/currency_utils.dart';
 import '../../models/sale_model.dart';
 import '../../models/product_model.dart';
 import '../../models/customer_model.dart';
+import '../../models/cart_item_model.dart';
 import '../../domain/entities/money.dart';
 
 class SalesScreen extends StatefulWidget {
@@ -50,7 +51,7 @@ class _SalesScreenState extends State<SalesScreen> {
   SalesState get _state => context.read<SalesBloc>().state;
   Customer? get selectedCustomerMap => _state.selectedCustomer;
   int? get selectedCustomerId => _state.selectedCustomer?.id;
-  List<Map<String, dynamic>> get cartItems => _state.cartItems;
+  List<CartItem> get cartItems => _state.cartItems;
   Money get grandTotal => _state.grandTotal;
   Money get subtotal => _state.subtotal;
   Money get discount => _state.discount;
@@ -68,7 +69,7 @@ class _SalesScreenState extends State<SalesScreen> {
   }
   Future<void> _loadRecentSales() async => context.read<SalesBloc>().add(SalesStarted());
   void _calculateTotals() => context.read<SalesBloc>().add(DiscountChanged(discountController.text));
-  void _updateCartItem(int index, double quantity, int price) {
+  void _updateCartItem(int index, double quantity, Money price) {
     context.read<SalesBloc>().add(CartItemUpdated(index: index, quantity: quantity, price: price));
   }
 
@@ -467,7 +468,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(loc.creditLimitWarningMsg(CurrencyUtils.formatNoDecimal(creditLimit)), style: TextStyle(color: colorScheme.onSurface, fontSize: 16)),
+                      Text(loc.creditLimitWarningMsg(creditLimit.toString()), style: TextStyle(color: colorScheme.onSurface, fontSize: 16)),
                       const SizedBox(height: 20),
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -478,17 +479,17 @@ class _SalesScreenState extends State<SalesScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _infoRow('${loc.customerCreditLimit}:', CurrencyUtils.formatNoDecimal(creditLimit), color: colorScheme.onErrorContainer),
-                            _infoRow('${loc.currentBalance}:', CurrencyUtils.formatNoDecimal(currentBalance), color: colorScheme.onErrorContainer),
-                            _infoRow('${loc.billTotal}:', CurrencyUtils.formatNoDecimal(billTotal), color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.customerCreditLimit}:', creditLimit.toString(), color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.currentBalance}:', currentBalance.toString(), color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.billTotal}:', billTotal.toString(), color: colorScheme.onErrorContainer),
                             Divider(color: colorScheme.onErrorContainer.withOpacity(0.5)),
-                            _infoRow('${loc.totalBalance}:', CurrencyUtils.formatNoDecimal(potentialBalance),
+                            _infoRow('${loc.totalBalance}:', potentialBalance.toString(),
                               isBold: true,
                               color: colorScheme.error,
                             ),
                             const SizedBox(height: 5),
                             Text(
-                              '${loc.excessAmount}: ${CurrencyUtils.formatNoDecimal(potentialBalance - creditLimit)}',
+                              '${loc.excessAmount}: ${(potentialBalance - creditLimit).toString()}',
                               style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -545,8 +546,8 @@ class _SalesScreenState extends State<SalesScreen> {
     final limitCtrl = TextEditingController();
     final salesBloc = context.read<SalesBloc>();
 
-    int currentLimit = selectedCustomerMap?.creditLimit ?? 0;
-    limitCtrl.text = CurrencyUtils.toDecimal(currentLimit);
+    Money currentLimit = Money(selectedCustomerMap?.creditLimit ?? 0);
+    limitCtrl.text = currentLimit.toRupeesString();
 
     showDialog(
       context: context,
@@ -577,7 +578,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 ),
                 const Divider(),
                 const SizedBox(height: 16),
-                Text('${loc.current}: ${CurrencyUtils.formatNoDecimal(Money(currentLimit))}', style: const TextStyle(fontSize: 16)),
+                Text('${loc.current}: ${currentLimit.toString()}', style: const TextStyle(fontSize: 16)),
                 const SizedBox(height: 16),
                 TextField(
                   controller: limitCtrl,
@@ -598,7 +599,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     const SizedBox(width: 16),
                     ElevatedButton(
                       onPressed: () async {
-                        int newLimit = CurrencyUtils.toPaisas(limitCtrl.text);
+                        Money newLimit = Money.fromRupeesString(limitCtrl.text);
                         if (selectedCustomerId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(loc.invalidLimit)),
@@ -609,18 +610,18 @@ class _SalesScreenState extends State<SalesScreen> {
                         try {
                           await _customersRepository.updateCustomerCreditLimit(
                             selectedCustomerId!,
-                            newLimit
+                            newLimit.paisas
                           );
 
                           salesBloc.add(CustomerSelected(
-                            selectedCustomerMap!.copyWith(creditLimit: newLimit)
+                            selectedCustomerMap!.copyWith(creditLimit: newLimit.paisas)
                           ));
 
                           if (mounted) {
                             Navigator.pop(dialogContext);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('${loc.creditLimitUpdated}: ${CurrencyUtils.formatNoDecimal(Money(newLimit))}'),
+                                content: Text('${loc.creditLimitUpdated}: ${newLimit.toString()}'),
                                 backgroundColor: colorScheme.primary,
                               ),
                             );
@@ -667,9 +668,9 @@ class _SalesScreenState extends State<SalesScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            Money cash = CurrencyUtils.parse(cashCtrl.text);
-            Money bank = CurrencyUtils.parse(bankCtrl.text);
-            Money credit = CurrencyUtils.parse(creditCtrl.text);
+            Money cash = Money.fromRupeesString(cashCtrl.text);
+            Money bank = Money.fromRupeesString(bankCtrl.text);
+            Money credit = Money.fromRupeesString(creditCtrl.text);
             Money totalPayment = cash + bank + credit;
             Money change = const Money(0);
             bool isValid = false;
@@ -685,7 +686,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
             void processSaleAction() {
               Navigator.pop(context);
-              _processSale(cash.paisas, bank.paisas, credit.paisas, change.paisas);
+              _processSale(cash, bank, credit, change);
             }
 
             void checkCreditLimitAndProcess() {
@@ -767,7 +768,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                   children: [
                                     Icon(Icons.info_outline, size: 16, color: colorScheme.secondary),
                                     const SizedBox(width: 5),
-                                    Text('${loc.prevBalance}: ${CurrencyUtils.formatNoDecimal(oldBalance)}', 
+                                    Text('${loc.prevBalance}: ${oldBalance.toString()}',
                                       style: TextStyle(fontSize: 13, color: colorScheme.onSecondaryContainer)),
                                   ],
                                 ),
@@ -775,7 +776,7 @@ class _SalesScreenState extends State<SalesScreen> {
                               const Divider(height: 20),
                             ],
 
-                            _infoRow(loc.billTotal, CurrencyUtils.formatNoDecimal(billTotal), isBold: true, size: 18, color: colorScheme.onSurface),
+                            _infoRow(loc.billTotal, billTotal.toString(), isBold: true, size: 18, color: colorScheme.onSurface),
                             const Divider(),
                             
                             const SizedBox(height: 10),
@@ -785,8 +786,10 @@ class _SalesScreenState extends State<SalesScreen> {
                             _input(loc.cashInput, cashCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  Money remaining = billTotal - CurrencyUtils.parse(cashCtrl.text) - CurrencyUtils.parse(bankCtrl.text);
-                                  creditCtrl.text = remaining > const Money(0) ? CurrencyUtils.toDecimalMoney(remaining) : '0';
+                                  Money cash = Money.fromRupeesString(cashCtrl.text);
+                                  Money bank = Money.fromRupeesString(bankCtrl.text);
+                                  Money remaining = billTotal - cash - bank;
+                                  creditCtrl.text = remaining > const Money(0) ? remaining.toRupeesString() : '0';
                                 }
                               });
                             }),
@@ -794,8 +797,10 @@ class _SalesScreenState extends State<SalesScreen> {
                             _input(loc.bankInput, bankCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  Money remaining = billTotal - CurrencyUtils.parse(cashCtrl.text) - CurrencyUtils.parse(bankCtrl.text);
-                                  creditCtrl.text = remaining > const Money(0) ? CurrencyUtils.toDecimalMoney(remaining) : '0';
+                                  Money cash = Money.fromRupeesString(cashCtrl.text);
+                                  Money bank = Money.fromRupeesString(bankCtrl.text);
+                                  Money remaining = billTotal - cash - bank;
+                                  creditCtrl.text = remaining > const Money(0) ? remaining.toRupeesString() : '0';
                                 }
                               });
                             }),
@@ -811,7 +816,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(loc.changeDue, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                                  Text(CurrencyUtils.formatNoDecimal(change), 
+                                  Text(change.toString(),
                                     style: TextStyle(
                                       fontSize: 18, 
                                       fontWeight: FontWeight.bold, 
@@ -914,12 +919,13 @@ class _SalesScreenState extends State<SalesScreen> {
   // PROCESS SALE - USING REPOSITORY
   // ========================================
   
-  Future<void> _processSale(int cash, int bank, int credit, int change) async {
+  Future<void> _processSale(Money cash, Money bank, Money credit, Money change) async {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
     // 1. STOCK VALIDATION - Using Repository
-    final validationResult = await _salesRepository.validateStock(cartItems);
+    final cartItemsAsMaps = cartItems.map((item) => {'id': item.id, 'quantity': item.quantity}).toList();
+    final validationResult = await _salesRepository.validateStock(cartItemsAsMaps);
     
     if (!validationResult['valid']) {
       if (!mounted) {
@@ -970,19 +976,19 @@ class _SalesScreenState extends State<SalesScreen> {
       'customer_id': selectedCustomerId,
       'grand_total_paisas': grandTotal.paisas,
       'discount_paisas': discount.paisas,
-      'cash_paisas': cash,
-      'bank_paisas': bank,
-      'credit_paisas': credit,
+      'cash_paisas': cash.paisas,
+      'bank_paisas': bank.paisas,
+      'credit_paisas': credit.paisas,
       'receipt_language': currentLanguage,
       'items': cartItems.map((item) {
         return {
-          'id': item['id'],
-          'name_english': item['name_english'],
-          'name_urdu': item['name_urdu'],
-          'unit_name': item['unit_name'],
-          'quantity': item['quantity'],
-          'sale_price': item['unit_price'],
-          'total': item['total'],
+          'id': item.id,
+          'name_english': item.nameEnglish,
+          'name_urdu': item.nameUrdu,
+          'unit_name': item.unitName,
+          'quantity': item.quantity,
+          'sale_price': item.unitPrice.paisas,
+          'total': item.total.paisas,
         };
       }).toList(),
     };
@@ -1528,7 +1534,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          CurrencyUtils.formatNoDecimal(Money(product.salePrice)),
+                          Money(product.salePrice).toString(),
                           style: TextStyle(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.w800,
@@ -1637,7 +1643,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(CurrencyUtils.formatNoDecimal(Money(sale.grandTotalPaisas)), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
+                      Text(Money(sale.grandTotalPaisas).toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
                       const SizedBox(width: 8),
                       PopupMenuButton<String>(
                         icon: Icon(Icons.more_vert, size: 18, color: colorScheme.onSurfaceVariant),
@@ -1743,7 +1749,7 @@ class _SalesScreenState extends State<SalesScreen> {
                           dense: true,
                           title: Text(c.nameEnglish, style: const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text(c.contactPrimary ?? ''),
-                          trailing: Text('${loc.currBal}: ${CurrencyUtils.formatNoDecimal(Money(c.outstandingBalance))}'),
+                          trailing: Text('${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),
                           onTap: () => _selectCustomer(c),
                           hoverColor: colorScheme.primaryContainer.withOpacity(0.1),
                         );
@@ -1772,7 +1778,7 @@ class _SalesScreenState extends State<SalesScreen> {
         children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text(loc.subtotal, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14)),
-            Text(CurrencyUtils.formatNoDecimal(subtotal), style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 14))
+            Text(subtotal.toString(), style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 14))
           ]),
           const SizedBox(height: 8),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -1800,7 +1806,7 @@ class _SalesScreenState extends State<SalesScreen> {
               padding: const EdgeInsets.only(top: 8),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                 Text(loc.prevBalance, style: TextStyle(color: colorScheme.error, fontSize: 14)),
-                Text(CurrencyUtils.formatNoDecimal(previousBalance), style: TextStyle(color: colorScheme.error, fontSize: 14, fontWeight: FontWeight.bold))
+                Text(previousBalance.toString(), style: TextStyle(color: colorScheme.error, fontSize: 14, fontWeight: FontWeight.bold))
               ]),
             ),
           const SizedBox(height: 12),
@@ -1808,7 +1814,7 @@ class _SalesScreenState extends State<SalesScreen> {
           const SizedBox(height: 12),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text(loc.grandTotal.toUpperCase(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colorScheme.onSurface)),
-            Text(CurrencyUtils.formatNoDecimal(grandTotal), style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: colorScheme.primary))
+            Text(grandTotal.toString(), style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: colorScheme.primary))
           ]),
           const SizedBox(height: 16),
           SizedBox(
@@ -1879,12 +1885,12 @@ class AddCustomerIntent extends Intent {
 }
 
 class _CartItemRow extends StatefulWidget {
-  final Map<String, dynamic> item;
+  final CartItem item;
   final int index;
   final bool isRTL;
   final ColorScheme colorScheme;
   final Function(int) onRemove;
-  final Function(int, double, int) onUpdate;
+  final Function(int, double, Money) onUpdate;
 
   const _CartItemRow({
     required this.item,
@@ -1907,21 +1913,21 @@ class _CartItemRowState extends State<_CartItemRow> {
   @override
   void initState() {
     super.initState();
-    _priceCtrl = TextEditingController(text: CurrencyUtils.toDecimal(widget.item['unit_price']));
-    _qtyCtrl = TextEditingController(text: widget.item['quantity'].toString());
+    _priceCtrl = TextEditingController(text: widget.item.unitPrice.toRupeesString());
+    _qtyCtrl = TextEditingController(text: widget.item.quantity.toString());
   }
 
   @override
   void didUpdateWidget(_CartItemRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.item['quantity'] != oldWidget.item['quantity']) {
-       if (double.tryParse(_qtyCtrl.text) != widget.item['quantity']) {
-          _qtyCtrl.text = widget.item['quantity'].toString();
+    if (widget.item.quantity != oldWidget.item.quantity) {
+       if (double.tryParse(_qtyCtrl.text) != widget.item.quantity) {
+          _qtyCtrl.text = widget.item.quantity.toString();
        }
     }
-    if (widget.item['unit_price'] != oldWidget.item['unit_price']) {
-       if (CurrencyUtils.toPaisas(_priceCtrl.text) != widget.item['unit_price']) {
-          _priceCtrl.text = CurrencyUtils.toDecimal(widget.item['unit_price']);
+    if (widget.item.unitPrice != oldWidget.item.unitPrice) {
+       if (Money.fromRupeesString(_priceCtrl.text) != widget.item.unitPrice) {
+          _priceCtrl.text = widget.item.unitPrice.toRupeesString();
        }
     }
   }
@@ -1938,7 +1944,7 @@ class _CartItemRowState extends State<_CartItemRow> {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       final double qty = double.tryParse(_qtyCtrl.text) ?? 1.0;
-      final int price = CurrencyUtils.toPaisas(_priceCtrl.text);
+      final Money price = Money.fromRupeesString(_priceCtrl.text);
       widget.onUpdate(widget.index, qty, price);
     });
   }
@@ -1956,13 +1962,13 @@ class _CartItemRowState extends State<_CartItemRow> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.isRTL && widget.item['name_urdu'] != null ? widget.item['name_urdu'] : widget.item['name_english'],
+                  widget.isRTL && widget.item.nameUrdu.isNotEmpty ? widget.item.nameUrdu : widget.item.nameEnglish,
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: widget.colorScheme.onSurface),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (widget.item['item_code'] != null)
-                  Text(widget.item['item_code'], style: TextStyle(fontSize: 10, color: widget.colorScheme.onSurfaceVariant)),
+                if (widget.item.itemCode != null)
+                  Text(widget.item.itemCode!, style: TextStyle(fontSize: 10, color: widget.colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -2002,7 +2008,7 @@ class _CartItemRowState extends State<_CartItemRow> {
           SizedBox(
             width: 70,
             child: Text(
-              CurrencyUtils.formatNoDecimal(Money(widget.item['total'] as int)).replaceAll('Rs ', ''),
+              widget.item.total.toString().replaceAll('Rs ', ''),
               textAlign: TextAlign.end,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: widget.colorScheme.onSurface),
             ),

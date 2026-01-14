@@ -1,8 +1,9 @@
-import 'package:equatable/equatable.dart';
+import 'package.equatable/equatable.dart';
 import '../../../../../models/product_model.dart';
 import '../../../../../models/customer_model.dart';
 import '../../../../../models/sale_model.dart';
 import '../../../../../domain/entities/money.dart';
+import '../../../../../models/cart_item_model.dart';
 
 enum SalesStatus { initial, loading, ready, success, error }
 
@@ -12,8 +13,7 @@ class SalesState extends Equatable {
   final List<Product> filteredProducts;
   final List<Customer> filteredCustomers;
   final List<Sale> recentSales;
-  // Cart items stored as pure data. UI handles controllers.
-  final List<Map<String, dynamic>> cartItems; 
+  final List<CartItem> cartItems;
   final Customer? selectedCustomer;
   final Money subtotal;
   final Money discount;
@@ -46,7 +46,7 @@ class SalesState extends Equatable {
     List<Product>? filteredProducts,
     List<Customer>? filteredCustomers,
     List<Sale>? recentSales,
-    List<Map<String, dynamic>>? cartItems,
+    List<CartItem>? cartItems,
     Customer? selectedCustomer,
     bool clearCustomer = false,
     Money? subtotal,

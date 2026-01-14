@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 
 @immutable
 class Money {
@@ -36,4 +37,17 @@ class Money {
 
   @override
   int get hashCode => paisas.hashCode;
+
+  /// Formats the money value as "Rs 1,234.00"
+  @override
+  String toString() {
+    final format = NumberFormat('#,##0.00', 'en_US');
+    final rupees = paisas / 100.0;
+    return 'Rs ${format.format(rupees)}';
+  }
+
+  /// Returns the value as a decimal string (e.g., "10.50")
+  String toRupeesString() {
+    return (paisas / 100.0).toStringAsFixed(2);
+  }
 }
