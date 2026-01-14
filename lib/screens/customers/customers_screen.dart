@@ -3,7 +3,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:liaqat_store/core/utils/currency_utils.dart';
 import 'package:liaqat_store/core/repositories/customers_repository.dart';
 import 'package:liaqat_store/core/repositories/sales_repository.dart';
 import 'package:liaqat_store/services/ledger_export_service.dart';
@@ -415,12 +414,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
       height: 115,
       child: Row(
         children: [
-          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, balTotal, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, balTotal as Money, null)),
           const SizedBox(width: 8),
-          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, balActive, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, balActive as Money, null)),
           const SizedBox(width: 8),
           Expanded(
-            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, balArchived, () { 
+            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, balArchived as Money, () { 
                setState(() {
                  _showArchiveOverlay = true;
                  _loadArchivedCustomers();
@@ -541,7 +540,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 onSelected: (value) {
                   if (value == 'edit') _showAddDialog(customer: customer);
                   if (value == 'archive') _toggleArchiveStatus(customer.id!, true);
-                  if (value == 'delete') _deleteCustomer(customer.id!, balance);
+                  if (value == 'delete') _deleteCustomer(customer.id!, balance as int);
                 },
                 itemBuilder: (context) => [
                    PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18, color: colorScheme.onSurface), const SizedBox(width: 8), Text('Edit', style: TextStyle(color: colorScheme.onSurface))])),
@@ -1127,8 +1126,8 @@ class _LedgerRowState extends State<_LedgerRow> {
                               ..._items!.map((item) => TableRow(children: [
                                 Padding(padding: const EdgeInsets.all(4), child: Text(item.itemName, style: const TextStyle(fontSize: 11))),
                                 Padding(padding: const EdgeInsets.all(4), child: Text(item.quantity.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11))),
-                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.pricePaisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
-                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.totalPaisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.price.paisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.total.paisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
                               ]
                             ),
                           )

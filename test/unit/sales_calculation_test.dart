@@ -11,10 +11,10 @@ void main() {
     });
 
     test('Discount should be applied correctly', () {
-      final subtotal = 1000.0;
-      final discount = 100.0;
+      const subtotal = 1000.0;
+      const discount = 100.0;
 
-      final grandTotal = subtotal - discount;
+      const grandTotal = subtotal - discount;
 
       expect(grandTotal, 900.0);
     });

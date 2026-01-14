@@ -44,7 +44,7 @@ void main() {
       expect(m2 > m1, true);
       expect(m1 <= m1, true);
       expect(m1 >= m1, true);
-      expect(m1 == Money(100), true);
+      expect(m1 == const Money(100), true);
     });
 
     test('toString should format as currency', () {

@@ -559,7 +559,7 @@ class CustomerReportTab extends StatelessWidget {
                   const SizedBox(height: 10),
                   CustomerBalanceItem(
                     name: 'Ali Khan',
-                    balance: Money(1250000),
+                    balance: const Money(1250000),
                     phone: '0300-1111111',
                     days: '15 ${loc.daysOld}',
                   ),

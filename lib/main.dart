@@ -61,7 +61,7 @@ void main() async {
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
       titleBarStyle: TitleBarStyle.normal,
-     );
+    );
 
       windowManager.waitUntilReadyToShow(windowOptions, () async {
         await windowManager.show();
