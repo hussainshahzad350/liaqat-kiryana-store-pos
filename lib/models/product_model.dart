@@ -7,7 +7,6 @@ class Product {
   final int? subCategoryId;
   final String? brand;
   final int? unitId;
-  final String? unitType;
   final String? packingType;
   final String? searchTags;
   final int minStockAlert;
@@ -26,7 +25,6 @@ class Product {
     this.subCategoryId,
     this.brand,
     this.unitId,
-    this.unitType,
     this.packingType,
     this.searchTags,
     this.minStockAlert = 10,
@@ -48,7 +46,6 @@ class Product {
       subCategoryId: map['sub_category_id'] as int?,
       brand: map['brand'] as String?,
       unitId: map['unit_id'] as int?,
-      unitType: map['unit_type'] as String?,
       packingType: map['packing_type'] as String?,
       searchTags: map['search_tags'] as String?,
       minStockAlert: (map['min_stock_alert'] ?? 10) as int,
@@ -73,7 +70,6 @@ class Product {
       'sub_category_id': subCategoryId,
       'brand': brand,
       'unit_id': unitId,
-      'unit_type': unitType,
       'packing_type': packingType,
       'search_tags': searchTags,
       'min_stock_alert': minStockAlert,
@@ -114,7 +110,6 @@ class Product {
       subCategoryId: subCategoryId ?? this.subCategoryId,
       brand: brand ?? this.brand,
       unitId: unitId ?? this.unitId,
-      unitType: unitType ?? this.unitType,
       packingType: packingType ?? this.packingType,
       searchTags: searchTags ?? this.searchTags,
       minStockAlert: minStockAlert ?? this.minStockAlert,

@@ -71,12 +71,10 @@ class UnitsRepository {
       throw Exception("System units cannot be deleted.");
     }
 
-    final String unitCode = unitRes.first['code'] as String;
-
     // 2. Check Usage in Products
     final productCount = Sqflite.firstIntValue(await db.rawQuery(
-      'SELECT COUNT(*) FROM products WHERE unit_type = ?',
-      [unitCode],
+      'SELECT COUNT(*) FROM products WHERE unit_id = ?',
+      [id],
     ));
 
     // 3. Check Usage in Sale Items (Historical)

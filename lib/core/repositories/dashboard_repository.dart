@@ -375,10 +375,11 @@ class DashboardRepository {
           COALESCE(p.name_english, p.name_urdu) as title,
           p.current_stock as stock_level,
           p.min_stock_alert as min_level,
-          p.unit_type as unit_name,
+          u.name as unit_name,
           datetime('now', 'localtime') as timestamp,
           'URGENT' as status
         FROM products p
+        LEFT JOIN units u ON p.unit_id = u.id
         WHERE p.current_stock <= p.min_stock_alert
         ORDER BY (p.current_stock * 1.0 / p.min_stock_alert) ASC
         LIMIT 3

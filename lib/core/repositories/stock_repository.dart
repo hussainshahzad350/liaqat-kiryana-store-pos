@@ -44,9 +44,10 @@ class StockRepository {
     // supplierId filter is not implemented as the DB schema doesn't support it yet.
 
     final String sql = '''
-      SELECT p.*, c.name_english as category_name
+      SELECT p.*, c.name_english as category_name, u.name as unit_name
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN units u ON p.unit_id = u.id
       $whereClause
       ORDER BY p.name_english ASC
       LIMIT $limit OFFSET $offset
@@ -132,7 +133,7 @@ class StockRepository {
       barcode: row['barcode'] as String?,
       currentStock: (row['current_stock'] as num?)?.toDouble() ?? 0.0,
       minStockThreshold: (row['min_stock_alert'] as num?)?.toDouble() ?? 0.0,
-      unit: row['unit_type'] as String? ?? 'Unit',
+      unit: row['unit_name'] as String? ?? 'Unit',
       costPrice: Money((row['avg_cost_price'] as num?)?.toInt() ?? 0),
       salePrice: Money((row['sale_price'] as num?)?.toInt() ?? 0),
       categoryName: row['category_name'] as String?,

@@ -446,7 +446,7 @@ class DatabaseHelper {
       CREATE TABLE IF NOT EXISTS invoice_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         invoice_id INTEGER NOT NULL,
-        product_id INTEGER NOT NULL,
+        product_id INTEGER,
         item_name_snapshot TEXT NOT NULL,
         quantity INTEGER NOT NULL,
         unit_price INTEGER NOT NULL,
@@ -455,22 +455,6 @@ class DatabaseHelper {
       )
     ''');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id)');
-
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS receipts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        receipt_number TEXT UNIQUE NOT NULL,
-        customer_id INTEGER NOT NULL,
-        receipt_date TEXT NOT NULL,
-        amount INTEGER NOT NULL,
-        payment_mode TEXT DEFAULT 'CASH',
-        notes TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
-      )
-    ''');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_receipts_customer ON receipts(customer_id)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_receipts_date ON receipts(receipt_date)');
 
     await db.execute('''
       CREATE TABLE IF NOT EXISTS customer_ledger (
@@ -700,7 +684,6 @@ class DatabaseHelper {
         sub_category_id INTEGER,
         brand TEXT,
         unit_id INTEGER,
-        unit_type TEXT,
         packing_type TEXT,
         search_tags TEXT,
         min_stock_alert INTEGER DEFAULT 10,
@@ -831,9 +814,10 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS sale_print_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sale_id INTEGER NOT NULL,
+        invoice_id INTEGER NOT NULL,
         receipt_type TEXT NOT NULL,
-        generated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        generated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
       )
     ''');
 
@@ -973,7 +957,7 @@ class DatabaseHelper {
         'name_urdu': 'چاول سپر باسمتی',
         'name_english': 'Super Basmati Rice',
         'category_id': 1,
-        'unit_type': 'KG',
+        'unit_id': 1,
         'min_stock_alert': 50,
         'current_stock': 45,
          'avg_cost_price': 17000, // 170 rupees in paisas

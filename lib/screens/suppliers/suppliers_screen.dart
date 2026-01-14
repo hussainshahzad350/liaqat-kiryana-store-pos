@@ -999,7 +999,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           children: [
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['name_english'] ?? item['name_urdu'] ?? 'Unknown', style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['quantity'].toString(), textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['unit_type'] ?? '-', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['unit_name'] ?? '-', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['cost_price'] != null ? CurrencyUtils.formatRupees(item['cost_price']) : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['total_amount'] != null ? CurrencyUtils.formatRupees(item['total_amount']) : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
           ],

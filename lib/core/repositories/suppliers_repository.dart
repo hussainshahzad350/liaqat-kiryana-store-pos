@@ -518,9 +518,10 @@ class SuppliersRepository {
           pi.total_amount,
           p.name_english,
           p.name_urdu,
-          p.unit_type
+          u.name as unit_name
         FROM purchase_items pi
         LEFT JOIN products p ON pi.product_id = p.id
+        LEFT JOIN units u ON p.unit_id = u.id
         WHERE pi.purchase_id = ?
       ''', [billId]);
   }

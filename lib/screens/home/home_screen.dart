@@ -825,7 +825,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             item['name_urdu']?.toString() ?? 
                             'Unknown Item';
                 final stock = item['current_stock'] ?? 0;
-                final unit = item['unit_type']?.toString() ?? 'units';
+                final unit = item['unit_name']?.toString() ?? 'units';
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
