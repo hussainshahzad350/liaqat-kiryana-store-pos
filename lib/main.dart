@@ -6,7 +6,7 @@ import 'package:liaqat_store/core/repositories/categories_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'bloc/sales/sales_bloc.dart';
+import 'bloc/invoices/invoices_bloc.dart';
 import 'bloc/units/units_bloc.dart';
 import 'bloc/units/units_event.dart';
 import 'bloc/stock/stock_overveiw/stock_overview_bloc.dart';
@@ -17,7 +17,7 @@ import 'bloc/stock/stock_activity/stock_activity_bloc.dart';
 import 'bloc/stock/stock_activity/stock_activity_event.dart';
 import 'bloc/purchase/purchase_bloc.dart';
 import 'bloc/purchase/purchase_event.dart';
-import 'core/repositories/sales_repository.dart';
+import 'core/repositories/invoices_repository.dart';
 import 'core/repositories/items_repository.dart';
 import 'core/repositories/customers_repository.dart';
 import 'core/repositories/settings_repository.dart';
@@ -28,7 +28,7 @@ import 'core/repositories/purchase_repository.dart';
 import 'core/theme/theme_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
-import 'screens/sales/sales_screen.dart';
+import 'screens/invoices/invoices_screen.dart';
 import 'screens/stock/stock_screen.dart';
 import 'screens/items/items_screen.dart';
 import 'screens/customers/customers_screen.dart';
@@ -148,15 +148,15 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
           routes: {
             '/': (context) => const LoginScreen(),
             AppRoutes.home: (context) => const MainLayout(currentRoute: AppRoutes.home, child: HomeScreen()),
-            AppRoutes.sales: (context) => MainLayout(
-                  currentRoute: AppRoutes.sales,
+            AppRoutes.invoices: (context) => MainLayout(
+                  currentRoute: AppRoutes.invoices,
                   child: BlocProvider(
-                    create: (context) => SalesBloc(
-                      salesRepository: SalesRepository(),
+                    create: (context) => InvoicesBloc(
+                      invoicesRepository: InvoicesRepository(),
                       itemsRepository: ItemsRepository(),
                       customersRepository: CustomersRepository(),
                     ),
-                    child: const SalesScreen(),
+                    child: const InvoicesScreen(),
                   ),
                 ),
             AppRoutes.stock: (context) => MainLayout(
@@ -174,7 +174,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                           StockActivityRepository(),
                           ItemsRepository(),
                           PurchaseRepository(),
-                          SalesRepository(),
+                          InvoicesRepository(),
                         )..add(LoadStockActivities()),
                       ),
                     ],

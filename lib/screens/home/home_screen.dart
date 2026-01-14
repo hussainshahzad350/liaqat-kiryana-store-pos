@@ -129,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             _NewSaleIntent: CallbackAction<_NewSaleIntent>(
               onInvoke: (intent) {
-                Navigator.pushNamed(context, AppRoutes.sales).then((_) => _loadData());
+                Navigator.pushNamed(context, AppRoutes.invoices).then((_) => _loadData());
                 return null;
               },
             ),
@@ -294,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // 1. Primary Action: New Sale Button
           ElevatedButton.icon(
             onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.sales).then((_) => _loadData());
+              Navigator.pushNamed(context, AppRoutes.invoices).then((_) => _loadData());
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.surface,

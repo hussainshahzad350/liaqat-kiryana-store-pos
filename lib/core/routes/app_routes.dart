@@ -6,7 +6,7 @@ class AppRoutes {
   
   // Route names
   static const String home = '/home';
-  static const String sales = '/sales';
+  static const String invoices = '/invoices';
   static const String stock = '/stock';
   static const String purchase = '/purchase';
   static const String items = '/items';
@@ -24,8 +24,8 @@ class AppRoutes {
     switch (screenName) {
       case 'HomeScreen':
         return home;
-      case 'SalesScreen':
-        return sales;
+      case 'InvoicesScreen':
+        return invoices;
       case 'PurchaseScreen':
         return purchase;
       case 'StockScreen':

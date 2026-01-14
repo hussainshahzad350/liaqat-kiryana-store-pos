@@ -1,28 +1,28 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'sales_event.dart';
-import 'sales_state.dart';
-import '../../../../../core/repositories/sales_repository.dart';
+import 'invoices_event.dart';
+import 'invoices_state.dart';
+import '../../../../../core/repositories/invoices_repository.dart';
 import '../../../../../core/repositories/items_repository.dart';
 import '../../../../../core/repositories/customers_repository.dart';
 import '../../../../../core/utils/currency_utils.dart';
 import '../../../../../domain/entities/money.dart';
 import '../../../../../models/cart_item_model.dart';
 
-class SalesBloc extends Bloc<SalesEvent, SalesState> {
-  final SalesRepository _salesRepository;
+class InvoicesBloc extends Bloc<InvoicesEvent, InvoicesState> {
+  final InvoicesRepository _invoicesRepository;
   final ItemsRepository _itemsRepository;
   final CustomersRepository _customersRepository;
 
-  SalesBloc({
-    required SalesRepository salesRepository,
+  InvoicesBloc({
+    required InvoicesRepository invoicesRepository,
     required ItemsRepository itemsRepository,
     required CustomersRepository customersRepository,
-  })  : _salesRepository = salesRepository,
+  })  : _invoicesRepository = invoicesRepository,
         _itemsRepository = itemsRepository,
         _customersRepository = customersRepository,
-        super(const SalesState()) {
-    on<SalesStarted>(_onStarted);
+        super(const InvoicesState()) {
+    on<InvoicesStarted>(_onStarted);
     on<ProductSearchChanged>(_onProductSearchChanged);
     on<CustomerSearchChanged>(_onCustomerSearchChanged);
     on<CustomerSelected>(_onCustomerSelected);
@@ -31,27 +31,27 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     on<CartItemRemoved>(_onCartItemRemoved);
     on<CartCleared>(_onCartCleared);
     on<DiscountChanged>(_onDiscountChanged);
-    on<SaleProcessed>(_onSaleProcessed);
-    on<SaleCancelled>(_onSaleCancelled);
+    on<InvoiceProcessed>(_onInvoiceProcessed);
+    on<InvoiceCancelled>(_onInvoiceCancelled);
   }
 
-  Future<void> _onStarted(SalesStarted event, Emitter<SalesState> emit) async {
-    emit(state.copyWith(status: SalesStatus.loading));
+  Future<void> _onStarted(InvoicesStarted event, Emitter<InvoicesState> emit) async {
+    emit(state.copyWith(status: InvoicesStatus.loading));
     try {
       final products = await _itemsRepository.getAllProducts();
-      final recentSales = await _salesRepository.getRecentSales();
+      final recentInvoices = await _invoicesRepository.getRecentInvoices();
       emit(state.copyWith(
-        status: SalesStatus.ready,
+        status: InvoicesStatus.ready,
         products: products,
         filteredProducts: products,
-        recentSales: recentSales,
+        recentInvoices: recentInvoices,
       ));
     } catch (e) {
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString()));
+      emit(state.copyWith(status: InvoicesStatus.error, errorMessage: e.toString()));
     }
   }
 
-  void _onProductSearchChanged(ProductSearchChanged event, Emitter<SalesState> emit) {
+  void _onProductSearchChanged(ProductSearchChanged event, Emitter<InvoicesState> emit) {
     final query = event.query.toLowerCase();
     if (query.isEmpty) {
       emit(state.copyWith(filteredProducts: state.products));
@@ -65,7 +65,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     }
   }
 
-  Future<void> _onCustomerSearchChanged(CustomerSearchChanged event, Emitter<SalesState> emit) async {
+  Future<void> _onCustomerSearchChanged(CustomerSearchChanged event, Emitter<InvoicesState> emit) async {
     if (event.query.isEmpty) {
       emit(state.copyWith(filteredCustomers: [], showCustomerList: false));
       return;
@@ -78,7 +78,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     }
   }
 
-  void _onCustomerSelected(CustomerSelected event, Emitter<SalesState> emit) {
+  void _onCustomerSelected(CustomerSelected event, Emitter<InvoicesState> emit) {
     if (event.customer == null) {
       emit(state.copyWith(clearCustomer: true, showCustomerList: false));
     } else {
@@ -87,7 +87,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     _calculateTotals(emit);
   }
 
-  void _onProductAddedToCart(ProductAddedToCart event, Emitter<SalesState> emit) {
+  void _onProductAddedToCart(ProductAddedToCart event, Emitter<InvoicesState> emit) {
     final List<CartItem> updatedCart = List.from(state.cartItems);
     final index = updatedCart.indexWhere((item) => item.id == event.product.id);
     final availableStock = (event.product.currentStock as num).toDouble();
@@ -97,8 +97,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       final newQty = currentQty + event.quantity;
       
       if (newQty > availableStock) {
-        emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Insufficient stock'));
-        emit(state.copyWith(status: SalesStatus.ready, errorMessage: null)); // Reset error
+        emit(state.copyWith(status: InvoicesStatus.error, errorMessage: 'Insufficient stock'));
+        emit(state.copyWith(status: InvoicesStatus.ready, errorMessage: null)); // Reset error
         return;
       }
 
@@ -108,8 +108,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       );
     } else {
       if (availableStock < event.quantity) {
-        emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Out of stock'));
-        emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
+        emit(state.copyWith(status: InvoicesStatus.error, errorMessage: 'Out of stock'));
+        emit(state.copyWith(status: InvoicesStatus.ready, errorMessage: null));
         return;
       }
 
@@ -130,7 +130,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     _calculateTotals(emit);
   }
 
-  void _onCartItemUpdated(CartItemUpdated event, Emitter<SalesState> emit) {
+  void _onCartItemUpdated(CartItemUpdated event, Emitter<InvoicesState> emit) {
     final List<CartItem> updatedCart = List.from(state.cartItems);
     if (event.index >= updatedCart.length) return;
 
@@ -140,8 +140,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     double newQty = event.quantity;
     if (newQty > availableStock) {
       newQty = availableStock;
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Stock limit reached'));
-      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
+      emit(state.copyWith(status: InvoicesStatus.error, errorMessage: 'Stock limit reached'));
+      emit(state.copyWith(status: InvoicesStatus.ready, errorMessage: null));
     }
 
     updatedCart[event.index] = item.copyWith(
@@ -154,7 +154,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     _calculateTotals(emit);
   }
 
-  void _onCartItemRemoved(CartItemRemoved event, Emitter<SalesState> emit) {
+  void _onCartItemRemoved(CartItemRemoved event, Emitter<InvoicesState> emit) {
     final List<CartItem> updatedCart = List.from(state.cartItems);
     if (event.index < updatedCart.length) {
       updatedCart.removeAt(event.index);
@@ -163,7 +163,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     }
   }
 
-  void _onCartCleared(CartCleared event, Emitter<SalesState> emit) {
+  void _onCartCleared(CartCleared event, Emitter<InvoicesState> emit) {
     emit(state.copyWith(
       cartItems: [],
       clearCustomer: true,
@@ -174,12 +174,12 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     ));
   }
 
-  void _onDiscountChanged(DiscountChanged event, Emitter<SalesState> emit) {
+  void _onDiscountChanged(DiscountChanged event, Emitter<InvoicesState> emit) {
     final money = Money.fromRupeesString(event.discountText);
     _calculateTotals(emit, proposedDiscount: money);
   }
 
-  void _calculateTotals(Emitter<SalesState> emit, {Money? proposedDiscount}) {
+  void _calculateTotals(Emitter<InvoicesState> emit, {Money? proposedDiscount}) {
     int subtotalPaisas = state.cartItems.fold(0, (sum, item) => sum + item.total.paisas);
     final subtotal = Money(subtotalPaisas);
 
@@ -199,8 +199,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     ));
   }
 
-  Future<void> _onSaleProcessed(SaleProcessed event, Emitter<SalesState> emit) async {
-    emit(state.copyWith(status: SalesStatus.loading));
+  Future<void> _onInvoiceProcessed(InvoiceProcessed event, Emitter<InvoicesState> emit) async {
+    emit(state.copyWith(status: InvoicesStatus.loading));
     
     final cartItemsAsMaps = state.cartItems
         .map((item) => {
@@ -209,14 +209,14 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
             })
         .toList();
 
-    final validation = await _salesRepository.validateStock(cartItemsAsMaps);
+    final validation = await _invoicesRepository.validateStock(cartItemsAsMaps);
     if (!validation['valid']) {
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: validation['error']));
-      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
+      emit(state.copyWith(status: InvoicesStatus.error, errorMessage: validation['error']));
+      emit(state.copyWith(status: InvoicesStatus.ready, errorMessage: null));
       return;
     }
 
-    final saleData = {
+    final invoiceData = {
       'customer_id': state.selectedCustomer?.id,
       'grand_total_paisas': state.grandTotal.paisas,
       'discount_paisas': state.discount.paisas,
@@ -236,27 +236,27 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     };
 
     try {
-      await _salesRepository.completeSaleWithSnapshot(saleData);
-      emit(state.copyWith(status: SalesStatus.success, successMessage: 'Sale Completed'));
+      await _invoicesRepository.completeInvoiceWithSnapshot(invoiceData);
+      emit(state.copyWith(status: InvoicesStatus.success, successMessage: 'Invoice Completed'));
       add(CartCleared());
-      add(SalesStarted()); // Refresh data
+      add(InvoicesStarted()); // Refresh data
     } catch (e) {
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString()));
-      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
+      emit(state.copyWith(status: InvoicesStatus.error, errorMessage: e.toString()));
+      emit(state.copyWith(status: InvoicesStatus.ready, errorMessage: null));
     }
   }
 
-  Future<void> _onSaleCancelled(SaleCancelled event, Emitter<SalesState> emit) async {
+  Future<void> _onInvoiceCancelled(InvoiceCancelled event, Emitter<InvoicesState> emit) async {
     try {
-      await _salesRepository.cancelSale(
-        saleId: event.saleId,
+      await _invoicesRepository.cancelInvoice(
+        invoiceId: event.invoiceId,
         cancelledBy: 'Cashier',
         reason: event.reason,
       );
-      add(SalesStarted()); // Refresh
-      emit(state.copyWith(status: SalesStatus.success, successMessage: 'Sale Cancelled'));
+      add(InvoicesStarted()); // Refresh
+      emit(state.copyWith(status: InvoicesStatus.success, successMessage: 'Invoice Cancelled'));
     } catch (e) {
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString()));
+      emit(state.copyWith(status: InvoicesStatus.error, errorMessage: e.toString()));
     }
   }
 }

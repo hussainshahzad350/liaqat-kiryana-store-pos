@@ -1,34 +1,34 @@
-// lib/screens/sales/sales_screen.dart
+// lib/screens/invoices/invoices_screen.dart
 // ignore_for_file: use_build_context_synchronously, unnecessary_to_list_in_spreads, deprecated_member_use, avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../bloc/sales/sales_bloc.dart';
-import '../../bloc/sales/sales_event.dart';
-import '../../bloc/sales/sales_state.dart';
+import '../../bloc/invoices/invoices_bloc.dart';
+import '../../bloc/invoices/invoices_event.dart';
+import '../../bloc/invoices/invoices_state.dart';
 import '../../l10n/app_localizations.dart';
-import 'dart:async';
-import '../../core/repositories/sales_repository.dart';
+import 'dartdart:async';
+import '../../core/repositories/invoices_repository.dart';
 import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/receipt_repository.dart';
 import '../../core/utils/currency_utils.dart';
-import '../../models/sale_model.dart';
+import '../../models/invoice_model.dart';
 import '../../models/product_model.dart';
 import '../../models/customer_model.dart';
 import '../../models/cart_item_model.dart';
 import '../../domain/entities/money.dart';
 
-class SalesScreen extends StatefulWidget {
-  const SalesScreen({super.key});
+class InvoicesScreen extends StatefulWidget {
+  const InvoicesScreen({super.key});
 
   @override
-  State<SalesScreen> createState() => _SalesScreenState();
+  State<InvoicesScreen> createState() => _InvoicesScreenState();
 }
 
-class _SalesScreenState extends State<SalesScreen> {
+class _InvoicesScreenState extends State<InvoicesScreen> {
   final ReceiptRepository _receiptRepository = ReceiptRepository();
-  final SalesRepository _salesRepository = SalesRepository();
+  final InvoicesRepository _invoicesRepository = InvoicesRepository();
   final CustomersRepository _customersRepository = CustomersRepository();
   
   // --- Search & Filter ---
@@ -48,7 +48,7 @@ class _SalesScreenState extends State<SalesScreen> {
   final FocusNode _productSearchFocusNode = FocusNode();
 
   // --- State Accessors ---
-  SalesState get _state => context.read<SalesBloc>().state;
+  InvoicesState get _state => context.read<InvoicesBloc>().state;
   Customer? get selectedCustomerMap => _state.selectedCustomer;
   int? get selectedCustomerId => _state.selectedCustomer?.id;
   List<CartItem> get cartItems => _state.cartItems;
@@ -57,20 +57,20 @@ class _SalesScreenState extends State<SalesScreen> {
   Money get discount => _state.discount;
   Money get previousBalance => _state.previousBalance;
   List<Product> get filteredProducts => _state.filteredProducts;
-  List<Sale> get recentSales => _state.recentSales;
+  List<Invoice> get recentInvoices => _state.recentInvoices;
   List<Customer> get filteredCustomers => _state.filteredCustomers;
   bool get showCustomerList => _state.showCustomerList;
 
-  void _refreshAllData() => context.read<SalesBloc>().add(SalesStarted());
+  void _refreshAllData() => context.read<InvoicesBloc>().add(InvoicesStarted());
   void _performClearCart() {
-    context.read<SalesBloc>().add(CartCleared());
+    context.read<InvoicesBloc>().add(CartCleared());
     customerSearchController.clear();
     discountController.clear();
   }
-  Future<void> _loadRecentSales() async => context.read<SalesBloc>().add(SalesStarted());
-  void _calculateTotals() => context.read<SalesBloc>().add(DiscountChanged(discountController.text));
+  Future<void> _loadRecentInvoices() async => context.read<InvoicesBloc>().add(InvoicesStarted());
+  void _calculateTotals() => context.read<InvoicesBloc>().add(DiscountChanged(discountController.text));
   void _updateCartItem(int index, double quantity, Money price) {
-    context.read<SalesBloc>().add(CartItemUpdated(index: index, quantity: quantity, price: price));
+    context.read<InvoicesBloc>().add(CartItemUpdated(index: index, quantity: quantity, price: price));
   }
 
   @override
