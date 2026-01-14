@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../domain/entities/money.dart';
 import '../../l10n/app_localizations.dart';
 
 class ReportsScreen extends StatefulWidget {
@@ -558,7 +559,7 @@ class CustomerReportTab extends StatelessWidget {
                   const SizedBox(height: 10),
                   CustomerBalanceItem(
                     name: 'Ali Khan',
-                    balance: 'Rs 12,500',
+                    balance: Money(1250000),
                     phone: '0300-1111111',
                     days: '15 ${loc.daysOld}',
                   ),
@@ -846,7 +847,7 @@ class AgingItem extends StatelessWidget {
 
 class CustomerBalanceItem extends StatelessWidget {
   final String name;
-  final String balance;
+  final Money balance;
   final String phone;
   final String days;
 
@@ -886,7 +887,7 @@ class CustomerBalanceItem extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(balance, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.error)),
+                Text(balance.toString(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.error)),
                 Text(days, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
               ],
             ),

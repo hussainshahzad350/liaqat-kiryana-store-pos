@@ -7,6 +7,7 @@ import '../../../../../core/repositories/items_repository.dart';
 import '../../../../../core/repositories/customers_repository.dart';
 import '../../../../../core/utils/currency_utils.dart';
 import '../../../../../domain/entities/money.dart';
+import '../../../../../models/cart_item_model.dart';
 
 class SalesBloc extends Bloc<SalesEvent, SalesState> {
   final SalesRepository _salesRepository;
@@ -87,12 +88,12 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   }
 
   void _onProductAddedToCart(ProductAddedToCart event, Emitter<SalesState> emit) {
-    final List<Map<String, dynamic>> updatedCart = List.from(state.cartItems);
-    final index = updatedCart.indexWhere((item) => item['id'] == event.product.id);
+    final List<CartItem> updatedCart = List.from(state.cartItems);
+    final index = updatedCart.indexWhere((item) => item.id == event.product.id);
     final availableStock = (event.product.currentStock as num).toDouble();
 
     if (index != -1) {
-      final currentQty = updatedCart[index]['quantity'] as double;
+      final currentQty = updatedCart[index].quantity;
       final newQty = currentQty + event.quantity;
       
       if (newQty > availableStock) {
@@ -101,8 +102,10 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         return;
       }
 
-      updatedCart[index]['quantity'] = newQty;
-      updatedCart[index]['total'] = (newQty * updatedCart[index]['unit_price']).round();
+      updatedCart[index] = updatedCart[index].copyWith(
+        quantity: newQty,
+        total: Money((newQty * updatedCart[index].unitPrice.paisas).round()),
+      );
     } else {
       if (availableStock < event.quantity) {
         emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Out of stock'));
@@ -110,17 +113,17 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         return;
       }
 
-      updatedCart.add({
-        'id': event.product.id,
-        'name_urdu': event.product.nameUrdu,
-        'name_english': event.product.nameEnglish,
-        'unit_name': event.product.unitType,
-        'item_code': event.product.itemCode,
-        'current_stock': availableStock,
-        'unit_price': event.product.salePrice,
-        'quantity': event.quantity,
-        'total': (event.product.salePrice * event.quantity).round(),
-      });
+      updatedCart.add(CartItem(
+        id: event.product.id,
+        nameUrdu: event.product.nameUrdu,
+        nameEnglish: event.product.nameEnglish,
+        unitName: event.product.unitType,
+        itemCode: event.product.itemCode,
+        currentStock: availableStock,
+        unitPrice: Money(event.product.salePrice),
+        quantity: event.quantity,
+        total: Money((event.product.salePrice * event.quantity).round()),
+      ));
     }
 
     emit(state.copyWith(cartItems: updatedCart));
@@ -128,11 +131,11 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   }
 
   void _onCartItemUpdated(CartItemUpdated event, Emitter<SalesState> emit) {
-    final List<Map<String, dynamic>> updatedCart = List.from(state.cartItems);
+    final List<CartItem> updatedCart = List.from(state.cartItems);
     if (event.index >= updatedCart.length) return;
 
     final item = updatedCart[event.index];
-    final availableStock = (item['current_stock'] as num).toDouble();
+    final availableStock = item.currentStock;
     
     double newQty = event.quantity;
     if (newQty > availableStock) {
@@ -141,16 +144,18 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
     }
 
-    updatedCart[event.index]['quantity'] = newQty;
-    updatedCart[event.index]['unit_price'] = event.price;
-    updatedCart[event.index]['total'] = (event.price * newQty).round();
+    updatedCart[event.index] = item.copyWith(
+      quantity: newQty,
+      unitPrice: event.price,
+      total: Money((event.price.paisas * newQty).round()),
+    );
 
     emit(state.copyWith(cartItems: updatedCart));
     _calculateTotals(emit);
   }
 
   void _onCartItemRemoved(CartItemRemoved event, Emitter<SalesState> emit) {
-    final List<Map<String, dynamic>> updatedCart = List.from(state.cartItems);
+    final List<CartItem> updatedCart = List.from(state.cartItems);
     if (event.index < updatedCart.length) {
       updatedCart.removeAt(event.index);
       emit(state.copyWith(cartItems: updatedCart));
@@ -170,26 +175,12 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   }
 
   void _onDiscountChanged(DiscountChanged event, Emitter<SalesState> emit) {
-    // Just trigger recalc, the value is parsed in _calculateTotals or passed here
-    // Ideally pass the parsed value. For now, we assume the UI passes the text and we parse it.
-    // But to keep state pure, let's assume the event passes the raw text and we parse it here.
-    // However, _calculateTotals needs the discount value.
-    // Let's store the discount in state.
-    // We need to parse it.
-    final money = CurrencyUtils.parse(event.discountText);
-    // We can't set discount directly because it depends on subtotal (cap).
-    // So we just re-run calc with this new "proposed" discount.
-    // But wait, _calculateTotals uses state.discount.
-    // Let's update _calculateTotals to accept an optional discount override or use a field.
-    // Actually, let's just parse and set it, then clamp in _calculateTotals.
-    
-    // We need to store the "user entered" discount separately if we want to persist it across cart updates?
-    // For simplicity, we'll just recalc.
+    final money = Money.fromRupeesString(event.discountText);
     _calculateTotals(emit, proposedDiscount: money);
   }
 
   void _calculateTotals(Emitter<SalesState> emit, {Money? proposedDiscount}) {
-    int subtotalPaisas = state.cartItems.fold(0, (sum, item) => sum + (item['total'] as int));
+    int subtotalPaisas = state.cartItems.fold(0, (sum, item) => sum + item.total.paisas);
     final subtotal = Money(subtotalPaisas);
 
     Money discount = proposedDiscount ?? state.discount;
@@ -211,8 +202,14 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   Future<void> _onSaleProcessed(SaleProcessed event, Emitter<SalesState> emit) async {
     emit(state.copyWith(status: SalesStatus.loading));
     
-    // Validate Stock again
-    final validation = await _salesRepository.validateStock(state.cartItems);
+    final cartItemsAsMaps = state.cartItems
+        .map((item) => {
+              'id': item.id,
+              'quantity': item.quantity,
+            })
+        .toList();
+
+    final validation = await _salesRepository.validateStock(cartItemsAsMaps);
     if (!validation['valid']) {
       emit(state.copyWith(status: SalesStatus.error, errorMessage: validation['error']));
       emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
@@ -223,18 +220,18 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       'customer_id': state.selectedCustomer?.id,
       'grand_total_paisas': state.grandTotal.paisas,
       'discount_paisas': state.discount.paisas,
-      'cash_paisas': event.cash,
-      'bank_paisas': event.bank,
-      'credit_paisas': event.credit,
+      'cash_paisas': event.cash.paisas,
+      'bank_paisas': event.bank.paisas,
+      'credit_paisas': event.credit.paisas,
       'receipt_language': event.languageCode,
       'items': state.cartItems.map((item) => {
-        'id': item['id'],
-        'name_english': item['name_english'],
-        'name_urdu': item['name_urdu'],
-        'unit_name': item['unit_name'],
-        'quantity': item['quantity'],
-        'sale_price': item['unit_price'],
-        'total': item['total'],
+        'id': item.id,
+        'name_english': item.nameEnglish,
+        'name_urdu': item.nameUrdu,
+        'unit_name': item.unitName,
+        'quantity': item.quantity,
+        'sale_price': item.unitPrice.paisas,
+        'total': item.total.paisas,
       }).toList(),
     };
 

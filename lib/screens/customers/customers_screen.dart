@@ -186,10 +186,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
   ///
   /// After adding the payment, the ledger data is refreshed
   /// and the ledger overlay is shown with the updated data.
-  Future<void> _addPayment(int amount, String notes) async {
+  Future<void> _addPayment(Money amount, String notes) async {
     if (_selectedCustomerForLedger == null) return;
     final date = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-    await _customersRepository.addPayment(_selectedCustomerForLedger!.id!, amount, date, notes);
+    await _customersRepository.addPayment(_selectedCustomerForLedger!.id!, amount.paisas, date, notes);
     await _refreshData(); 
     await _loadLedgerData(); // Refresh ledger data
   }
@@ -432,7 +432,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildKpiCard(AppLocalizations loc, String title, int count, int amount, VoidCallback? onTap, {bool isOrange = false}) {
+  Widget _buildKpiCard(AppLocalizations loc, String title, int count, Money amount, VoidCallback? onTap, {bool isOrange = false}) {
     final colorScheme = Theme.of(context).colorScheme;
     
     final containerColor = isOrange ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
@@ -472,7 +472,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text("${loc.balanceShort}: ${CurrencyUtils.formatNoDecimal(Money(amount))}", style: TextStyle(color: contentColor, fontSize: 12, fontWeight: FontWeight.w600)),
+              child: Text("${loc.balanceShort}: ${amount.toString()}", style: TextStyle(color: contentColor, fontSize: 12, fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -482,7 +482,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   Widget _buildCustomerCard(Customer customer, {bool isOverlay = false}) {
     final colorScheme = Theme.of(context).colorScheme;
-    final int balance = customer.outstandingBalance;
+    final Money balance = Money(customer.outstandingBalance);
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
     final String name = isUrdu 
         ? (customer.nameUrdu != null && customer.nameUrdu!.isNotEmpty ? customer.nameUrdu! : customer.nameEnglish) 
@@ -508,22 +508,22 @@ class _CustomersScreenState extends State<CustomersScreen> {
           children: [
             Text(phone, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
             if (customer.creditLimit > 0)
-              Text("${AppLocalizations.of(context)!.creditLimit}: ${customer.creditLimit}", style: TextStyle(fontSize: 11, color: colorScheme.secondary)),
+              Text("${AppLocalizations.of(context)!.creditLimit}: ${Money(customer.creditLimit)}", style: TextStyle(fontSize: 11, color: colorScheme.secondary)),
           ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-             if (balance != 0)
+             if (balance != const Money(0))
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: balance > 0 ? colorScheme.errorContainer : colorScheme.primaryContainer,
+                  color: balance > const Money(0) ? colorScheme.errorContainer : colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: balance > 0 ? colorScheme.error : colorScheme.primary)
+                  border: Border.all(color: balance > const Money(0) ? colorScheme.error : colorScheme.primary)
                 ),
-                child: Text(CurrencyUtils.formatNoDecimal(Money(balance)), style: TextStyle(color: balance > 0 ? colorScheme.error : colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text(balance.toString(), style: TextStyle(color: balance > const Money(0) ? colorScheme.error : colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
               ),
             
             if (!isOverlay)
@@ -608,8 +608,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   Widget _buildLedgerHeader(Customer customer, AppLocalizations loc) {
     final colorScheme = Theme.of(context).colorScheme;
-    final balance = customer.outstandingBalance;
-    final isDebit = balance > 0;
+    final Money balance = Money(customer.outstandingBalance);
+    final isDebit = balance > const Money(0);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -640,7 +640,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             children: [
               Text("Current Balance", style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.bold)),
               Text(
-                CurrencyUtils.formatNoDecimal(Money(balance)),
+                balance.toString(),
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -649,7 +649,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 ),
               ),
               if (customer.creditLimit > 0)
-                Text("Limit: ${CurrencyUtils.formatNoDecimal(Money(customer.creditLimit))}", style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                Text("Limit: ${Money(customer.creditLimit)}", style: TextStyle(fontSize: 12, color: Colors.grey[600])),
             ],
           ),
           const SizedBox(width: 24),
@@ -834,11 +834,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
             onPressed: () {
                if(amountCtrl.text.isNotEmpty) {
-                 final double amount = double.tryParse(amountCtrl.text) ?? 0.0;
-                 if(amount > 0) {
+                 final Money amount = Money.fromRupeesString(amountCtrl.text);
+                 if(amount > const Money(0)) {
                    Navigator.pop(context);
-                   final int amountPaisas = (amount * 100).round();
-                   _addPayment(amountPaisas, notesCtrl.text);
+                   _addPayment(amount, notesCtrl.text);
                  }
                }
             },
@@ -971,7 +970,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                          nameUrdu: nameUrController.text.trim(), 
                          phone: phoneController.text.trim(), 
                          address: addressController.text.trim(), 
-                         limit: CurrencyUtils.toPaisas(limitController.text)
+                         limit: Money.fromRupeesString(limitController.text).paisas
                        );
                        if (context.mounted) Navigator.pop(context);
                      } catch (e) {
@@ -1050,9 +1049,9 @@ class _LedgerRowState extends State<_LedgerRow> {
     final row = widget.row;
     final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
     final dateStr = DateFormat('dd-MM-yyyy').format(date); // Fixed width format
-    final debit = (row['debit'] as num).toInt();
-    final credit = (row['credit'] as num).toInt();
-    final balance = (row['balance'] as num).toInt();
+    final Money debit = Money((row['debit'] as num).toInt());
+    final Money credit = Money((row['credit'] as num).toInt());
+    final Money balance = Money((row['balance'] as num).toInt());
     final isSale = row['type'] == 'SALE';
     final isReceipt = row['type'] == 'PAYMENT' || row['type'] == 'RECEIPT';
     
@@ -1087,9 +1086,9 @@ class _LedgerRowState extends State<_LedgerRow> {
                     Expanded(child: Text(row['description'] ?? '', style: textStyle, overflow: TextOverflow.ellipsis)),
                   ],
                 )),
-                Expanded(flex: 2, child: Text(debit > 0 ? (debit/100).toStringAsFixed(0) : '-', textAlign: TextAlign.right, style: monoStyle)),
-                Expanded(flex: 2, child: Text(credit > 0 ? (credit/100).toStringAsFixed(0) : '-', textAlign: TextAlign.right, style: monoStyle)),
-                Expanded(flex: 2, child: Text((balance/100).toStringAsFixed(0), textAlign: TextAlign.right, style: monoStyle.copyWith(fontWeight: FontWeight.bold, color: balance > 0 ? Colors.red[700] : Colors.green[700]))),
+                Expanded(flex: 2, child: Text(debit > const Money(0) ? debit.toString() : '-', textAlign: TextAlign.right, style: monoStyle)),
+                Expanded(flex: 2, child: Text(credit > const Money(0) ? credit.toString() : '-', textAlign: TextAlign.right, style: monoStyle)),
+                Expanded(flex: 2, child: Text(balance.toString(), textAlign: TextAlign.right, style: monoStyle.copyWith(fontWeight: FontWeight.bold, color: balance > const Money(0) ? Colors.red[700] : Colors.green[700]))),
               ],
             ),
           ),
@@ -1128,8 +1127,8 @@ class _LedgerRowState extends State<_LedgerRow> {
                               ..._items!.map((item) => TableRow(children: [
                                 Padding(padding: const EdgeInsets.all(4), child: Text(item.itemName, style: const TextStyle(fontSize: 11))),
                                 Padding(padding: const EdgeInsets.all(4), child: Text(item.quantity.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11))),
-                                Padding(padding: const EdgeInsets.all(4), child: Text((item.pricePaisas/100).toStringAsFixed(0), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
-                                Padding(padding: const EdgeInsets.all(4), child: Text((item.totalPaisas/100).toStringAsFixed(0), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.pricePaisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.totalPaisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
                               ]
                             ),
                           )

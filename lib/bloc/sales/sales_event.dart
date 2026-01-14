@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../../../../models/product_model.dart';
 import '../../../../../models/customer_model.dart';
+import '../../../../../domain/entities/money.dart';
 
 abstract class SalesEvent extends Equatable {
   const SalesEvent();
@@ -42,7 +43,7 @@ class ProductAddedToCart extends SalesEvent {
 class CartItemUpdated extends SalesEvent {
   final int index;
   final double quantity;
-  final int price;
+  final Money price;
   const CartItemUpdated({required this.index, required this.quantity, required this.price});
   @override
   List<Object?> get props => [index, quantity, price];
@@ -65,10 +66,10 @@ class DiscountChanged extends SalesEvent {
 }
 
 class SaleProcessed extends SalesEvent {
-  final int cash;
-  final int bank;
-  final int credit;
-  final int change;
+  final Money cash;
+  final Money bank;
+  final Money credit;
+  final Money change;
   final String languageCode;
   const SaleProcessed({
     required this.cash,
