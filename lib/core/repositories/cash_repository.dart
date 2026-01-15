@@ -7,6 +7,14 @@ import '../../models/cash_ledger_model.dart';
 class CashRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
+  // -----------------------------
+  // PRIVATE HELPERS
+  // -----------------------------
+
+  Money _moneyFromDb(Map<String, dynamic> row, String key) {
+    return Money.fromPaisas((row[key] as num?)?.toInt() ?? 0);
+  }
+
   // ========================================
   // CASH BALANCE
   // ========================================
@@ -20,7 +28,7 @@ class CashRepository {
         'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
       );
       if (res.isNotEmpty) {
-        return Money.fromPaisas((res.first['balance_after'] as num).toInt());
+        return _moneyFromDb(res.first, 'balance_after');
       }
       return Money.zero;
     } catch (e) {
@@ -42,7 +50,7 @@ class CashRepository {
       ''', [date]);
       
       if (res.isNotEmpty) {
-        return Money.fromPaisas((res.first['balance_after'] as num).toInt());
+        return _moneyFromDb(res.first, 'balance_after');
       }
       return Money.zero;
     } catch (e) {
@@ -73,11 +81,12 @@ class CashRepository {
       final res = await txn.rawQuery(
         'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
       );
-      Money currentBalance = Money.zero;
-      if (res.isNotEmpty) {
-        currentBalance = Money.fromPaisas((res.first['balance_after'] as num).toInt());
-      }
-
+      Money currentBalance = res.isNotEmpty
+        ? _moneyFromDb(res.first, 'balance_after')
+        : Money.zero;
+      
+      type = type.toUpperCase(); // normalize
+      
       Money newBalance;
       if (type == 'IN') {
         newBalance = currentBalance + amount;
@@ -185,6 +194,7 @@ class CashRepository {
   }) async {
     try {
       final db = await _dbHelper.database;
+      type = type.toUpperCase(); // Normalize
       final result = await db.query(
         'cash_ledger',
         where: 'type = ?',
@@ -252,8 +262,8 @@ class CashRepository {
       }
 
       final data = result.first;
-      final totalIn = Money.fromPaisas((data['total_in'] as num?)?.toInt() ?? 0);
-      final totalOut = Money.fromPaisas((data['total_out'] as num?)?.toInt() ?? 0);
+      final totalIn = _moneyFromDb(data, 'total_in');
+      final totalOut = _moneyFromDb(data, 'total_out');
 
       return {
         'totalIn': totalIn,
@@ -346,6 +356,9 @@ class CashRepository {
     
     // Recalculate balance if amount changes
     if (updates.containsKey('amount') || updates.containsKey('type')) {
+      if (updates.containsKey('type')) {
+      updates['type'] = (updates['type'] as String).toUpperCase();
+    }
       await _recalculateBalancesFrom(id);
     }
     
@@ -397,13 +410,13 @@ class CashRepository {
       );
 
       Money runningBalance = prevEntries.isNotEmpty
-          ? Money.fromPaisas((prevEntries.first['balance_after'] as num).toInt())
+          ? _moneyFromDb(prevEntries.first, 'balance_after')
           : Money.zero;
 
       // Recalculate balances for all subsequent entries
       for (var entry in entries) {
         final type = entry['type'] as String;
-        final amount = Money.fromPaisas((entry['amount'] as num).toInt());
+        final amount = _moneyFromDb(entry, 'amount');
 
         if (type == 'IN') {
           runningBalance += amount;
@@ -434,7 +447,7 @@ class CashRepository {
       WHERE type = 'IN' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
     
-    return Money.fromPaisas((result.first['total'] as num?)?.toInt() ?? 0);
+    return _moneyFromDb(result.first, 'total');
   }
 
   /// Get total cash OUT for period
@@ -446,7 +459,7 @@ class CashRepository {
       WHERE type = 'OUT' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
     
-    return Money.fromPaisas((result.first['total'] as num?)?.toInt() ?? 0);
+    return _moneyFromDb(result.first, 'total');
   }
 
   /// Get transaction count
@@ -457,6 +470,7 @@ class CashRepository {
     List<dynamic> args = [];
     
     if (type != null) {
+      type = type.toUpperCase();
       query += ' AND type = ?';
       args.add(type);
     }
@@ -482,6 +496,7 @@ class CashRepository {
     List<dynamic> args = [];
     
     if (type != null) {
+      type = type.toUpperCase(); // Normalize
       query += ' AND type = ?';
       args.add(type);
     }
@@ -493,6 +508,7 @@ class CashRepository {
     }
     
     final result = await db.rawQuery(query, args);
-    return Money.fromPaisas((result.first['avg'] as num?)?.toInt() ?? 0);
+    final avg = (result.first['avg'] as num?)?.toDouble() ?? 0.0;
+    return Money((avg).round());
   }
 }
