@@ -66,7 +66,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
     
     if (!mounted) return;
     setState(() {
-      currentBalance = Money(bal);
+      currentBalance = bal;
       ledgerEntries = data;
       _isFirstLoadRunning = false;
       if (data.length < _limit) _hasNextPage = false;
@@ -216,11 +216,11 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
               ElevatedButton(
                 onPressed: () async {
                   final amount = Money.fromRupeesString(amountCtrl.text);
-                  if (amount > const Money(0) && descCtrl.text.isNotEmpty) {
+                  if (amount > Money.zero && descCtrl.text.isNotEmpty) {
                     await _cashRepository.addCashEntry(
                       descCtrl.text, 
                       selectedType, 
-                      amount.paisas, 
+                      amount, 
                       remarksCtrl.text
                     );
                     if (context.mounted) {
@@ -298,6 +298,9 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
 
                         final entry = ledgerEntries[index];
                         final isIncome = entry.isInflow;
+                        // --- MONEY CONVERSIONS ---
+                        final entryAmount = Money.fromPaisas(entry.amount);
+                        final entryBalance = Money.fromPaisas(entry.balanceAfter ?? 0);
 
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -317,7 +320,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
+                                  '${isIncome ? '+' : '-'} ${entryAmount.formattedNoDecimal}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: isIncome ? colorScheme.primary : colorScheme.error,
@@ -325,7 +328,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
+                                  'Bal: ${entryBalance.formattedNoDecimal}',
                                   style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
                                 ),
                               ],
