@@ -30,13 +30,9 @@ class DatabaseHelper {
       version: 20,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
-      onUpgrade: _upgradeDB,
     );
   }
 
-  // ========================
-  // CREATE DATABASE TABLES
-  // ========================
   Future<void> _createDB(Database db, int version) async {
     AppLogger.db('Creating Database v$version...');
     await _createTables(db);
@@ -83,7 +79,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Subcategories
+    // SubCategories
     await db.execute('''
       CREATE TABLE IF NOT EXISTS subcategories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -184,20 +180,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // Cash Ledger
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS cash_ledger (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        transaction_date TEXT NOT NULL,
-        transaction_time TEXT NOT NULL,
-        description TEXT NOT NULL,
-        type TEXT NOT NULL,
-        amount INTEGER NOT NULL,
-        balance_after INTEGER,
-        remarks TEXT
-      )
-    ''');
-
     // Receipts
     await db.execute('''
       CREATE TABLE IF NOT EXISTS receipts (
@@ -223,13 +205,20 @@ class DatabaseHelper {
       )
     ''');
 
-    // sale_print_logs
+    // Customer Ledger
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS sale_print_logs (
+      CREATE TABLE IF NOT EXISTS customer_ledger (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sale_id INTEGER NOT NULL,
-        receipt_type TEXT NOT NULL,
-        generated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        customer_id INTEGER NOT NULL,
+        transaction_date TEXT NOT NULL,
+        description TEXT NOT NULL,
+        ref_type TEXT NOT NULL CHECK (ref_type IN ('INVOICE', 'RECEIPT', 'RETURN', 'ADJUSTMENT')),
+        ref_id INTEGER NOT NULL,
+        debit INTEGER DEFAULT 0,
+        credit INTEGER DEFAULT 0,
+        balance INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
       )
     ''');
 
@@ -260,7 +249,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Purchases
+    // Supplier Purchases
     await db.execute('''
       CREATE TABLE IF NOT EXISTS purchases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -289,7 +278,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // Supplier Payments
     await db.execute('''
       CREATE TABLE IF NOT EXISTS supplier_payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -302,24 +290,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Customer Ledger
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS customer_ledger (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        customer_id INTEGER NOT NULL,
-        transaction_date TEXT NOT NULL,
-        description TEXT NOT NULL,
-        ref_type TEXT NOT NULL CHECK (ref_type IN ('INVOICE', 'RECEIPT', 'RETURN', 'ADJUSTMENT')),
-        ref_id INTEGER NOT NULL,
-        debit INTEGER DEFAULT 0,
-        credit INTEGER DEFAULT 0,
-        balance INTEGER NOT NULL,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
-      )
-    ''');
-
-    // ===== Performance Indexes =====
+    // Indexes
     await db.execute('CREATE INDEX IF NOT EXISTS idx_products_name_english ON products(name_english)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_products_item_code ON products(item_code)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_name_english ON customers(name_english)');
@@ -334,232 +305,85 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_ledger_ref ON customer_ledger(ref_type, ref_id)');
   }
 
-  // ========================
-  // MIGRATION LOGIC
-  // ========================
-  Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
-    AppLogger.db('Upgrading database from v$oldVersion to v$newVersion');
-
-    // Backup before migration
-    await backupDatabase(db, oldVersion);
-
-    for (int i = oldVersion + 1; i <= newVersion; i++) {
-      switch (i) {
-        case 2:
-          if (!await _columnExists(db, 'customers', 'email')) {
-            await db.execute("ALTER TABLE customers ADD COLUMN email TEXT");
-          }
-          if (!await _columnExists(db, 'sales', 'discount')) {
-            await db.execute("ALTER TABLE sales ADD COLUMN discount INTEGER DEFAULT 0");
-          }
-          AppLogger.db('Performed migration v2');
-          break;
-
-        case 3:
-          break;
-
-        case 4:
-          // Indexes already handled in _createTables()
-          break;
-
-        case 5:
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS payments (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              customer_id INTEGER NOT NULL,
-              amount INTEGER NOT NULL,
-              date TEXT NOT NULL,
-              notes TEXT,
-              FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
-            )
-          ''');
-          AppLogger.db('Performed migration v5');
-          break;
-
-        // v6-v14 skipped for brevity
-        case 15:
-          await _migrateToV15(db);
-          AppLogger.db('Performed migration v15');
-          break;
-
-        case 16:
-          // Already created in _createTables()
-          break;
-
-        case 17:
-          break;
-
-        case 18:
-          break;
-
-        case 19:
-          break;
-
-        case 20:
-          AppLogger.db('v20 skipped (already applied)');
-          break;
-
-        default:
-          AppLogger.db('No migration logic for v$i');
-      }
-    }
-  }
-
-  // ========================
-  // MIGRATION v15
-  // ========================
-  Future<void> _migrateToV15(Database db) async {
-    AppLogger.db('Starting migration v15');
-
-    await db.transaction((txn) async {
-      // Rename old receipts
-      final hasReceipts = await _tableExists(txn, 'receipts');
-      final hasPrintLogs = await _tableExists(txn, 'sale_print_logs');
-      if (hasReceipts && !hasPrintLogs) {
-        await txn.execute('ALTER TABLE receipts RENAME TO sale_print_logs');
-      }
-
-      // Ensure unique customer phone
-      await txn.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_phone_unique ON customers(contact_primary)'
-      );
-
-      // Sales → Invoices
-      await txn.execute('''
-        INSERT INTO invoices (id, invoice_number, customer_id, invoice_date, sub_total, discount_total, grand_total, created_at, status)
-        SELECT id, bill_number, customer_id, sale_date || ' ' || IFNULL(sale_time,'00:00:00'), (grand_total + discount), discount, grand_total, created_at, status
-        FROM sales
-      ''');
-
-      await txn.execute('''
-        INSERT INTO invoice_items (invoice_id, product_id, item_name_snapshot, quantity, unit_price, total_price)
-        SELECT sale_id, product_id, item_name_english, quantity, unit_price, total_price
-        FROM sale_items
-      ''');
-
-      // Payments → Receipts
-      await txn.execute('''
-        INSERT INTO receipts (receipt_number, customer_id, receipt_date, amount, notes)
-        SELECT 'RCP-OLD-' || id, customer_id, date, amount, notes
-        FROM payments
-      ''');
-
-      // Ledger
-      await txn.execute('DELETE FROM customer_ledger');
-      await txn.execute('''
-        INSERT INTO customer_ledger (customer_id, transaction_date, description, ref_type, ref_id, debit, credit, balance)
-        SELECT customer_id, invoice_date, 'Invoice #' || invoice_number, 'INVOICE', id, grand_total, 0, 0
-        FROM invoices
-      ''');
-      await txn.execute('''
-        INSERT INTO customer_ledger (customer_id, transaction_date, description, ref_type, ref_id, debit, credit, balance)
-        SELECT customer_id, receipt_date, 'Payment Received', 'RECEIPT', id, 0, amount, 0
-        FROM receipts
-      ''');
-
-      // Running balances (SQLite optimized)
-      await txn.execute('''
-        UPDATE customer_ledger
-        SET balance = (
-          SELECT SUM(debit - credit)
-          FROM customer_ledger AS cl
-          WHERE cl.customer_id = customer_ledger.customer_id
-            AND cl.id <= customer_ledger.id
-        )
-      ''');
-
-      // Update customers outstanding_balance
-      await txn.execute('''
-        UPDATE customers
-        SET outstanding_balance = (
-          SELECT COALESCE(SUM(debit - credit), 0)
-          FROM customer_ledger
-          WHERE customer_ledger.customer_id = customers.id
-        )
-      ''');
-
-      // Drop old tables
-      await txn.execute('DROP TABLE IF EXISTS sales');
-      await txn.execute('DROP TABLE IF EXISTS sale_items');
-      await txn.execute('DROP TABLE IF EXISTS payments');
-    });
-
-    AppLogger.db('Migration v15 completed successfully');
-  }
-
-  // ========================
-  // SAMPLE DATA INSERTION
-  // ========================
   Future<void> _insertSampleData(Database db) async {
     try {
-      // Only insert defaults if tables are empty
-      final shopCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM shop_profile')) ?? 0;
-      if (shopCount == 0) {
-        await db.insert('shop_profile', {
-          'shop_name_urdu': 'لیاقت کریانہ اسٹور',
-          'shop_name_english': 'Liaqat Kiryana Store',
-          'shop_address': 'مین بازار، لاہور',
-          'contact_primary': '0300-1234567',
-        });
-      }
+      // Shop Profile
+      await db.insert('shop_profile', {
+        'shop_name_urdu': 'لیاقت کریانہ اسٹور',
+        'shop_name_english': 'Liaqat Kiryana Store',
+        'shop_address': 'مین بازار، لاہور',
+        'contact_primary': '0300-1234567',
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      final deptCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM departments')) ?? 0;
-      if (deptCount == 0) {
-        await db.insert('departments', {'id': 1, 'name_english': 'Food', 'name_urdu': 'خوراک'});
-        await db.insert('departments', {'id': 2, 'name_english': 'Cosmetics', 'name_urdu': 'کاسمیٹکس'});
-      }
+      // Departments
+      await db.insert('departments', {'id': 1, 'name_english': 'Food', 'name_urdu': 'خوراک'}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('departments', {'id': 2, 'name_english': 'Cosmetics', 'name_urdu': 'کاسمیٹکس'}, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      final catCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM categories')) ?? 0;
-      if (catCount == 0) {
-        List<Map<String, dynamic>> categories = [
-          {'name_urdu': 'چاول', 'name_english': 'Rice', 'department_id': 1},
-          {'name_urdu': 'دال', 'name_english': 'Pulses', 'department_id': 1},
-          {'name_urdu': 'تیل', 'name_english': 'Oil', 'department_id': 1},
-        ];
-        for (var cat in categories) await db.insert('categories', cat);
-      }
+      // Categories
+      List<Map<String, dynamic>> categories = [
+        {'name_urdu': 'چاول', 'name_english': 'Rice', 'department_id': 1},
+        {'name_urdu': 'دال', 'name_english': 'Pulses', 'department_id': 1},
+        {'name_urdu': 'تیل', 'name_english': 'Oil', 'department_id': 1},
+      ];
+      for(var cat in categories) await db.insert('categories', cat, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      AppLogger.db('Sample data inserted successfully');
+      // Subcategories
+      await db.insert('subcategories', {'category_id': 1, 'name_english': 'Basmati', 'name_urdu': 'باسمتی'}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('subcategories', {'category_id': 1, 'name_english': 'Irri', 'name_urdu': 'ایری'}, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      // Products
+      await db.insert('products', {
+        'item_code': 'PRD001',
+        'name_urdu': 'چاول سپر باسمتی',
+        'name_english': 'Super Basmati Rice',
+        'category_id': 1,
+        'unit_type': 'KG',
+        'min_stock_alert': 50,
+        'current_stock': 45,
+        'avg_cost_price': 17000,
+        'sale_price': 18000,
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      // Customers
+      await db.insert('customers', {
+        'name_english': 'Ali Khan',
+        'name_urdu': 'علی خان',
+        'contact_primary': '0300-1111111',
+        'credit_limit': 1000000,
+        'outstanding_balance': 250000,
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      // Suppliers
+      await db.insert('suppliers', {
+        'name_english': 'Ali Traders',
+        'name_urdu': 'علی ٹریڈرز',
+        'contact_primary': '0321-0000001',
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      // Unit Categories
+      await db.insert('unit_categories', {'id': 1, 'name': 'Weight', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('unit_categories', {'id': 2, 'name': 'Volume', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('unit_categories', {'id': 3, 'name': 'Count', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('unit_categories', {'id': 4, 'name': 'Length', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      // Units
+      await db.insert('units', {'name': 'Kilogram', 'code': 'KG', 'category_id': 1, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Gram', 'code': 'G', 'category_id': 1, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Liter', 'code': 'L', 'category_id': 2, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Milliliter', 'code': 'ML', 'category_id': 2, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Piece', 'code': 'PCS', 'category_id': 3, 'is_system': 1, 'multiplier': 1});
+      await db.insert('units', {'name': 'Dozen', 'code': 'DZN', 'category_id': 3, 'is_system': 1, 'multiplier': 12});
+
+      AppLogger.db('Sample data inserted');
     } catch (e) {
       AppLogger.error('Error inserting sample data: $e');
     }
   }
 
-  // ========================
-  // UTILITY FUNCTIONS
-  // ========================
-  Future<bool> _tableExists(Database db, String table) async {
-    final result = await db.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-      [table]
-    );
-    return result.isNotEmpty;
-  }
-
-  Future<bool> _columnExists(Database db, String table, String column) async {
-    final result = await db.rawQuery("PRAGMA table_info($table)");
-    return result.any((map) => map['name'] == column);
-  }
-
-  Future<String?> backupDatabase(Database db, int version) async {
-    try {
-      final String dbPath = db.path!;
-      final dir = Directory(join(dirname(dbPath), 'backup'));
-      if (!await dir.exists()) await dir.create(recursive: true);
-
-      final backupPath = join(dir.path, 'liaqat_store_backup_v$version.db');
-
-      if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        await db.execute("VACUUM INTO '$backupPath'");
-      } else {
-        await File(dbPath).copy(backupPath);
-      }
-
-      AppLogger.db('Database backup created: $backupPath');
-      return backupPath;
-    } catch (e) {
-      AppLogger.error('Backup failed: $e');
-      return null;
+  Future<void> close() async {
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
     }
   }
 }
