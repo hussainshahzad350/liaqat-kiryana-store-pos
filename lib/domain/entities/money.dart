@@ -27,6 +27,19 @@ class Money {
     }
   }
 
+  factory Money.fromPaisas(int value) {
+    return Money(value);
+  }
+
+  factory Money.fromNullablePaisas(int? value) {
+    return value == null ? Money.zero : Money(value);
+  }
+
+  factory Money.fromNullableRupees(num? value) {
+    if (value == null) return Money.zero;
+    return Money((value * 100).round());
+  }
+
   Money operator +(Money other) => Money(paisas + other.paisas);
   Money operator -(Money other) => Money(paisas - other.paisas);
   Money operator *(num multiplier) => Money((paisas * multiplier).round());
@@ -38,6 +51,16 @@ class Money {
   bool operator >(Money other) => paisas > other.paisas;
   bool operator <=(Money other) => paisas <= other.paisas;
   bool operator >=(Money other) => paisas >= other.paisas;
+  
+  bool get isZero => paisas == 0;
+  bool get isDebit => paisas > 0;
+  bool get isCredit => paisas < 0;
+  bool get isNegative => paisas < 0;
+  bool get isPositive => paisas > 0;
+
+  Money abs() => Money(paisas.abs());
+  
+  double get rupees => paisas / 100.0;
 
   @override
   bool operator ==(Object other) =>
@@ -53,8 +76,9 @@ class Money {
 
   /// Formats the money value as "Rs 1,234.00"
   String get formatted {
-    final rupees = paisas / 100.0;
-    return 'Rs ${_currencyFormat.format(rupees)}';
+    final absValue = paisas.abs() / 100.0;
+    final sign = paisas < 0 ? '-' : '';
+    return '$signRs ${_currencyFormat.format(absValue)}';
   }
 
   /// Formats money as "Rs 1,234" (no decimals)
@@ -66,5 +90,19 @@ class Money {
   /// Returns the value as a decimal string (e.g., "10.50")
   String toRupeesString() {
     return (paisas / 100.0).toStringAsFixed(2);
+  }
+
+  String format({bool withSymbol = true, bool noDecimals = false}) {
+    final rupees = paisas / 100.0;
+    final formatted = noDecimals
+        ? _noDecimalFormat.format(rupees)
+        : _currencyFormat.format(rupees);
+
+    return withSymbol ? 'Rs $formatted' : formatted;
+  }
+
+  Money operator /(num divisor) {
+    assert(divisor != 0);
+    return Money((paisas / divisor).round());
   }
 }
