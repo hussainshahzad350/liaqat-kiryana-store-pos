@@ -313,8 +313,8 @@ class DatabaseHelper {
       // Categories & Subcategories
       await db.insert('categories', {'id': 1, 'name_urdu': 'چاول', 'name_english': 'Rice', 'department_id': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
       await db.insert('categories', {'id': 2, 'name_urdu': 'چینی', 'name_english': 'Sugar', 'department_id': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
-      await db.insert('categories', {'id': 3, 'name_urdu': 'چائے', 'name_english': 'Tea', 'department_id': 2}, conflictAlgorithm: ConflictAlgorithm.ignore);
-      await db.insert('categories', {'id': 4, 'name_urdu': 'کوک', 'name_english': 'Coke', 'department_id': 2}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('categories', {'id': 3, 'name_urdu': 'چائے', 'name_english': 'Tea', 'department_id': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('categories', {'id': 4, 'name_urdu': 'کوک', 'name_english': 'Coke', 'department_id': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
 
       // Default Units
       await db.insert('unit_categories', {'id': 1, 'name': 'Weight', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
