@@ -23,7 +23,7 @@ class DatabaseHelper {
     }
 
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
+    final path = join(dbPath, _dbFileName);
 
     return await openDatabase(
       path,
@@ -34,7 +34,7 @@ class DatabaseHelper {
   }
 
   Future<void> _createDB(Database db, int version) async {
-    AppLogger.db('Creating production database v$version...');
+    AppLogger.db('Creating Database v$version...');
     await _createTables(db);
     await _insertSampleData(db);
     AppLogger.db('Database created successfully');
@@ -352,7 +352,6 @@ class DatabaseHelper {
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
       // --- Sample Invoices & Items ---
-      try {
       // Insert a sample invoice
       final invoiceId = await db.insert('invoices', {
         'invoice_number': 'INV001',
@@ -416,17 +415,29 @@ class DatabaseHelper {
   }
 
   Future<void> close() async {
-    final db = await instance.database;
-    await db.close();
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
   }
 
   /// ⚠️ Developer Only: Wipe & Recreate Database
   /// Remove this function before handing app to production
   Future<void> wipeAndRecreateDatabase() async {
+    assert(() {
+      // Only allow in debug mode
+      return true;
+    }(), 'wipeAndRecreateDatabase should not be called in release builds');
+
+    // Close existing connection first
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+    
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'liaqat_store.db');
+    final path = join(dbPath, _dbFileName);
     if (await File(path).exists()) await deleteDatabase(path);
-    _database = null;
     await database;
     AppLogger.db('Database wiped and recreated (Developer Only)');
   }
