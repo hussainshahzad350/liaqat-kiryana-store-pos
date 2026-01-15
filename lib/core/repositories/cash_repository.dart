@@ -20,12 +20,12 @@ class CashRepository {
         'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
       );
       if (res.isNotEmpty) {
-        return (res.first['balance_after'] as num).toInt();
+        return Money.fromPaisas((res.first['balance_after'] as num).toInt());
       }
-      return 0;
+      return Money.zero;
     } catch (e) {
       AppLogger.error('Error getting cash balance: $e', tag: 'CashRepo');
-      return 0;
+      return Money.zero;
     }
   }
 
@@ -42,12 +42,12 @@ class CashRepository {
       ''', [date]);
       
       if (res.isNotEmpty) {
-        return (res.first['balance_after'] as num).toInt();
+        return Money.fromPaisas((res.first['balance_after'] as num).toInt());
       }
-      return 0;
+      return Money.zero;
     } catch (e) {
       AppLogger.error('Error getting cash balance at date: $e', tag: 'CashRepo');
-      return 0;
+      return Money.zero;
     }
   }
 
@@ -207,7 +207,7 @@ class CashRepository {
       
       final result = await db.rawQuery('''
         SELECT * FROM cash_ledger 
-        WHERE LOWER(description) LIKE ? OR LOWER(remarks) LIKE ?
+        WHERE (LOWER(description) LIKE ? OR LOWER(remarks) LIKE ?)
         ORDER BY id DESC
       ''', [q, q]);
       return result.map((map) => CashLedger.fromMap(map)).toList();
@@ -324,7 +324,7 @@ class CashRepository {
   // ========================================
 
   /// Get transaction by ID
-  Future<Map<String, dynamic>?> getTransactionById(int id) async {
+  Future<CashLedger?> getTransactionById(int id) async {
     final db = await _dbHelper.database;
     final result = await db.query(
       'cash_ledger',
@@ -334,7 +334,7 @@ class CashRepository {
     );
     
     if (result.isEmpty) return null;
-    return result.first;
+    return CashLedger.fromMap(result.first);
   }
 
   /// Update cash ledger entry (for corrections)
@@ -396,14 +396,14 @@ class CashRepository {
         limit: 1,
       );
 
-      int runningBalance = prevEntries.isNotEmpty
-          ? (prevEntries.first['balance_after'] as num).toInt()
-          : 0;
+      Money runningBalance = prevEntries.isNotEmpty
+          ? Money.fromPaisas((prevEntries.first['balance_after'] as num).toInt())
+          : Money.zero;
 
       // Recalculate balances for all subsequent entries
       for (var entry in entries) {
         final type = entry['type'] as String;
-        final amount = (entry['amount'] as num).toInt();
+        final amount = Money.fromPaisas((entry['amount'] as num).toInt());
 
         if (type == 'IN') {
           runningBalance += amount;
@@ -413,7 +413,7 @@ class CashRepository {
 
         await txn.update(
           'cash_ledger',
-          {'balance_after': runningBalance},
+          {'balance_after': runningBalance.paisas},
           where: 'id = ?',
           whereArgs: [entry['id']],
         );
@@ -426,7 +426,7 @@ class CashRepository {
   // ========================================
 
   /// Get total cash IN for period
-  Future<int> getTotalCashIn(String startDate, String endDate) async {
+  Future<Money> getTotalCashIn(String startDate, String endDate) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery('''
       SELECT SUM(amount) as total 
@@ -438,7 +438,7 @@ class CashRepository {
   }
 
   /// Get total cash OUT for period
-  Future<int> getTotalCashOut(String startDate, String endDate) async {
+  Future<Money> getTotalCashOut(String startDate, String endDate) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery('''
       SELECT SUM(amount) as total 
@@ -446,7 +446,7 @@ class CashRepository {
       WHERE type = 'OUT' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
     
-    return (result.first['total'] as num?)?.toInt() ?? 0;
+    return Money.fromPaisas((result.first['total'] as num?)?.toInt() ?? 0);
   }
 
   /// Get transaction count
@@ -471,7 +471,7 @@ class CashRepository {
   }
 
   /// Get average transaction amount
-  Future<int> getAverageTransactionAmount({
+  Future<Money> getAverageTransactionAmount({
     String? type,
     String? startDate,
     String? endDate,
