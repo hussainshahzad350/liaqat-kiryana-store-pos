@@ -1,4 +1,4 @@
-// lib/core/repositories/cash_repository.dart
+import '../../domain/entities/money.dart';
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
@@ -7,30 +7,37 @@ import '../../models/cash_ledger_model.dart';
 class CashRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
+  // -----------------------------
+  // PRIVATE HELPERS
+  // -----------------------------
+
+  Money _moneyFromDb(Map<String, dynamic> row, String key) {
+    return Money.fromPaisas((row[key] as num?)?.toInt() ?? 0);
+  }
+
   // ========================================
   // CASH BALANCE
   // ========================================
 
   /// Get current cash balance
   /// Moved from DatabaseHelper.getCurrentCashBalance()
-  Future<int> getCurrentCashBalance() async {
+  Future<Money> getCurrentCashBalance() async {
     try {
       final db = await _dbHelper.database;
       final res = await db.rawQuery(
-        'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
-      );
+          'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
       if (res.isNotEmpty) {
-        return (res.first['balance_after'] as num).toInt();
+        return _moneyFromDb(res.first, 'balance_after');
       }
-      return 0;
+      return Money.zero;
     } catch (e) {
       AppLogger.error('Error getting cash balance: $e', tag: 'CashRepo');
-      return 0;
+      return Money.zero;
     }
   }
 
   /// Get cash balance at specific date
-  Future<int> getCashBalanceAtDate(String date) async {
+  Future<Money> getCashBalanceAtDate(String date) async {
     try {
       final db = await _dbHelper.database;
       final res = await db.rawQuery('''
@@ -40,14 +47,15 @@ class CashRepository {
         ORDER BY id DESC 
         LIMIT 1
       ''', [date]);
-      
+
       if (res.isNotEmpty) {
-        return (res.first['balance_after'] as num).toInt();
+        return _moneyFromDb(res.first, 'balance_after');
       }
-      return 0;
+      return Money.zero;
     } catch (e) {
-      AppLogger.error('Error getting cash balance at date: $e', tag: 'CashRepo');
-      return 0;
+      AppLogger.error('Error getting cash balance at date: $e',
+          tag: 'CashRepo');
+      return Money.zero;
     }
   }
 
@@ -60,29 +68,31 @@ class CashRepository {
   Future<void> addCashEntry(
     String description,
     String type,
-    int amount,
+    Money amount,
     String remarks,
   ) async {
     final db = await _dbHelper.database;
     final now = DateTime.now();
-    
+
     final dateStr = DateFormat('yyyy-MM-dd').format(now);
     final timeStr = DateFormat('hh:mm a').format(now);
 
     await db.transaction((txn) async {
       final res = await txn.rawQuery(
-        'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
-      );
-      int currentBalance = 0;
-      if (res.isNotEmpty) {
-        currentBalance = (res.first['balance_after'] as num).toInt();
-      }
+          'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+      Money currentBalance = res.isNotEmpty
+          ? _moneyFromDb(res.first, 'balance_after')
+          : Money.zero;
 
-      int newBalance = currentBalance;
+      type = type.toUpperCase(); // normalize
+
+      Money newBalance;
       if (type == 'IN') {
-        newBalance += amount;
+        newBalance = currentBalance + amount;
       } else if (type == 'OUT') {
-        newBalance -= amount;
+        newBalance = currentBalance - amount;
+      } else {
+        newBalance = currentBalance;
       }
 
       await txn.insert('cash_ledger', {
@@ -90,8 +100,8 @@ class CashRepository {
         'transaction_time': timeStr,
         'description': description,
         'type': type,
-        'amount': amount,
-        'balance_after': newBalance,
+        'amount': amount.paisas,
+        'balance_after': newBalance.paisas,
         'remarks': remarks,
       });
     });
@@ -100,7 +110,7 @@ class CashRepository {
   /// Add cash IN entry (shorthand)
   Future<void> addCashIn(
     String description,
-    int amount, {
+    Money amount, {
     String? remarks,
   }) async {
     await addCashEntry(description, 'IN', amount, remarks ?? '');
@@ -109,7 +119,7 @@ class CashRepository {
   /// Add cash OUT entry (shorthand)
   Future<void> addCashOut(
     String description,
-    int amount, {
+    Money amount, {
     String? remarks,
   }) async {
     await addCashEntry(description, 'OUT', amount, remarks ?? '');
@@ -148,20 +158,20 @@ class CashRepository {
   }) async {
     try {
       final db = await _dbHelper.database;
-      
+
       String query = '''
         SELECT * FROM cash_ledger 
         WHERE transaction_date BETWEEN ? AND ?
         ORDER BY transaction_date DESC, transaction_time DESC
       ''';
-      
+
       List<dynamic> args = [startDate, endDate];
-      
+
       if (limit != null) {
         query += ' LIMIT ?';
         args.add(limit);
       }
-      
+
       final result = await db.rawQuery(query, args);
       return result.map((map) => CashLedger.fromMap(map)).toList();
     } catch (e) {
@@ -183,6 +193,7 @@ class CashRepository {
   }) async {
     try {
       final db = await _dbHelper.database;
+      type = type.toUpperCase(); // Normalize
       final result = await db.query(
         'cash_ledger',
         where: 'type = ?',
@@ -202,10 +213,10 @@ class CashRepository {
     try {
       final db = await _dbHelper.database;
       final q = '%${query.toLowerCase()}%';
-      
+
       final result = await db.rawQuery('''
         SELECT * FROM cash_ledger 
-        WHERE LOWER(description) LIKE ? OR LOWER(remarks) LIKE ?
+        WHERE (LOWER(description) LIKE ? OR LOWER(remarks) LIKE ?)
         ORDER BY id DESC
       ''', [q, q]);
       return result.map((map) => CashLedger.fromMap(map)).toList();
@@ -226,7 +237,7 @@ class CashRepository {
   ) async {
     try {
       final db = await _dbHelper.database;
-      
+
       final result = await db.rawQuery('''
         SELECT 
           SUM(CASE WHEN type = 'IN' THEN amount ELSE 0 END) as total_in,
@@ -250,8 +261,8 @@ class CashRepository {
       }
 
       final data = result.first;
-      final totalIn = (data['total_in'] as num?)?.toInt() ?? 0;
-      final totalOut = (data['total_out'] as num?)?.toInt() ?? 0;
+      final totalIn = _moneyFromDb(data, 'total_in');
+      final totalOut = _moneyFromDb(data, 'total_out');
 
       return {
         'totalIn': totalIn,
@@ -285,9 +296,8 @@ class CashRepository {
   /// Get this month's cash summary
   Future<Map<String, dynamic>> getThisMonthCashSummary() async {
     final now = DateTime.now();
-    final startDate = DateFormat('yyyy-MM-dd').format(
-      DateTime(now.year, now.month, 1)
-    );
+    final startDate =
+        DateFormat('yyyy-MM-dd').format(DateTime(now.year, now.month, 1));
     final endDate = DateFormat('yyyy-MM-dd').format(now);
     return await getCashSummary(startDate, endDate);
   }
@@ -299,7 +309,7 @@ class CashRepository {
   ) async {
     try {
       final db = await _dbHelper.database;
-      
+
       return await db.rawQuery('''
         SELECT 
           transaction_date as date,
@@ -322,7 +332,7 @@ class CashRepository {
   // ========================================
 
   /// Get transaction by ID
-  Future<Map<String, dynamic>?> getTransactionById(int id) async {
+  Future<CashLedger?> getTransactionById(int id) async {
     final db = await _dbHelper.database;
     final result = await db.query(
       'cash_ledger',
@@ -330,9 +340,9 @@ class CashRepository {
       whereArgs: [id],
       limit: 1,
     );
-    
+
     if (result.isEmpty) return null;
-    return result.first;
+    return CashLedger.fromMap(result.first);
   }
 
   /// Update cash ledger entry (for corrections)
@@ -341,12 +351,15 @@ class CashRepository {
     Map<String, dynamic> updates,
   ) async {
     final db = await _dbHelper.database;
-    
+
     // Recalculate balance if amount changes
     if (updates.containsKey('amount') || updates.containsKey('type')) {
+      if (updates.containsKey('type')) {
+        updates['type'] = (updates['type'] as String).toUpperCase();
+      }
       await _recalculateBalancesFrom(id);
     }
-    
+
     return await db.update(
       'cash_ledger',
       updates,
@@ -358,24 +371,24 @@ class CashRepository {
   /// Delete cash entry (and recalculate subsequent balances)
   Future<int> deleteCashEntry(int id) async {
     final db = await _dbHelper.database;
-    
+
     final deleted = await db.delete(
       'cash_ledger',
       where: 'id = ?',
       whereArgs: [id],
     );
-    
+
     if (deleted > 0) {
       await _recalculateBalancesFrom(id);
     }
-    
+
     return deleted;
   }
 
   /// Recalculate all balances from a specific entry onwards
   Future<void> _recalculateBalancesFrom(int fromId) async {
     final db = await _dbHelper.database;
-    
+
     await db.transaction((txn) async {
       // Get all entries from this point onwards
       final entries = await txn.query(
@@ -394,14 +407,14 @@ class CashRepository {
         limit: 1,
       );
 
-      int runningBalance = prevEntries.isNotEmpty
-          ? (prevEntries.first['balance_after'] as num).toInt()
-          : 0;
+      Money runningBalance = prevEntries.isNotEmpty
+          ? _moneyFromDb(prevEntries.first, 'balance_after')
+          : Money.zero;
 
       // Recalculate balances for all subsequent entries
       for (var entry in entries) {
         final type = entry['type'] as String;
-        final amount = (entry['amount'] as num).toInt();
+        final amount = _moneyFromDb(entry, 'amount');
 
         if (type == 'IN') {
           runningBalance += amount;
@@ -411,7 +424,7 @@ class CashRepository {
 
         await txn.update(
           'cash_ledger',
-          {'balance_after': runningBalance},
+          {'balance_after': runningBalance.paisas},
           where: 'id = ?',
           whereArgs: [entry['id']],
         );
@@ -424,73 +437,76 @@ class CashRepository {
   // ========================================
 
   /// Get total cash IN for period
-  Future<int> getTotalCashIn(String startDate, String endDate) async {
+  Future<Money> getTotalCashIn(String startDate, String endDate) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery('''
       SELECT SUM(amount) as total 
       FROM cash_ledger 
       WHERE type = 'IN' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
-    
-    return (result.first['total'] as num?)?.toInt() ?? 0;
+
+    return _moneyFromDb(result.first, 'total');
   }
 
   /// Get total cash OUT for period
-  Future<int> getTotalCashOut(String startDate, String endDate) async {
+  Future<Money> getTotalCashOut(String startDate, String endDate) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery('''
       SELECT SUM(amount) as total 
       FROM cash_ledger 
       WHERE type = 'OUT' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
-    
-    return (result.first['total'] as num?)?.toInt() ?? 0;
+
+    return _moneyFromDb(result.first, 'total');
   }
 
   /// Get transaction count
   Future<int> getTransactionCount({String? type, String? date}) async {
     final db = await _dbHelper.database;
-    
+
     String query = 'SELECT COUNT(*) as count FROM cash_ledger WHERE 1=1';
     List<dynamic> args = [];
-    
+
     if (type != null) {
+      type = type.toUpperCase();
       query += ' AND type = ?';
       args.add(type);
     }
-    
+
     if (date != null) {
       query += ' AND transaction_date = ?';
       args.add(date);
     }
-    
+
     final result = await db.rawQuery(query, args);
     return (result.first['count'] as int?) ?? 0;
   }
 
   /// Get average transaction amount
-  Future<int> getAverageTransactionAmount({
+  Future<Money> getAverageTransactionAmount({
     String? type,
     String? startDate,
     String? endDate,
   }) async {
     final db = await _dbHelper.database;
-    
+
     String query = 'SELECT AVG(amount) as avg FROM cash_ledger WHERE 1=1';
     List<dynamic> args = [];
-    
+
     if (type != null) {
+      type = type.toUpperCase(); // Normalize
       query += ' AND type = ?';
       args.add(type);
     }
-    
+
     if (startDate != null && endDate != null) {
       query += ' AND transaction_date BETWEEN ? AND ?';
       args.add(startDate);
       args.add(endDate);
     }
-    
+
     final result = await db.rawQuery(query, args);
-    return (result.first['avg'] as num?)?.toInt() ?? 0;
+    final avg = (result.first['avg'] as num?)?.toDouble() ?? 0.0;
+    return Money((avg).round());
   }
 }

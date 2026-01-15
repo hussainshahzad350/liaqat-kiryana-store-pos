@@ -9,5 +9,6 @@
         "Prefs",
         "Roboto",
         "sqflite"
-    ]
+    ],
+    "cmake.ignoreCMakeListsMissing": true
 }

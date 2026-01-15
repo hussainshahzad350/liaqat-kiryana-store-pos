@@ -63,11 +63,10 @@ void main() async {
       titleBarStyle: TitleBarStyle.normal,
     );
 
-      windowManager.waitUntilReadyToShow(windowOptions, () async {
-        await windowManager.show();
-        await windowManager.focus();
-      }
-    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
   }
 
   final SettingsRepository settingsRepository = SettingsRepository();
@@ -87,7 +86,8 @@ class LiaqatStoreApp extends StatefulWidget {
   const LiaqatStoreApp({super.key, required this.initialLanguage});
 
   static void setLocale(BuildContext context, Locale newLocale) {
-    _LiaqatStoreAppState? state = context.findAncestorStateOfType<_LiaqatStoreAppState>();
+    _LiaqatStoreAppState? state =
+        context.findAncestorStateOfType<_LiaqatStoreAppState>();
     state?.setLocale(newLocale);
   }
 
@@ -147,7 +147,8 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
           initialRoute: '/',
           routes: {
             '/': (context) => const LoginScreen(),
-            AppRoutes.home: (context) => const MainLayout(currentRoute: AppRoutes.home, child: HomeScreen()),
+            AppRoutes.home: (context) => const MainLayout(
+                currentRoute: AppRoutes.home, child: HomeScreen()),
             AppRoutes.sales: (context) => MainLayout(
                   currentRoute: AppRoutes.sales,
                   child: BlocProvider(
@@ -164,10 +165,14 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                   child: MultiBlocProvider(
                     providers: [
                       BlocProvider(
-                        create: (context) => StockOverviewBloc(StockRepository())..add(const LoadStockOverview()),
+                        create: (context) =>
+                            StockOverviewBloc(StockRepository())
+                              ..add(const LoadStockOverview()),
                       ),
                       BlocProvider(
-                        create: (context) => StockFilterBloc(SuppliersRepository(), CategoriesRepository())..add(LoadFilters()),
+                        create: (context) => StockFilterBloc(
+                            SuppliersRepository(), CategoriesRepository())
+                          ..add(LoadFilters()),
                       ),
                       BlocProvider(
                         create: (context) => StockActivityBloc(
@@ -192,21 +197,30 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                     child: const PurchaseScreen(),
                   ),
                 ),
-            AppRoutes.items: (context) => const MainLayout(currentRoute: AppRoutes.items, child: ItemsScreen()),
-            AppRoutes.customers: (context) => const MainLayout(currentRoute: AppRoutes.customers, child: CustomersScreen()),
-            AppRoutes.suppliers: (context) => const MainLayout(currentRoute: AppRoutes.suppliers, child: SuppliersScreen()),
-            AppRoutes.categories: (context) => const MainLayout(currentRoute: AppRoutes.categories, child: CategoriesScreen()),
+            AppRoutes.items: (context) => const MainLayout(
+                currentRoute: AppRoutes.items, child: ItemsScreen()),
+            AppRoutes.customers: (context) => const MainLayout(
+                currentRoute: AppRoutes.customers, child: CustomersScreen()),
+            AppRoutes.suppliers: (context) => const MainLayout(
+                currentRoute: AppRoutes.suppliers, child: SuppliersScreen()),
+            AppRoutes.categories: (context) => const MainLayout(
+                currentRoute: AppRoutes.categories, child: CategoriesScreen()),
             AppRoutes.units: (context) => MainLayout(
                   currentRoute: AppRoutes.units,
                   child: BlocProvider(
-                    create: (context) => UnitsBloc(UnitsRepository())..add(LoadUnits()),
+                    create: (context) =>
+                        UnitsBloc(UnitsRepository())..add(LoadUnits()),
                     child: const UnitsScreen(),
                   ),
                 ),
-            AppRoutes.reports: (context) => const MainLayout(currentRoute: AppRoutes.reports, child: ReportsScreen()),
-            AppRoutes.cashLedger: (context) => const MainLayout(currentRoute: AppRoutes.cashLedger, child: CashLedgerScreen()),
-            AppRoutes.settings: (context) => const MainLayout(currentRoute: AppRoutes.settings, child: SettingsScreen()),
-            AppRoutes.about: (context) => const MainLayout(currentRoute: AppRoutes.about, child: AboutScreen()),
+            AppRoutes.reports: (context) => const MainLayout(
+                currentRoute: AppRoutes.reports, child: ReportsScreen()),
+            AppRoutes.cashLedger: (context) => const MainLayout(
+                currentRoute: AppRoutes.cashLedger, child: CashLedgerScreen()),
+            AppRoutes.settings: (context) => const MainLayout(
+                currentRoute: AppRoutes.settings, child: SettingsScreen()),
+            AppRoutes.about: (context) => const MainLayout(
+                currentRoute: AppRoutes.about, child: AboutScreen()),
           },
         );
       },
