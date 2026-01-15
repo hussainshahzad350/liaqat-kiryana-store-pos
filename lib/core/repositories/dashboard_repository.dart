@@ -21,7 +21,7 @@ class DashboardRepository {
 
       // 1. Today's Sales Total
       batch.rawQuery(
-        'SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ? AND status = ?',
+        'SELECT SUM(grand_total) as total FROM invoices WHERE invoice_date = ? AND status = ?',
         [today, 'COMPLETED']
       );
 
@@ -32,9 +32,9 @@ class DashboardRepository {
           c.name_english, 
           SUM(s.grand_total) as total_amount,
           COUNT(s.id) as sale_count
-        FROM sales s
+        FROM invoices s
         LEFT JOIN customers c ON s.customer_id = c.id
-        WHERE s.sale_date = ? AND c.id IS NOT NULL AND s.status = 'COMPLETED'
+        WHERE s.invoice_date = ? AND c.id IS NOT NULL AND s.status = 'COMPLETED'
         GROUP BY c.id
         ORDER BY total_amount DESC
         LIMIT 5
@@ -58,12 +58,12 @@ class DashboardRepository {
       batch.rawQuery('''
         SELECT 
           s.id,
-          s.bill_number,
+          s.invoice_number,
           s.status, 
           s.grand_total, 
           s.sale_time,
           COALESCE(c.name_urdu, c.name_english, 'Walk-in Customer') as customer_name
-        FROM sales s
+        FROM invoices s
         LEFT JOIN customers c ON s.customer_id = c.id
         ORDER BY s.created_at DESC
         LIMIT 5
@@ -109,7 +109,7 @@ class DashboardRepository {
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
       
       final result = await db.rawQuery(
-        'SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ? AND status = ?',
+        'SELECT SUM(grand_total) as total FROM invoices WHERE invoice_date = ? AND status = ?',
         [today, 'COMPLETED']
       );
       return (result.first['total'] as num?)?.toInt() ?? 0;
@@ -130,8 +130,8 @@ class DashboardRepository {
       
       final result = await db.rawQuery('''
         SELECT SUM(grand_total) as total 
-        FROM sales 
-        WHERE sale_date BETWEEN ? AND ? AND status = ?
+        FROM invoices 
+        WHERE invoice_date BETWEEN ? AND ? AND status = ?
       ''', [startDate, endDate, 'COMPLETED']);
       
       return (result.first['total'] as num?)?.toInt() ?? 0;
@@ -153,8 +153,8 @@ class DashboardRepository {
       
       final result = await db.rawQuery('''
         SELECT SUM(grand_total) as total 
-        FROM sales 
-        WHERE sale_date BETWEEN ? AND ? AND status = ?
+        FROM invoices 
+        WHERE invoice_date BETWEEN ? AND ? AND status = ?
       ''', [startDate, endDate, 'COMPLETED']);
       
       return (result.first['total'] as num?)?.toInt() ?? 0;
@@ -171,8 +171,8 @@ class DashboardRepository {
       
       final result = await db.rawQuery('''
         SELECT SUM(grand_total) as total 
-        FROM sales 
-        WHERE sale_date BETWEEN ? AND ? AND status = ?
+        FROM invoices 
+        WHERE invoice_date BETWEEN ? AND ? AND status = ?
       ''', [startDate, endDate, 'COMPLETED']);
       
       return (result.first['total'] as num?)?.toInt() ?? 0;
@@ -187,11 +187,11 @@ class DashboardRepository {
     try {
       final db = await _dbHelper.database;
       
-      String query = 'SELECT COUNT(*) as count FROM sales WHERE status = ?';
+      String query = 'SELECT COUNT(*) as count FROM invoices WHERE status = ?';
       List<dynamic> args = ['COMPLETED'];
       
       if (startDate != null && endDate != null) {
-        query += ' AND sale_date BETWEEN ? AND ?';
+        query += ' AND invoice_date BETWEEN ? AND ?';
         args.add(startDate);
         args.add(endDate);
       }
@@ -221,9 +221,9 @@ class DashboardRepository {
           c.name_english, 
           SUM(s.grand_total) as total_amount,
           COUNT(s.id) as sale_count
-        FROM sales s
+        FROM invoices s
         LEFT JOIN customers c ON s.customer_id = c.id
-        WHERE s.sale_date = ? AND c.id IS NOT NULL AND s.status = 'COMPLETED'
+        WHERE s.invoice_date = ? AND c.id IS NOT NULL AND s.status = 'COMPLETED'
         GROUP BY c.id
         ORDER BY total_amount DESC
         LIMIT ?
@@ -253,15 +253,15 @@ class DashboardRepository {
           SUM(si.total_price) as total_revenue,
           COUNT(DISTINCT si.sale_id) as sale_count
         FROM products p
-        JOIN sale_items si ON p.id = si.product_id
-        JOIN sales s ON si.sale_id = s.id
+        JOIN invoice_items si ON p.id = si.product_id
+        JOIN invoices s ON si.sale_id = s.id
         WHERE s.status = 'COMPLETED'
       ''';
 
       List<dynamic> args = [];
 
       if (startDate != null && endDate != null) {
-        query += ' AND s.sale_date BETWEEN ? AND ?';
+        query += ' AND s.invoice_date BETWEEN ? AND ?';
         args.add(startDate);
         args.add(endDate);
       }
@@ -299,14 +299,14 @@ class DashboardRepository {
           COUNT(s.id) as purchase_count,
           AVG(s.grand_total) as avg_order_value
         FROM customers c
-        JOIN sales s ON c.id = s.customer_id
+        JOIN invoices s ON c.id = s.customer_id
         WHERE s.status = 'COMPLETED'
       ''';
 
       List<dynamic> args = [];
 
       if (startDate != null && endDate != null) {
-        query += ' AND s.sale_date BETWEEN ? AND ?';
+        query += ' AND s.invoice_date BETWEEN ? AND ?';
         args.add(startDate);
         args.add(endDate);
       }
@@ -340,14 +340,14 @@ class DashboardRepository {
       final sales = await db.rawQuery('''
         SELECT 
           'SALE' as activity_type,
-          s.bill_number as title,
+          s.invoice_number as title,
           COALESCE(c.name_english, c.name_urdu, 'Cash Sale') as customer_name,
           s.grand_total as amount,
-          s.sale_date || ' ' || s.sale_time as timestamp,
+          s.invoice_date || ' ' || s.sale_time as timestamp,
           s.status as status
-        FROM sales s
+        FROM invoices s
         LEFT JOIN customers c ON s.customer_id = c.id
-        WHERE DATE(s.sale_date) = DATE('now', 'localtime')
+        WHERE DATE(s.invoice_date) = DATE('now', 'localtime')
         ORDER BY s.sale_time DESC
         LIMIT 5
       ''');
@@ -361,7 +361,7 @@ class DashboardRepository {
           p.amount as amount,
           p.date || ' 00:00' as timestamp,
           'COMPLETED' as status
-        FROM payments p
+        FROM receipts p
         JOIN customers c ON p.customer_id = c.id
         WHERE DATE(p.date) = DATE('now', 'localtime')
         ORDER BY p.date DESC
@@ -492,14 +492,14 @@ class DashboardRepository {
       
       return await db.rawQuery('''
         SELECT 
-          sale_date as date,
+          invoice_date as date,
           COUNT(*) as sale_count,
           SUM(grand_total) as total_sales,
           AVG(grand_total) as avg_sale_value
-        FROM sales
-        WHERE sale_date >= ? AND status = 'COMPLETED'
-        GROUP BY sale_date
-        ORDER BY sale_date ASC
+        FROM invoices
+        WHERE invoice_date >= ? AND status = 'COMPLETED'
+        GROUP BY invoice_date
+        ORDER BY invoice_date ASC
       ''', [DateFormat('yyyy-MM-dd').format(startDate)]);
     } catch (e) {
       AppLogger.error("Error fetching daily sales trend: $e", tag: 'DashboardRepo');
@@ -518,8 +518,8 @@ class DashboardRepository {
           CAST(strftime('%H', sale_time) AS INTEGER) as hour,
           COUNT(*) as sale_count,
           SUM(grand_total) as total_sales
-        FROM sales
-        WHERE sale_date = ? AND status = 'COMPLETED'
+        FROM invoices
+        WHERE invoice_date = ? AND status = 'COMPLETED'
         GROUP BY hour
         ORDER BY hour ASC
       ''', [today]);
@@ -544,7 +544,7 @@ class DashboardRepository {
       
       // Total sales today
       batch.rawQuery(
-        'SELECT SUM(grand_total) as total FROM sales WHERE sale_date = ? AND status = ?',
+        'SELECT SUM(grand_total) as total FROM invoices WHERE invoice_date = ? AND status = ?',
         [today, 'COMPLETED']
       );
       
@@ -601,16 +601,16 @@ class DashboardRepository {
         SELECT 
           SUM(si.total_price) as revenue,
           SUM(si.quantity_sold * p.avg_cost_price) as cost
-        FROM sale_items si
+        FROM invoice_items si
         JOIN products p ON si.product_id = p.id
-        JOIN sales s ON si.sale_id = s.id
+        JOIN invoices s ON si.sale_id = s.id
         WHERE s.status = 'COMPLETED'
       ''';
       
       List<dynamic> args = [];
       
       if (startDate != null && endDate != null) {
-        query += ' AND s.sale_date BETWEEN ? AND ?';
+        query += ' AND s.invoice_date BETWEEN ? AND ?';
         args.add(startDate);
         args.add(endDate);
       }

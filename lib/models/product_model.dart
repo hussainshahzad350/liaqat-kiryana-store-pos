@@ -13,7 +13,7 @@ class Product {
   final String? packingType;
   final String? searchTags;
   final int minStockAlert;
-  final int currentStock;
+  final double currentStock;
   final Money avgCostPrice;
   final Money salePrice;
   final DateTime? expiryDate;
@@ -32,7 +32,7 @@ class Product {
     this.packingType,
     this.searchTags,
     this.minStockAlert = 10,
-    this.currentStock = 0,
+    this.currentStock = 0.0,
     this.avgCostPrice = const Money(0),
     this.salePrice = const Money(0),
     this.expiryDate,
@@ -54,7 +54,7 @@ class Product {
       packingType: map['packing_type'] as String?,
       searchTags: map['search_tags'] as String?,
       minStockAlert: (map['min_stock_alert'] ?? 10) as int,
-      currentStock: (map['current_stock'] ?? 0) as int,
+      currentStock: (map['current_stock'] as num? ?? 0.0).toDouble(),
       avgCostPrice: Money((map['avg_cost_price'] ?? 0) as int),
       salePrice: Money((map['sale_price'] ?? 0) as int),
       expiryDate: map['expiry_date'] != null ? DateTime.tryParse(map['expiry_date'] as String) : null,
@@ -101,7 +101,7 @@ class Product {
     String? packingType,
     String? searchTags,
     int? minStockAlert,
-    int? currentStock,
+    double? currentStock,
     Money? avgCostPrice,
     Money? salePrice,
     DateTime? expiryDate,

@@ -414,12 +414,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
       height: 115,
       child: Row(
         children: [
-          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, balTotal as Money, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, Money(balTotal), null)),
           const SizedBox(width: 8),
-          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, balActive as Money, null)),
+          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, Money(balActive), null)),
           const SizedBox(width: 8),
           Expanded(
-            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, balArchived as Money, () { 
+            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, Money(balArchived), () { 
                setState(() {
                  _showArchiveOverlay = true;
                  _loadArchivedCustomers();

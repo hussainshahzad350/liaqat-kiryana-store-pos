@@ -337,10 +337,10 @@ class ItemsRepository {
         SUM(si.quantity_sold) as total_sold,
         SUM(si.total_price) as total_revenue,
         AVG(si.unit_price) as avg_price
-      FROM sale_items si
-      JOIN sales s ON si.sale_id = s.id
-      WHERE si.product_id = ? AND s.status = 'COMPLETED'
-    ''', [productId]);
+        FROM invoice_items si
+        JOIN invoices s ON si.invoice_id = s.id
+        WHERE si.product_id = ? AND s.status = 'COMPLETED'
+      ''', [productId]);
 
     if (result.isEmpty) {
       return {
@@ -373,22 +373,22 @@ class ItemsRepository {
         p.*,
         SUM(si.quantity_sold) as total_sold,
         SUM(si.total_price) as total_revenue,
-        COUNT(DISTINCT si.sale_id) as sale_count
-      FROM products p
-      JOIN sale_items si ON p.id = si.product_id
-      JOIN sales s ON si.sale_id = s.id
-      WHERE s.status = 'COMPLETED'
-    ''';
+        COUNT(DISTINCT si.invoice_id) as sale_count
+        FROM products p
+        JOIN invoice_items si ON p.id = si.product_id
+        JOIN invoices s ON si.invoice_id = s.id
+        WHERE s.status = 'COMPLETED'
+      ''';
 
     List<dynamic> args = [];
 
     if (dateFrom != null) {
-      query += ' AND s.sale_date >= ?';
+      query += ' AND s.invoice_date >= ?';
       args.add(dateFrom);
     }
 
     if (dateTo != null) {
-      query += ' AND s.sale_date <= ?';
+      query += ' AND s.invoice_date <= ?';
       args.add(dateTo);
     }
 
@@ -416,8 +416,8 @@ class ItemsRepository {
         p.*,
         COALESCE(SUM(si.quantity_sold), 0) as total_sold
       FROM products p
-      LEFT JOIN sale_items si ON p.id = si.product_id
-      LEFT JOIN sales s ON si.sale_id = s.id AND s.sale_date >= ? AND s.status = 'COMPLETED'
+      LEFT JOIN invoice_items si ON p.id = si.product_id
+      LEFT JOIN invoices s ON si.invoice_id = s.id AND s.invoice_date >= ? AND s.status = 'COMPLETED'
       WHERE p.current_stock > 0
       GROUP BY p.id
       ORDER BY total_sold ASC

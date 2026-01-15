@@ -27,7 +27,7 @@ class ReceiptRepository {
 
     // 2. Fetch Sale Items (Snapshot only - NO JOIN)
     final itemsResult = await db.query(
-      'sale_items',
+      'invoice_items',
       columns: [
         'quantity_sold',
         'unit_price',
@@ -36,7 +36,7 @@ class ReceiptRepository {
         'item_name_urdu',
         'unit_name'
       ],
-      where: 'sale_id = ?',
+      where: 'invoice_id = ?',
       whereArgs: [sale.id],
     );
 
@@ -89,15 +89,15 @@ class ReceiptRepository {
   Future<void> trackPrint(int saleId, {String type = 'THERMAL'}) async {
     final db = await _dbHelper.database;
     try {
-      await db.insert('receipts', {
+      await db.insert('sale_print_logs', {
         'sale_id': saleId,
         'receipt_type': type,
         'generated_at': DateTime.now().toIso8601String(),
       });
       
-      // Also update the counter on the sale record
+      // Also update the counter on the invoice record
       await db.rawUpdate('''
-        UPDATE sales 
+        UPDATE invoices 
         SET receipt_printed = 1, 
             receipt_print_count = receipt_print_count + 1,
             printed_count = printed_count + 1 
@@ -301,10 +301,10 @@ class ReceiptRepository {
     final file = File(filePath);
     await file.writeAsBytes(bytes);
 
-    // Store path in sales.receipt_pdf_path
+    // Store path in invoices.receipt_pdf_path
     final db = await _dbHelper.database;
     await db.update(
-      'sales',
+      'invoices',
       {'receipt_pdf_path': filePath},
       where: 'id = ?',
       whereArgs: [sale.id],

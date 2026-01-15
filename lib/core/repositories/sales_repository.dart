@@ -302,7 +302,7 @@ class SalesRepository {
     Future<void> performCancel(Transaction t) async {
       // 1. Fetch sale (validate)
       final saleRes = await t.query(
-        'sales',
+        'invoices',
         where: 'id = ? AND status = ?',
         whereArgs: [saleId, 'COMPLETED'],
         limit: 1,
@@ -318,7 +318,7 @@ class SalesRepository {
 
       // 2. Mark sale as CANCELLED
       await t.update(
-        'sales',
+        'invoices',
         {
           'status': 'CANCELLED',
           'cancelled_at': DateTime.now().toIso8601String(),
@@ -332,8 +332,8 @@ class SalesRepository {
 
       // 3. Revert stock
       final items = await t.query(
-        'sale_items',
-        where: 'sale_id = ?',
+        'invoice_items',
+        where: 'invoice_id = ?',
         whereArgs: [saleId],
       );
 

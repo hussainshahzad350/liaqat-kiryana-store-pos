@@ -274,9 +274,9 @@ class SettingsRepository {
       // Count records in each table
       batch.rawQuery('SELECT COUNT(*) as count FROM products');
       batch.rawQuery('SELECT COUNT(*) as count FROM customers');
-      batch.rawQuery('SELECT COUNT(*) as count FROM sales');
-      batch.rawQuery('SELECT COUNT(*) as count FROM sale_items');
-      batch.rawQuery('SELECT COUNT(*) as count FROM payments');
+      batch.rawQuery('SELECT COUNT(*) as count FROM invoices');
+      batch.rawQuery('SELECT COUNT(*) as count FROM invoice_items');
+      batch.rawQuery('SELECT COUNT(*) as count FROM receipts');
       batch.rawQuery('SELECT COUNT(*) as count FROM suppliers');
       batch.rawQuery('SELECT COUNT(*) as count FROM cash_ledger');
       
@@ -285,9 +285,9 @@ class SettingsRepository {
       return {
         'products': (results[0] as List).first['count'] ?? 0,
         'customers': (results[1] as List).first['count'] ?? 0,
-        'sales': (results[2] as List).first['count'] ?? 0,
-        'saleItems': (results[3] as List).first['count'] ?? 0,
-        'payments': (results[4] as List).first['count'] ?? 0,
+        'invoices': (results[2] as List).first['count'] ?? 0,
+        'invoiceItems': (results[3] as List).first['count'] ?? 0,
+        'receipts': (results[4] as List).first['count'] ?? 0,
         'suppliers': (results[5] as List).first['count'] ?? 0,
         'cashLedger': (results[6] as List).first['count'] ?? 0,
         'databaseSize': await getDatabaseSize(),

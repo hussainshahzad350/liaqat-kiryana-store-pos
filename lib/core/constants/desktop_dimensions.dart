@@ -33,4 +33,14 @@ class DesktopDimensions {
   static const double spacingStandard = 12.0;
   static const double spacingMedium = 16.0;
   static const double spacingLarge = 20.0;
+
+  // Responsive Breakpoints
+  static const double breakpointLarge = 1400.0;
+  static const double breakpointMedium = 1150.0;
+  static const double breakpointSmall = 950.0;
+
+  // Sidebar Widths
+  static const double sidebarWidthLarge = 480.0;
+  static const double sidebarWidthMedium = 400.0;
+  static const double sidebarWidthSmall = 350.0;
 }

@@ -1156,7 +1156,7 @@ class AboutTab extends StatelessWidget {
                       InfoItem(label: loc.totalItems, value: (stats['products'] ?? 0).toString()),
                       InfoItem(label: loc.totalCustomers, value: (stats['customers'] ?? 0).toString()),
                       InfoItem(label: loc.totalSuppliers, value: (stats['suppliers'] ?? 0).toString()),
-                      InfoItem(label: loc.totalSales, value: (stats['sales'] ?? 0).toString()),
+                      InfoItem(label: loc.totalSales, value: (stats['invoices'] ?? 0).toString()),
                       InfoItem(label: loc.dbSize, value: "${(stats['databaseSize'] as double?)?.toStringAsFixed(2) ?? '0'} MB"),
                     ],
                   );

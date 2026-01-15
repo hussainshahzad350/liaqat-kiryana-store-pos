@@ -73,6 +73,14 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshAllData();
+    });
+  }
+
+  @override
   void dispose() {
     productSearchController.dispose();
     customerSearchController.dispose();
@@ -84,10 +92,6 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   Future<bool> _onWillPop() async {
-    // This needs access to BLoC state to check cartItems
-    // Since we can't easily get context.read here without context, we rely on the widget tree.
-    // But _onWillPop is called by WillPopScope which has context.
-    // However, we need the current state.
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final state = context.read<SalesBloc>().state;

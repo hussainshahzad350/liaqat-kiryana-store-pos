@@ -142,62 +142,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 64,
                   child: HeaderBar(),
                 ),
+
+                // 2. Action Bar (Full Width)
+                _buildActionBar(localizations, colorScheme),
                 
-                // 2. Main Content (Left + Right)
+                // 3. Main Content (Left + Right with Responsive Layout)
                 Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // LEFT PANEL: Main Dashboard (Action Bar + KPIs + Details)
-                      Expanded(
-                        child: Column(
-                          children: [
-                            // Action Bar
-                            _buildActionBar(localizations, colorScheme),
-                            
-                            // Scrollable Content
-                            Expanded(
-                              child: Scrollbar(
-                                controller: _leftPanelScroller,
-                                thumbVisibility: true,
-                                child: SingleChildScrollView(
-                                  controller: _leftPanelScroller,
-                                  padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
-                                  child: Column(
-                                    children: [
-                                      // KPI Grid
-                                      _buildKPIGrid(localizations, colorScheme),
-                                      const SizedBox(height: DesktopDimensions.spacingMedium),
-                                      // Details Grid
-                                      _buildDetailsGrid(localizations, colorScheme),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Vertical Divider
-                      VerticalDivider(width: 1, thickness: 1, color: colorScheme.outlineVariant),
-
-                      // RIGHT PANEL: Sidebar (Fixed 400px)
-                      SizedBox(
-                        width: 480,
-                        child: Container(
-                          color: colorScheme.surface.withOpacity(0.5),
-                          padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: _buildRecentSalesCard(localizations, colorScheme),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return _buildResponsiveLayout(constraints, localizations, colorScheme);
+                    },
                   ),
                 ),
 
@@ -212,6 +166,133 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
+
+  // ========================================================================
+  // RESPONSIVE LAYOUT METHODS
+  // ========================================================================
+
+  Widget _buildResponsiveLayout(
+    BoxConstraints constraints,
+    AppLocalizations localizations,
+    ColorScheme colorScheme,
+  ) {
+    if (constraints.maxWidth >= DesktopDimensions.breakpointLarge) {
+      return _buildSideBySideLayout(
+        sidebarWidth: DesktopDimensions.sidebarWidthLarge,
+        localizations: localizations,
+        colorScheme: colorScheme,
+      );
+    } else if (constraints.maxWidth >= DesktopDimensions.breakpointMedium) {
+      return _buildSideBySideLayout(
+        sidebarWidth: DesktopDimensions.sidebarWidthMedium,
+        localizations: localizations,
+        colorScheme: colorScheme,
+      );
+    } else if (constraints.maxWidth >= DesktopDimensions.breakpointSmall) {
+      return _buildSideBySideLayout(
+        sidebarWidth: DesktopDimensions.sidebarWidthSmall,
+        localizations: localizations,
+        colorScheme: colorScheme,
+      );
+    } else {
+      return _buildStackedLayout(localizations, colorScheme);
+    }
+  }
+
+  Widget _buildSideBySideLayout({
+    required double sidebarWidth,
+    required AppLocalizations localizations,
+    required ColorScheme colorScheme,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // LEFT PANEL: Main Dashboard (KPIs + Details)
+        Expanded(
+          child: Column(
+            children: [
+              // Scrollable Content
+              Expanded(
+                child: Scrollbar(
+                  controller: _leftPanelScroller,
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    controller: _leftPanelScroller,
+                    padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                    child: Column(
+                      children: [
+                        // KPI Grid
+                        _buildKPIGrid(localizations, colorScheme),
+                        const SizedBox(height: DesktopDimensions.spacingMedium),
+                        // Details Grid
+                        _buildDetailsGrid(localizations, colorScheme),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Vertical Divider
+        VerticalDivider(width: 1, thickness: 1, color: colorScheme.outlineVariant),
+
+        // RIGHT PANEL: Sidebar
+        SizedBox(
+          width: sidebarWidth,
+          child: Container(
+            color: colorScheme.surface.withOpacity(0.5),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+            child: Column(
+              children: [
+                Expanded(
+                  child: _buildRecentSalesCard(localizations, colorScheme),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStackedLayout(AppLocalizations localizations, ColorScheme colorScheme) {
+    return Column(
+      children: [
+        // Scrollable All Content
+        Expanded(
+          child: Scrollbar(
+            controller: _leftPanelScroller,
+            thumbVisibility: true,
+            child: SingleChildScrollView(
+              controller: _leftPanelScroller,
+              padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+              child: Column(
+                children: [
+                  // KPI Grid
+                  _buildKPIGrid(localizations, colorScheme),
+                  const SizedBox(height: DesktopDimensions.spacingMedium),
+                  
+                  // Details Grid
+                  _buildDetailsGrid(localizations, colorScheme),
+                  const SizedBox(height: DesktopDimensions.spacingMedium),
+                  
+                  // Recent Activity (Previously in sidebar)
+                  // We give it a fixed height so it scrolls within the main scroller
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 500),
+                    child: _buildRecentSalesCard(localizations, colorScheme),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showKeyboardShortcutsDialog() {
     final colorScheme = Theme.of(context).colorScheme;
     showDialog(
@@ -275,147 +356,142 @@ class _HomeScreenState extends State<HomeScreen> {
   
   Widget _buildActionBar(AppLocalizations localizations, ColorScheme colorScheme) {
     return Container(
-      height: DesktopDimensions.actionBarHeight,
-      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingLarge, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium, vertical: 12),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(bottom: BorderSide(color: colorScheme.outlineVariant, width: 1)),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
-      child: Row(
-        children: [
-          // 1. Primary Action: New Sale Button
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.sales).then((_) => _loadData());
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.surface,
-              foregroundColor: colorScheme.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              elevation: 3,
-              shadowColor: colorScheme.shadow.withOpacity(0.2),
-              side: BorderSide(color: colorScheme.primary, width: 2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ).copyWith(
-              overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.hovered)) return colorScheme.primaryContainer;
-                  return null;
-                },
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            // 1. Primary Action: New Sale Button
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.sales).then((_) => _loadData());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.surface,
+                foregroundColor: colorScheme.primary,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                elevation: 3,
+                shadowColor: colorScheme.shadow.withOpacity(0.2),
+                side: BorderSide(color: colorScheme.primary, width: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ).copyWith(
+                overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) return colorScheme.primaryContainer;
+                    return null;
+                  },
+                ),
+                elevation: MaterialStateProperty.resolveWith<double>(
+                  (Set<MaterialState> states) {
+                    if (states.contains(MaterialState.hovered)) return 6;
+                    return 3;
+                  },
+                ),
               ),
-              elevation: MaterialStateProperty.resolveWith<double>(
-                (Set<MaterialState> states) {
-                  if (states.contains(MaterialState.hovered)) return 6;
-                  return 3;
-                },
+              icon: Icon(Icons.add_shopping_cart, size: 22, color: colorScheme.primary),
+              label: Text(
+                '${localizations.generateBill} (Ctrl+N)',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
               ),
             ),
-            icon: Icon(Icons.add_shopping_cart, size: 22, color: colorScheme.primary),
-            label: Text(
-              '${localizations.generateBill} (Ctrl+N)',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            
+            const SizedBox(width: DesktopDimensions.spacingSmall),
+            
+            // 2. Quick Action: Reports
+            Tooltip(
+              message: localizations.reports,
+              child: _buildQuickActionButton(
+                icon: Icons.bar_chart,
+                label: localizations.reports,
                 color: colorScheme.primary,
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.reports);
+                },
+                colorScheme: colorScheme,
               ),
             ),
-          ),
-          
-          const SizedBox(width: DesktopDimensions.spacingSmall),
-          
-          // 2. Quick Action: Reports
-          Tooltip(
-            message: localizations.reports,
-            child: _buildQuickActionButton(
-              icon: Icons.bar_chart,
-              label: localizations.reports,
+            
+            const SizedBox(width: DesktopDimensions.spacingSmall),
+            
+            // 3. Quick Action: Stock
+            Tooltip(
+              message: localizations.stockManagement,
+              child: _buildQuickActionButton(
+                icon: Icons.inventory_2,
+                label: localizations.stockManagement,
+                color: colorScheme.primary,
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.stock);
+                },
+                colorScheme: colorScheme,
+              ),
+            ),
+            
+            const SizedBox(width: DesktopDimensions.spacingSmall),
+            
+            // 4. Quick Action: Cash Ledger
+            Tooltip(
+              message: localizations.cashLedger,
+              child: _buildQuickActionButton(
+                icon: Icons.account_balance_wallet,
+                label: localizations.cashLedger,
+                color: colorScheme.primary,
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.cashLedger);
+                },
+                colorScheme: colorScheme,
+              ),
+            ),
+            
+            const SizedBox(width: DesktopDimensions.spacingLarge),
+            
+            // Keyboard Shortcuts Button
+            Tooltip(
+              message: 'Keyboard Shortcuts',
+              child: _HoverableActionIcon(
+                icon: Icon(Icons.keyboard, size: 20, color: colorScheme.primary),
+                color: colorScheme.primary,
+                onTap: _showKeyboardShortcutsDialog,
+              ),
+            ),
+            
+            const SizedBox(width: DesktopDimensions.spacingSmall),
+            
+            // 5. Search Button
+            _HoverableActionIcon(
+              icon: Icon(Icons.search, size: 20, color: colorScheme.primary),
               color: colorScheme.primary,
-              onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.reports);
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Search feature coming soon!'), duration: Duration(seconds: 2)),
+                );
               },
-              colorScheme: colorScheme,
             ),
-          ),
-          
-          const SizedBox(width: DesktopDimensions.spacingSmall),
-          
-          // 3. Quick Action: Stock
-          Tooltip(
-            message: localizations.stockManagement,
-            child: _buildQuickActionButton(
-              icon: Icons.inventory_2,
-              label: localizations.stockManagement,
+            
+            const SizedBox(width: DesktopDimensions.spacingSmall),
+            
+            // 6. Refresh Button
+            _HoverableActionIcon(
               color: colorScheme.primary,
-              onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.stock);
-              },
-              colorScheme: colorScheme,
+              onTap: _isRefreshing ? null : _loadData,
+              icon: _isRefreshing
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary),
+                    )
+                  : Icon(Icons.refresh, size: 20, color: colorScheme.primary),
             ),
-          ),
-          
-          const SizedBox(width: DesktopDimensions.spacingSmall),
-          
-          // 4. Quick Action: Cash Ledger
-          Tooltip(
-            message: localizations.cashLedger,
-            child: _buildQuickActionButton(
-              icon: Icons.account_balance_wallet,
-              label: localizations.cashLedger,
-              color: colorScheme.primary,
-              onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.cashLedger);
-              },
-              colorScheme: colorScheme,
-            ),
-          ),
-          
-          const Spacer(),
-          
-          // Keyboard Shortcuts Button
-          Tooltip(
-            message: 'Keyboard Shortcuts',
-            child: _HoverableActionIcon(
-              icon: Icon(Icons.keyboard, size: 20, color: colorScheme.primary),
-              color: colorScheme.primary,
-              onTap: _showKeyboardShortcutsDialog,
-            ),
-          ),
-          
-          const SizedBox(width: DesktopDimensions.spacingSmall),
-          
-          // 5. Search Button
-          _HoverableActionIcon(
-            icon: Icon(Icons.search, size: 20, color: colorScheme.primary),
-            color: colorScheme.primary,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Search feature coming soon!'), duration: Duration(seconds: 2)),
-              );
-            },
-          ),
-          
-          const SizedBox(width: DesktopDimensions.spacingSmall),
-          
-          // 6. Refresh Button
-          _HoverableActionIcon(
-            color: colorScheme.primary,
-            onTap: _isRefreshing ? null : _loadData,
-            icon: _isRefreshing
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.primary),
-                  )
-                : Icon(Icons.refresh, size: 20, color: colorScheme.primary),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -476,74 +552,134 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildKPIGrid(AppLocalizations localizations, ColorScheme colorScheme) {
-    // Using SizedBox to constrain height for the Spacer() inside cards
-    // Row + Expanded ensures equal width distribution without aspect ratio issues
-    return SizedBox(
-      height: DesktopDimensions.kpiHeight,
-      child: FocusTraversalGroup(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: _buildKPICard(
-                title: localizations.todaySales,
-                value: Money(todaySales).formattedNoDecimal,
-                icon: Icons.attach_money,
-                color: colorScheme.primary,
-                trend: '+12%',
-                trendUp: true,
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.reports);
-                },
-                colorScheme: colorScheme,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 600;
+        
+        if (isNarrow) {
+          // Narrow: 2x2 Grid
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildKPICard(
+                      title: localizations.todaySales,
+                      value: Money(todaySales).formattedNoDecimal,
+                      icon: Icons.attach_money,
+                      color: colorScheme.primary,
+                      trend: '+12%',
+                      trendUp: true,
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.reports),
+                      colorScheme: colorScheme,
+                    ),
+                  ),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
+                  Expanded(
+                    child: _buildKPICard(
+                      title: localizations.pendingAmount,
+                      value: Money(_calculatePendingCredits()).formattedNoDecimal,
+                      icon: Icons.credit_card,
+                      color: colorScheme.secondary,
+                      subtitle: '${todayCustomers.length} ${localizations.customers}',
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.customers),
+                      colorScheme: colorScheme,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: DesktopDimensions.spacingMedium),
-            Expanded(
-              child: _buildKPICard(
-                title: localizations.pendingAmount,
-                value: Money(_calculatePendingCredits()).formattedNoDecimal,
-                icon: Icons.credit_card,
-                color: colorScheme.secondary,
-                subtitle: '${todayCustomers.length} ${localizations.customers}',
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.customers);
-                },
-                colorScheme: colorScheme,
+              const SizedBox(height: DesktopDimensions.spacingMedium),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildKPICard(
+                      title: localizations.lowStock,
+                      value: '${lowStockItems.length}',
+                      icon: Icons.warning_amber,
+                      color: colorScheme.error,
+                      subtitle: localizations.itemsNeedRestock,
+                      isAlert: lowStockItems.length > 5,
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.stock),
+                      colorScheme: colorScheme,
+                    ),
+                  ),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
+                  Expanded(
+                    child: _buildKPICard(
+                      title: localizations.totalCustomers,
+                      value: '${todayCustomers.length}',
+                      icon: Icons.people,
+                      color: colorScheme.tertiary,
+                      subtitle: localizations.activeToday,
+                      onTap: () => Navigator.pushNamed(context, AppRoutes.customers),
+                      colorScheme: colorScheme,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: DesktopDimensions.spacingMedium),
-            Expanded(
-              child: _buildKPICard(
-                title: localizations.lowStock,
-                value: '${lowStockItems.length}',
-                icon: Icons.warning_amber,
-                color: colorScheme.error,
-                subtitle: localizations.itemsNeedRestock,
-                isAlert: lowStockItems.length > 5,
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.stock);
-                },
-                colorScheme: colorScheme,
+            ],
+          );
+        }
+
+        // Wide: Standard Single Row
+        return SizedBox(
+          height: DesktopDimensions.kpiHeight,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: _buildKPICard(
+                  title: localizations.todaySales,
+                  value: Money(todaySales).formattedNoDecimal,
+                  icon: Icons.attach_money,
+                  color: colorScheme.primary,
+                  trend: '+12%',
+                  trendUp: true,
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.reports),
+                  colorScheme: colorScheme,
+                ),
               ),
-            ),
-            const SizedBox(width: DesktopDimensions.spacingMedium),
-            Expanded(
-              child: _buildKPICard(
-                title: localizations.totalCustomers,
-                value: '${todayCustomers.length}',
-                icon: Icons.people,
-                color: colorScheme.tertiary,
-                subtitle: localizations.activeToday,
-                onTap: () {
-                  Navigator.pushNamed(context, AppRoutes.customers);
-                },
-                colorScheme: colorScheme,
+              const SizedBox(width: DesktopDimensions.spacingMedium),
+              Expanded(
+                child: _buildKPICard(
+                  title: localizations.pendingAmount,
+                  value: Money(_calculatePendingCredits()).formattedNoDecimal,
+                  icon: Icons.credit_card,
+                  color: colorScheme.secondary,
+                  subtitle: '${todayCustomers.length} ${localizations.customers}',
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.customers),
+                  colorScheme: colorScheme,
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+              const SizedBox(width: DesktopDimensions.spacingMedium),
+              Expanded(
+                child: _buildKPICard(
+                  title: localizations.lowStock,
+                  value: '${lowStockItems.length}',
+                  icon: Icons.warning_amber,
+                  color: colorScheme.error,
+                  subtitle: localizations.itemsNeedRestock,
+                  isAlert: lowStockItems.length > 5,
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.stock),
+                  colorScheme: colorScheme,
+                ),
+              ),
+              const SizedBox(width: DesktopDimensions.spacingMedium),
+              Expanded(
+                child: _buildKPICard(
+                  title: localizations.totalCustomers,
+                  value: '${todayCustomers.length}',
+                  icon: Icons.people,
+                  color: colorScheme.tertiary,
+                  subtitle: localizations.activeToday,
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.customers),
+                  colorScheme: colorScheme,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -685,30 +821,39 @@ class _HomeScreenState extends State<HomeScreen> {
   // ========================================================================
   
   Widget _buildDetailsGrid(AppLocalizations localizations, ColorScheme colorScheme) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 420),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // LEFT COLUMN: Customer summaries, Sales summaries
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(child: _buildCustomersCard(localizations, colorScheme)),
-              ],
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 700;
+        
+        if (isNarrow) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 400),
+                child: _buildCustomersCard(localizations, colorScheme),
+              ),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 400),
+                child: _buildLowStockCard(localizations, colorScheme),
+              ),
+            ],
+          );
+        }
+
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 420),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: _buildCustomersCard(localizations, colorScheme)),
+              const SizedBox(width: DesktopDimensions.spacingMedium),
+              Expanded(child: _buildLowStockCard(localizations, colorScheme)),
+            ],
           ),
-          const SizedBox(width: DesktopDimensions.spacingMedium),
-          // RIGHT COLUMN: Low stock, Alerts or secondary cards
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(child: _buildLowStockCard(localizations, colorScheme)),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
