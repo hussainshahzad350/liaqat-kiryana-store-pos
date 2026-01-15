@@ -27,21 +27,21 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 20,
+      version: 1,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
     );
   }
 
   Future<void> _createDB(Database db, int version) async {
-    AppLogger.db('Creating Database v$version...');
+    AppLogger.db('Creating production database v$version...');
     await _createTables(db);
     await _insertSampleData(db);
     AppLogger.db('Database created successfully');
   }
 
   Future<void> _createTables(Database db) async {
-    // Shop Profile
+    // 1. Shop Profile
     await db.execute('''
       CREATE TABLE IF NOT EXISTS shop_profile (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,7 +53,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Departments
+    // 2. Departments
     await db.execute('''
       CREATE TABLE IF NOT EXISTS departments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,7 +65,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Categories
+    // 3. Categories
     await db.execute('''
       CREATE TABLE IF NOT EXISTS categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,7 +79,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // SubCategories
+    // 4. SubCategories
     await db.execute('''
       CREATE TABLE IF NOT EXISTS subcategories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,11 +89,11 @@ class DatabaseHelper {
         is_active INTEGER DEFAULT 1,
         is_visible_in_pos INTEGER DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+        FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE CASCADE
       )
     ''');
 
-    // Products
+    // 5. Products
     await db.execute('''
       CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -113,17 +113,20 @@ class DatabaseHelper {
         sale_price INTEGER DEFAULT 0,
         barcode TEXT,
         expiry_date TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+        FOREIGN KEY (sub_category_id) REFERENCES subcategories(id) ON DELETE SET NULL,
+        FOREIGN KEY (unit_id) REFERENCES units(id) ON DELETE SET NULL
       )
     ''');
 
-    // Customers
+    // 6. Customers
     await db.execute('''
       CREATE TABLE IF NOT EXISTS customers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name_english TEXT NOT NULL,
         name_urdu TEXT,
-        contact_primary TEXT,
+        contact_primary TEXT UNIQUE,
         address TEXT,
         email TEXT,
         credit_limit INTEGER DEFAULT 0,
@@ -132,9 +135,8 @@ class DatabaseHelper {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
-    await db.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_phone_unique ON customers(contact_primary)');
 
-    // Invoices
+    // 7. Invoices
     await db.execute('''
       CREATE TABLE IF NOT EXISTS invoices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -151,7 +153,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Invoice Items
+    // 8. Invoice Items
     await db.execute('''
       CREATE TABLE IF NOT EXISTS invoice_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -161,11 +163,12 @@ class DatabaseHelper {
         quantity INTEGER NOT NULL,
         unit_price INTEGER NOT NULL,
         total_price INTEGER NOT NULL,
-        FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE RESTRICT
+        FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE RESTRICT,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
       )
     ''');
 
-    // Suppliers
+    // 9. Suppliers
     await db.execute('''
       CREATE TABLE IF NOT EXISTS suppliers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -180,7 +183,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Receipts
+    // 10. Receipts
     await db.execute('''
       CREATE TABLE IF NOT EXISTS receipts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -195,17 +198,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Expense Categories
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS expense_categories (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name_english TEXT NOT NULL,
-        name_urdu TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
-      )
-    ''');
-
-    // Customer Ledger
+    // 11. Customer Ledger
     await db.execute('''
       CREATE TABLE IF NOT EXISTS customer_ledger (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -222,7 +215,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Unit Categories
+    // 12. Units & Unit Categories
     await db.execute('''
       CREATE TABLE IF NOT EXISTS unit_categories (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -232,7 +225,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // Units
     await db.execute('''
       CREATE TABLE IF NOT EXISTS units (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -249,7 +241,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Supplier Purchases
+    // 13. Purchases & Purchase Items
     await db.execute('''
       CREATE TABLE IF NOT EXISTS purchases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -278,6 +270,7 @@ class DatabaseHelper {
       )
     ''');
 
+    // 14. Supplier Payments
     await db.execute('''
       CREATE TABLE IF NOT EXISTS supplier_payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -290,12 +283,10 @@ class DatabaseHelper {
       )
     ''');
 
-    // Indexes
+    // Indexes for performance
     await db.execute('CREATE INDEX IF NOT EXISTS idx_products_name_english ON products(name_english)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_products_item_code ON products(item_code)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_name_english ON customers(name_english)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_customers_contact ON customers(contact_primary)');
-    await db.execute('CREATE INDEX IF NOT EXISTS idx_products_stock ON products(current_stock)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(invoice_date)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id)');
@@ -319,19 +310,26 @@ class DatabaseHelper {
       await db.insert('departments', {'id': 1, 'name_english': 'Food', 'name_urdu': 'خوراک'}, conflictAlgorithm: ConflictAlgorithm.ignore);
       await db.insert('departments', {'id': 2, 'name_english': 'Cosmetics', 'name_urdu': 'کاسمیٹکس'}, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      // Categories
-      List<Map<String, dynamic>> categories = [
-        {'name_urdu': 'چاول', 'name_english': 'Rice', 'department_id': 1},
-        {'name_urdu': 'دال', 'name_english': 'Pulses', 'department_id': 1},
-        {'name_urdu': 'تیل', 'name_english': 'Oil', 'department_id': 1},
-      ];
-      for(var cat in categories) await db.insert('categories', cat, conflictAlgorithm: ConflictAlgorithm.ignore);
+      // Categories & Subcategories
+      await db.insert('categories', {'id': 1, 'name_urdu': 'چاول', 'name_english': 'Rice', 'department_id': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('categories', {'id': 2, 'name_urdu': 'چینی', 'name_english': 'Sugar', 'department_id': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('categories', {'id': 3, 'name_urdu': 'چائے', 'name_english': 'Tea', 'department_id': 2}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('categories', {'id': 4, 'name_urdu': 'کوک', 'name_english': 'Coke', 'department_id': 2}, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      // Subcategories
-      await db.insert('subcategories', {'category_id': 1, 'name_english': 'Basmati', 'name_urdu': 'باسمتی'}, conflictAlgorithm: ConflictAlgorithm.ignore);
-      await db.insert('subcategories', {'category_id': 1, 'name_english': 'Irri', 'name_urdu': 'ایری'}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      // Default Units
+      await db.insert('unit_categories', {'id': 1, 'name': 'Weight', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('unit_categories', {'id': 2, 'name': 'Volume', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('unit_categories', {'id': 3, 'name': 'Count', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('unit_categories', {'id': 4, 'name': 'Length', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      // Products
+      // --- Units ---
+      await db.insert('units', {'id': 1, 'name': 'Kilogram', 'code': 'KG', 'category_id': 1, 'is_system': 1, 'multiplier': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('units', {'id': 2, 'name': 'Gram', 'code': 'GM', 'category_id': 1, 'is_system': 1, 'base_unit_id': 1, 'multiplier': 1000}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('units', {'id': 3, 'name': 'Litre', 'code': 'L', 'category_id': 2, 'is_system': 1, 'multiplier': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('units', {'id': 4, 'name': 'Millilitre', 'code': 'ML', 'category_id': 2, 'is_system': 1, 'base_unit_id': 3, 'multiplier': 1000}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await db.insert('units', {'id': 5, 'name': 'Piece', 'code': 'PC', 'category_id': 3, 'is_system': 1, 'multiplier': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      // --- Sample Products ---
       await db.insert('products', {
         'item_code': 'PRD001',
         'name_urdu': 'چاول سپر باسمتی',
@@ -344,7 +342,7 @@ class DatabaseHelper {
         'sale_price': 18000,
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      // Customers
+      // --- Sample Customer ---
       await db.insert('customers', {
         'name_english': 'Ali Khan',
         'name_urdu': 'علی خان',
@@ -353,27 +351,64 @@ class DatabaseHelper {
         'outstanding_balance': 250000,
       }, conflictAlgorithm: ConflictAlgorithm.ignore);
 
-      // Suppliers
-      await db.insert('suppliers', {
-        'name_english': 'Ali Traders',
-        'name_urdu': 'علی ٹریڈرز',
-        'contact_primary': '0321-0000001',
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      // --- Sample Invoices & Items ---
+      try {
+      // Insert a sample invoice
+      final invoiceId = await db.insert('invoices', {
+        'invoice_number': 'INV001',
+        'customer_id': 1,
+        'invoice_date': DateTime.now().toIso8601String(),
+        'sub_total': 18000,
+        'discount_total': 0,
+        'grand_total': 18000,
+        'status': 'COMPLETED',
+      });
 
-      // Unit Categories
-      await db.insert('unit_categories', {'id': 1, 'name': 'Weight', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
-      await db.insert('unit_categories', {'id': 2, 'name': 'Volume', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
-      await db.insert('unit_categories', {'id': 3, 'name': 'Count', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
-      await db.insert('unit_categories', {'id': 4, 'name': 'Length', 'is_system': 1}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      // Insert corresponding invoice items
+      await db.insert('invoice_items', {
+        'invoice_id': invoiceId,
+        'product_id': 1,
+        'item_name_snapshot': 'Super Basmati Rice',
+        'quantity': 1,
+        'unit_price': 18000,
+        'total_price': 18000,
+      });
 
-      // Units
-      await db.insert('units', {'name': 'Kilogram', 'code': 'KG', 'category_id': 1, 'is_system': 1, 'multiplier': 1});
-      await db.insert('units', {'name': 'Gram', 'code': 'G', 'category_id': 1, 'is_system': 1, 'multiplier': 1});
-      await db.insert('units', {'name': 'Liter', 'code': 'L', 'category_id': 2, 'is_system': 1, 'multiplier': 1});
-      await db.insert('units', {'name': 'Milliliter', 'code': 'ML', 'category_id': 2, 'is_system': 1, 'multiplier': 1});
-      await db.insert('units', {'name': 'Piece', 'code': 'PCS', 'category_id': 3, 'is_system': 1, 'multiplier': 1});
-      await db.insert('units', {'name': 'Dozen', 'code': 'DZN', 'category_id': 3, 'is_system': 1, 'multiplier': 12});
+      // --- Sample Receipts ---
+      final receiptId = await db.insert('receipts', {
+        'receipt_number': 'RCP001',
+        'customer_id': 1,
+        'receipt_date': DateTime.now().toIso8601String(),
+        'amount': 18000,
+        'payment_mode': 'CASH',
+        'notes': 'Test Payment',
+      });
 
+      // --- Populate Customer Ledger ---
+      // Invoice entry (debit)
+      await db.insert('customer_ledger', {
+        'customer_id': 1,
+        'transaction_date': DateTime.now().toIso8601String(),
+        'description': 'Invoice #INV001',
+        'ref_type': 'INVOICE',
+        'ref_id': invoiceId,
+        'debit': 18000,
+        'credit': 0,
+        'balance': 18000,
+      });
+
+      // Receipt entry (credit)
+      await db.insert('customer_ledger', {
+        'customer_id': 1,
+        'transaction_date': DateTime.now().toIso8601String(),
+        'description': 'Payment Received',
+        'ref_type': 'RECEIPT',
+        'ref_id': receiptId,
+        'debit': 0,
+        'credit': 18000,
+        'balance': 0,
+      });
+      
       AppLogger.db('Sample data inserted');
     } catch (e) {
       AppLogger.error('Error inserting sample data: $e');
@@ -381,9 +416,18 @@ class DatabaseHelper {
   }
 
   Future<void> close() async {
-    if (_database != null) {
-      await _database!.close();
-      _database = null;
-    }
+    final db = await instance.database;
+    await db.close();
+  }
+
+  /// ⚠️ Developer Only: Wipe & Recreate Database
+  /// Remove this function before handing app to production
+  Future<void> wipeAndRecreateDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'liaqat_store.db');
+    if (await File(path).exists()) await deleteDatabase(path);
+    _database = null;
+    await database;
+    AppLogger.db('Database wiped and recreated (Developer Only)');
   }
 }
