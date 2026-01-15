@@ -4,8 +4,8 @@ class CashLedger {
   final String? transactionTime;
   final String description;
   final String type; // 'IN', 'OUT', 'OPENING', 'CLOSING'
-  final int amount;
-  final int? balanceAfter;
+  final Money amount;
+  final Money balanceAfter;
   final String? remarks;
 
   CashLedger({
@@ -15,7 +15,7 @@ class CashLedger {
     required this.description,
     required this.type,
     required this.amount,
-    this.balanceAfter,
+    required this.balanceAfter,
     this.remarks,
   });
 
@@ -28,9 +28,9 @@ class CashLedger {
           : DateTime.now(),
       transactionTime: map['transaction_time'] as String?,
       description: map['description'] as String? ?? '',
-      type: map['type'] as String? ?? 'IN',
-      amount: (map['amount'] ?? 0) as int,
-      balanceAfter: map['balance_after'] as int?,
+      type: (map['type'] as String?)?.toUpperCase() ?? 'IN',
+      amount: Money.fromPaisas((map['amount'] as num?)?.toInt() ?? 0),
+      balanceAfter: Money.fromPaisas((map['balance_after'] as num?)?.toInt() ?? 0),
       remarks: map['remarks'] as String?,
     );
   }
@@ -39,25 +39,25 @@ class CashLedger {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'transaction_date': transactionDate.toString().split(' ')[0], // YYYY-MM-DD format
+      'transaction_date': transactionDate.toString().split(' ')[0], // YYYY-MM-DD
       'transaction_time': transactionTime,
       'description': description,
       'type': type,
-      'amount': amount,
-      'balance_after': balanceAfter,
+      'amount': amount.paisas,
+      'balance_after': balanceAfter.paisas,
       'remarks': remarks,
     };
   }
 
-  /// Create a copy of this CashLedger with some fields replaced
+  /// Copy with optional overrides
   CashLedger copyWith({
     int? id,
     DateTime? transactionDate,
     String? transactionTime,
     String? description,
     String? type,
-    int? amount,
-    int? balanceAfter,
+    Money? amount,
+    Money? balanceAfter,
     String? remarks,
   }) {
     return CashLedger(
@@ -81,7 +81,7 @@ class CashLedger {
   @override
   String toString() {
     return 'CashLedger(id: $id, date: $transactionDate, type: $type, '
-        'amount: $amount, balance: $balanceAfter, desc: $description)';
+        'amount: ${amount.formatted}, balance: ${balanceAfter.formatted}, desc: $description)';
   }
 
   @override
