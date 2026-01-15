@@ -13,7 +13,7 @@ class CashRepository {
 
   /// Get current cash balance
   /// Moved from DatabaseHelper.getCurrentCashBalance()
-  Future<int> getCurrentCashBalance() async {
+  Future<Money> getCurrentCashBalance() async {
     try {
       final db = await _dbHelper.database;
       final res = await db.rawQuery(
@@ -30,7 +30,7 @@ class CashRepository {
   }
 
   /// Get cash balance at specific date
-  Future<int> getCashBalanceAtDate(String date) async {
+  Future<Money> getCashBalanceAtDate(String date) async {
     try {
       final db = await _dbHelper.database;
       final res = await db.rawQuery('''
@@ -60,7 +60,7 @@ class CashRepository {
   Future<void> addCashEntry(
     String description,
     String type,
-    int amount,
+    Money amount,
     String remarks,
   ) async {
     final db = await _dbHelper.database;
@@ -73,16 +73,18 @@ class CashRepository {
       final res = await txn.rawQuery(
         'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
       );
-      int currentBalance = 0;
+      Money currentBalance = Money.zero;
       if (res.isNotEmpty) {
-        currentBalance = (res.first['balance_after'] as num).toInt();
+        currentBalance = Money.fromPaisas((res.first['balance_after'] as num).toInt());
       }
 
-      int newBalance = currentBalance;
+      Money newBalance;
       if (type == 'IN') {
-        newBalance += amount;
+        newBalance = currentBalance + amount;
       } else if (type == 'OUT') {
-        newBalance -= amount;
+        newBalance = currentBalance - amount;
+      } else {
+        newBalance = currentBalance;
       }
 
       await txn.insert('cash_ledger', {
@@ -90,8 +92,8 @@ class CashRepository {
         'transaction_time': timeStr,
         'description': description,
         'type': type,
-        'amount': amount,
-        'balance_after': newBalance,
+        'amount': amount.paisas,
+        'balance_after': newBalance.paisas,
         'remarks': remarks,
       });
     });
@@ -100,7 +102,7 @@ class CashRepository {
   /// Add cash IN entry (shorthand)
   Future<void> addCashIn(
     String description,
-    int amount, {
+    Money amount, {
     String? remarks,
   }) async {
     await addCashEntry(description, 'IN', amount, remarks ?? '');
@@ -109,7 +111,7 @@ class CashRepository {
   /// Add cash OUT entry (shorthand)
   Future<void> addCashOut(
     String description,
-    int amount, {
+    Money amount, {
     String? remarks,
   }) async {
     await addCashEntry(description, 'OUT', amount, remarks ?? '');
@@ -250,8 +252,8 @@ class CashRepository {
       }
 
       final data = result.first;
-      final totalIn = (data['total_in'] as num?)?.toInt() ?? 0;
-      final totalOut = (data['total_out'] as num?)?.toInt() ?? 0;
+      final totalIn = Money.fromPaisas((data['total_in'] as num?)?.toInt() ?? 0);
+      final totalOut = Money.fromPaisas((data['total_out'] as num?)?.toInt() ?? 0);
 
       return {
         'totalIn': totalIn,
@@ -432,7 +434,7 @@ class CashRepository {
       WHERE type = 'IN' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
     
-    return (result.first['total'] as num?)?.toInt() ?? 0;
+    return Money.fromPaisas((result.first['total'] as num?)?.toInt() ?? 0);
   }
 
   /// Get total cash OUT for period
@@ -491,6 +493,6 @@ class CashRepository {
     }
     
     final result = await db.rawQuery(query, args);
-    return (result.first['avg'] as num?)?.toInt() ?? 0;
+    return Money.fromPaisas((result.first['avg'] as num?)?.toInt() ?? 0);
   }
 }
