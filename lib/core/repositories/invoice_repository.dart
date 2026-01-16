@@ -1,4 +1,6 @@
 import 'package:sqflite/sqflite.dart';
+import '../../bloc/stock/stock_bloc.dart';
+import '../../bloc/stock/stock_event.dart';
 import '../database/database_helper.dart';
 import '../../models/invoice_model.dart';
 import '../../models/invoice_item_model.dart';
@@ -22,6 +24,7 @@ class InvoiceRepository {
     String? notes,
     Map<String, dynamic>? shopProfile,
     Map<String, dynamic>? customerData,
+    StockBloc? stockBloc,
   }) async {
     final db = await _dbHelper.database;
 
@@ -35,7 +38,7 @@ class InvoiceRepository {
     final String mm = now.month.toString().padLeft(2, '0');
     final String invoiceDate = DateFormat('yyyy-MM-dd HH:mm').format(now);
 
-    return await db.transaction<int>((txn) async {
+    final invoiceId = await db.transaction<int>((txn) async {
       // 1. Validate Customer Credit Limit
       final custRes = await txn.query(
         'customers',
@@ -184,10 +187,15 @@ class InvoiceRepository {
         );
       }
 
-      AppLogger.info('Invoice created: $finalNumber (ID: $invoiceId)',
+      AppLogger.info('Invoice created: (ID: $invoiceId)',
           tag: 'InvoiceRepo');
       return invoiceId;
     });
+
+    // After transaction, trigger a stock refresh if BLoC is provided
+    stockBloc?.add(LoadStock());
+
+    return invoiceId;
   }
 
   // ========================================
@@ -199,6 +207,7 @@ class InvoiceRepository {
     required int invoiceId,
     required String cancelledBy,
     String? reason,
+    StockBloc? stockBloc,
   }) async {
     final db = await _dbHelper.database;
 
@@ -276,6 +285,9 @@ class InvoiceRepository {
 
       AppLogger.info('Invoice cancelled: #$invoiceNumber', tag: 'InvoiceRepo');
     });
+
+    // After transaction, trigger a stock refresh if BLoC is provided
+    stockBloc?.add(LoadStock());
   }
 
   // ========================================

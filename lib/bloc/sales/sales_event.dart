@@ -89,3 +89,11 @@ class InvoiceCancelled extends SalesEvent {
   @override
   List<Object?> get props => [invoiceId, reason];
 }
+
+class ProductsUpdated extends SalesEvent {
+  final List<Product> products;
+  const ProductsUpdated(this.products);
+
+  @override
+  List<Object?> get props => [products];
+}

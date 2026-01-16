@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/sales/sales_bloc.dart';
+import 'bloc/stock/stock_bloc.dart';
+import 'bloc/stock/stock_event.dart';
 import 'bloc/units/units_bloc.dart';
 import 'bloc/units/units_event.dart';
 import 'bloc/stock/stock_overveiw/stock_overview_bloc.dart';
@@ -17,7 +19,7 @@ import 'bloc/stock/stock_activity/stock_activity_bloc.dart';
 import 'bloc/stock/stock_activity/stock_activity_event.dart';
 import 'bloc/purchase/purchase_bloc.dart';
 import 'bloc/purchase/purchase_event.dart';
-import 'core/repositories/sales_repository.dart';
+import 'core/repositories/invoice_repository.dart';
 import 'core/repositories/items_repository.dart';
 import 'core/repositories/customers_repository.dart';
 import 'core/repositories/settings_repository.dart';
@@ -74,9 +76,33 @@ void main() async {
   final String languageCode = initialPrefs['languageCode'] ?? 'en';
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(settingsRepository),
-      child: LiaqatStoreApp(initialLanguage: languageCode),
+    MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider(create: (context) => settingsRepository),
+        RepositoryProvider(create: (context) => ItemsRepository()),
+        RepositoryProvider(create: (context) => CustomersRepository()),
+        RepositoryProvider(create: (context) => InvoiceRepository()),
+        RepositoryProvider(create: (context) => UnitsRepository()),
+        RepositoryProvider(create: (context) => StockRepository()),
+        RepositoryProvider(create: (context) => StockActivityRepository()),
+        RepositoryProvider(create: (context) => PurchaseRepository()),
+        RepositoryProvider(create: (context) => SuppliersRepository()),
+        RepositoryProvider(create: (context) => CategoriesRepository()),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (context) => StockBloc(
+              itemsRepository: context.read<ItemsRepository>(),
+            )..add(LoadStock()),
+          ),
+          // Add other global BLoCs here if needed
+        ],
+        child: ChangeNotifierProvider(
+          create: (_) => ThemeProvider(settingsRepository),
+          child: LiaqatStoreApp(initialLanguage: languageCode),
+        ),
+      ),
     ),
   );
 }
@@ -153,9 +179,11 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                   currentRoute: AppRoutes.sales,
                   child: BlocProvider(
                     create: (context) => SalesBloc(
-                      salesRepository: SalesRepository(),
-                      itemsRepository: ItemsRepository(),
-                      customersRepository: CustomersRepository(),
+                      invoiceRepository: context.read<InvoiceRepository>(),
+                      itemsRepository: context.read<ItemsRepository>(),
+                      customersRepository: context.read<CustomersRepository>(),
+                      settingsRepository: context.read<SettingsRepository>(),
+                      stockBloc: context.read<StockBloc>(), // Injected here
                     ),
                     child: const SalesScreen(),
                   ),
@@ -166,20 +194,21 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                     providers: [
                       BlocProvider(
                         create: (context) =>
-                            StockOverviewBloc(StockRepository())
+                            StockOverviewBloc(context.read<StockRepository>())
                               ..add(const LoadStockOverview()),
                       ),
                       BlocProvider(
                         create: (context) => StockFilterBloc(
-                            SuppliersRepository(), CategoriesRepository())
-                          ..add(LoadFilters()),
+                          context.read<SuppliersRepository>(),
+                          context.read<CategoriesRepository>(),
+                        )..add(LoadFilters()),
                       ),
                       BlocProvider(
                         create: (context) => StockActivityBloc(
-                          StockActivityRepository(),
-                          ItemsRepository(),
-                          PurchaseRepository(),
-                          SalesRepository(),
+                          context.read<StockActivityRepository>(),
+                          context.read<ItemsRepository>(),
+                          context.read<PurchaseRepository>(),
+                          context.read<InvoiceRepository>(),
                         )..add(LoadStockActivities()),
                       ),
                     ],
@@ -190,9 +219,9 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                   currentRoute: AppRoutes.stock,
                   child: BlocProvider(
                     create: (context) => PurchaseBloc(
-                      purchaseRepository: PurchaseRepository(),
-                      suppliersRepository: SuppliersRepository(),
-                      itemsRepository: ItemsRepository(),
+                      purchaseRepository: context.read<PurchaseRepository>(),
+                      suppliersRepository: context.read<SuppliersRepository>(),
+                      itemsRepository: context.read<ItemsRepository>(),
                     )..add(InitializePurchase()),
                     child: const PurchaseScreen(),
                   ),
@@ -209,7 +238,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                   currentRoute: AppRoutes.units,
                   child: BlocProvider(
                     create: (context) =>
-                        UnitsBloc(UnitsRepository())..add(LoadUnits()),
+                        UnitsBloc(context.read<UnitsRepository>())..add(LoadUnits()),
                     child: const UnitsScreen(),
                   ),
                 ),
