@@ -65,13 +65,13 @@ class DiscountChanged extends SalesEvent {
   List<Object?> get props => [discountText];
 }
 
-class SaleProcessed extends SalesEvent {
+class InvoiceProcessed extends SalesEvent {
   final Money cash;
   final Money bank;
   final Money credit;
   final Money change;
   final String languageCode;
-  const SaleProcessed({
+  const InvoiceProcessed({
     required this.cash,
     required this.bank,
     required this.credit,
@@ -82,10 +82,10 @@ class SaleProcessed extends SalesEvent {
   List<Object?> get props => [cash, bank, credit, change, languageCode];
 }
 
-class SaleCancelled extends SalesEvent {
-  final int saleId;
+class InvoiceCancelled extends SalesEvent {
+  final int invoiceId;
   final String reason;
-  const SaleCancelled({required this.saleId, required this.reason});
+  const InvoiceCancelled({required this.invoiceId, required this.reason});
   @override
-  List<Object?> get props => [saleId, reason];
+  List<Object?> get props => [invoiceId, reason];
 }

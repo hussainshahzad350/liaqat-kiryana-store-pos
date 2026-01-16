@@ -1,24 +1,27 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'sales_event.dart';
 import 'sales_state.dart';
-import '../../../../../core/repositories/sales_repository.dart';
+import '../../../../../core/repositories/invoice_repository.dart';
 import '../../../../../core/repositories/items_repository.dart';
 import '../../../../../core/repositories/customers_repository.dart';
 import '../../../../../domain/entities/money.dart';
 import '../../../../../models/cart_item_model.dart';
 
+const int _walkInCustomerId = 1;
+
 class SalesBloc extends Bloc<SalesEvent, SalesState> {
-  final SalesRepository _salesRepository;
+  final InvoiceRepository _invoiceRepository;
   final ItemsRepository _itemsRepository;
   final CustomersRepository _customersRepository;
 
   SalesBloc({
-    required SalesRepository salesRepository,
+    required InvoiceRepository invoiceRepository,
     required ItemsRepository itemsRepository,
     required CustomersRepository customersRepository,
-  })  : _salesRepository = salesRepository,
-        _itemsRepository = itemsRepository,
+  })  : _invoiceRepository = invoiceRepository,
+         _itemsRepository = itemsRepository,
         _customersRepository = customersRepository,
         super(const SalesState()) {
     on<SalesStarted>(_onStarted);
@@ -30,20 +33,20 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     on<CartItemRemoved>(_onCartItemRemoved);
     on<CartCleared>(_onCartCleared);
     on<DiscountChanged>(_onDiscountChanged);
-    on<SaleProcessed>(_onSaleProcessed);
-    on<SaleCancelled>(_onSaleCancelled);
+    on<InvoiceProcessed>(_onInvoiceProcessed);
+    on<InvoiceCancelled>(_onInvoiceCancelled);
   }
 
   Future<void> _onStarted(SalesStarted event, Emitter<SalesState> emit) async {
-    emit(state.copyWith(status: SalesStatus.loading));
+    emit(state.copyWith(status: SalesStatus.loading, clearCompletedInvoice: true));
     try {
       final products = await _itemsRepository.getAllProducts();
-      final recentSales = await _salesRepository.getRecentSales();
+      final recentInvoices = await _invoiceRepository.getRecentInvoicesWithCustomer();
       emit(state.copyWith(
         status: SalesStatus.ready,
         products: products,
         filteredProducts: products,
-        recentSales: recentSales,
+        recentInvoices: recentInvoices,
       ));
     } catch (e) {
       emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString()));
@@ -170,6 +173,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       discount: const Money(0),
       grandTotal: const Money(0),
       previousBalance: const Money(0),
+      clearCompletedInvoice: true,
     ));
   }
 
@@ -198,45 +202,60 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     ));
   }
 
-  Future<void> _onSaleProcessed(SaleProcessed event, Emitter<SalesState> emit) async {
+  Future<void> _onInvoiceProcessed(InvoiceProcessed event, Emitter<SalesState> emit) async {
     emit(state.copyWith(status: SalesStatus.loading));
-    
+
     final cartItemsAsMaps = state.cartItems
         .map((item) => {
-              'id': item.id,
+              'product_id': item.id,
               'quantity': item.quantity,
             })
         .toList();
 
-    final validation = await _salesRepository.validateStock(cartItemsAsMaps);
+    final validation = await _invoiceRepository.validateStock(cartItemsAsMaps);
     if (!validation['valid']) {
       emit(state.copyWith(status: SalesStatus.error, errorMessage: validation['error']));
       emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
       return;
     }
 
-    final saleData = {
-      'customer_id': state.selectedCustomer?.id,
-      'grand_total_paisas': state.grandTotal.paisas,
-      'discount_paisas': state.discount.paisas,
-      'cash_paisas': event.cash.paisas,
-      'bank_paisas': event.bank.paisas,
-      'credit_paisas': event.credit.paisas,
-      'receipt_language': event.languageCode,
-      'items': state.cartItems.map((item) => {
-        'id': item.id,
+    final invoiceItems = state.cartItems.map((item) {
+      return {
+        'product_id': item.id,
         'name_english': item.nameEnglish,
         'name_urdu': item.nameUrdu,
-        'unit_name': item.unitName,
         'quantity': item.quantity,
-        'sale_price': item.unitPrice.paisas,
+        'unit_price': item.unitPrice.paisas,
         'total': item.total.paisas,
-      }).toList(),
+      };
+    }).toList();
+
+    final customerId = state.selectedCustomer?.id ?? _walkInCustomerId;
+
+    final paymentDetails = {
+      'cash': event.cash.paisas,
+      'bank': event.bank.paisas,
+      'credit': event.credit.paisas,
     };
+    final notes = jsonEncode(paymentDetails);
+
 
     try {
-      await _salesRepository.completeSaleWithSnapshot(saleData);
-      emit(state.copyWith(status: SalesStatus.success, successMessage: 'Sale Completed'));
+      final invoiceId = await _invoiceRepository.createInvoiceWithTransaction(
+        customerId: customerId,
+        items: invoiceItems,
+        grandTotal: state.grandTotal.paisas,
+        discount: state.discount.paisas,
+        notes: notes,
+      );
+
+      final invoice = await _invoiceRepository.getInvoiceWithItems(invoiceId);
+
+      emit(state.copyWith(
+        status: SalesStatus.success,
+        successMessage: 'Invoice Completed',
+        completedInvoice: invoice,
+      ));
       add(CartCleared());
       add(SalesStarted()); // Refresh data
     } catch (e) {
@@ -245,15 +264,15 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     }
   }
 
-  Future<void> _onSaleCancelled(SaleCancelled event, Emitter<SalesState> emit) async {
+  Future<void> _onInvoiceCancelled(InvoiceCancelled event, Emitter<SalesState> emit) async {
     try {
-      await _salesRepository.cancelSale(
-        saleId: event.saleId,
+      await _invoiceRepository.cancelInvoice(
+        invoiceId: event.invoiceId,
         cancelledBy: 'Cashier',
         reason: event.reason,
       );
       add(SalesStarted()); // Refresh
-      emit(state.copyWith(status: SalesStatus.success, successMessage: 'Sale Cancelled'));
+      emit(state.copyWith(status: SalesStatus.success, successMessage: 'Invoice Cancelled'));
     } catch (e) {
       emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString()));
     }

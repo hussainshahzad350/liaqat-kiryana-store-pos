@@ -18,6 +18,9 @@ class Invoice {
   // Associated items, loaded separately
   final List<InvoiceItem> items;
 
+  // Joined data, not part of the 'invoices' table
+  final String? customerName;
+
   const Invoice({
     this.id,
     required this.invoiceNumber,
@@ -28,7 +31,34 @@ class Invoice {
     this.status = 'DRAFT',
     this.notes,
     this.items = const [],
+    this.customerName,
   });
+
+  Invoice copyWith({
+    int? id,
+    String? invoiceNumber,
+    int? customerId,
+    DateTime? date,
+    int? totalAmount,
+    int? discount,
+    String? status,
+    String? notes,
+    List<InvoiceItem>? items,
+    String? customerName,
+  }) {
+    return Invoice(
+      id: id ?? this.id,
+      invoiceNumber: invoiceNumber ?? this.invoiceNumber,
+      customerId: customerId ?? this.customerId,
+      date: date ?? this.date,
+      totalAmount: totalAmount ?? this.totalAmount,
+      discount: discount ?? this.discount,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+      items: items ?? this.items,
+      customerName: customerName ?? this.customerName,
+    );
+  }
 
   bool get isReadOnly => status == 'POSTED' || status == 'VOID';
 
@@ -62,6 +92,7 @@ class Invoice {
       status: map['status'] as String? ?? 'POSTED',
       notes: map['notes'] as String?,
       items: [], // Load separately via repository
+      customerName: map['customer_name'] as String?,
     );
   }
 }
