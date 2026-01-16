@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:liaqat_store/core/repositories/settings_repository.dart';
 import 'sales_event.dart';
 import 'sales_state.dart';
 import '../../../../../core/repositories/invoice_repository.dart';
@@ -15,14 +16,17 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   final InvoiceRepository _invoiceRepository;
   final ItemsRepository _itemsRepository;
   final CustomersRepository _customersRepository;
+  final SettingsRepository _settingsRepository;
 
   SalesBloc({
     required InvoiceRepository invoiceRepository,
     required ItemsRepository itemsRepository,
     required CustomersRepository customersRepository,
+    required SettingsRepository settingsRepository,
   })  : _invoiceRepository = invoiceRepository,
          _itemsRepository = itemsRepository,
         _customersRepository = customersRepository,
+        _settingsRepository = settingsRepository,
         super(const SalesState()) {
     on<SalesStarted>(_onStarted);
     on<ProductSearchChanged>(_onProductSearchChanged);
@@ -241,12 +245,17 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
 
 
     try {
+      final customer = await _customersRepository.getCustomerById(customerId);
+      final shopProfile = await _settingsRepository.getShopProfile();
+
       final invoiceId = await _invoiceRepository.createInvoiceWithTransaction(
         customerId: customerId,
         items: invoiceItems,
         grandTotal: state.grandTotal.paisas,
         discount: state.discount.paisas,
         notes: notes,
+        customerData: customer?.toMap(),
+        shopProfile: shopProfile,
       );
 
       final invoice = await _invoiceRepository.getInvoiceWithItems(invoiceId);

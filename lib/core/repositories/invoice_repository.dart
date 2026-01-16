@@ -165,9 +165,20 @@ class InvoiceRepository {
           },
         };
 
+        Map<String, dynamic> notesMap = {};
+        if (notes != null && notes.isNotEmpty) {
+          try {
+            notesMap = jsonDecode(notes);
+          } catch (e) {
+            // It's not a valid JSON, so treat it as a plain string
+            notesMap['payment_details'] = notes;
+          }
+        }
+        notesMap['snapshot'] = snapshot;
+
         await txn.update(
           'invoices',
-          {'notes': jsonEncode(snapshot)}, // Store in notes or add snapshot column
+          {'notes': jsonEncode(notesMap)},
           where: 'id = ?',
           whereArgs: [invoiceId],
         );

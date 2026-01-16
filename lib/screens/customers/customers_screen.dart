@@ -3,10 +3,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:liaqat_store/core/repositories/customers_repository.dart';
-import 'package:liaqat_store/core/repositories/sales_repository.dart';
-import 'package:liaqat_store/services/ledger_export_service.dart';
-import 'package:liaqat_store/models/sale_model.dart';
+import '../../core/repositories/customers_repository.dart';
+import '../../core/repositories/invoice_repository.dart';
+import '../../services/ledger_export_service.dart';
+import '../../models/invoice_item_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/customer_model.dart';
 import '../../domain/entities/money.dart';
@@ -20,7 +20,7 @@ class CustomersScreen extends StatefulWidget {
 
 class _CustomersScreenState extends State<CustomersScreen> {
   final CustomersRepository _customersRepository = CustomersRepository();
-  final SalesRepository _salesRepository = SalesRepository();
+  final InvoiceRepository _invoiceRepository = InvoiceRepository();
   final LedgerExportService _ledgerExportService = LedgerExportService();
   // --- STATE VARIABLES ---
   List<Customer> customers = [];
@@ -592,7 +592,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             return _LedgerRow(
                               row: row,
                               isEven: index % 2 == 0,
-                              salesRepository: _salesRepository,
+                              invoiceRepository: _invoiceRepository,
+                              onInvoiceCancelled: () {
+                                _loadLedgerData();
+                                _refreshData();
+                              },
                             );
                           },
                         ),
@@ -1004,12 +1008,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
 class _LedgerRow extends StatefulWidget {
   final Map<String, dynamic> row;
   final bool isEven;
-  final SalesRepository salesRepository;
+  final InvoiceRepository invoiceRepository;
+  final VoidCallback onInvoiceCancelled;
 
   const _LedgerRow({
     required this.row,
     required this.isEven,
-    required this.salesRepository,
+    required this.invoiceRepository,
+    required this.onInvoiceCancelled,
   });
 
   @override
@@ -1018,7 +1024,7 @@ class _LedgerRow extends StatefulWidget {
 
 class _LedgerRowState extends State<_LedgerRow> {
   bool _isExpanded = false;
-  List<SaleItem>? _items;
+  List<InvoiceItem>? _items;
   bool _isLoadingItems = false;
   String? _error;
 
@@ -1032,13 +1038,54 @@ class _LedgerRowState extends State<_LedgerRow> {
       setState(() => _error = null);
       try {
         // Lazy Load Items
-        final saleId = widget.row['ref_no'] as int; // ref_no is ref_id in simple query
-        final items = await widget.salesRepository.getSaleItems(saleId);
-        if (mounted) setState(() => _items = items);
+        final invoiceId = widget.row['ref_no'] as int; // ref_no is ref_id in simple query
+        final invoice = await widget.invoiceRepository.getInvoiceWithItems(invoiceId);
+        if (mounted) setState(() => _items = invoice?.items);
       } catch (e) {
         if (mounted) setState(() => _error = "Failed to load details");
       } finally {
         if (mounted) setState(() => _isLoadingItems = false);
+      }
+    }
+  }
+
+  Future<void> _cancelInvoice() async {
+    final bool? confirmed = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Cancellation'),
+        content: const Text('Are you sure you want to cancel this invoice? This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final invoiceId = widget.row['ref_no'] as int;
+        await widget.invoiceRepository.cancelInvoice(
+          invoiceId: invoiceId,
+          cancelledBy: 'User', // Or get from auth service if available
+          reason: 'Cancelled from customer ledger',
+        );
+        if(mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invoice cancelled successfully'), backgroundColor: Colors.green),
+          );
+        }
+        widget.onInvoiceCancelled(); // Trigger refresh
+      } catch (e) {
+        if(mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }
@@ -1083,6 +1130,12 @@ class _LedgerRowState extends State<_LedgerRow> {
                     if (isSale) 
                       Icon(_isExpanded ? Icons.arrow_drop_down : Icons.arrow_right, size: 16, color: Colors.grey[600]),
                     Expanded(child: Text(row['description'] ?? '', style: textStyle, overflow: TextOverflow.ellipsis)),
+                    if(isSale)
+                      IconButton(
+                        icon: Icon(Icons.cancel, color: Theme.of(context).colorScheme.error, size: 18),
+                        tooltip: 'Cancel Invoice',
+                        onPressed: _cancelInvoice,
+                      )
                   ],
                 )),
                 Expanded(flex: 2, child: Text(debit > const Money(0) ? debit.toString() : '-', textAlign: TextAlign.right, style: monoStyle)),
@@ -1124,10 +1177,10 @@ class _LedgerRowState extends State<_LedgerRow> {
                                 ]
                               ),
                               ..._items!.map((item) => TableRow(children: [
-                                Padding(padding: const EdgeInsets.all(4), child: Text(item.itemName, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(item.itemNameSnapshot, style: const TextStyle(fontSize: 11))),
                                 Padding(padding: const EdgeInsets.all(4), child: Text(item.quantity.toString(), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11))),
-                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.price.paisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
-                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.total.paisas).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.unitPrice).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
+                                Padding(padding: const EdgeInsets.all(4), child: Text(Money(item.totalPrice).toString(), textAlign: TextAlign.right, style: const TextStyle(fontSize: 11))),
                               ]
                             ),
                           )
