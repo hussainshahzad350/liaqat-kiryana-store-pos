@@ -9,10 +9,10 @@ import '../../bloc/sales/sales_event.dart';
 import '../../bloc/sales/sales_state.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
-import '../../core/repositories/sales_repository.dart';
+import '../../core/repositories/invoice_repository.dart';
 import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/receipt_repository.dart';
-import '../../models/sale_model.dart';
+import '../../models/invoice_model.dart';
 import '../../models/product_model.dart';
 import '../../models/customer_model.dart';
 import '../../models/cart_item_model.dart';
@@ -27,7 +27,7 @@ class SalesScreen extends StatefulWidget {
 
 class _SalesScreenState extends State<SalesScreen> {
   final ReceiptRepository _receiptRepository = ReceiptRepository();
-  final SalesRepository _salesRepository = SalesRepository();
+  final InvoiceRepository _invoiceRepository = InvoiceRepository();
   final CustomersRepository _customersRepository = CustomersRepository();
   
   // --- Search & Filter ---
@@ -56,7 +56,7 @@ class _SalesScreenState extends State<SalesScreen> {
   Money get discount => _state.discount;
   Money get previousBalance => _state.previousBalance;
   List<Product> get filteredProducts => _state.filteredProducts;
-  List<Sale> get recentSales => _state.recentSales;
+  List<Invoice> get recentInvoices => _state.recentInvoices;
   List<Customer> get filteredCustomers => _state.filteredCustomers;
   bool get showCustomerList => _state.showCustomerList;
 
@@ -66,7 +66,7 @@ class _SalesScreenState extends State<SalesScreen> {
     customerSearchController.clear();
     discountController.clear();
   }
-  Future<void> _loadRecentSales() async => context.read<SalesBloc>().add(SalesStarted());
+  Future<void> _loadRecentInvoices() async => context.read<SalesBloc>().add(SalesStarted());
   void _calculateTotals() => context.read<SalesBloc>().add(DiscountChanged(discountController.text));
   void _updateCartItem(int index, double quantity, Money price) {
     context.read<SalesBloc>().add(CartItemUpdated(index: index, quantity: quantity, price: price));
@@ -923,116 +923,22 @@ class _SalesScreenState extends State<SalesScreen> {
   // ========================================
   
   Future<void> _processSale(Money cash, Money bank, Money credit, Money change) async {
-    final loc = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
+    final bloc = context.read<SalesBloc>();
+    final currentLanguage = Localizations.localeOf(context).languageCode;
 
-    // 1. STOCK VALIDATION - Using Repository
-    final cartItemsAsMaps = cartItems.map((item) => {'id': item.id, 'quantity': item.quantity}).toList();
-    final validationResult = await _salesRepository.validateStock(cartItemsAsMaps);
-    
-    if (!validationResult['valid']) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            validationResult['error'] ?? 'Stock validation failed',
-          ),
-          backgroundColor: colorScheme.error,
-        ),
-      );
-      return;
-    }
+    bloc.add(InvoiceProcessed(
+      cash: cash,
+      bank: bank,
+      credit: credit,
+      change: change,
+      languageCode: currentLanguage,
+    ));
 
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => WillPopScope(
-        onWillPop: () async => false,
-        child: Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Container(
-            constraints: BoxConstraints(
-              minWidth: 800,
-              maxWidth: MediaQuery.of(context).size.width * 0.6,
-            ),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 24),
-                Text(loc.processingSale, style: const TextStyle(fontSize: 16)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    final String currentLanguage = Localizations.localeOf(context).languageCode;
-
-    // Prepare sale data
-    final Map<String, dynamic> saleData = {
-      'customer_id': selectedCustomerId,
-      'grand_total_paisas': grandTotal.paisas,
-      'discount_paisas': discount.paisas,
-      'cash_paisas': cash.paisas,
-      'bank_paisas': bank.paisas,
-      'credit_paisas': credit.paisas,
-      'receipt_language': currentLanguage,
-      'items': cartItems.map((item) {
-        return {
-          'id': item.id,
-          'name_english': item.nameEnglish,
-          'name_urdu': item.nameUrdu,
-          'unit_name': item.unitName,
-          'quantity': item.quantity,
-          'sale_price': item.unitPrice.paisas,
-          'total': item.total.paisas,
-        };
-      }).toList(),
-    };
-
-    try {
-      // Create sale using repository
-      final int saleId = await _salesRepository.completeSaleWithSnapshot(saleData);
-      final Sale? sale = await _salesRepository.getSaleById(saleId);
-
-      // Dismiss loading indicator
-      if (mounted) {
-        Navigator.pop(context);
-      }
-
-      if (sale != null && mounted) {
-        _showPostSaleDialog(sale);
-      } else {
-        _performClearCart();
-        _refreshAllData();
-      }
-    } catch (e) {
-      // Dismiss loading indicator
-      if (mounted) {
-        Navigator.pop(context);
-      }
-
-      print('Error processing sale: $e');
-      if (mounted) {
-        final cleanError = e.toString().replaceAll("Exception: ", "");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(loc.errorProcessingSale(cleanError)),
-            backgroundColor: colorScheme.error,
-            duration: const Duration(seconds: 4),
-          )
-        );
-      }
-    }
+    // The BLoC will handle showing a loading dialog, processing, and showing the result.
+    // For now, we can listen to the state changes in the UI to show dialogs.
   }
 
-  void _showPostSaleDialog(Sale sale) {
+  void _showPostSaleDialog(Invoice invoice) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -1052,16 +958,16 @@ class _SalesScreenState extends State<SalesScreen> {
                 const Icon(Icons.check_circle, color: Colors.green, size: 64),
                 const SizedBox(height: 16),
                 Text(loc.saleCompleted, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                Text('Bill #${sale.billNumber}', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                Text('${loc.bill} #${invoice.invoiceNumber}', style: TextStyle(color: colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 32),
                 
                 // Print
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => _handlePrintReceipt(sale),
+                    onPressed: () => _handlePrintReceipt(invoice),
                     icon: const Icon(Icons.print),
-                    label: const Text('Print Receipt'),
+                    label: Text(loc.printReceipt),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -1075,7 +981,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       try {
-                        final path = await _receiptRepository.saveReceiptAsPDF(sale);
+                        final path = await _receiptRepository.saveReceiptAsPDF(invoice);
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Receipt saved to: $path')),
@@ -1090,7 +996,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       }
                     },
                     icon: const Icon(Icons.picture_as_pdf),
-                    label: const Text('Save as PDF (80mm)'),
+                    label: Text(loc.saveAsPdf),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -1108,7 +1014,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       _refreshAllData();
                     },
                     icon: const Icon(Icons.add_shopping_cart),
-                    label: const Text('Start New Sale'),
+                    label: Text(loc.startNewSale),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: colorScheme.primary,
@@ -1129,51 +1035,40 @@ class _SalesScreenState extends State<SalesScreen> {
   // RECEIPT & EDIT ACTIONS
   // ========================================
 
-  Future<void> _handlePrintReceipt(Sale sale) async {
-    if (sale.status == 'CANCELLED') {
+  Future<void> _handlePrintReceipt(Invoice invoice) async {
+    final loc = AppLocalizations.of(context)!;
+    if (invoice.status == 'CANCELLED') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot print cancelled sale')),
+        SnackBar(content: Text(loc.cannotPrintCancelled)),
       );
       return;
     }
 
     try {
-      // 1. Generate Data
-      final receiptData = await _receiptRepository.generateReceiptData(sale);
-      
-      // 2. Track Print
-      await _receiptRepository.trackPrint(sale.id!);
-
-      // 3. Update UI (Print Count)
-      await _loadRecentSales();
-
-      // 4. Actual Printing (Placeholder for 80mm Thermal)
+      final receiptData = await _receiptRepository.generateReceiptData(invoice);
+      await _receiptRepository.trackPrint(invoice.id!);
+      _loadRecentInvoices();
       await _receiptRepository.printReceipt(receiptData);
-
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Receipt sent to printer (Bill #${sale.billNumber})')),
+          SnackBar(content: Text('${loc.receiptSentToPrinter} #${invoice.invoiceNumber}')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Print Error: $e'), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(content: Text('${loc.printError}: $e'), backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     }
   }
 
-  void _handleEditSale(Sale sale) {
-    if (sale.status == 'CANCELLED') {
+  void _handleEditInvoice(Invoice invoice) {
+    if (invoice.status == 'CANCELLED') {
       return;
     }
-
-    // Logic-ready entry point
-    // This would navigate to an edit screen or populate the cart with this sale's items
-    // linked via original_sale_id.
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Edit feature coming soon')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.editFeatureComingSoon)),
     );
   }
 
@@ -1252,36 +1147,10 @@ class _SalesScreenState extends State<SalesScreen> {
       return;
     }
 
-    try {
-      // Cancel sale using repository
-      await _salesRepository.cancelSale(
-        saleId: id,
-        cancelledBy: 'Cashier',
-        reason: reasonCtrl.text.trim(),
-      );
-
-      // Refresh data after cancellation
-      _refreshAllData();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(loc.saleCancelledSuccess),
-            backgroundColor: colorScheme.primary,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        final cleanError = e.toString().replaceAll("Exception: ", "");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${loc.error}: $cleanError'),
-            backgroundColor: colorScheme.error,
-          ),
-        );
-      }
-    }
+    context.read<SalesBloc>().add(InvoiceCancelled(
+      invoiceId: id,
+      reason: reasonCtrl.text.trim(),
+    ));
   }
 
   // ========================================
@@ -1337,7 +1206,38 @@ class _SalesScreenState extends State<SalesScreen> {
                   const SizedBox(width: 16),
                 ],
               ),
-            body: BlocBuilder<SalesBloc, SalesState>(
+            body: BlocConsumer<SalesBloc, SalesState>(
+              listener: (context, state) {
+                if (state.status == SalesStatus.loading) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Dialog(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(width: 20),
+                            Text("Processing..."),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                } else if (state.status == SalesStatus.success) {
+                  Navigator.of(context).pop(); // Close loading dialog
+                  if (state.completedInvoice != null) {
+                    _showPostSaleDialog(state.completedInvoice!);
+                  }
+                } else if (state.status == SalesStatus.error) {
+                  Navigator.of(context).pop(); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(state.errorMessage ?? 'An unknown error occurred')),
+                  );
+                }
+              },
               builder: (context, state) {
                 return LayoutBuilder(
                   builder: (context, constraints) {
@@ -1620,11 +1520,11 @@ class _SalesScreenState extends State<SalesScreen> {
           ),
           Expanded(
             child: ListView.separated(
-              itemCount: recentSales.length,
+              itemCount: recentInvoices.length,
               separatorBuilder: (c, i) => const Divider(height: 1),
               itemBuilder: (context, index) {
-                final sale = recentSales[index];
-                final isCancelled = sale.status == 'CANCELLED';
+                final invoice = recentInvoices[index];
+                final isCancelled = invoice.status == 'CANCELLED';
                 return ListTile(
                   dense: true,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1634,7 +1534,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     child: Text('${index + 1}', style: TextStyle(fontSize: 11, color: isCancelled ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer)),
                   ),
                   title: Text(
-                    sale.customerName ?? loc.walkInCustomer,
+                    invoice.customerName ?? loc.walkInCustomer,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -1642,19 +1542,19 @@ class _SalesScreenState extends State<SalesScreen> {
                       color: isCancelled ? colorScheme.onSurface.withOpacity(0.6) : colorScheme.onSurface,
                     ),
                   ),
-                  subtitle: Text(sale.billNumber, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
+                  subtitle: Text(invoice.invoiceNumber, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(sale.grandTotal.formatted, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
+                      Text(Money(invoice.totalAmount).formatted, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
                       const SizedBox(width: 8),
                       PopupMenuButton<String>(
                         icon: Icon(Icons.more_vert, size: 18, color: colorScheme.onSurfaceVariant),
                         padding: EdgeInsets.zero,
                         onSelected: (value) {
-                          if (value == 'print') _handlePrintReceipt(sale);
-                          if (value == 'edit') _handleEditSale(sale);
-                          if (value == 'cancel') _cancelSale(sale.id!, sale.billNumber);
+                          if (value == 'print') _handlePrintReceipt(invoice);
+                          if (value == 'edit') _handleEditInvoice(invoice);
+                          if (value == 'cancel') _cancelSale(invoice.id!, invoice.invoiceNumber);
                         },
                         itemBuilder: (context) => [
                           if (!isCancelled) ...[
@@ -2030,12 +1930,3 @@ class _CartItemRowState extends State<_CartItemRow> {
     );
   }
 }
-
-// Add missing closing braces for the build method and class
-
-// The following closes the build method's Row widget, then the build method, then the _SalesScreenState class, and finally the SalesScreen class if needed.
-
-// The last visible parenthesis in the file is an extra ")," from the Row widget in build().
-// We need to close the widget tree and the build method.
-
-// Close the Row widget

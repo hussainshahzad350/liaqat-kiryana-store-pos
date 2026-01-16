@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
 import '../../models/invoice_model.dart';
-import '../../models/invoice_item_models.dart';
+import '../../models/invoice_item_model.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
@@ -341,6 +341,25 @@ class InvoiceRepository {
       orderBy: 'invoice_date DESC',
     );
     return result.map((map) => Invoice.fromMap(map)).toList();
+  }
+
+  /// Get recent invoices with customer names.
+  Future<List<Invoice>> getRecentInvoicesWithCustomer({int limit = 20}) async {
+    final db = await _dbHelper.database;
+    final result = await db.rawQuery('''
+      SELECT
+        i.*,
+        c.name_english as customer_name
+      FROM invoices i
+      LEFT JOIN customers c ON i.customer_id = c.id
+      ORDER BY i.created_at DESC
+      LIMIT ?
+    ''', [limit]);
+
+    return result.map((map) {
+      final invoice = Invoice.fromMap(map);
+      return invoice.copyWith(customerName: map['customer_name'] as String?);
+    }).toList();
   }
 
   /// Get today's sales total
