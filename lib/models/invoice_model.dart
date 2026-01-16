@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'invoice_item.dart';
+import 'invoice_item_model.dart';
 
 /// Represents a finalized financial document (Invoice).
 /// Maps to the 'invoices' table.
