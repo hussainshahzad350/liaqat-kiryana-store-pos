@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:liaqat_store/core/repositories/settings_repository.dart';
+import 'package:liaqat_store/bloc/stock/stock_bloc.dart';
+import 'package:liaqat_store/bloc/stock/stock_state.dart';
 import 'sales_event.dart';
 import 'sales_state.dart';
 import '../../../../../core/repositories/invoice_repository.dart';
@@ -9,6 +11,7 @@ import '../../../../../core/repositories/items_repository.dart';
 import '../../../../../core/repositories/customers_repository.dart';
 import '../../../../../domain/entities/money.dart';
 import '../../../../../models/cart_item_model.dart';
+import '../../../../../models/product_model.dart';
 
 const int _walkInCustomerId = 1;
 
@@ -17,16 +20,20 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   final ItemsRepository _itemsRepository;
   final CustomersRepository _customersRepository;
   final SettingsRepository _settingsRepository;
+  final StockBloc? _stockBloc;
+  StreamSubscription? _stockSubscription;
 
   SalesBloc({
     required InvoiceRepository invoiceRepository,
     required ItemsRepository itemsRepository,
     required CustomersRepository customersRepository,
     required SettingsRepository settingsRepository,
+    StockBloc? stockBloc,
   })  : _invoiceRepository = invoiceRepository,
-         _itemsRepository = itemsRepository,
+        _itemsRepository = itemsRepository,
         _customersRepository = customersRepository,
         _settingsRepository = settingsRepository,
+        _stockBloc = stockBloc,
         super(const SalesState()) {
     on<SalesStarted>(_onStarted);
     on<ProductSearchChanged>(_onProductSearchChanged);
@@ -39,9 +46,30 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     on<DiscountChanged>(_onDiscountChanged);
     on<InvoiceProcessed>(_onInvoiceProcessed);
     on<InvoiceCancelled>(_onInvoiceCancelled);
+    on<ProductsUpdated>(_onProductsUpdated);
+
+    _stockSubscription = _stockBloc?.stream.listen((stockState) {
+      if (stockState is StockState && stockState.stock.isNotEmpty) {
+        add(ProductsUpdated(stockState.stock));
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _stockSubscription?.cancel();
+    return super.close();
+  }
+
+  void _onProductsUpdated(ProductsUpdated event, Emitter<SalesState> emit) {
+    emit(state.copyWith(
+      products: event.products,
+      filteredProducts: event.products, // Also update filtered list
+    ));
   }
 
   Future<void> _onStarted(SalesStarted event, Emitter<SalesState> emit) async {
+    // On start, always clear any previous completed invoice.
     emit(state.copyWith(status: SalesStatus.loading, clearCompletedInvoice: true));
     try {
       final products = await _itemsRepository.getAllProducts();
@@ -51,9 +79,10 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         products: products,
         filteredProducts: products,
         recentInvoices: recentInvoices,
+        clearCompletedInvoice: true, // Ensure it's clear on ready state too
       ));
     } catch (e) {
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString()));
+      emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString(), clearCompletedInvoice: true));
     }
   }
 
@@ -103,8 +132,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       final newQty = currentQty + event.quantity;
       
       if (newQty > availableStock) {
-        emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Insufficient stock'));
-        emit(state.copyWith(status: SalesStatus.ready, errorMessage: null)); // Reset error
+        emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Insufficient stock', clearCompletedInvoice: true));
+        emit(state.copyWith(status: SalesStatus.ready, errorMessage: null, clearCompletedInvoice: true)); // Reset error
         return;
       }
 
@@ -114,8 +143,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       );
     } else {
       if (availableStock < event.quantity) {
-        emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Out of stock'));
-        emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
+        emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Out of stock', clearCompletedInvoice: true));
+        emit(state.copyWith(status: SalesStatus.ready, errorMessage: null, clearCompletedInvoice: true));
         return;
       }
 
@@ -146,8 +175,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     double newQty = event.quantity;
     if (newQty > availableStock) {
       newQty = availableStock;
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Stock limit reached'));
-      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
+      emit(state.copyWith(status: SalesStatus.error, errorMessage: 'Stock limit reached', clearCompletedInvoice: true));
+      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null, clearCompletedInvoice: true));
     }
 
     updatedCart[event.index] = item.copyWith(
@@ -207,7 +236,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   }
 
   Future<void> _onInvoiceProcessed(InvoiceProcessed event, Emitter<SalesState> emit) async {
-    emit(state.copyWith(status: SalesStatus.loading));
+    emit(state.copyWith(status: SalesStatus.loading, clearCompletedInvoice: true));
 
     final cartItemsAsMaps = state.cartItems
         .map((item) => {
@@ -218,8 +247,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
 
     final validation = await _invoiceRepository.validateStock(cartItemsAsMaps);
     if (!validation['valid']) {
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: validation['error']));
-      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
+      emit(state.copyWith(status: SalesStatus.error, errorMessage: validation['error'], clearCompletedInvoice: true));
+      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null, clearCompletedInvoice: true));
       return;
     }
 
@@ -256,6 +285,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         notes: notes,
         customerData: customer?.toMap(),
         shopProfile: shopProfile,
+        stockBloc: _stockBloc,
       );
 
       final invoice = await _invoiceRepository.getInvoiceWithItems(invoiceId);
@@ -268,8 +298,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       add(CartCleared());
       add(SalesStarted()); // Refresh data
     } catch (e) {
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString()));
-      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
+      emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString(), clearCompletedInvoice: true));
+      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null, clearCompletedInvoice: true));
     }
   }
 
@@ -279,11 +309,12 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         invoiceId: event.invoiceId,
         cancelledBy: 'Cashier',
         reason: event.reason,
+        stockBloc: _stockBloc,
       );
       add(SalesStarted()); // Refresh
-      emit(state.copyWith(status: SalesStatus.success, successMessage: 'Invoice Cancelled'));
+      emit(state.copyWith(status: SalesStatus.success, successMessage: 'Invoice Cancelled', clearCompletedInvoice: true));
     } catch (e) {
-      emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString()));
+      emit(state.copyWith(status: SalesStatus.error, errorMessage: e.toString(), clearCompletedInvoice: true));
     }
   }
 }

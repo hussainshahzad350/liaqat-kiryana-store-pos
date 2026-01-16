@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import '../../bloc/reports/reports_bloc.dart';
+import '../../bloc/reports/reports_event.dart';
+import '../../bloc/reports/reports_state.dart';
+import '../../core/repositories/invoice_repository.dart';
 import '../../domain/entities/money.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -29,282 +35,268 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text(loc.reports, style: TextStyle(color: colorScheme.onPrimary)),
-        backgroundColor: colorScheme.primary,
-        iconTheme: IconThemeData(color: colorScheme.onPrimary),
-        bottom: TabBar(
+    return BlocProvider(
+      create: (context) => ReportsBloc(
+        invoiceRepository: context.read<InvoiceRepository>(),
+      ),
+      child: Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: Text(loc.reports, style: TextStyle(color: colorScheme.onPrimary)),
+          backgroundColor: colorScheme.primary,
+          iconTheme: IconThemeData(color: colorScheme.onPrimary),
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            labelColor: colorScheme.onPrimary,
+            unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
+            indicatorColor: colorScheme.onPrimary,
+            tabs: [
+              Tab(icon: const Icon(Icons.shopping_bag), text: loc.sales),
+              Tab(icon: const Icon(Icons.trending_up), text: loc.profit),
+              Tab(icon: const Icon(Icons.shopping_cart), text: loc.purchase),
+              Tab(icon: const Icon(Icons.people), text: loc.customerBalance),
+              Tab(icon: const Icon(Icons.inventory), text: loc.stock),
+            ],
+          ),
+        ),
+        body: TabBarView(
           controller: _tabController,
-          isScrollable: true,
-          labelColor: colorScheme.onPrimary,
-          unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
-          indicatorColor: colorScheme.onPrimary,
-          tabs: [
-            Tab(icon: const Icon(Icons.shopping_bag), text: loc.sales),
-            Tab(icon: const Icon(Icons.trending_up), text: loc.profit),
-            Tab(icon: const Icon(Icons.shopping_cart), text: loc.purchase),
-            Tab(icon: const Icon(Icons.people), text: loc.customerBalance),
-            Tab(icon: const Icon(Icons.inventory), text: loc.stock),
+          children: const [
+            SalesReportTab(),
+            ProfitReportTab(),
+            PurchaseReportTab(),
+            CustomerReportTab(),
+            StockReportTab(),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          SalesReportTab(),
-          ProfitReportTab(),
-          PurchaseReportTab(),
-          CustomerReportTab(),
-          StockReportTab(),
-        ],
       ),
     );
   }
 }
 
 // ==================== Sales Report Tab ====================
-class SalesReportTab extends StatelessWidget {
+class SalesReportTab extends StatefulWidget {
   const SalesReportTab({super.key});
+
+  @override
+  _SalesReportTabState createState() => _SalesReportTabState();
+}
+
+class _SalesReportTabState extends State<SalesReportTab> {
+  DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
+  DateTime _endDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ReportsBloc>().add(LoadSalesReport(startDate: _startDate, endDate: _endDate));
+    });
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isStartDate ? _startDate : _endDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStartDate) {
+          _startDate = picked;
+        } else {
+          _endDate = picked;
+        }
+      });
+      context.read<ReportsBloc>().add(LoadSalesReport(startDate: _startDate, endDate: _endDate));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final startDateController = TextEditingController(text: DateFormat('yyyy-MM-dd').format(_startDate));
+    final endDateController = TextEditingController(text: DateFormat('yyyy-MM-dd').format(_endDate));
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Date Range Selector
-          Card(
-            color: colorScheme.surface,
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocBuilder<ReportsBloc, ReportsState>(
+      builder: (context, state) {
+        final totalSales = state.salesReportData.fold<int>(0, (sum, invoice) => sum + invoice.totalAmount);
+        final avgDailySales = state.salesReportData.isNotEmpty ? totalSales / state.salesReportData.length : 0;
+        final totalBills = state.salesReportData.length;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Date Range Selector
+              Card(
+                color: colorScheme.surface,
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        loc.selectDate,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: startDateController,
+                              readOnly: true,
+                              style: TextStyle(color: colorScheme.onSurface),
+                              decoration: InputDecoration(
+                                labelText: loc.startDate,
+                                labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                                suffixIcon: Icon(Icons.calendar_today, color: colorScheme.primary),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.primary)),
+                                filled: true,
+                                fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+                              ),
+                              onTap: () => _selectDate(context, true),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(loc.to, style: TextStyle(fontSize: 18, color: colorScheme.onSurface)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: endDateController,
+                              readOnly: true,
+                              style: TextStyle(color: colorScheme.onSurface),
+                              decoration: InputDecoration(
+                                labelText: loc.endDate,
+                                labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                                suffixIcon: Icon(Icons.calendar_today, color: colorScheme.primary),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.primary)),
+                                filled: true,
+                                fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+                              ),
+                              onTap: () => _selectDate(context, false),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Summary Cards
+              Row(
                 children: [
-                  Text(
-                    loc.selectDate,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
+                  Expanded(
+                    child: SummaryCard(
+                      title: loc.totalSales,
+                      value: Money(totalSales).toString(),
+                      color: colorScheme.primary,
+                      icon: Icons.currency_rupee,
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          style: TextStyle(color: colorScheme.onSurface),
-                          decoration: InputDecoration(
-                            labelText: loc.startDate,
-                            labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                            suffixIcon: Icon(Icons.calendar_today, color: colorScheme.primary),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.primary)),
-                            filled: true,
-                            fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
-                          ),
-                          onTap: () {
-                            // Date picker logic
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(loc.to, style: TextStyle(fontSize: 18, color: colorScheme.onSurface)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          style: TextStyle(color: colorScheme.onSurface),
-                          decoration: InputDecoration(
-                            labelText: loc.endDate,
-                            labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                            suffixIcon: Icon(Icons.calendar_today, color: colorScheme.primary),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.primary)),
-                            filled: true,
-                            fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
-                          ),
-                          onTap: () {
-                            // Date picker logic
-                          },
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: SummaryCard(
+                      title: loc.avgDaily,
+                      value: Money(avgDailySales.toInt()).toString(),
+                      color: colorScheme.secondary,
+                      icon: Icons.trending_up,
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                            labelText: loc.comparison, 
-                            labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
-                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.primary)),
-                            filled: true,
-                            fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
-                          ),
-                          dropdownColor: colorScheme.surface,
-                          style: TextStyle(color: colorScheme.onSurface),
-                          items: [
-                            loc.thisMonthVsLast,
-                            loc.thisWeekVsLast,
-                            loc.thisYearVsLast,
-                          ].map((item) {
-                            return DropdownMenuItem(
-                              value: item,
-                              child: Text(item, style: TextStyle(color: colorScheme.onSurface)),
-                            );
-                          }).toList(),
-                          onChanged: (value) {},
-                        ),
-                      ),
-                    ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: SummaryCard(
+                      title: loc.totalBills,
+                      value: totalBills.toString(),
+                      color: colorScheme.tertiary,
+                      icon: Icons.receipt,
+                    ),
                   ),
                 ],
               ),
-            ),
-          ),
 
-          const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-          // Summary Cards
-          Row(
-            children: [
-              Expanded(
-                child: SummaryCard(
-                  title: loc.totalSales,
-                  value: 'Rs 154,200',
-                  color: colorScheme.primary,
-                  icon: Icons.currency_rupee,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: SummaryCard(
-                  title: loc.avgDaily,
-                  value: 'Rs 5,140',
-                  color: colorScheme.secondary,
-                  icon: Icons.trending_up,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: SummaryCard(
-                  title: loc.totalBills,
-                  value: '245',
-                  color: colorScheme.tertiary,
-                  icon: Icons.receipt,
+              // Sales Table
+              Card(
+                color: colorScheme.surface,
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            loc.detailedSales,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: Icon(Icons.download, color: colorScheme.primary),
+                            onPressed: () {},
+                            tooltip: loc.downloadReport,
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.print, color: colorScheme.primary),
+                            onPressed: () {},
+                            tooltip: loc.printReport,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      if (state.status == ReportStatus.loading)
+                        const Center(child: CircularProgressIndicator())
+                      else if (state.status == ReportStatus.error)
+                        Center(child: Text(state.errorMessage ?? 'Failed to load data'))
+                      else
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            headingRowColor: MaterialStateProperty.all(colorScheme.primary),
+                            headingTextStyle: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
+                            columns: [
+                              DataColumn(label: Text(loc.date)),
+                              DataColumn(label: Text(loc.billNo)),
+                              DataColumn(label: Text(loc.customer)),
+                              DataColumn(label: Text(loc.total)),
+                            ],
+                            rows: state.salesReportData.map((invoice) {
+                              return DataRow(cells: [
+                                DataCell(Text(DateFormat('yyyy-MM-dd').format(invoice.date), style: TextStyle(color: colorScheme.onSurface))),
+                                DataCell(Text(invoice.invoiceNumber, style: TextStyle(color: colorScheme.onSurface))),
+                                DataCell(Text(invoice.customerName ?? loc.walkInCustomer, style: TextStyle(color: colorScheme.onSurface))),
+                                DataCell(Text(Money(invoice.totalAmount).toString(), style: TextStyle(color: colorScheme.onSurface))),
+                              ]);
+                            }).toList(),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 20),
-
-          // Sales Chart Placeholder
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    loc.salesGraph,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 200,
-                    color: colorScheme.surfaceVariant.withOpacity(0.3),
-                    child: Center(
-                      child: Text(
-                        loc.graphPlaceholder,
-                        style: TextStyle(color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Sales Table
-          Card(
-            color: colorScheme.surface,
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        loc.detailedSales,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: Icon(Icons.download, color: colorScheme.primary),
-                        onPressed: () {},
-                        tooltip: loc.downloadReport,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.print, color: colorScheme.primary),
-                        onPressed: () {},
-                        tooltip: loc.printReport,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: MaterialStateProperty.all(colorScheme.primary),
-                      headingTextStyle: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
-                      dataRowColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
-                        // Example zebra striping for the first row (index 0 is even)
-                        return colorScheme.surfaceVariant.withOpacity(0.3);
-                      }),
-                      columns: [
-                        DataColumn(label: Text(loc.date)),
-                        DataColumn(label: Text(loc.billNo)),
-                        DataColumn(label: Text(loc.customer)),
-                        DataColumn(label: Text(loc.total)),
-                        DataColumn(label: Text(loc.cash)),
-                        DataColumn(label: Text(loc.bank)),
-                        DataColumn(label: Text(loc.credit)),
-                      ],
-                      rows: [
-                        DataRow(cells: [
-                          DataCell(Text('01 Dec', style: TextStyle(color: colorScheme.onSurface))),
-                          DataCell(Text('#2451', style: TextStyle(color: colorScheme.onSurface))),
-                          DataCell(Text('Ali Khan', style: TextStyle(color: colorScheme.onSurface))),
-                          DataCell(Text('Rs 5,200', style: TextStyle(color: colorScheme.onSurface))),
-                          DataCell(Text('Rs 3,200', style: TextStyle(color: colorScheme.primary))), // Cash
-                          DataCell(Text('Rs 1,000', style: TextStyle(color: colorScheme.secondary))), // Bank
-                          DataCell(Text('Rs 1,000', style: TextStyle(color: colorScheme.error))), // Credit
-                        ]),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
+// ... (rest of the file remains the same)
 // ==================== Profit Report Tab ====================
 class ProfitReportTab extends StatelessWidget {
   const ProfitReportTab({super.key});
