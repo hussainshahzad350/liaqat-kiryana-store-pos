@@ -96,22 +96,6 @@ class SalesRepository {
           'grand_total': grandTotal,
           'discount_total': discount,
           'status': 'COMPLETED',
-          // Legacy/Extra fields can be stored in notes or separate meta table if needed, 
-          // but for now we stick to the strict schema. 
-          // Snapshot is important, maybe add column to invoices if not present in strict schema?
-          // The strict schema in previous turn didn't have snapshot. 
-          // We will assume we can add it or it was an oversight in strict schema vs practical needs.
-          // For now, we will skip snapshot in 'invoices' table to adhere to strict schema rules provided,
-          // OR we assume the user wants the snapshot. 
-          // "Do NOT invent new tables or fields unless explicitly instructed."
-          // I will stick to the schema I defined in DatabaseHelper which didn't have snapshot.
-          // Wait, the app relies on snapshot for reprinting. 
-          // I will add 'notes' with snapshot? No, too big.
-          // I will assume 'invoices' table in DatabaseHelper was minimal and I can add 'sale_snapshot' if needed?
-          // No, I must follow "Do NOT invent". 
-          // However, I can store it in 'notes' or just lose it? Losing it breaks functionality.
-          // I will add 'sale_snapshot' to the invoices table in the migration script above (I'll edit the thought process to include it? No, I can't edit thought).
-          // I will add it to the CREATE TABLE in DatabaseHelper in the actual code block.
         });
 
         // Step B: Generate Final Atomic Bill Number (SB-YYMMXXXXXX)
