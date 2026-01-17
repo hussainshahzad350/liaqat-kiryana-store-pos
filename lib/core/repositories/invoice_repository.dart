@@ -1,4 +1,3 @@
-import 'package:sqflite/sqflite.dart';
 import '../../bloc/stock/stock_bloc.dart';
 import '../../bloc/stock/stock_event.dart';
 import '../database/database_helper.dart';
@@ -154,13 +153,15 @@ class InvoiceRepository {
             'time': DateFormat('hh:mm a').format(now),
           },
           'customer': customerData,
-          'items': items.map((item) => {
-            'name_en': item['name_english'],
-            'name_ur': item['name_urdu'],
-            'qty': item['quantity'],
-            'price': item['unit_price'],
-            'total': item['total'],
-          }).toList(),
+          'items': items
+              .map((item) => {
+                    'name_en': item['name_english'],
+                    'name_ur': item['name_urdu'],
+                    'qty': item['quantity'],
+                    'price': item['unit_price'],
+                    'total': item['total'],
+                  })
+              .toList(),
           'totals': {
             'sub_total': grandTotal + discount,
             'discount': discount,
@@ -187,8 +188,7 @@ class InvoiceRepository {
         );
       }
 
-      AppLogger.info('Invoice created: (ID: $invoiceId)',
-          tag: 'InvoiceRepo');
+      AppLogger.info('Invoice created: (ID: $invoiceId)', tag: 'InvoiceRepo');
       return invoiceId;
     });
 
@@ -234,7 +234,8 @@ class InvoiceRepository {
         'invoices',
         {
           'status': 'CANCELLED',
-          'notes': '${invoice['notes'] ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]',
+          'notes':
+              '${invoice['notes'] ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]',
         },
         where: 'id = ?',
         whereArgs: [invoiceId],

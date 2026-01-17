@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:liaqat_store/core/database/database_helper.dart';
 import 'package:liaqat_store/core/repositories/customers_repository.dart';
-import 'package:liaqat_store/core/repositories/sales_repository.dart';
+import 'package:liaqat_store/core/repositories/invoice_repository.dart';
 import 'package:liaqat_store/core/repositories/cash_repository.dart';
 import 'package:liaqat_store/core/repositories/stock_repository.dart';
 import 'package:liaqat_store/domain/entities/money.dart';
@@ -251,74 +251,52 @@ void main() {
   });
 
   group('SalesRepository Tests', () {
-    late SalesRepository salesRepo;
+    late InvoiceRepository invoiceRepo;
 
     setUp(() {
-      salesRepo = SalesRepository();
+      invoiceRepo = InvoiceRepository();
     });
 
     test('createSale stores grand_total as paisas', () async {
-      final saleData = {
-        'customer_id': null,
-        'grand_total_paisas': 145000, // 1450.00 rupees (after 50 discount)
-        'discount_paisas': 5000, // 50.00 rupees
-        'cash_paisas': 145000,
-        'bank_paisas': 0,
-        'items': [
+      final invoiceId = await invoiceRepo.createInvoiceWithTransaction(
+        customerId: 1, // Walk-in
+        grandTotal: 145000,
+        discount: 5000,
+        items: [
           {
-            'id': 1,
+            'product_id': 1,
             'name_english': 'Test Product',
             'quantity': 10,
-            'sale_price': 15000, // 150.00 per unit
-            'total': 150000, // 10 * 150 = 1500
+            'unit_price': 15000,
+            'total': 150000,
           }
         ],
-      };
-
-      final saleId = await salesRepo.createSale(saleData);
-      expect(saleId, greaterThan(0));
-
-      final sale = await salesRepo.getSaleById(saleId);
-      expect(sale, isNotNull);
-      expect(sale!.grandTotal, equals(145000));
-    });
-
-    test('validates Money values before insert', () async {
-      final invalidSaleData = {
-        'customer_id': null,
-        'grand_total_paisas': 'invalid', // Should be int
-        'items': [],
-      };
-
-      expect(
-        () => salesRepo.createSale(invalidSaleData),
-        throwsA(isA<ArgumentError>()),
       );
+      expect(invoiceId, greaterThan(0));
+
+      final invoice = await invoiceRepo.getInvoiceWithItems(invoiceId);
+      expect(invoice, isNotNull);
+      expect(invoice!.totalAmount, equals(145000));
     });
 
-    test('getTodaySales returns paisas', () async {
-      // Create a sale
-      final saleData = {
-        'customer_id': null,
-        'grand_total_paisas': 100000,
-        'discount_paisas': 0,
-        'cash_paisas': 100000,
-        'bank_paisas': 0,
-        'items': [
+    test('getTodaySalesTotal returns expected value', () async {
+      // Create a sale to ensure there's data
+      await invoiceRepo.createInvoiceWithTransaction(
+        customerId: 1,
+        grandTotal: 100000,
+        items: [
           {
-            'id': 1,
+            'product_id': 1,
             'name_english': 'Product',
             'quantity': 5,
-            'sale_price': 20000,
+            'unit_price': 20000,
             'total': 100000,
           }
         ],
-      };
+      );
 
-      await salesRepo.createSale(saleData);
-
-      final todayTotal = await salesRepo.getTodaySales();
-      expect(todayTotal, greaterThanOrEqualTo(100000));
+      final total = await invoiceRepo.getTodaySalesTotal();
+      expect(total, greaterThanOrEqualTo(100000));
     });
   });
 

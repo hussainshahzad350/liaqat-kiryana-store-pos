@@ -854,7 +854,22 @@ class AppLocalizationsUr extends AppLocalizations {
   String get printReceipt => 'رسید پرنٹ کریں';
 
   @override
-  String get savePdf => 'PDF محفوظ کریں';
+  String get receiptSentToPrinter => 'رسید پرنٹر کو بھیج دی گئی ہے';
+
+  @override
+  String get printError => 'پرنٹنگ میں خرابی';
+
+  @override
+  String get editFeatureComingSoon => 'ایڈٹ کی سہولت جلد دستیاب ہوگی!';
+
+  @override
+  String get cannotPrintCancelled => 'منسوخ شدہ بل پرنٹ نہیں کیا جا سکتا۔';
+
+  @override
+  String get saveAsPdf => 'PDF محفوظ کریں';
+
+  @override
+  String get startNewSale => 'نیا بل شروع کریں';
 
   @override
   String get cancelBillAction => 'بل منسوخ کریں';

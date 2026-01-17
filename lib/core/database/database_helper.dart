@@ -16,11 +16,7 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDB(String filePath) async {
-    // Platform check for Desktop support
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      sqfliteFfiInit();
-      databaseFactory = databaseFactoryFfi;
-    }
+    // Platform-specific initialization is handled in main.dart
 
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);

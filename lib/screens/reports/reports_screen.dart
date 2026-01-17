@@ -80,7 +80,7 @@ class SalesReportTab extends StatefulWidget {
   const SalesReportTab({super.key});
 
   @override
-  _SalesReportTabState createState() => _SalesReportTabState();
+  State<SalesReportTab> createState() => _SalesReportTabState();
 }
 
 class _SalesReportTabState extends State<SalesReportTab> {
@@ -110,7 +110,11 @@ class _SalesReportTabState extends State<SalesReportTab> {
           _endDate = picked;
         }
       });
-      context.read<ReportsBloc>().add(LoadSalesReport(startDate: _startDate, endDate: _endDate));
+      if (!context.mounted) return;
+      context.read<ReportsBloc>().add(LoadSalesReport(
+            startDate: _startDate,
+            endDate: _endDate,
+          ));
     }
   }
 

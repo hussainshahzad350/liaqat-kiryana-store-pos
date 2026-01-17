@@ -915,6 +915,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final isExpanded = _expandedRowIndex == index;
     final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
     final dateStr = DateFormat('dd MMM yyyy').format(date);
+    final Money dr = Money(((row['dr'] ?? 0) as num).toInt());
+    final Money cr = Money(((row['cr'] ?? 0) as num).toInt());
+    final Money balance = Money(((row['balance'] ?? 0) as num).toInt());
     final isBill = row['type'] == 'BILL';
 
     return Column(
@@ -946,9 +949,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 ),
                 Expanded(flex: 2, child: Text(dateStr, style: TextStyle(fontSize: 13, color: colorScheme.onSurface))),
                 Expanded(flex: 3, child: Text(row['desc'] ?? '', style: TextStyle(fontSize: 13, color: colorScheme.onSurface))),
-                Expanded(flex: 2, child: Text(row['cr'] > 0 ? Money(row['cr']).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.error))),
-                Expanded(flex: 2, child: Text(row['dr'] > 0 ? Money(row['dr']).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.primary))),
-                Expanded(flex: 2, child: Text(Money(row['balance']).formattedNoDecimal, textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
+                Expanded(flex: 2, child: Text(cr > Money.zero ? cr.formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.error))),
+                Expanded(flex: 2, child: Text(dr > Money.zero ? dr.formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.primary))),
+                Expanded(flex: 2, child: Text(balance.formattedNoDecimal, textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
               ],
             ),
           ),
@@ -1000,8 +1003,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['name_english'] ?? item['name_urdu'] ?? 'Unknown', style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['quantity'].toString(), textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
             Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['unit_type'] ?? '-', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['cost_price'] != null ? Money(item['cost_price']).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['total_amount'] != null ? Money(item['total_amount']).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['cost_price'] != null ? Money((item['cost_price'] as num).toInt()).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['total_amount'] != null ? Money((item['total_amount'] as num).toInt()).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
           ],
         )),
       ],

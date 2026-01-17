@@ -1115,9 +1115,9 @@ class _LedgerRowState extends State<_LedgerRow> {
           onTap: isSale ? _toggleExpand : null,
           hoverColor: Colors.blue[50],
           child: Container(
-            color: bgColor,
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
             decoration: BoxDecoration(
+              color: bgColor,
               border: Border(bottom: BorderSide(color: Colors.grey[300]!)),
             ),
             child: Row(

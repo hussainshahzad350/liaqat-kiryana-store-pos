@@ -856,7 +856,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get printReceipt => 'Print Receipt';
 
   @override
-  String get savePdf => 'Save as PDF';
+  String get receiptSentToPrinter => 'Receipt sent to printer';
+
+  @override
+  String get printError => 'Print Error';
+
+  @override
+  String get editFeatureComingSoon => 'Edit feature coming soon!';
+
+  @override
+  String get cannotPrintCancelled => 'Cannot print cancelled bill.';
+
+  @override
+  String get saveAsPdf => 'Save as PDF';
+
+  @override
+  String get startNewSale => 'Start New Sale';
 
   @override
   String get cancelBillAction => 'Cancel Bill';

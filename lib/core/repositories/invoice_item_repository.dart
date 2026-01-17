@@ -1,5 +1,5 @@
 import '../database/database_helper.dart';
-import '../../models/invoice_item_models.dart';
+import '../../models/invoice_item_model.dart';
 import '../utils/logger.dart';
 
 class InvoiceItemRepository {

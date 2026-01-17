@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 /// Represents a line item within an invoice.
 /// Maps to the 'invoice_items' table.
 class InvoiceItem {
@@ -44,4 +42,9 @@ class InvoiceItem {
       subtotal: (map['total_price'] as num).toInt(),
     );
   }
+
+  // Compatibility getters for legacy code
+  String get itemNameSnapshot => itemName;
+  int get unitPrice => rate;
+  int get totalPrice => subtotal;
 }

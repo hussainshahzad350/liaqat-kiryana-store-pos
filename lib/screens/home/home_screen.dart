@@ -6,12 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
-import '../../core/repositories/sales_repository.dart';
+import '../../core/repositories/invoice_repository.dart';
 import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../domain/entities/money.dart';
+import '../../models/invoice_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,7 +23,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final SalesRepository _salesRepository = SalesRepository();
+  final InvoiceRepository _invoiceRepository = InvoiceRepository();
   final CustomersRepository _customersRepository = CustomersRepository();
   final ItemsRepository _itemsRepository = ItemsRepository();
   // State variables
@@ -60,10 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final results = await Future.wait([
-        _salesRepository.getTodaySales(),
+        _invoiceRepository.getTodaySalesTotal(),
         _customersRepository.getTodayCustomers(),
         _itemsRepository.getLowStockItems(),
-        _salesRepository.getRecentActivities(limit: 10),
+        _invoiceRepository.getRecentInvoicesWithCustomer(limit: 10),
       ]);
 
       if (!mounted) return;
@@ -72,7 +73,19 @@ class _HomeScreenState extends State<HomeScreen> {
         todaySales = results[0] as int;
         todayCustomers = results[1] as List<Map<String, dynamic>>;
         lowStockItems = results[2] as List<Map<String, dynamic>>;
-        recentSales = results[3] as List<Map<String, dynamic>>;
+        
+        // Convert List<Invoice> to List<Map<String, dynamic>> for consistent UI handling
+        final invoices = results[3] as List<Invoice>;
+        recentSales = invoices.map((invoice) => {
+          'activity_type': 'SALE',
+          'title': invoice.invoiceNumber,
+          'customer_name': invoice.customerName,
+          'amount': invoice.totalAmount,
+          'timestamp': invoice.date.toIso8601String(),
+          'status': invoice.status,
+        }).toList();
+        
+        _isRefreshing = false;
       });
     } catch (e) {
       print('Error loading data: $e');

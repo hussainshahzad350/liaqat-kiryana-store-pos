@@ -238,7 +238,8 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                   currentRoute: AppRoutes.units,
                   child: BlocProvider(
                     create: (context) =>
-                        UnitsBloc(context.read<UnitsRepository>())..add(LoadUnits()),
+                        UnitsBloc(context.read<UnitsRepository>())
+                          ..add(LoadUnits()),
                     child: const UnitsScreen(),
                   ),
                 ),

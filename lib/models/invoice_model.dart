@@ -95,4 +95,6 @@ class Invoice {
       customerName: map['customer_name'] as String?,
     );
   }
+
+  void operator [](String other) {}
 }

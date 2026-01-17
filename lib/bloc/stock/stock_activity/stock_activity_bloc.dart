@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/repositories/stock_activity_repository.dart';
 import '../../../core/repositories/items_repository.dart';
 import '../../../core/repositories/purchase_repository.dart';
-import '../../../core/repositories/sales_repository.dart';
+import '../../../core/repositories/invoice_repository.dart';
 import '../../../core/entity/stock_activity_entity.dart';
 import 'stock_activity_event.dart';
 import 'stock_activity_state.dart';
@@ -11,13 +11,13 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
   final StockActivityRepository _repository;
   final ItemsRepository _itemsRepository;
   final PurchaseRepository _purchaseRepository;
-  final SalesRepository _salesRepository;
+  final InvoiceRepository _invoiceRepository;
 
   StockActivityBloc(
     this._repository,
     this._itemsRepository,
     this._purchaseRepository,
-    this._salesRepository,
+    this._invoiceRepository,
   ) : super(StockActivityInitial()) {
     on<LoadStockActivities>(_onLoadActivities);
     on<AdjustStock>(_onAdjustStock);
@@ -95,8 +95,8 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
         }
       } else if (event.activity.type == ActivityType.sale) {
         if (event.activity.referenceId != null) {
-          await _salesRepository.cancelSale(
-            saleId: event.activity.referenceId!,
+          await _invoiceRepository.cancelInvoice(
+            invoiceId: event.activity.referenceId!,
             cancelledBy: event.activity.user,
             reason: event.reason,
           );

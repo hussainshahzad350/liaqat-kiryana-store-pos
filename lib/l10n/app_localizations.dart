@@ -1766,11 +1766,41 @@ abstract class AppLocalizations {
   /// **'Print Receipt'**
   String get printReceipt;
 
-  /// No description provided for @savePdf.
+  /// No description provided for @receiptSentToPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt sent to printer'**
+  String get receiptSentToPrinter;
+
+  /// No description provided for @printError.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Error'**
+  String get printError;
+
+  /// No description provided for @editFeatureComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit feature coming soon!'**
+  String get editFeatureComingSoon;
+
+  /// No description provided for @cannotPrintCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot print cancelled bill.'**
+  String get cannotPrintCancelled;
+
+  /// No description provided for @saveAsPdf.
   ///
   /// In en, this message translates to:
   /// **'Save as PDF'**
-  String get savePdf;
+  String get saveAsPdf;
+
+  /// No description provided for @startNewSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Start New Sale'**
+  String get startNewSale;
 
   /// No description provided for @cancelBillAction.
   ///

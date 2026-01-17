@@ -9,7 +9,6 @@ import '../../bloc/sales/sales_event.dart';
 import '../../bloc/sales/sales_state.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
-import '../../core/repositories/invoice_repository.dart';
 import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/receipt_repository.dart';
 import '../../models/invoice_model.dart';
@@ -27,13 +26,13 @@ class SalesScreen extends StatefulWidget {
 
 class _SalesScreenState extends State<SalesScreen> {
   final ReceiptRepository _receiptRepository = ReceiptRepository();
-  final InvoiceRepository _invoiceRepository = InvoiceRepository();
   final CustomersRepository _customersRepository = CustomersRepository();
-  
+
   // --- Search & Filter ---
   final TextEditingController productSearchController = TextEditingController();
-  final TextEditingController customerSearchController = TextEditingController();
-  
+  final TextEditingController customerSearchController =
+      TextEditingController();
+
   // Debounce Timers
   Timer? _productSearchDebounce;
   Timer? _customerSearchDebounce;
@@ -66,10 +65,15 @@ class _SalesScreenState extends State<SalesScreen> {
     customerSearchController.clear();
     discountController.clear();
   }
-  Future<void> _loadRecentInvoices() async => context.read<SalesBloc>().add(SalesStarted());
-  void _calculateTotals() => context.read<SalesBloc>().add(DiscountChanged(discountController.text));
+
+  Future<void> _loadRecentInvoices() async =>
+      context.read<SalesBloc>().add(SalesStarted());
+  void _calculateTotals() =>
+      context.read<SalesBloc>().add(DiscountChanged(discountController.text));
   void _updateCartItem(int index, double quantity, Money price) {
-    context.read<SalesBloc>().add(CartItemUpdated(index: index, quantity: quantity, price: price));
+    context
+        .read<SalesBloc>()
+        .add(CartItemUpdated(index: index, quantity: quantity, price: price));
   }
 
   @override
@@ -92,15 +96,18 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   Future<bool> _onWillPop() async {
+    final state = context.read<SalesBloc>().state;
+    if (state.status == SalesStatus.loading) return false;
+
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final state = context.read<SalesBloc>().state;
 
     if (state.cartItems.isNotEmpty) {
       final bool? shouldExit = await showDialog(
         context: context,
         builder: (context) => Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Container(
             constraints: BoxConstraints(
               minWidth: 800,
@@ -114,7 +121,9 @@ class _SalesScreenState extends State<SalesScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(loc.unsavedTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(loc.unsavedTitle,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                     IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.pop(context, false),
@@ -135,7 +144,9 @@ class _SalesScreenState extends State<SalesScreen> {
                     ),
                     const SizedBox(width: 16),
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.error,
+                          foregroundColor: colorScheme.onError),
                       onPressed: () => Navigator.pop(context, true),
                       child: Text(loc.exit),
                     ),
@@ -162,8 +173,9 @@ class _SalesScreenState extends State<SalesScreen> {
   // --- Customer Search & Add Logic ---
   void _filterCustomers(String query) {
     _customerSearchDebounce?.cancel();
-    
-    _customerSearchDebounce = Timer(const Duration(milliseconds: 300), () async {
+
+    _customerSearchDebounce =
+        Timer(const Duration(milliseconds: 300), () async {
       context.read<SalesBloc>().add(CustomerSearchChanged(query));
     });
   }
@@ -173,7 +185,8 @@ class _SalesScreenState extends State<SalesScreen> {
     if (customer == null) {
       customerSearchController.clear();
     } else {
-      customerSearchController.text = "${customer.nameEnglish} (${customer.contactPrimary ?? ''})";
+      customerSearchController.text =
+          "${customer.nameEnglish} (${customer.contactPrimary ?? ''})";
     }
     context.read<SalesBloc>().add(CustomerSelected(customer));
   }
@@ -183,7 +196,7 @@ class _SalesScreenState extends State<SalesScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final customersRepo = CustomersRepository(); // Use repo directly for add
-    
+
     final nameEngCtrl = TextEditingController();
     final nameUrduCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
@@ -192,7 +205,8 @@ class _SalesScreenState extends State<SalesScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => Dialog( // Dialog content
+      builder: (context) => Dialog(
+        // Dialog content
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           constraints: BoxConstraints(
@@ -207,7 +221,9 @@ class _SalesScreenState extends State<SalesScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(loc.addNewCustomer, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(loc.addNewCustomer,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold)),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
@@ -223,11 +239,25 @@ class _SalesScreenState extends State<SalesScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextField(controller: nameEngCtrl, decoration: InputDecoration(labelText: loc.nameEnglish)),
-                      TextField(controller: nameUrduCtrl, decoration: InputDecoration(labelText: loc.nameUrdu)),
-                      TextField(controller: phoneCtrl, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: loc.phoneNum)),
-                      TextField(controller: addressCtrl, decoration: InputDecoration(labelText: loc.address)),
-                      TextField(controller: creditLimitCtrl, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: loc.creditLimit)),
+                      TextField(
+                          controller: nameEngCtrl,
+                          decoration:
+                              InputDecoration(labelText: loc.nameEnglish)),
+                      TextField(
+                          controller: nameUrduCtrl,
+                          decoration: InputDecoration(labelText: loc.nameUrdu)),
+                      TextField(
+                          controller: phoneCtrl,
+                          keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(labelText: loc.phoneNum)),
+                      TextField(
+                          controller: addressCtrl,
+                          decoration: InputDecoration(labelText: loc.address)),
+                      TextField(
+                          controller: creditLimitCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration:
+                              InputDecoration(labelText: loc.creditLimit)),
                     ],
                   ),
                 ),
@@ -236,35 +266,41 @@ class _SalesScreenState extends State<SalesScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
+                  TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(loc.cancel)),
                   const SizedBox(width: 16),
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary),
                     onPressed: () async {
-                      // Validation 
+                      // Validation
                       if (nameEngCtrl.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.nameRequired)));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(loc.nameRequired)));
                         return;
                       }
                       String phoneNumber = phoneCtrl.text.trim();
                       if (phoneNumber.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.phoneRequired)));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(loc.phoneRequired)));
                         return;
                       }
 
                       try {
                         // Check if phone exists using repository
-                        final existingCustomers = await customersRepo.searchCustomers(phoneNumber);
-                        final phoneExists = existingCustomers.any((c) => c.contactPrimary == phoneNumber);
+                        final existingCustomers =
+                            await customersRepo.searchCustomers(phoneNumber);
+                        final phoneExists = existingCustomers
+                            .any((c) => c.contactPrimary == phoneNumber);
 
                         if (phoneExists) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${loc.phoneExists}: "$phoneNumber"'), 
-                              backgroundColor: colorScheme.error
-                            )
-                          );
-                          return; 
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content:
+                                  Text('${loc.phoneExists}: "$phoneNumber"'),
+                              backgroundColor: colorScheme.error));
+                          return;
                         }
 
                         final newCustomer = Customer(
@@ -272,25 +308,29 @@ class _SalesScreenState extends State<SalesScreen> {
                           nameUrdu: nameUrduCtrl.text.trim(),
                           contactPrimary: phoneNumber,
                           address: addressCtrl.text.trim(),
-                          creditLimit: Money.fromRupeesString(creditLimitCtrl.text).paisas,
+                          creditLimit:
+                              Money.fromRupeesString(creditLimitCtrl.text)
+                                  .paisas,
                         );
 
-                        final int id = await customersRepo.addCustomer(newCustomer);
-                        final Customer savedCustomer = newCustomer.copyWith(id: id);
+                        final int id =
+                            await customersRepo.addCustomer(newCustomer);
+                        final Customer savedCustomer =
+                            newCustomer.copyWith(id: id);
 
                         if (mounted) {
                           _selectCustomer(savedCustomer);
                           Navigator.of(context).pop();
-                          
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("${loc.customerAdded}: '${nameEngCtrl.text}'"), 
-                              backgroundColor: colorScheme.primary
-                            )
-                          );
+
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(
+                                  "${loc.customerAdded}: '${nameEngCtrl.text}'"),
+                              backgroundColor: colorScheme.primary));
                         }
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('${loc.error}: $e'),
+                            backgroundColor: colorScheme.error));
                       }
                     },
                     child: Text(loc.saveSelect),
@@ -315,7 +355,9 @@ class _SalesScreenState extends State<SalesScreen> {
     if (isSoundOn) {
       SystemSound.play(SystemSoundType.click);
     }
-    context.read<SalesBloc>().add(ProductAddedToCart(product, quantity: quantity));
+    context
+        .read<SalesBloc>()
+        .add(ProductAddedToCart(product, quantity: quantity));
   }
 
   void _removeCartItem(int index) {
@@ -330,7 +372,7 @@ class _SalesScreenState extends State<SalesScreen> {
     if (state.cartItems.isEmpty) {
       return;
     }
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => Dialog(
@@ -348,7 +390,9 @@ class _SalesScreenState extends State<SalesScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(loc.clearCartTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(loc.clearCartTitle,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold)),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
@@ -369,7 +413,9 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.error,
+                        foregroundColor: colorScheme.onError),
                     onPressed: () {
                       Navigator.pop(dialogContext);
                       _performClearCart();
@@ -388,7 +434,7 @@ class _SalesScreenState extends State<SalesScreen> {
   // ========================================
   // CHECKOUT DIALOG - USING REPOSITORY
   // ========================================
-  
+
   void _showCheckoutDialog() {
     final state = context.read<SalesBloc>().state;
     if (state.cartItems.isEmpty) {
@@ -400,10 +446,11 @@ class _SalesScreenState extends State<SalesScreen> {
       _showCheckoutPaymentDialog();
       return;
     }
-    
+
     // 2. Registered Customer Flow - Check Credit Limit
     Money creditLimit = Money(state.selectedCustomer?.creditLimit ?? 0);
-    Money currentBalance = Money(state.selectedCustomer?.outstandingBalance ?? 0);
+    Money currentBalance =
+        Money(state.selectedCustomer?.outstandingBalance ?? 0);
     final Money potentialBalance = currentBalance + state.grandTotal;
 
     if (potentialBalance > creditLimit) {
@@ -412,15 +459,16 @@ class _SalesScreenState extends State<SalesScreen> {
         currentBalance: currentBalance,
         billTotal: state.grandTotal,
         potentialBalance: potentialBalance,
-        onContinueAnyway: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true),
+        onContinueAnyway: () =>
+            _showCheckoutPaymentDialog(ignoreCreditLimit: true),
         onIncreaseLimit: () {
           _showIncreaseLimitDialog(onLimitUpdated: () {
-            _showCheckoutPaymentDialog(ignoreCreditLimit: true); 
+            _showCheckoutPaymentDialog(ignoreCreditLimit: true);
           });
         },
       );
     } else {
-      _showCheckoutPaymentDialog(); 
+      _showCheckoutPaymentDialog();
     }
   }
 
@@ -434,7 +482,7 @@ class _SalesScreenState extends State<SalesScreen> {
   }) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -454,7 +502,11 @@ class _SalesScreenState extends State<SalesScreen> {
                 children: [
                   Icon(Icons.warning, color: colorScheme.error),
                   const SizedBox(width: 10),
-                  Text(loc.creditLimitExceeded, style: TextStyle(color: colorScheme.error, fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(loc.creditLimitExceeded,
+                      style: TextStyle(
+                          color: colorScheme.error,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -471,7 +523,9 @@ class _SalesScreenState extends State<SalesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(loc.creditLimitWarningMsg(creditLimit.toString()), style: TextStyle(color: colorScheme.onSurface, fontSize: 16)),
+                      Text(loc.creditLimitWarningMsg(creditLimit.toString()),
+                          style: TextStyle(
+                              color: colorScheme.onSurface, fontSize: 16)),
                       const SizedBox(height: 20),
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -482,18 +536,29 @@ class _SalesScreenState extends State<SalesScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _infoRow('${loc.customerCreditLimit}:', creditLimit.toString(), color: colorScheme.onErrorContainer),
-                            _infoRow('${loc.currentBalance}:', currentBalance.toString(), color: colorScheme.onErrorContainer),
-                            _infoRow('${loc.billTotal}:', billTotal.toString(), color: colorScheme.onErrorContainer),
-                            Divider(color: colorScheme.onErrorContainer.withOpacity(0.5)),
-                            _infoRow('${loc.totalBalance}:', potentialBalance.toString(),
+                            _infoRow('${loc.customerCreditLimit}:',
+                                creditLimit.toString(),
+                                color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.currentBalance}:',
+                                currentBalance.toString(),
+                                color: colorScheme.onErrorContainer),
+                            _infoRow('${loc.billTotal}:', billTotal.toString(),
+                                color: colorScheme.onErrorContainer),
+                            Divider(
+                                color: colorScheme.onErrorContainer
+                                    .withOpacity(0.5)),
+                            _infoRow(
+                              '${loc.totalBalance}:',
+                              potentialBalance.toString(),
                               isBold: true,
                               color: colorScheme.error,
                             ),
                             const SizedBox(height: 5),
                             Text(
                               '${loc.excessAmount}: ${(potentialBalance - creditLimit).toString()}',
-                              style: TextStyle(color: colorScheme.error, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  color: colorScheme.error,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -508,7 +573,8 @@ class _SalesScreenState extends State<SalesScreen> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                    child: Text(loc.cancel,
+                        style: TextStyle(color: colorScheme.onSurfaceVariant)),
                   ),
                   const SizedBox(width: 16),
                   OutlinedButton(
@@ -556,7 +622,8 @@ class _SalesScreenState extends State<SalesScreen> {
       context: context,
       builder: (dialogContext) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Container(
             constraints: BoxConstraints(
               minWidth: 800,
@@ -570,7 +637,9 @@ class _SalesScreenState extends State<SalesScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(loc.increaseCreditLimit, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(loc.increaseCreditLimit,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                     IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.pop(dialogContext),
@@ -581,11 +650,13 @@ class _SalesScreenState extends State<SalesScreen> {
                 ),
                 const Divider(),
                 const SizedBox(height: 16),
-                Text('${loc.current}: ${currentLimit.toString()}', style: const TextStyle(fontSize: 16)),
+                Text('${loc.current}: ${currentLimit.toString()}',
+                    style: const TextStyle(fontSize: 16)),
                 const SizedBox(height: 16),
                 TextField(
                   controller: limitCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     labelText: loc.newCreditLimit,
                     border: const OutlineInputBorder(),
@@ -612,28 +683,28 @@ class _SalesScreenState extends State<SalesScreen> {
 
                         try {
                           await _customersRepository.updateCustomerCreditLimit(
-                            selectedCustomerId!,
-                            newLimit.paisas
-                          );
+                              selectedCustomerId!, newLimit.paisas);
 
-                          salesBloc.add(CustomerSelected(
-                            selectedCustomerMap!.copyWith(creditLimit: newLimit.paisas)
-                          ));
+                          salesBloc.add(CustomerSelected(selectedCustomerMap!
+                              .copyWith(creditLimit: newLimit.paisas)));
 
                           if (mounted) {
                             Navigator.pop(dialogContext);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('${loc.creditLimitUpdated}: ${newLimit.toString()}'),
+                                content: Text(
+                                    '${loc.creditLimitUpdated}: ${newLimit.toString()}'),
                                 backgroundColor: colorScheme.primary,
                               ),
                             );
-                            onLimitUpdated(); 
+                            onLimitUpdated();
                           }
                         } catch (e) {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error),
+                              SnackBar(
+                                  content: Text('${loc.error}: $e'),
+                                  backgroundColor: colorScheme.error),
                             );
                           }
                         }
@@ -666,11 +737,10 @@ class _SalesScreenState extends State<SalesScreen> {
     }
 
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return StatefulBuilder(builder: (context, setDialogState) {
             Money cash = Money.fromRupeesString(cashCtrl.text);
             Money bank = Money.fromRupeesString(bankCtrl.text);
             Money credit = Money.fromRupeesString(creditCtrl.text);
@@ -713,10 +783,11 @@ class _SalesScreenState extends State<SalesScreen> {
                   currentBalance: oldBalance,
                   billTotal: credit,
                   potentialBalance: potentialBalance,
-                  onContinueAnyway: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true),
+                  onContinueAnyway: () =>
+                      _showCheckoutPaymentDialog(ignoreCreditLimit: true),
                   onIncreaseLimit: () => _showIncreaseLimitDialog(
-                    onLimitUpdated: () => _showCheckoutPaymentDialog(ignoreCreditLimit: true)
-                  ),
+                      onLimitUpdated: () =>
+                          _showCheckoutPaymentDialog(ignoreCreditLimit: true)),
                 );
               } else {
                 processSaleAction();
@@ -724,7 +795,8 @@ class _SalesScreenState extends State<SalesScreen> {
             }
 
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               child: Container(
                 constraints: BoxConstraints(
                   minWidth: 800,
@@ -739,7 +811,11 @@ class _SalesScreenState extends State<SalesScreen> {
                       children: [
                         Icon(Icons.shopping_cart, color: colorScheme.primary),
                         const SizedBox(width: 10),
-                        Text(loc.checkoutButton, style: TextStyle(color: colorScheme.primary, fontSize: 22, fontWeight: FontWeight.bold)),
+                        Text(loc.checkoutButton,
+                            style: TextStyle(
+                                color: colorScheme.primary,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold)),
                         const Spacer(),
                         IconButton(
                           icon: const Icon(Icons.close),
@@ -757,75 +833,97 @@ class _SalesScreenState extends State<SalesScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (isRegistered) ...[
-                              Text('${loc.searchCustomerHint}: ${selectedCustomerMap!.nameEnglish}', 
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface)),
+                              Text(
+                                  '${loc.searchCustomerHint}: ${selectedCustomerMap!.nameEnglish}',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: colorScheme.onSurface)),
                               const SizedBox(height: 5),
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: colorScheme.secondaryContainer, 
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: colorScheme.secondary)
-                                ),
+                                    color: colorScheme.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                        color: colorScheme.secondary)),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.info_outline, size: 16, color: colorScheme.secondary),
+                                    Icon(Icons.info_outline,
+                                        size: 16, color: colorScheme.secondary),
                                     const SizedBox(width: 5),
-                                    Text('${loc.prevBalance}: ${oldBalance.toString()}',
-                                      style: TextStyle(fontSize: 13, color: colorScheme.onSecondaryContainer)),
+                                    Text(
+                                        '${loc.prevBalance}: ${oldBalance.toString()}',
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            color: colorScheme
+                                                .onSecondaryContainer)),
                                   ],
                                 ),
                               ),
                               const Divider(height: 20),
                             ],
-
-                            _infoRow(loc.billTotal, billTotal.toString(), isBold: true, size: 18, color: colorScheme.onSurface),
+                            _infoRow(loc.billTotal, billTotal.toString(),
+                                isBold: true,
+                                size: 18,
+                                color: colorScheme.onSurface),
                             const Divider(),
-                            
                             const SizedBox(height: 10),
-                            Text(loc.paymentLabel, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: colorScheme.onSurface)),
+                            Text(loc.paymentLabel,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: colorScheme.onSurface)),
                             const SizedBox(height: 10),
-                            
                             _input(loc.cashInput, cashCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  Money cash = Money.fromRupeesString(cashCtrl.text);
-                                  Money bank = Money.fromRupeesString(bankCtrl.text);
+                                  Money cash =
+                                      Money.fromRupeesString(cashCtrl.text);
+                                  Money bank =
+                                      Money.fromRupeesString(bankCtrl.text);
                                   Money remaining = billTotal - cash - bank;
-                                  creditCtrl.text = remaining > const Money(0) ? remaining.toRupeesString() : '0';
+                                  creditCtrl.text = remaining > const Money(0)
+                                      ? remaining.toRupeesString()
+                                      : '0';
                                 }
                               });
                             }),
-
                             _input(loc.bankInput, bankCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  Money cash = Money.fromRupeesString(cashCtrl.text);
-                                  Money bank = Money.fromRupeesString(bankCtrl.text);
+                                  Money cash =
+                                      Money.fromRupeesString(cashCtrl.text);
+                                  Money bank =
+                                      Money.fromRupeesString(bankCtrl.text);
                                   Money remaining = billTotal - cash - bank;
-                                  creditCtrl.text = remaining > const Money(0) ? remaining.toRupeesString() : '0';
+                                  creditCtrl.text = remaining > const Money(0)
+                                      ? remaining.toRupeesString()
+                                      : '0';
                                 }
                               });
                             }),
-
                             if (isRegistered)
                               _input(loc.creditInput, creditCtrl, (v) {
                                 setDialogState(() {});
                               }),
-
                             const SizedBox(height: 10),
                             if (!isRegistered)
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(loc.changeDue, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+                                  Text(loc.changeDue,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onSurface)),
                                   Text(change.toString(),
-                                    style: TextStyle(
-                                      fontSize: 18, 
-                                      fontWeight: FontWeight.bold, 
-                                      color: change >= const Money(0) ? colorScheme.primary : colorScheme.error
-                                    )
-                                  ),
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: change >= const Money(0)
+                                              ? colorScheme.primary
+                                              : colorScheme.error)),
                                 ],
                               ),
                           ],
@@ -846,7 +944,8 @@ class _SalesScreenState extends State<SalesScreen> {
                             backgroundColor: colorScheme.primary,
                             foregroundColor: colorScheme.onPrimary,
                           ),
-                          onPressed: isValid ? checkCreditLimitAndProcess : null,
+                          onPressed:
+                              isValid ? checkCreditLimitAndProcess : null,
                           child: Text(loc.savePrint),
                         ),
                       ],
@@ -855,13 +954,12 @@ class _SalesScreenState extends State<SalesScreen> {
                 ),
               ),
             );
-          }
-        );
-      }
-    );
+          });
+        });
   }
 
-  Widget _infoRow(String label, String value, {bool isBold = false, double size = 14, Color? color}) {
+  Widget _infoRow(String label, String value,
+      {bool isBold = false, double size = 14, Color? color}) {
     final defaultColor = Theme.of(context).colorScheme.onSurface;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -871,7 +969,7 @@ class _SalesScreenState extends State<SalesScreen> {
           Text(
             label,
             style: TextStyle(
-              fontSize: size, 
+              fontSize: size,
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
               color: color ?? defaultColor,
             ),
@@ -889,40 +987,48 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  Widget _input(String label, TextEditingController ctrl, Function(String) onChanged, {bool enabled = true}) {
+  Widget _input(
+      String label, TextEditingController ctrl, Function(String) onChanged,
+      {bool enabled = true}) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          SizedBox(width: 130, child: Text(label, style: TextStyle(fontSize: 14, color: colorScheme.onSurface))),
-          Expanded(
-            child: TextField(
-              controller: ctrl,
-              enabled: enabled,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                isDense: true, 
-                contentPadding: const EdgeInsets.all(10), 
-                border: const OutlineInputBorder(),
-                prefixText: 'Rs ',
-                filled: !enabled,
-                fillColor: enabled ? null : colorScheme.surfaceVariant,
-              ), 
-              style: TextStyle(fontWeight: FontWeight.bold, color: enabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant),
-              onChanged: onChanged,
+      child: Row(children: [
+        SizedBox(
+            width: 130,
+            child: Text(label,
+                style: TextStyle(fontSize: 14, color: colorScheme.onSurface))),
+        Expanded(
+          child: TextField(
+            controller: ctrl,
+            enabled: enabled,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.all(10),
+              border: const OutlineInputBorder(),
+              prefixText: 'Rs ',
+              filled: !enabled,
+              fillColor: enabled ? null : colorScheme.surfaceVariant,
             ),
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: enabled
+                    ? colorScheme.onSurface
+                    : colorScheme.onSurfaceVariant),
+            onChanged: onChanged,
           ),
-        ]
-      ),
+        ),
+      ]),
     );
   }
 
   // ========================================
   // PROCESS SALE - USING REPOSITORY
   // ========================================
-  
-  Future<void> _processSale(Money cash, Money bank, Money credit, Money change) async {
+
+  Future<void> _processSale(
+      Money cash, Money bank, Money credit, Money change) async {
     final bloc = context.read<SalesBloc>();
     final currentLanguage = Localizations.localeOf(context).languageCode;
 
@@ -948,7 +1054,8 @@ class _SalesScreenState extends State<SalesScreen> {
       builder: (context) => WillPopScope(
         onWillPop: () async => false,
         child: Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 450),
             padding: const EdgeInsets.all(24),
@@ -957,10 +1064,13 @@ class _SalesScreenState extends State<SalesScreen> {
               children: [
                 const Icon(Icons.check_circle, color: Colors.green, size: 64),
                 const SizedBox(height: 16),
-                Text(loc.saleCompleted, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                Text('${loc.bill} #${invoice.invoiceNumber}', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                Text(loc.saleCompleted,
+                    style: const TextStyle(
+                        fontSize: 22, fontWeight: FontWeight.bold)),
+                Text('${loc.bill} #${invoice.invoiceNumber}',
+                    style: TextStyle(color: colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 32),
-                
+
                 // Print
                 SizedBox(
                   width: double.infinity,
@@ -974,14 +1084,15 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Save PDF
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       try {
-                        final path = await _receiptRepository.saveReceiptAsPDF(invoice);
+                        final path =
+                            await _receiptRepository.saveReceiptAsPDF(invoice);
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Receipt saved to: $path')),
@@ -990,7 +1101,9 @@ class _SalesScreenState extends State<SalesScreen> {
                       } catch (e) {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error saving PDF: $e'), backgroundColor: colorScheme.error),
+                            SnackBar(
+                                content: Text('Error saving PDF: $e'),
+                                backgroundColor: colorScheme.error),
                           );
                         }
                       }
@@ -1003,7 +1116,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // New Sale
                 SizedBox(
                   width: double.infinity,
@@ -1019,7 +1132,8 @@ class _SalesScreenState extends State<SalesScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
-                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      textStyle: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -1051,13 +1165,17 @@ class _SalesScreenState extends State<SalesScreen> {
       await _receiptRepository.printReceipt(receiptData);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${loc.receiptSentToPrinter} #${invoice.invoiceNumber}')),
+          SnackBar(
+              content: Text(
+                  '${loc.receiptSentToPrinter} #${invoice.invoiceNumber}')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${loc.printError}: $e'), backgroundColor: Theme.of(context).colorScheme.error),
+          SnackBar(
+              content: Text('${loc.printError}: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error),
         );
       }
     }
@@ -1068,14 +1186,15 @@ class _SalesScreenState extends State<SalesScreen> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.editFeatureComingSoon)),
+      SnackBar(
+          content: Text(AppLocalizations.of(context)!.editFeatureComingSoon)),
     );
   }
 
   // ========================================
   // CANCEL SALE - USING REPOSITORY
   // ========================================
-  
+
   Future<void> _cancelSale(int id, String billNumber) async {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
@@ -1099,7 +1218,9 @@ class _SalesScreenState extends State<SalesScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(loc.cancelSaleTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(loc.cancelSaleTitle,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold)),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(c, false),
@@ -1148,15 +1269,15 @@ class _SalesScreenState extends State<SalesScreen> {
     }
 
     context.read<SalesBloc>().add(InvoiceCancelled(
-      invoiceId: id,
-      reason: reasonCtrl.text.trim(),
-    ));
+          invoiceId: id,
+          reason: reasonCtrl.text.trim(),
+        ));
   }
 
   // ========================================
   // BUILD UI
   // ========================================
-  
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -1167,8 +1288,10 @@ class _SalesScreenState extends State<SalesScreen> {
       shortcuts: const <ShortcutActivator, Intent>{
         SingleActivator(LogicalKeyboardKey.f9): CheckoutIntent(),
         SingleActivator(LogicalKeyboardKey.escape): ClearCartIntent(),
-        SingleActivator(LogicalKeyboardKey.keyF, control: true): FocusSearchIntent(),
-        SingleActivator(LogicalKeyboardKey.keyN, control: true): AddCustomerIntent(),
+        SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            FocusSearchIntent(),
+        SingleActivator(LogicalKeyboardKey.keyN, control: true):
+            AddCustomerIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
@@ -1193,216 +1316,307 @@ class _SalesScreenState extends State<SalesScreen> {
           autofocus: true,
           child: WillPopScope(
             onWillPop: _onWillPop,
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text(loc.posTitle, style: TextStyle(color: colorScheme.onPrimary)),
-                backgroundColor: colorScheme.primary,
-                iconTheme: IconThemeData(color: colorScheme.onPrimary),
-                actions: [
-                  IconButton(icon: const Icon(Icons.refresh), onPressed: _refreshAllData),
-                  IconButton(icon: const Icon(Icons.delete_sweep), onPressed: _clearCart),
-                  const SizedBox(width: 16),
-                  const Center(child: Text("F9: Checkout | Esc: Clear | Ctrl+F: Search | Ctrl+N: New Customer", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
-                  const SizedBox(width: 16),
-                ],
-              ),
-            body: BlocConsumer<SalesBloc, SalesState>(
+            child: BlocConsumer<SalesBloc, SalesState>(
               listener: (context, state) {
-                if (state.status == SalesStatus.loading) {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (context) => const Dialog(
-                      child: Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(width: 20),
-                            Text("Processing..."),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                } else if (state.status == SalesStatus.success) {
-                  Navigator.of(context).pop(); // Close loading dialog
+                if (state.status == SalesStatus.success) {
                   if (state.completedInvoice != null) {
                     _showPostSaleDialog(state.completedInvoice!);
+                  } else if (state.successMessage != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.successMessage!),
+                        backgroundColor: colorScheme.primary,
+                      ),
+                    );
                   }
                 } else if (state.status == SalesStatus.error) {
-                  Navigator.of(context).pop(); // Close loading dialog
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.errorMessage ?? 'An unknown error occurred')),
+                    SnackBar(
+                      content: Text(
+                          state.errorMessage ?? 'An unknown error occurred'),
+                      backgroundColor: colorScheme.error,
+                    ),
                   );
                 }
               },
               builder: (context, state) {
-                return LayoutBuilder(
-                  builder: (context, constraints) {
-                  // Responsive Right Panel Width
-                  double rightPanelWidth = 500;
-                  if (constraints.maxWidth >= 2560) {
-                    rightPanelWidth = 600;
-                  } else if (constraints.maxWidth >= 1920) {
-                    rightPanelWidth = 550;
-                  } else if (constraints.maxWidth >= 1366) {
-                    rightPanelWidth = 500;
-                  } else {
-                    rightPanelWidth = 450;
-                  }
-
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // LEFT PANEL (Fluid)
-                      Expanded(
-                        child: Column(
-                          children: [
-                            // Item Search
-                            Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Focus(
-                                onFocusChange: (hasFocus) {
-                                  if (hasFocus) _productSearchFocusNode.requestFocus();
-                                },
-                              child: TextField(
-                                  controller: productSearchController,
-                                  focusNode: _productSearchFocusNode,
-                                  decoration: InputDecoration(
-                                  hintText: loc.searchItemHint,
-                                  isDense: true,
-                                  prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                  filled: true,
-                                  fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                                ),
-                                onChanged: _filterProducts,
-                                onTap: () {
-                                  if (productSearchController.text.isNotEmpty) {
-                                    _filterProducts(productSearchController.text);
-                                  }
-                                },
-                              ),
+                return Stack(
+                  children: [
+                    Scaffold(
+                      appBar: AppBar(
+                        title: Text(loc.posTitle,
+                            style: TextStyle(color: colorScheme.onPrimary)),
+                        backgroundColor: colorScheme.primary,
+                        iconTheme: IconThemeData(color: colorScheme.onPrimary),
+                        actions: [
+                          IconButton(
+                              icon: const Icon(Icons.refresh),
+                              onPressed: _refreshAllData),
+                          IconButton(
+                              icon: const Icon(Icons.delete_sweep),
+                              onPressed: _clearCart),
+                          const SizedBox(width: 16),
+                          const Center(
+                            child: Text(
+                              "F9: Checkout | Esc: Clear | Ctrl+F: Search | Ctrl+N: New Customer",
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold),
                             ),
-                            ),
-                            
-                            // Product Grid
-                            Expanded(
-                              child: LayoutBuilder(
-                                builder: (context, gridConstraints) {
-                                  int crossAxisCount = (gridConstraints.maxWidth / 180).floor();
-                                  crossAxisCount = crossAxisCount.clamp(4, 8);
-                                  
-                                  return GridView.builder(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: crossAxisCount,
-                                      childAspectRatio: 16 / 9,
-                                      crossAxisSpacing: 10,
-                                      mainAxisSpacing: 10,
-                                    ),
-                                    itemCount: filteredProducts.length,
-                                    itemBuilder: (context, index) {
-                                      final product = filteredProducts[index];
-                                      return Focus(
-                                        child: Builder(
-                                          builder: (context) {
-                                            return _buildProductCard(product, colorScheme, Focus.of(context).hasFocus);
-                                          }
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-
-                            // Recent Sales
-                             _buildRecentSalesSection(loc, colorScheme),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 16),
+                        ],
                       ),
+                      body: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Responsive Right Panel Width
+                          double rightPanelWidth = 500;
+                          if (constraints.maxWidth >= 2560) {
+                            rightPanelWidth = 600;
+                          } else if (constraints.maxWidth >= 1920) {
+                            rightPanelWidth = 550;
+                          } else if (constraints.maxWidth >= 1366) {
+                            rightPanelWidth = 500;
+                          } else {
+                            rightPanelWidth = 450;
+                          }
 
-                      // Vertical Divider
-                      VerticalDivider(width: 1, thickness: 1, color: colorScheme.outlineVariant),
-
-                      // RIGHT PANEL (Fixed Width)
-                      SizedBox(
-                        width: rightPanelWidth,
-                        child: Container(
-                          color: colorScheme.surface,
-                          child: Column(
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // Customer Section
-                              _buildCustomerSection(loc, colorScheme),
-                              Divider(height: 1, color: colorScheme.outlineVariant),
-                              
-                              // Cart Header
-                              Container(
-                                height: 32,
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                color: colorScheme.surfaceVariant.withOpacity(0.5),
-                                child: Row(
-                                  children: [
-                                    Expanded(flex: 4, child: Text('Item', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colorScheme.onSurfaceVariant))),
-                                    SizedBox(width: 70, child: Text(loc.price, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colorScheme.onSurfaceVariant))),
-                                    const SizedBox(width: 8),
-                                    SizedBox(width: 60, child: Text(loc.qty, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colorScheme.onSurfaceVariant))),
-                                    const SizedBox(width: 8),
-                                    SizedBox(width: 70, child: Text('Total', textAlign: TextAlign.end, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: colorScheme.onSurfaceVariant))),
-                                    const SizedBox(width: 32),
-                                  ],
-                                ),
-                              ),
-                              Divider(height: 1, color: colorScheme.outlineVariant),
-
-                              // Cart Items
+                              // LEFT PANEL (Fluid)
                               Expanded(
-                                child: cartItems.isEmpty
-                                    ? Center(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.shopping_cart_outlined, size: 64, color: colorScheme.outline.withOpacity(0.5)),
-                                            const SizedBox(height: 16),
-                                            Text(loc.cartEmpty, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 16)),
-                                          ],
+                                child: Column(
+                                  children: [
+                                    // Item Search
+                                    Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Focus(
+                                        onFocusChange: (hasFocus) {
+                                          if (hasFocus) {
+                                            _productSearchFocusNode
+                                                .requestFocus();
+                                          }
+                                        },
+                                        child: TextField(
+                                          controller: productSearchController,
+                                          focusNode: _productSearchFocusNode,
+                                          decoration: InputDecoration(
+                                            hintText: loc.searchItemHint,
+                                            isDense: true,
+                                            prefixIcon: Icon(Icons.search,
+                                                color: colorScheme
+                                                    .onSurfaceVariant),
+                                            border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12)),
+                                            filled: true,
+                                            fillColor: colorScheme
+                                                .surfaceVariant
+                                                .withOpacity(0.5),
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    vertical: 14,
+                                                    horizontal: 12),
+                                          ),
+                                          onChanged: _filterProducts,
+                                          onTap: () {
+                                            if (productSearchController
+                                                .text.isNotEmpty) {
+                                              _filterProducts(
+                                                  productSearchController.text);
+                                            }
+                                          },
                                         ),
-                                      )
-                                    : ListView.separated(
-                                        itemCount: cartItems.length,
-                                        separatorBuilder: (c, i) => const Divider(height: 1, thickness: 0.5),
-                                        itemBuilder: (context, index) {
-                                          final item = cartItems[index];
-                                          return _CartItemRow(
-                                            item: item,
-                                            index: index,
-                                            isRTL: isRTL,
-                                            colorScheme: colorScheme,
-                                            onRemove: _removeCartItem,
-                                            onUpdate: _updateCartItem,
+                                      ),
+                                    ),
+
+                                    // Product Grid
+                                    Expanded(
+                                      child: LayoutBuilder(
+                                        builder: (context, gridConstraints) {
+                                          int crossAxisCount =
+                                              (gridConstraints.maxWidth / 180)
+                                                  .floor();
+                                          crossAxisCount =
+                                              crossAxisCount.clamp(4, 8);
+
+                                          return GridView.builder(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 4),
+                                            gridDelegate:
+                                                SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: crossAxisCount,
+                                              childAspectRatio: 16 / 9,
+                                              crossAxisSpacing: 10,
+                                              mainAxisSpacing: 10,
+                                            ),
+                                            itemCount: filteredProducts.length,
+                                            itemBuilder: (context, index) {
+                                              final product =
+                                                  filteredProducts[index];
+                                              return Focus(
+                                                child:
+                                                    Builder(builder: (context) {
+                                                  return _buildProductCard(
+                                                      product,
+                                                      colorScheme,
+                                                      Focus.of(context)
+                                                          .hasFocus);
+                                                }),
+                                              );
+                                            },
                                           );
                                         },
                                       ),
+                                    ),
+
+                                    // Recent Sales
+                                    _buildRecentSalesSection(loc, colorScheme),
+                                  ],
+                                ),
                               ),
 
-                              Divider(height: 1, color: colorScheme.outlineVariant),
+                              // Vertical Divider
+                              VerticalDivider(
+                                  width: 1,
+                                  thickness: 1,
+                                  color: colorScheme.outlineVariant),
 
-                              // Totals Section
-                              _buildTotalsSection(loc, colorScheme),
+                              // RIGHT PANEL (Fixed Width)
+                              SizedBox(
+                                width: rightPanelWidth,
+                                child: Container(
+                                  color: colorScheme.surface,
+                                  child: Column(
+                                    children: [
+                                      // Customer Section
+                                      _buildCustomerSection(loc, colorScheme),
+                                      Divider(
+                                          height: 1,
+                                          color: colorScheme.outlineVariant),
+
+                                      // Cart Header
+                                      Container(
+                                        height: 32,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12),
+                                        color: colorScheme.surfaceVariant
+                                            .withOpacity(0.5),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                                flex: 4,
+                                                child: Text('Item',
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: colorScheme
+                                                            .onSurfaceVariant))),
+                                            SizedBox(
+                                                width: 70,
+                                                child: Text(loc.price,
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: colorScheme
+                                                            .onSurfaceVariant))),
+                                            const SizedBox(width: 8),
+                                            SizedBox(
+                                                width: 60,
+                                                child: Text(loc.qty,
+                                                    textAlign: TextAlign.center,
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: colorScheme
+                                                            .onSurfaceVariant))),
+                                            const SizedBox(width: 8),
+                                            SizedBox(
+                                                width: 70,
+                                                child: Text('Total',
+                                                    textAlign: TextAlign.end,
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: colorScheme
+                                                            .onSurfaceVariant))),
+                                            const SizedBox(width: 32),
+                                          ],
+                                        ),
+                                      ),
+                                      Divider(
+                                          height: 1,
+                                          color: colorScheme.outlineVariant),
+
+                                      // Cart Items
+                                      Expanded(
+                                        child: cartItems.isEmpty
+                                            ? Center(
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                        Icons
+                                                            .shopping_cart_outlined,
+                                                        size: 64,
+                                                        color: colorScheme
+                                                            .outline
+                                                            .withOpacity(0.5)),
+                                                    const SizedBox(height: 16),
+                                                    Text(loc.cartEmpty,
+                                                        style: TextStyle(
+                                                            color: colorScheme
+                                                                .onSurfaceVariant,
+                                                            fontSize: 16)),
+                                                  ],
+                                                ),
+                                              )
+                                            : ListView.separated(
+                                                itemCount: cartItems.length,
+                                                separatorBuilder: (c, i) =>
+                                                    const Divider(
+                                                        height: 1,
+                                                        thickness: 0.5),
+                                                itemBuilder: (context, index) {
+                                                  final item = cartItems[index];
+                                                  return _CartItemRow(
+                                                    item: item,
+                                                    index: index,
+                                                    isRTL: isRTL,
+                                                    colorScheme: colorScheme,
+                                                    onRemove: _removeCartItem,
+                                                    onUpdate: _updateCartItem,
+                                                  );
+                                                },
+                                              ),
+                                      ),
+
+                                      Divider(
+                                          height: 1,
+                                          color: colorScheme.outlineVariant),
+
+                                      // Totals Section
+                                      _buildTotalsSection(loc, colorScheme),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                    ],
-                  );
-                },
+                    ),
+                    if (state.status == SalesStatus.loading)
+                      _buildLoadingOverlay(loc, colorScheme),
+                  ],
                 );
               },
-            ),
             ),
           ),
         ),
@@ -1410,7 +1624,45 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  Widget _buildProductCard(Product product, ColorScheme colorScheme, bool isFocused) {
+  Widget _buildLoadingOverlay(AppLocalizations loc, ColorScheme colorScheme) {
+    return Container(
+      color: Colors.black.withOpacity(0.35),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 15,
+                spreadRadius: 5,
+              )
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(strokeWidth: 3),
+              const SizedBox(height: 20),
+              Text(
+                "Processing...",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductCard(
+      Product product, ColorScheme colorScheme, bool isFocused) {
     return Card(
       elevation: 2,
       margin: EdgeInsets.zero,
@@ -1418,7 +1670,11 @@ class _SalesScreenState extends State<SalesScreen> {
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: isFocused ? colorScheme.primary : colorScheme.outlineVariant.withOpacity(0.3), width: isFocused ? 2 : 1),
+        side: BorderSide(
+            color: isFocused
+                ? colorScheme.primary
+                : colorScheme.outlineVariant.withOpacity(0.3),
+            width: isFocused ? 2 : 1),
       ),
       child: InkWell(
         onTap: () => _addToCart(product),
@@ -1433,7 +1689,9 @@ class _SalesScreenState extends State<SalesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.inventory_2_outlined, size: 16, color: colorScheme.primary.withOpacity(0.7)),
+                      Icon(Icons.inventory_2_outlined,
+                          size: 16,
+                          color: colorScheme.primary.withOpacity(0.7)),
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
@@ -1484,7 +1742,9 @@ class _SalesScreenState extends State<SalesScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: (product.currentStock) < 10 ? colorScheme.errorContainer : colorScheme.surfaceVariant,
+                  color: (product.currentStock) < 10
+                      ? colorScheme.errorContainer
+                      : colorScheme.surfaceVariant,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -1492,7 +1752,9 @@ class _SalesScreenState extends State<SalesScreen> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: (product.currentStock) < 10 ? colorScheme.onErrorContainer : colorScheme.onSurfaceVariant,
+                    color: (product.currentStock) < 10
+                        ? colorScheme.onErrorContainer
+                        : colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -1503,7 +1765,8 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  Widget _buildRecentSalesSection(AppLocalizations loc, ColorScheme colorScheme) {
+  Widget _buildRecentSalesSection(
+      AppLocalizations loc, ColorScheme colorScheme) {
     return Container(
       height: 200,
       decoration: BoxDecoration(
@@ -1516,7 +1779,10 @@ class _SalesScreenState extends State<SalesScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             color: colorScheme.surfaceVariant.withOpacity(0.3),
             width: double.infinity,
-            child: Text(loc.recentSales, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant)),
+            child: Text(loc.recentSales,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurfaceVariant)),
           ),
           Expanded(
             child: ListView.separated(
@@ -1530,39 +1796,80 @@ class _SalesScreenState extends State<SalesScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                   leading: CircleAvatar(
                     radius: 14,
-                    backgroundColor: isCancelled ? colorScheme.errorContainer : colorScheme.primaryContainer,
-                    child: Text('${index + 1}', style: TextStyle(fontSize: 11, color: isCancelled ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer)),
+                    backgroundColor: isCancelled
+                        ? colorScheme.errorContainer
+                        : colorScheme.primaryContainer,
+                    child: Text('${index + 1}',
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: isCancelled
+                                ? colorScheme.onErrorContainer
+                                : colorScheme.onPrimaryContainer)),
                   ),
                   title: Text(
                     invoice.customerName ?? loc.walkInCustomer,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      decoration: isCancelled ? TextDecoration.lineThrough : null,
-                      color: isCancelled ? colorScheme.onSurface.withOpacity(0.6) : colorScheme.onSurface,
+                      decoration:
+                          isCancelled ? TextDecoration.lineThrough : null,
+                      color: isCancelled
+                          ? colorScheme.onSurface.withOpacity(0.6)
+                          : colorScheme.onSurface,
                     ),
                   ),
-                  subtitle: Text(invoice.invoiceNumber, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant)),
+                  subtitle: Text(invoice.invoiceNumber,
+                      style: TextStyle(
+                          fontSize: 11, color: colorScheme.onSurfaceVariant)),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(Money(invoice.totalAmount).formatted, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: colorScheme.onSurface)),
+                      Text(Money(invoice.totalAmount).formatted,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: colorScheme.onSurface)),
                       const SizedBox(width: 8),
                       PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert, size: 18, color: colorScheme.onSurfaceVariant),
+                        icon: Icon(Icons.more_vert,
+                            size: 18, color: colorScheme.onSurfaceVariant),
                         padding: EdgeInsets.zero,
                         onSelected: (value) {
                           if (value == 'print') _handlePrintReceipt(invoice);
                           if (value == 'edit') _handleEditInvoice(invoice);
-                          if (value == 'cancel') _cancelSale(invoice.id!, invoice.invoiceNumber);
+                          if (value == 'cancel') {
+                            _cancelSale(invoice.id!, invoice.invoiceNumber);
+                          }
                         },
                         itemBuilder: (context) => [
                           if (!isCancelled) ...[
-                            const PopupMenuItem(value: 'print', child: Row(children: [Icon(Icons.print, size: 16), SizedBox(width: 8), Text('Print')])),
-                            const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text('Edit')])),
-                            PopupMenuItem(value: 'cancel', child: Row(children: [Icon(Icons.cancel, size: 16, color: colorScheme.error), const SizedBox(width: 8), Text('Cancel', style: TextStyle(color: colorScheme.error))])),
+                            const PopupMenuItem(
+                                value: 'print',
+                                child: Row(children: [
+                                  Icon(Icons.print, size: 16),
+                                  SizedBox(width: 8),
+                                  Text('Print')
+                                ])),
+                            const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(children: [
+                                  Icon(Icons.edit, size: 16),
+                                  SizedBox(width: 8),
+                                  Text('Edit')
+                                ])),
+                            PopupMenuItem(
+                                value: 'cancel',
+                                child: Row(children: [
+                                  Icon(Icons.cancel,
+                                      size: 16, color: colorScheme.error),
+                                  const SizedBox(width: 8),
+                                  Text('Cancel',
+                                      style:
+                                          TextStyle(color: colorScheme.error))
+                                ])),
                           ] else ...[
-                            const PopupMenuItem(enabled: false, child: Text('Cancelled')),
+                            const PopupMenuItem(
+                                enabled: false, child: Text('Cancelled')),
                           ]
                         ],
                       ),
@@ -1591,11 +1898,15 @@ class _SalesScreenState extends State<SalesScreen> {
                   decoration: InputDecoration(
                     labelText: loc.searchCustomerHint,
                     isDense: true,
-                    prefixIcon: Icon(Icons.person_search, color: colorScheme.onSurfaceVariant),
+                    prefixIcon: Icon(Icons.person_search,
+                        color: colorScheme.onSurfaceVariant),
                     suffixIcon: selectedCustomerId != null
-                        ? IconButton(icon: const Icon(Icons.clear), onPressed: () => _selectCustomer(null))
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () => _selectCustomer(null))
                         : null,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                     filled: true,
                     fillColor: colorScheme.surfaceVariant,
                   ),
@@ -1603,8 +1914,11 @@ class _SalesScreenState extends State<SalesScreen> {
                   onTap: () async {
                     if (selectedCustomerId == null) {
                       // Load initial list if empty
-                      if (customerSearchController.text.isEmpty && filteredCustomers.isEmpty) {
-                         context.read<SalesBloc>().add(const CustomerSearchChanged(' '));
+                      if (customerSearchController.text.isEmpty &&
+                          filteredCustomers.isEmpty) {
+                        context
+                            .read<SalesBloc>()
+                            .add(const CustomerSearchChanged(' '));
                       }
                     }
                   },
@@ -1616,10 +1930,12 @@ class _SalesScreenState extends State<SalesScreen> {
                 child: ElevatedButton(
                   onPressed: _showAddCustomerDialog,
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     backgroundColor: colorScheme.primaryContainer,
                     foregroundColor: colorScheme.onPrimaryContainer,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                     minimumSize: const Size(48, 48),
                   ),
                   child: const Icon(Icons.person_add),
@@ -1635,12 +1951,17 @@ class _SalesScreenState extends State<SalesScreen> {
                 color: colorScheme.surface,
                 border: Border.all(color: colorScheme.outline),
                 borderRadius: BorderRadius.circular(8),
-                boxShadow: [BoxShadow(color: colorScheme.shadow.withOpacity(0.1), blurRadius: 4)],
+                boxShadow: [
+                  BoxShadow(
+                      color: colorScheme.shadow.withOpacity(0.1), blurRadius: 4)
+                ],
               ),
               child: filteredCustomers.isEmpty
                   ? Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Text(loc.noCustomersFound, style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                      child: Text(loc.noCustomersFound,
+                          style:
+                              TextStyle(color: colorScheme.onSurfaceVariant)),
                     )
                   : ListView.separated(
                       shrinkWrap: true,
@@ -1650,11 +1971,15 @@ class _SalesScreenState extends State<SalesScreen> {
                         final c = filteredCustomers[index];
                         return ListTile(
                           dense: true,
-                          title: Text(c.nameEnglish, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          title: Text(c.nameEnglish,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
                           subtitle: Text(c.contactPrimary ?? ''),
-                          trailing: Text('${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),
+                          trailing: Text(
+                              '${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),
                           onTap: () => _selectCustomer(c),
-                          hoverColor: colorScheme.primaryContainer.withOpacity(0.1),
+                          hoverColor:
+                              colorScheme.primaryContainer.withOpacity(0.1),
                         );
                       },
                     ),
@@ -1680,12 +2005,20 @@ class _SalesScreenState extends State<SalesScreen> {
       child: Column(
         children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(loc.subtotal, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14)),
-            Text(subtotal.toString(), style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 14))
+            Text(loc.subtotal,
+                style: TextStyle(
+                    color: colorScheme.onSurfaceVariant, fontSize: 14)),
+            Text(subtotal.toString(),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                    fontSize: 14))
           ]),
           const SizedBox(height: 8),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(loc.discount, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 14)),
+            Text(loc.discount,
+                style: TextStyle(
+                    color: colorScheme.onSurfaceVariant, fontSize: 14)),
             SizedBox(
               width: 100,
               height: 32,
@@ -1695,11 +2028,16 @@ class _SalesScreenState extends State<SalesScreen> {
                 textAlign: TextAlign.end,
                 decoration: InputDecoration(
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4)),
                   hintText: '0',
                 ),
-                style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface, fontSize: 14),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                    fontSize: 14),
                 onChanged: (_) => setState(() => _calculateTotals()),
               ),
             ),
@@ -1707,17 +2045,33 @@ class _SalesScreenState extends State<SalesScreen> {
           if (previousBalance > const Money(0))
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text(loc.prevBalance, style: TextStyle(color: colorScheme.error, fontSize: 14)),
-                Text(previousBalance.toString(), style: TextStyle(color: colorScheme.error, fontSize: 14, fontWeight: FontWeight.bold))
-              ]),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(loc.prevBalance,
+                        style:
+                            TextStyle(color: colorScheme.error, fontSize: 14)),
+                    Text(previousBalance.toString(),
+                        style: TextStyle(
+                            color: colorScheme.error,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold))
+                  ]),
             ),
           const SizedBox(height: 12),
           const Divider(),
           const SizedBox(height: 12),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(loc.grandTotal.toUpperCase(), style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: colorScheme.onSurface)),
-            Text(grandTotal.toString(), style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: colorScheme.primary))
+            Text(loc.grandTotal.toUpperCase(),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.onSurface)),
+            Text(grandTotal.toString(),
+                style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: colorScheme.primary))
           ]),
           const SizedBox(height: 16),
           SizedBox(
@@ -1729,7 +2083,8 @@ class _SalesScreenState extends State<SalesScreen> {
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
                 elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1747,7 +2102,8 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                   const SizedBox(width: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: colorScheme.onPrimary.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
@@ -1816,7 +2172,8 @@ class _CartItemRowState extends State<_CartItemRow> {
   @override
   void initState() {
     super.initState();
-    _priceCtrl = TextEditingController(text: widget.item.unitPrice.toRupeesString());
+    _priceCtrl =
+        TextEditingController(text: widget.item.unitPrice.toRupeesString());
     _qtyCtrl = TextEditingController(text: widget.item.quantity.toString());
   }
 
@@ -1824,14 +2181,14 @@ class _CartItemRowState extends State<_CartItemRow> {
   void didUpdateWidget(_CartItemRow oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.item.quantity != oldWidget.item.quantity) {
-       if (double.tryParse(_qtyCtrl.text) != widget.item.quantity) {
-          _qtyCtrl.text = widget.item.quantity.toString();
-       }
+      if (double.tryParse(_qtyCtrl.text) != widget.item.quantity) {
+        _qtyCtrl.text = widget.item.quantity.toString();
+      }
     }
     if (widget.item.unitPrice != oldWidget.item.unitPrice) {
-       if (Money.fromRupeesString(_priceCtrl.text) != widget.item.unitPrice) {
-          _priceCtrl.text = widget.item.unitPrice.toRupeesString();
-       }
+      if (Money.fromRupeesString(_priceCtrl.text) != widget.item.unitPrice) {
+        _priceCtrl.text = widget.item.unitPrice.toRupeesString();
+      }
     }
   }
 
@@ -1856,7 +2213,9 @@ class _CartItemRowState extends State<_CartItemRow> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: widget.index % 2 == 0 ? widget.colorScheme.surface : widget.colorScheme.surfaceVariant.withOpacity(0.2),
+      color: widget.index % 2 == 0
+          ? widget.colorScheme.surface
+          : widget.colorScheme.surfaceVariant.withOpacity(0.2),
       child: Row(
         children: [
           Expanded(
@@ -1865,13 +2224,21 @@ class _CartItemRowState extends State<_CartItemRow> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.isRTL && widget.item.nameUrdu.isNotEmpty ? widget.item.nameUrdu : widget.item.nameEnglish,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: widget.colorScheme.onSurface),
+                  widget.isRTL && widget.item.nameUrdu.isNotEmpty
+                      ? widget.item.nameUrdu
+                      : widget.item.nameEnglish,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: widget.colorScheme.onSurface),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (widget.item.itemCode != null)
-                  Text(widget.item.itemCode!, style: TextStyle(fontSize: 10, color: widget.colorScheme.onSurfaceVariant)),
+                  Text(widget.item.itemCode!,
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: widget.colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -1883,11 +2250,13 @@ class _CartItemRowState extends State<_CartItemRow> {
               textAlign: TextAlign.center,
               decoration: const InputDecoration(
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 border: InputBorder.none,
                 hintText: '0',
               ),
-              style: TextStyle(fontSize: 13, color: widget.colorScheme.onSurface),
+              style:
+                  TextStyle(fontSize: 13, color: widget.colorScheme.onSurface),
               onChanged: (_) => _onChanged(),
             ),
           ),
@@ -1900,10 +2269,14 @@ class _CartItemRowState extends State<_CartItemRow> {
               textAlign: TextAlign.center,
               decoration: const InputDecoration(
                 isDense: true,
-                contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 border: OutlineInputBorder(),
               ),
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: widget.colorScheme.onSurface),
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: widget.colorScheme.onSurface),
               onChanged: (_) => _onChanged(),
             ),
           ),
@@ -1913,13 +2286,17 @@ class _CartItemRowState extends State<_CartItemRow> {
             child: Text(
               widget.item.total.toString().replaceAll('Rs ', ''),
               textAlign: TextAlign.end,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: widget.colorScheme.onSurface),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: widget.colorScheme.onSurface),
             ),
           ),
           SizedBox(
             width: 32,
             child: IconButton(
-              icon: Icon(Icons.close, color: widget.colorScheme.error, size: 18),
+              icon:
+                  Icon(Icons.close, color: widget.colorScheme.error, size: 18),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               onPressed: () => widget.onRemove(widget.index),
