@@ -5,6 +5,12 @@ import '../../bloc/units/units_event.dart';
 import '../../bloc/units/units_state.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/unit_model.dart';
+import '../../widgets/main_layout.dart';
+import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_dimensions.dart';
+import '../../core/routes/app_routes.dart';
+import '../../widgets/app_header.dart';
+
 
 class UnitsScreen extends StatefulWidget {
   const UnitsScreen({super.key});
@@ -19,45 +25,43 @@ class _UnitsScreenState extends State<UnitsScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  loc.units,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => _showAddUnitDialog(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+    return MainLayout(
+      currentRoute: AppRoutes.units,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppHeader(
+            title: loc.units,
+            icon: Icons.square_foot_outlined,
+            actions: [
+              ElevatedButton.icon(
+                onPressed: () => _showAddUnitDialog(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primaryContainer,
+                  foregroundColor: colorScheme.onPrimaryContainer,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.spacingLarge,
+                      vertical: AppDimensions.spacingMedium),
+                  shape: RoundedRectangleRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.borderRadius),
                   ),
-                  icon: const Icon(Icons.add),
-                  label: Text(loc.addItem),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Expanded(
+                icon: const Icon(Icons.add),
+                label: Text(loc.addItem),
+              ),
+            ],
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
               child: Card(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: colorScheme.outline.withOpacity(0.2)),
+                  borderRadius:
+                      BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                  side:
+                      BorderSide(color: colorScheme.outline.withOpacity(0.2)),
                 ),
                 color: colorScheme.surface,
                 clipBehavior: Clip.antiAlias,
@@ -65,13 +69,36 @@ class _UnitsScreenState extends State<UnitsScreen> {
                   children: [
                     Container(
                       color: colorScheme.surfaceVariant.withOpacity(0.3),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: DesktopDimensions.spacingLarge,
+                          vertical: DesktopDimensions.spacingStandard),
                       child: Row(
                         children: [
-                          SizedBox(width: 60, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant))),
-                          Expanded(flex: 2, child: Text(loc.name, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant))),
-                          Expanded(flex: 1, child: Text('Code', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant))),
-                          SizedBox(width: 120, child: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurfaceVariant), textAlign: TextAlign.end)),
+                          SizedBox(
+                              width: 60,
+                              child: Text('#',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurfaceVariant))),
+                          Expanded(
+                              flex: 2,
+                              child: Text(loc.name,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurfaceVariant))),
+                          Expanded(
+                              flex: 1,
+                              child: Text('Code',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurfaceVariant))),
+                          SizedBox(
+                              width: 120,
+                              child: Text('Actions',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurfaceVariant),
+                                  textAlign: TextAlign.end)),
                         ],
                       ),
                     ),
@@ -89,25 +116,40 @@ class _UnitsScreenState extends State<UnitsScreen> {
                             }
                             return ListView.separated(
                               itemCount: state.units.length,
-                              separatorBuilder: (context, index) => Divider(height: 1, color: colorScheme.outline.withOpacity(0.1)),
+                              separatorBuilder: (context, index) => Divider(
+                                  height: 1,
+                                  color: colorScheme.outline.withOpacity(0.1)),
                               itemBuilder: (context, index) {
                                 final unit = state.units[index];
                                 return InkWell(
                                   onTap: () {
                                     if (unit.isSystem) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(loc.systemUnitWarning)),
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content:
+                                                Text(loc.systemUnitWarning)),
                                       );
                                     } else {
                                       _showEditUnitDialog(context, unit);
                                     }
                                   },
-                                  hoverColor: colorScheme.primary.withOpacity(0.05),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  hoverColor:
+                                      colorScheme.primary.withOpacity(0.05),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal:
+                                            DesktopDimensions.spacingLarge,
+                                        vertical:
+                                            DesktopDimensions.spacingStandard),
                                     child: Row(
                                       children: [
-                                        SizedBox(width: 60, child: Text('${index + 1}', style: TextStyle(color: colorScheme.onSurface))),
+                                        SizedBox(
+                                            width: 60,
+                                            child: Text('${index + 1}',
+                                                style: TextStyle(
+                                                    color: colorScheme
+                                                        .onSurface))),
                                         Expanded(
                                           flex: 2,
                                           child: Row(
@@ -115,28 +157,64 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                               Container(
                                                 width: 32,
                                                 height: 32,
-                                                margin: const EdgeInsets.only(right: 12),
+                                                margin: const EdgeInsets.only(
+                                                    right: AppDimensions
+                                                        .spacingStandard),
                                                 decoration: BoxDecoration(
-                                                  color: unit.isSystem ? colorScheme.surfaceVariant : colorScheme.primaryContainer,
-                                                  borderRadius: BorderRadius.circular(6),
+                                                  color: unit.isSystem
+                                                      ? colorScheme.surfaceVariant
+                                                      : colorScheme
+                                                          .primaryContainer,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          AppDimensions
+                                                              .borderRadius),
                                                 ),
                                                 child: Icon(
-                                                  unit.isSystem ? Icons.lock_outline : Icons.square_foot, 
-                                                  size: 18, 
-                                                  color: unit.isSystem ? colorScheme.onSurfaceVariant : colorScheme.onPrimaryContainer
-                                                ),
+                                                    unit.isSystem
+                                                        ? Icons.lock_outline
+                                                        : Icons.square_foot,
+                                                    size: 18,
+                                                    color: unit.isSystem
+                                                        ? colorScheme
+                                                            .onSurfaceVariant
+                                                        : colorScheme
+                                                            .onPrimaryContainer),
                                               ),
-                                              Text(unit.name, style: TextStyle(fontWeight: FontWeight.w500, color: colorScheme.onSurface)),
+                                              Text(unit.name,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: colorScheme
+                                                          .onSurface)),
                                               if (unit.isSystem)
                                                 Container(
-                                                  margin: const EdgeInsets.only(left: 8),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                  margin: const EdgeInsets.only(
+                                                      left: AppDimensions
+                                                          .spacingMedium),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal: AppDimensions
+                                                              .spacingMedium,
+                                                          vertical: AppDimensions
+                                                              .spacingSmall),
                                                   decoration: BoxDecoration(
-                                                    color: colorScheme.surfaceVariant,
-                                                    borderRadius: BorderRadius.circular(4),
-                                                    border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+                                                    color: colorScheme
+                                                        .surfaceVariant,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            AppDimensions
+                                                                .borderRadiusSmall),
+                                                    border: Border.all(
+                                                        color: colorScheme
+                                                            .outline
+                                                            .withOpacity(0.3)),
                                                   ),
-                                                  child: Text('System', style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
+                                                  child: Text('System',
+                                                      style: TextStyle(
+                                                          fontSize: 10,
+                                                          color: colorScheme
+                                                              .onSurfaceVariant)),
                                                 ),
                                             ],
                                           ),
@@ -146,32 +224,66 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                           child: Align(
                                             alignment: Alignment.centerLeft,
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: AppDimensions
+                                                      .spacingMedium,
+                                                  vertical: AppDimensions
+                                                      .spacingSmall),
                                               decoration: BoxDecoration(
-                                                color: colorScheme.secondaryContainer,
-                                                borderRadius: BorderRadius.circular(4),
+                                                color: colorScheme
+                                                    .secondaryContainer,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        AppDimensions
+                                                            .borderRadiusSmall),
                                               ),
-                                              child: Text(unit.code, style: TextStyle(color: colorScheme.onSecondaryContainer, fontSize: 12, fontWeight: FontWeight.bold)),
+                                              child: Text(unit.code,
+                                                  style: TextStyle(
+                                                      color: colorScheme
+                                                          .onSecondaryContainer,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
                                             ),
                                           ),
                                         ),
                                         SizedBox(
                                           width: 120,
                                           child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
                                             children: [
                                               IconButton(
-                                                icon: const Icon(Icons.edit, size: 20),
-                                                color: unit.isSystem ? colorScheme.outline.withOpacity(0.5) : colorScheme.primary,
-                                                onPressed: unit.isSystem ? null : () => _showEditUnitDialog(context, unit),
-                                                tooltip: unit.isSystem ? 'System Unit' : loc.editItem,
+                                                icon: const Icon(Icons.edit,
+                                                    size: 20),
+                                                color: unit.isSystem
+                                                    ? colorScheme.outline
+                                                        .withOpacity(0.5)
+                                                    : colorScheme.primary,
+                                                onPressed: unit.isSystem
+                                                    ? null
+                                                    : () =>
+                                                        _showEditUnitDialog(
+                                                            context, unit),
+                                                tooltip: unit.isSystem
+                                                    ? 'System Unit'
+                                                    : loc.editItem,
                                                 splashRadius: 20,
                                               ),
                                               IconButton(
-                                                icon: const Icon(Icons.delete, size: 20),
-                                                color: unit.isSystem ? colorScheme.outline.withOpacity(0.5) : colorScheme.error,
-                                                onPressed: unit.isSystem ? null : () => _deleteUnit(context, unit),
-                                                tooltip: unit.isSystem ? 'System Unit' : 'Delete',
+                                                icon: const Icon(Icons.delete,
+                                                    size: 20),
+                                                color: unit.isSystem
+                                                    ? colorScheme.outline
+                                                        .withOpacity(0.5)
+                                                    : colorScheme.error,
+                                                onPressed: unit.isSystem
+                                                    ? null
+                                                    : () => _deleteUnit(
+                                                        context, unit),
+                                                tooltip: unit.isSystem
+                                                    ? 'System Unit'
+                                                    : 'Delete',
                                                 splashRadius: 20,
                                               ),
                                             ],
@@ -194,7 +306,6 @@ class _UnitsScreenState extends State<UnitsScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -281,7 +392,9 @@ class _UnitDialogState extends State<UnitDialog> {
 
     return AlertDialog(
       backgroundColor: colorScheme.surface,
-      title: Text(isEdit ? loc.editItem : loc.addItem, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
+      title: Text(isEdit ? loc.editItem : loc.addItem,
+          style: TextStyle(
+              color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
       content: SizedBox(
         width: 400,
         child: Form(
@@ -292,15 +405,29 @@ class _UnitDialogState extends State<UnitDialog> {
               TextFormField(
                 controller: _nameCtrl,
                 style: TextStyle(color: colorScheme.onSurface),
-                decoration: InputDecoration(labelText: loc.name, filled: true, fillColor: colorScheme.surfaceVariant, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
-                validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                decoration: InputDecoration(
+                    labelText: loc.name,
+                    filled: true,
+                    fillColor: colorScheme.surfaceVariant,
+                    border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.borderRadius))),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Required' : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppDimensions.spacingLarge),
               TextFormField(
                 controller: _codeCtrl,
                 style: TextStyle(color: colorScheme.onSurface),
-                decoration: InputDecoration(labelText: 'Code (e.g. KG)', filled: true, fillColor: colorScheme.surfaceVariant, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
-                validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                decoration: InputDecoration(
+                    labelText: 'Code (e.g. KG)',
+                    filled: true,
+                    fillColor: colorScheme.surfaceVariant,
+                    border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppDimensions.borderRadius))),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Required' : null,
               ),
             ],
           ),
@@ -315,10 +442,12 @@ class _UnitDialogState extends State<UnitDialog> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               // Default to 'Count' category (ID 3) for now since selector is not yet implemented
-              const defaultCategory = UnitCategory(id: 3, name: 'Count', isSystem: true);
+              const defaultCategory =
+                  UnitCategory(id: 3, name: 'Count', isSystem: true);
 
               final unit = widget.unit != null
-                  ? widget.unit!.copyWith(name: _nameCtrl.text, code: _codeCtrl.text)
+                  ? widget.unit!
+                      .copyWith(name: _nameCtrl.text, code: _codeCtrl.text)
                   : Unit(
                       id: 0, // Dummy ID for new entry
                       name: _nameCtrl.text,

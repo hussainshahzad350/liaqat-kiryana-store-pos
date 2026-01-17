@@ -7,6 +7,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/sales/sales_bloc.dart';
 import '../../bloc/sales/sales_event.dart';
 import '../../bloc/sales/sales_state.dart';
+import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_dimensions.dart';
+import '../../core/routes/app_routes.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
 import '../../core/repositories/customers_repository.dart';
@@ -16,6 +19,8 @@ import '../../models/product_model.dart';
 import '../../models/customer_model.dart';
 import '../../models/cart_item_model.dart';
 import '../../domain/entities/money.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/main_layout.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -1340,281 +1345,340 @@ class _SalesScreenState extends State<SalesScreen> {
                 }
               },
               builder: (context, state) {
-                return Stack(
-                  children: [
-                    Scaffold(
-                      appBar: AppBar(
-                        title: Text(loc.posTitle,
-                            style: TextStyle(color: colorScheme.onPrimary)),
-                        backgroundColor: colorScheme.primary,
-                        iconTheme: IconThemeData(color: colorScheme.onPrimary),
-                        actions: [
-                          IconButton(
-                              icon: const Icon(Icons.refresh),
-                              onPressed: _refreshAllData),
-                          IconButton(
-                              icon: const Icon(Icons.delete_sweep),
-                              onPressed: _clearCart),
-                          const SizedBox(width: 16),
-                          const Center(
-                            child: Text(
-                              "F9: Checkout | Esc: Clear | Ctrl+F: Search | Ctrl+N: New Customer",
-                              style: TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                        ],
-                      ),
-                      body: LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Responsive Right Panel Width
-                          double rightPanelWidth = 500;
-                          if (constraints.maxWidth >= 2560) {
-                            rightPanelWidth = 600;
-                          } else if (constraints.maxWidth >= 1920) {
-                            rightPanelWidth = 550;
-                          } else if (constraints.maxWidth >= 1366) {
-                            rightPanelWidth = 500;
-                          } else {
-                            rightPanelWidth = 450;
-                          }
-
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // LEFT PANEL (Fluid)
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    // Item Search
-                                    Padding(
-                                      padding: const EdgeInsets.all(12.0),
-                                      child: Focus(
-                                        onFocusChange: (hasFocus) {
-                                          if (hasFocus) {
-                                            _productSearchFocusNode
-                                                .requestFocus();
-                                          }
-                                        },
-                                        child: TextField(
-                                          controller: productSearchController,
-                                          focusNode: _productSearchFocusNode,
-                                          decoration: InputDecoration(
-                                            hintText: loc.searchItemHint,
-                                            isDense: true,
-                                            prefixIcon: Icon(Icons.search,
-                                                color: colorScheme
-                                                    .onSurfaceVariant),
-                                            border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12)),
-                                            filled: true,
-                                            fillColor: colorScheme
-                                                .surfaceVariant
-                                                .withOpacity(0.5),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                    vertical: 14,
-                                                    horizontal: 12),
-                                          ),
-                                          onChanged: _filterProducts,
-                                          onTap: () {
-                                            if (productSearchController
-                                                .text.isNotEmpty) {
-                                              _filterProducts(
-                                                  productSearchController.text);
-                                            }
-                                          },
-                                        ),
-                                      ),
-                                    ),
-
-                                    // Product Grid
-                                    Expanded(
-                                      child: LayoutBuilder(
-                                        builder: (context, gridConstraints) {
-                                          int crossAxisCount =
-                                              (gridConstraints.maxWidth / 180)
-                                                  .floor();
-                                          crossAxisCount =
-                                              crossAxisCount.clamp(4, 8);
-
-                                          return GridView.builder(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 12, vertical: 4),
-                                            gridDelegate:
-                                                SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisCount: crossAxisCount,
-                                              childAspectRatio: 16 / 9,
-                                              crossAxisSpacing: 10,
-                                              mainAxisSpacing: 10,
-                                            ),
-                                            itemCount: filteredProducts.length,
-                                            itemBuilder: (context, index) {
-                                              final product =
-                                                  filteredProducts[index];
-                                              return Focus(
-                                                child:
-                                                    Builder(builder: (context) {
-                                                  return _buildProductCard(
-                                                      product,
-                                                      colorScheme,
-                                                      Focus.of(context)
-                                                          .hasFocus);
-                                                }),
-                                              );
-                                            },
-                                          );
-                                        },
-                                      ),
-                                    ),
-
-                                    // Recent Sales
-                                    _buildRecentSalesSection(loc, colorScheme),
-                                  ],
-                                ),
+                return MainLayout(
+                  currentRoute: AppRoutes.sales,
+                  child: Stack(
+                    children: [
+                      Column(
+                        children: [
+                          AppHeader(
+                            title: loc.posTitle,
+                            icon: Icons.point_of_sale,
+                            actions: [
+                              IconButton(
+                                icon: Icon(Icons.refresh,
+                                    color: colorScheme.onPrimary),
+                                onPressed: _refreshAllData,
+                                tooltip: 'Refresh',
                               ),
+                              const SizedBox(
+                                  width: DesktopDimensions.spacingMedium),
+                              IconButton(
+                                icon: Icon(Icons.delete_sweep,
+                                    color: colorScheme.onPrimary),
+                                onPressed: _clearCart,
+                                tooltip: loc.clearCartTitle,
+                              ),
+                            ],
+                          ),
+                          Expanded(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                // Responsive Right Panel Width
+                                double rightPanelWidth = 500;
+                                if (constraints.maxWidth >= 2560) {
+                                  rightPanelWidth = 600;
+                                } else if (constraints.maxWidth >= 1920) {
+                                  rightPanelWidth = 550;
+                                } else if (constraints.maxWidth >= 1366) {
+                                  rightPanelWidth = 500;
+                                } else {
+                                  rightPanelWidth = 450;
+                                }
 
-                              // Vertical Divider
-                              VerticalDivider(
-                                  width: 1,
-                                  thickness: 1,
-                                  color: colorScheme.outlineVariant),
+                                return Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    // LEFT PANEL (Fluid)
+                                    Expanded(
+                                      child: Column(
+                                        children: [
+                                          // Item Search
+                                          Padding(
+                                            padding: const EdgeInsets.all(
+                                                DesktopDimensions.spacingMedium),
+                                            child: Focus(
+                                              onFocusChange: (hasFocus) {
+                                                if (hasFocus) {
+                                                  _productSearchFocusNode
+                                                      .requestFocus();
+                                                }
+                                              },
+                                              child: TextField(
+                                                controller:
+                                                    productSearchController,
+                                                focusNode:
+                                                    _productSearchFocusNode,
+                                                decoration: InputDecoration(
+                                                  hintText: loc.searchItemHint,
+                                                  isDense: true,
+                                                  prefixIcon: Icon(Icons.search,
+                                                      color: colorScheme
+                                                          .onSurfaceVariant),
+                                                  border: OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              DesktopDimensions
+                                                                  .cardBorderRadius)),
+                                                  filled: true,
+                                                  fillColor: colorScheme
+                                                      .surfaceVariant
+                                                      .withOpacity(0.5),
+                                                  contentPadding:
+                                                      const EdgeInsets
+                                                          .symmetric(
+                                                          vertical: 14,
+                                                          horizontal: 12),
+                                                ),
+                                                onChanged: _filterProducts,
+                                                onTap: () {
+                                                  if (productSearchController
+                                                      .text.isNotEmpty) {
+                                                    _filterProducts(
+                                                        productSearchController
+                                                            .text);
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          ),
 
-                              // RIGHT PANEL (Fixed Width)
-                              SizedBox(
-                                width: rightPanelWidth,
-                                child: Container(
-                                  color: colorScheme.surface,
-                                  child: Column(
-                                    children: [
-                                      // Customer Section
-                                      _buildCustomerSection(loc, colorScheme),
-                                      Divider(
-                                          height: 1,
-                                          color: colorScheme.outlineVariant),
+                                          // Product Grid
+                                          Expanded(
+                                            child: LayoutBuilder(
+                                              builder: (context,
+                                                  gridConstraints) {
+                                                int crossAxisCount =
+                                                    (gridConstraints.maxWidth /
+                                                            180)
+                                                        .floor();
+                                                crossAxisCount =
+                                                    crossAxisCount.clamp(4, 8);
 
-                                      // Cart Header
-                                      Container(
-                                        height: 32,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12),
-                                        color: colorScheme.surfaceVariant
-                                            .withOpacity(0.5),
-                                        child: Row(
+                                                return GridView.builder(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                          horizontal:
+                                                              DesktopDimensions
+                                                                  .spacingMedium,
+                                                          vertical: AppDimensions
+                                                              .spacingSmall),
+                                                  gridDelegate:
+                                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                                    crossAxisCount:
+                                                        crossAxisCount,
+                                                    childAspectRatio: 16 / 9,
+                                                    crossAxisSpacing:
+                                                        DesktopDimensions
+                                                            .spacingStandard,
+                                                    mainAxisSpacing:
+                                                        DesktopDimensions
+                                                            .spacingStandard,
+                                                  ),
+                                                  itemCount:
+                                                      filteredProducts.length,
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    final product =
+                                                        filteredProducts[index];
+                                                    return Focus(
+                                                      child: Builder(
+                                                          builder: (context) {
+                                                        return _buildProductCard(
+                                                            product,
+                                                            colorScheme,
+                                                            Focus.of(context)
+                                                                .hasFocus);
+                                                      }),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ),
+
+                                          // Recent Sales
+                                          _buildRecentSalesSection(
+                                              loc, colorScheme),
+                                        ],
+                                      ),
+                                    ),
+
+                                    // Vertical Divider
+                                    VerticalDivider(
+                                        width: 1,
+                                        thickness: 1,
+                                        color: colorScheme.outlineVariant),
+
+                                    // RIGHT PANEL (Fixed Width)
+                                    SizedBox(
+                                      width: rightPanelWidth,
+                                      child: Container(
+                                        color: colorScheme.surface,
+                                        child: Column(
                                           children: [
+                                            // Customer Section
+                                            _buildCustomerSection(
+                                                loc, colorScheme),
+                                            Divider(
+                                                height: 1,
+                                                color:
+                                                    colorScheme.outlineVariant),
+
+                                            // Cart Header
+                                            Container(
+                                              height: 32,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal:
+                                                          DesktopDimensions
+                                                              .spacingMedium),
+                                              color: colorScheme.surfaceVariant
+                                                  .withOpacity(0.5),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                      flex: 4,
+                                                      child: Text('Item',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 12,
+                                                              color: colorScheme
+                                                                  .onSurfaceVariant))),
+                                                  SizedBox(
+                                                      width: 70,
+                                                      child: Text(loc.price,
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 12,
+                                                              color: colorScheme
+                                                                  .onSurfaceVariant))),
+                                                  const SizedBox(
+                                                      width: AppDimensions
+                                                          .spacingMedium),
+                                                  SizedBox(
+                                                      width: 60,
+                                                      child: Text(loc.qty,
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 12,
+                                                              color: colorScheme
+                                                                  .onSurfaceVariant))),
+                                                  const SizedBox(
+                                                      width: AppDimensions
+                                                          .spacingMedium),
+                                                  SizedBox(
+                                                      width: 70,
+                                                      child: Text('Total',
+                                                          textAlign:
+                                                              TextAlign.end,
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 12,
+                                                              color: colorScheme
+                                                                  .onSurfaceVariant))),
+                                                  const SizedBox(width: 32),
+                                                ],
+                                              ),
+                                            ),
+                                            Divider(
+                                                height: 1,
+                                                color:
+                                                    colorScheme.outlineVariant),
+
+                                            // Cart Items
                                             Expanded(
-                                                flex: 4,
-                                                child: Text('Item',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 12,
-                                                        color: colorScheme
-                                                            .onSurfaceVariant))),
-                                            SizedBox(
-                                                width: 70,
-                                                child: Text(loc.price,
-                                                    textAlign: TextAlign.center,
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 12,
-                                                        color: colorScheme
-                                                            .onSurfaceVariant))),
-                                            const SizedBox(width: 8),
-                                            SizedBox(
-                                                width: 60,
-                                                child: Text(loc.qty,
-                                                    textAlign: TextAlign.center,
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 12,
-                                                        color: colorScheme
-                                                            .onSurfaceVariant))),
-                                            const SizedBox(width: 8),
-                                            SizedBox(
-                                                width: 70,
-                                                child: Text('Total',
-                                                    textAlign: TextAlign.end,
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 12,
-                                                        color: colorScheme
-                                                            .onSurfaceVariant))),
-                                            const SizedBox(width: 32),
+                                              child: cartItems.isEmpty
+                                                  ? Center(
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(
+                                                              Icons
+                                                                  .shopping_cart_outlined,
+                                                              size: 64,
+                                                              color: colorScheme
+                                                                  .outline
+                                                                  .withOpacity(
+                                                                      0.5)),
+                                                          const SizedBox(
+                                                              height: DesktopDimensions
+                                                                  .spacingMedium),
+                                                          Text(loc.cartEmpty,
+                                                              style: TextStyle(
+                                                                  color: colorScheme
+                                                                      .onSurfaceVariant,
+                                                                  fontSize:
+                                                                      DesktopDimensions
+                                                                          .bodySize)),
+                                                        ],
+                                                      ),
+                                                    )
+                                                  : ListView.separated(
+                                                      itemCount:
+                                                          cartItems.length,
+                                                      separatorBuilder: (c,
+                                                              i) =>
+                                                          const Divider(
+                                                              height: 1,
+                                                              thickness: 0.5),
+                                                      itemBuilder:
+                                                          (context, index) {
+                                                        final item =
+                                                            cartItems[index];
+                                                        return _CartItemRow(
+                                                          item: item,
+                                                          index: index,
+                                                          isRTL: isRTL,
+                                                          colorScheme:
+                                                              colorScheme,
+                                                          onRemove:
+                                                              _removeCartItem,
+                                                          onUpdate:
+                                                              _updateCartItem,
+                                                        );
+                                                      },
+                                                    ),
+                                            ),
+
+                                            Divider(
+                                                height: 1,
+                                                color:
+                                                    colorScheme.outlineVariant),
+
+                                            // Totals Section
+                                            _buildTotalsSection(
+                                                loc, colorScheme),
                                           ],
                                         ),
                                       ),
-                                      Divider(
-                                          height: 1,
-                                          color: colorScheme.outlineVariant),
-
-                                      // Cart Items
-                                      Expanded(
-                                        child: cartItems.isEmpty
-                                            ? Center(
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(
-                                                        Icons
-                                                            .shopping_cart_outlined,
-                                                        size: 64,
-                                                        color: colorScheme
-                                                            .outline
-                                                            .withOpacity(0.5)),
-                                                    const SizedBox(height: 16),
-                                                    Text(loc.cartEmpty,
-                                                        style: TextStyle(
-                                                            color: colorScheme
-                                                                .onSurfaceVariant,
-                                                            fontSize: 16)),
-                                                  ],
-                                                ),
-                                              )
-                                            : ListView.separated(
-                                                itemCount: cartItems.length,
-                                                separatorBuilder: (c, i) =>
-                                                    const Divider(
-                                                        height: 1,
-                                                        thickness: 0.5),
-                                                itemBuilder: (context, index) {
-                                                  final item = cartItems[index];
-                                                  return _CartItemRow(
-                                                    item: item,
-                                                    index: index,
-                                                    isRTL: isRTL,
-                                                    colorScheme: colorScheme,
-                                                    onRemove: _removeCartItem,
-                                                    onUpdate: _updateCartItem,
-                                                  );
-                                                },
-                                              ),
-                                      ),
-
-                                      Divider(
-                                          height: 1,
-                                          color: colorScheme.outlineVariant),
-
-                                      // Totals Section
-                                      _buildTotalsSection(loc, colorScheme),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    if (state.status == SalesStatus.loading)
-                      _buildLoadingOverlay(loc, colorScheme),
-                  ],
+                      if (state.status == SalesStatus.loading)
+                        _buildLoadingOverlay(loc, colorScheme),
+                    ],
+                  ),
                 );
               },
             ),

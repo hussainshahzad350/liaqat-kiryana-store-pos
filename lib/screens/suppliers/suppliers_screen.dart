@@ -9,6 +9,11 @@ import '../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart'; // Keep for PdfColor
 import '../../services/ledger_export_service.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/main_layout.dart';
+import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_dimensions.dart';
+import '../../core/routes/app_routes.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -536,204 +541,284 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text(loc.suppliersManagement, style: TextStyle(color: colorScheme.onPrimary)),
-        backgroundColor: colorScheme.primary,
-        iconTheme: IconThemeData(color: colorScheme.onPrimary),
-      ),
-      body: Stack(
+    return MainLayout(
+      currentRoute: AppRoutes.suppliers,
+      child: Stack(
         children: [
           Column(
             children: [
-              // KPI Card
+              AppHeader(
+                title: loc.suppliersManagement,
+                icon: Icons.business,
+                actions: [
+                  ElevatedButton.icon(
+                    onPressed: () => _showSupplierDialog(),
+                    icon: const Icon(Icons.add),
+                    label: Text(loc.addSupplier),
+                  ),
+                ],
+              ),
               _buildDashboard(loc),
-
-              // Search Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesktopDimensions.spacingMedium,
+                    vertical: AppDimensions.spacingMedium),
                 child: TextField(
                   controller: searchController,
                   onChanged: (val) => _firstLoad(),
-                  style: TextStyle(color: colorScheme.onSurface, fontSize: 14),
+                  style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize: DesktopDimensions.bodySize),
                   decoration: InputDecoration(
                     hintText: loc.search,
                     hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                    prefixIcon: Icon(Icons.search, size: 20, color: colorScheme.onSurfaceVariant),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
-                    filled: true, fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                    prefixIcon: Icon(Icons.search,
+                        size: 20, color: colorScheme.onSurfaceVariant),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius),
+                        borderSide: BorderSide(color: colorScheme.outline)),
+                    filled: true,
+                    fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                     isDense: true,
                   ),
                 ),
               ),
-              
-              // List
               Expanded(
                 child: _isFirstLoadRunning
-                  ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
-                  : suppliers.isEmpty
-                      ? Center(child: Text(loc.noSuppliersFound, style: TextStyle(color: colorScheme.onSurface)))
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: EdgeInsets.zero,
-                          itemCount: suppliers.length + (_isLoadMoreRunning ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index == suppliers.length) {
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(child: CircularProgressIndicator(color: colorScheme.primary)),
-                              );
-                            }
-                            final supplier = suppliers[index];
-                            final isSelected = _selectedSupplierForLedger?.id == supplier.id;
-                            return _buildSupplierRow(supplier, colorScheme, loc, isSelected);
-                          },
-                        ),
+                    ? Center(
+                        child:
+                            CircularProgressIndicator(color: colorScheme.primary))
+                    : suppliers.isEmpty
+                        ? Center(
+                            child: Text(loc.noSuppliersFound,
+                                style: TextStyle(color: colorScheme.onSurface)))
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: EdgeInsets.zero,
+                            itemCount:
+                                suppliers.length + (_isLoadMoreRunning ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index == suppliers.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(
+                                      AppDimensions.spacingMedium),
+                                  child: Center(
+                                      child: CircularProgressIndicator(
+                                          color: colorScheme.primary)),
+                                );
+                              }
+                              final supplier = suppliers[index];
+                              final isSelected =
+                                  _selectedSupplierForLedger?.id == supplier.id;
+                              return _buildSupplierRow(
+                                  supplier, colorScheme, loc, isSelected);
+                            },
+                          ),
               ),
             ],
           ),
-          
-          // Overlays
           if (_showArchiveOverlay) _buildArchiveOverlay(loc),
           if (_selectedSupplierForLedger != null) _buildLedgerOverlay(loc),
         ],
-      ),
-      
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showSupplierDialog(),
-        backgroundColor: colorScheme.primary,
-        child: Icon(Icons.add, color: colorScheme.onPrimary),
       ),
     );
   }
 
   Widget _buildDashboard(AppLocalizations loc) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingMedium,
+          vertical: AppDimensions.spacingMedium),
       height: 115,
       child: Row(
         children: [
           Expanded(child: _buildKpiCard("Total", countTotal, balTotal, null)),
-          const SizedBox(width: 8),
-          Expanded(child: _buildKpiCard("Active", countActive, balActive, null)),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppDimensions.spacingMedium),
+          Expanded(child: _buildKpiCard("Active", countActive, balTotal, null)),
+          const SizedBox(width: AppDimensions.spacingMedium),
           Expanded(
-            child: _buildKpiCard("Archived", countArchived, balArchived, () { 
-               setState(() {
-                 _showArchiveOverlay = true;
-                 _loadArchivedSuppliers();
-               });
-            }, isOrange: true), 
+            child: _buildKpiCard("Archived", countArchived, balArchived, () {
+              setState(() {
+                _showArchiveOverlay = true;
+                _loadArchivedSuppliers();
+              });
+            }, isOrange: true),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildKpiCard(String title, int count, int amount, VoidCallback? onTap, {bool isOrange = false}) {
+  Widget _buildKpiCard(String title, int count, int amount, VoidCallback? onTap,
+      {bool isOrange = false}) {
     final colorScheme = Theme.of(context).colorScheme;
-    final containerColor = isOrange ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
-    final contentColor = isOrange ? colorScheme.onTertiaryContainer : colorScheme.onPrimaryContainer;
+    final containerColor =
+        isOrange ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
+    final contentColor = isOrange
+        ? colorScheme.onTertiaryContainer
+        : colorScheme.onPrimaryContainer;
 
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: containerColor, borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+        decoration: BoxDecoration(
+            color: containerColor,
+            borderRadius:
+                BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: TextStyle(color: contentColor, fontWeight: FontWeight.bold)),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Icon(Icons.business, color: contentColor), Text("$count", style: TextStyle(color: contentColor, fontSize: 18, fontWeight: FontWeight.bold))]),
-            Text(Money(amount).formattedNoDecimal, style: TextStyle(color: contentColor, fontSize: 12, fontWeight: FontWeight.bold)),
+            Text(title,
+                style: TextStyle(
+                    color: contentColor, fontWeight: FontWeight.bold)),
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(Icons.business, color: contentColor),
+                  Text("$count",
+                      style: TextStyle(
+                          color: contentColor,
+                          fontSize: DesktopDimensions.headingSize,
+                          fontWeight: FontWeight.bold))
+                ]),
+            Text(Money(amount).formattedNoDecimal,
+                style: TextStyle(
+                    color: contentColor,
+                    fontSize: DesktopDimensions.bodySize,
+                    fontWeight: FontWeight.bold)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSupplierRow(Supplier supplier, ColorScheme colorScheme, AppLocalizations loc, bool isSelected) {
+  Widget _buildSupplierRow(
+      Supplier supplier, ColorScheme colorScheme, AppLocalizations loc, bool isSelected) {
     return Container(
-        decoration: BoxDecoration(
-          color: isSelected ? colorScheme.primaryContainer.withOpacity(0.2) : null,
-          border: Border(bottom: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5))),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: colorScheme.primaryContainer,
-              child: Icon(Icons.business, size: 16, color: colorScheme.onPrimaryContainer),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    supplier.nameUrdu ?? supplier.nameEnglish,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colorScheme.onSurface),
-                    maxLines: 1, overflow: TextOverflow.ellipsis,
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        supplier.contactPrimary ?? '-', 
-                        style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)
-                      ),
-                      if (supplier.supplierType != null && supplier.supplierType!.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: colorScheme.secondaryContainer,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(supplier.supplierType!, style: TextStyle(fontSize: 10, color: colorScheme.onSecondaryContainer)),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+      decoration: BoxDecoration(
+        color: isSelected ? colorScheme.primaryContainer.withOpacity(0.2) : null,
+        border: Border(
+            bottom:
+                BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5))),
+      ),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingStandard,
+          vertical: AppDimensions.spacingMedium),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: colorScheme.primaryContainer,
+            child: Icon(Icons.business,
+                size: 16, color: colorScheme.onPrimaryContainer),
+          ),
+          const SizedBox(width: DesktopDimensions.spacingStandard),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  Money(supplier.outstandingBalance).formattedNoDecimal,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colorScheme.primary),
+                  supplier.nameUrdu ?? supplier.nameEnglish,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: DesktopDimensions.bodySize,
+                      color: colorScheme.onSurface),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(loc.balance, style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
+                Row(
+                  children: [
+                    Text(supplier.contactPrimary ?? '-',
+                        style: TextStyle(
+                            fontSize: DesktopDimensions.captionSize,
+                            color: colorScheme.onSurfaceVariant)),
+                    if (supplier.supplierType != null &&
+                        supplier.supplierType!.isNotEmpty) ...[
+                      const SizedBox(width: AppDimensions.spacingMedium),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppDimensions.spacingSmall,
+                            vertical: AppDimensions.spacingSmall),
+                        decoration: BoxDecoration(
+                          color: colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(
+                              AppDimensions.spacingSmall),
+                        ),
+                        child: Text(supplier.supplierType!,
+                            style: TextStyle(
+                                fontSize: DesktopDimensions.captionSize,
+                                color: colorScheme.onSecondaryContainer)),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
-          const SizedBox(width: 8),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                Money(supplier.outstandingBalance).formattedNoDecimal,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: DesktopDimensions.bodySize,
+                    color: colorScheme.primary),
+              ),
+              Text(loc.balance,
+                  style: TextStyle(
+                      fontSize: DesktopDimensions.captionSize,
+                      color: colorScheme.onSurfaceVariant)),
+            ],
+          ),
+          const SizedBox(width: AppDimensions.spacingMedium),
           IconButton(
             icon: Icon(Icons.receipt_long, color: colorScheme.primary),
             tooltip: "View Ledger",
             onPressed: () => _openLedger(supplier),
           ),
-            PopupMenuButton<String>(
-              icon: Icon(Icons.more_vert, size: 18, color: colorScheme.onSurfaceVariant),
-              padding: EdgeInsets.zero,
-              onSelected: (value) {
-                if (value == 'edit') _showSupplierDialog(supplier: supplier);
-                if (value == 'archive') _toggleArchiveStatus(supplier.id!, true);
-                if (value == 'delete') _deleteSupplier(supplier.id!, supplier.outstandingBalance);
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16, color: colorScheme.secondary), const SizedBox(width: 8), Text(loc.editSupplier)])),
-                PopupMenuItem(value: 'archive', child: Row(children: [Icon(Icons.archive, size: 16, color: colorScheme.onSurface), const SizedBox(width: 8), Text(loc.archiveAction)])),
-                PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 16, color: colorScheme.error), const SizedBox(width: 8), Text(loc.delete, style: TextStyle(color: colorScheme.error))])),
-              ],
-            ),
-          ],
-        ),
-      );
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert,
+                size: 18, color: colorScheme.onSurfaceVariant),
+            padding: EdgeInsets.zero,
+            onSelected: (value) {
+              if (value == 'edit') _showSupplierDialog(supplier: supplier);
+              if (value == 'archive') _toggleArchiveStatus(supplier.id!, true);
+              if (value == 'delete')
+                _deleteSupplier(supplier.id!, supplier.outstandingBalance);
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                  value: 'edit',
+                  child: Row(children: [
+                    Icon(Icons.edit, size: 16, color: colorScheme.secondary),
+                    const SizedBox(width: 8),
+                    Text(loc.editSupplier)
+                  ])),
+              PopupMenuItem(
+                  value: 'archive',
+                  child: Row(children: [
+                    Icon(Icons.archive, size: 16, color: colorScheme.onSurface),
+                    const SizedBox(width: 8),
+                    Text(loc.archiveAction)
+                  ])),
+              PopupMenuItem(
+                  value: 'delete',
+                  child: Row(children: [
+                    Icon(Icons.delete, size: 16, color: colorScheme.error),
+                    const SizedBox(width: 8),
+                    Text(loc.delete, style: TextStyle(color: colorScheme.error))
+                  ])),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildLedgerOverlay(AppLocalizations loc) {
