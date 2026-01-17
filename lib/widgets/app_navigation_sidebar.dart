@@ -1,34 +1,32 @@
 // lib/widgets/app_navigation_sidebar.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../core/routes/app_routes.dart';
+import '../core/providers/sidebar_provider.dart';
+import '../core/res/app_dimensions.dart';
 
-class AppNavigationSidebar extends StatefulWidget {
+class AppNavigationSidebar extends StatelessWidget {
   final String currentRoute;
-  final bool isExpanded;
-  final VoidCallback onToggle;
 
   const AppNavigationSidebar({
     super.key,
     required this.currentRoute,
-    this.isExpanded = true,
-    required this.onToggle,
   });
 
   @override
-  State<AppNavigationSidebar> createState() => _AppNavigationSidebarState();
-}
-
-class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
-  @override
   Widget build(BuildContext context) {
+    final sidebarProvider = Provider.of<SidebarProvider>(context);
+    final isExpanded = sidebarProvider.isSidebarExpanded;
     final localizations = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: widget.isExpanded ? 240 : 70,
+      duration: const Duration(milliseconds: 250),
+      width: isExpanded
+          ? AppDimensions.sidebarExpandedWidth
+          : AppDimensions.sidebarCollapsedWidth,
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: BorderDirectional(
@@ -48,102 +46,100 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
       child: ClipRect(
         child: Column(
           children: [
-            // Logo Section
-            _buildSidebarHeader(localizations),
-            
-            // Menu Items
+            _buildSidebarHeader(context, isExpanded, localizations),
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
                 physics: const ClampingScrollPhysics(),
                 children: [
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.dashboard,
                     title: localizations.home,
                     route: AppRoutes.home,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.shopping_cart,
                     title: localizations.salesPos,
                     route: AppRoutes.sales,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.warehouse,
                     title: localizations.stockManagement,
                     route: AppRoutes.stock,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.inventory,
                     title: localizations.items,
                     route: AppRoutes.items,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.people,
                     title: localizations.customers,
                     route: AppRoutes.customers,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.business,
                     title: localizations.suppliers,
                     route: AppRoutes.suppliers,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.category,
                     title: localizations.categories,
                     route: AppRoutes.categories,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.square_foot,
                     title: localizations.units,
                     route: AppRoutes.units,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.analytics,
                     title: localizations.reports,
                     route: AppRoutes.reports,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.attach_money,
                     title: localizations.cashLedger,
                     route: AppRoutes.cashLedger,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.settings,
                     title: localizations.settings,
                     route: AppRoutes.settings,
-
                   ),
-                  
                   const Divider(height: 1),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.info,
                     title: localizations.aboutApp,
                     route: AppRoutes.about,
-
                   ),
-                  
                   _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.logout,
                     title: localizations.logout,
                     route: '/logout',
@@ -155,20 +151,19 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                 ],
               ),
             ),
-            
-            // Footer
-            _buildSidebarFooter(localizations),
+            _buildSidebarFooter(context, isExpanded, localizations),
           ],
         ),
       ),
     );
   }
-  
-  Widget _buildSidebarHeader(AppLocalizations localizations) {
+
+  Widget _buildSidebarHeader(
+      BuildContext context, bool isExpanded, AppLocalizations localizations) {
     final colorScheme = Theme.of(context).colorScheme;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      height: 100,
+      duration: const Duration(milliseconds: 250),
+      height: AppDimensions.sidebarHeaderHeight,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -183,8 +178,8 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: widget.isExpanded ? 55 : 35,
-            height: widget.isExpanded ? 55 : 35,
+            width: isExpanded ? 55 : 35,
+            height: isExpanded ? 55 : 35,
             decoration: BoxDecoration(
               color: colorScheme.surface,
               shape: BoxShape.circle,
@@ -198,19 +193,19 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
             ),
             child: Icon(
               Icons.store,
-              size: widget.isExpanded ? 28 : 20,
+              size: isExpanded ? 28 : 20,
               color: colorScheme.primary,
             ),
           ),
-          
-          if (widget.isExpanded) ...[
+          if (isExpanded) ...[
             const SizedBox(height: 6),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.spacingMedium),
               child: Text(
                 localizations.appTitle,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AppDimensions.menuItemFontSize,
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimary,
                 ),
@@ -224,48 +219,56 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
       ),
     );
   }
-  
-  Widget _buildMenuItem({
+
+  Widget _buildMenuItem(
+    BuildContext context, {
+    required bool isExpanded,
     required IconData icon,
     required String title,
     required String route,
     Color? color,
     VoidCallback? onTap,
   }) {
-    final isActive = widget.currentRoute == route;
+    final isActive = currentRoute == route;
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return InkWell(
-      onTap: onTap ?? () {
-        if (!isActive) {
-          Navigator.pushReplacementNamed(context, route);
-        }
-      },
+      onTap: onTap ??
+          () {
+            if (!isActive) {
+              Navigator.pushReplacementNamed(context, route);
+            }
+          },
       child: Container(
-        height: 40,
-        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        height: AppDimensions.menuItemHeight,
+        margin: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.spacingSmall,
+            vertical: AppDimensions.spacingSmall),
         decoration: BoxDecoration(
-          color: isActive ? colorScheme.primaryContainer : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          color: isActive
+              ? colorScheme.primary.withOpacity(0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppDimensions.spacingMedium),
           border: isActive
-              ? Border.all(color: colorScheme.primary, width: 1.5)
+              ? Border.all(color: colorScheme.primary, width: 1)
               : null,
         ),
         child: Row(
-          mainAxisAlignment: widget.isExpanded 
-              ? MainAxisAlignment.start 
-              : MainAxisAlignment.center,
+          mainAxisAlignment:
+              isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
           children: [
             Padding(
-              padding: EdgeInsets.only(left: widget.isExpanded ? 12.0 : 0),
+              padding: EdgeInsets.only(left: isExpanded ? 12.0 : 0),
               child: Icon(
                 icon,
-                size: 22,
-                color: color ?? (isActive ? colorScheme.primary : colorScheme.onSurfaceVariant),
+                size: AppDimensions.menuItemIconSize,
+                color: color ??
+                    (isActive
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant),
               ),
             ),
-            
-            if (widget.isExpanded) ...[
+            if (isExpanded) ...[
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -273,9 +276,12 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AppDimensions.menuItemFontSize,
                     fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                    color: color ?? (isActive ? colorScheme.onPrimaryContainer : colorScheme.onSurface),
+                    color: color ??
+                        (isActive
+                            ? colorScheme.primary
+                            : colorScheme.onSurface),
                   ),
                 ),
               ),
@@ -285,9 +291,12 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
       ),
     );
   }
-  
-  Widget _buildSidebarFooter(AppLocalizations localizations) {
+
+  Widget _buildSidebarFooter(
+      BuildContext context, bool isExpanded, AppLocalizations localizations) {
     final colorScheme = Theme.of(context).colorScheme;
+    final sidebarProvider = Provider.of<SidebarProvider>(context, listen: false);
+
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surfaceVariant,
@@ -298,10 +307,12 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.isExpanded) ...[
+          if (isExpanded) ...[
             Container(
               constraints: const BoxConstraints(maxHeight: 40),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.spacingMedium,
+                  vertical: AppDimensions.spacingSmall),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -317,7 +328,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: AppDimensions.spacingSmall),
                       Flexible(
                         child: Text(
                           localizations.systemOnline,
@@ -344,13 +355,12 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
               ),
             ),
           ],
-          
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: widget.onToggle,
+              onTap: () => sidebarProvider.toggleSidebar(),
               child: Container(
-                height: 50,
+                height: AppDimensions.sidebarFooterHeight,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   border: Border(
@@ -358,9 +368,7 @@ class _AppNavigationSidebarState extends State<AppNavigationSidebar> {
                   ),
                 ),
                 child: Icon(
-                  widget.isExpanded 
-                      ? Icons.chevron_left 
-                      : Icons.chevron_right,
+                  isExpanded ? Icons.chevron_left : Icons.chevron_right,
                   size: 20,
                   color: colorScheme.onSurfaceVariant,
                 ),

@@ -6,6 +6,7 @@ import 'package:liaqat_store/core/repositories/categories_repository.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'core/providers/sidebar_provider.dart';
 import 'bloc/sales/sales_bloc.dart';
 import 'bloc/stock/stock_bloc.dart';
 import 'bloc/stock/stock_event.dart';
@@ -76,8 +77,10 @@ void main() async {
   final String languageCode = initialPrefs['languageCode'] ?? 'en';
 
   runApp(
-    MultiRepositoryProvider(
+    MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => SidebarProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(settingsRepository)),
         RepositoryProvider(create: (context) => settingsRepository),
         RepositoryProvider(create: (context) => ItemsRepository()),
         RepositoryProvider(create: (context) => CustomersRepository()),
@@ -89,20 +92,7 @@ void main() async {
         RepositoryProvider(create: (context) => SuppliersRepository()),
         RepositoryProvider(create: (context) => CategoriesRepository()),
       ],
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (context) => StockBloc(
-              itemsRepository: context.read<ItemsRepository>(),
-            )..add(LoadStock()),
-          ),
-          // Add other global BLoCs here if needed
-        ],
-        child: ChangeNotifierProvider(
-          create: (_) => ThemeProvider(settingsRepository),
-          child: LiaqatStoreApp(initialLanguage: languageCode),
-        ),
-      ),
+      child: LiaqatStoreApp(initialLanguage: languageCode),
     ),
   );
 }
