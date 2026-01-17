@@ -10,6 +10,11 @@ import '../../models/invoice_item_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/customer_model.dart';
 import '../../domain/entities/money.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/main_layout.dart';
+import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_dimensions.dart';
+import '../../core/routes/app_routes.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -348,23 +353,29 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text(loc.customers, style: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold)),
-        backgroundColor: colorScheme.primary, 
-        iconTheme: IconThemeData(color: colorScheme.onPrimary),
-        elevation: 0,
-      ),
-      body: Stack(
+    return MainLayout(
+      currentRoute: AppRoutes.customers,
+      child: Stack(
         children: [
           // MAIN CONTENT
           Column(
             children: [
+              AppHeader(
+                title: loc.customers,
+                icon: Icons.people,
+                actions: [
+                  ElevatedButton.icon(
+                    onPressed: () => _showAddDialog(),
+                    icon: const Icon(Icons.add),
+                    label: Text(loc.addCustomer),
+                  ),
+                ],
+              ),
               _buildDashboard(loc),
-              
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesktopDimensions.spacingMedium,
+                    vertical: AppDimensions.spacingMedium),
                 child: TextField(
                   controller: searchController,
                   onChanged: (_) => _loadActiveCustomers(),
@@ -373,24 +384,38 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     hintText: loc.searchPlaceholder,
                     hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                     prefixIcon: Icon(Icons.search, color: colorScheme.primary),
-                    filled: true, fillColor: colorScheme.surfaceVariant,
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.outline, width: 1.5)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.primary, width: 2.5)),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                    filled: true,
+                    fillColor: colorScheme.surfaceVariant,
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius),
+                        borderSide:
+                            BorderSide(color: colorScheme.outline, width: 1.5)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius),
+                        borderSide: BorderSide(
+                            color: colorScheme.primary, width: 2.5)),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 15, vertical: 15),
                   ),
                 ),
               ),
-
               Expanded(
                 child: _isFirstLoadRunning
-                ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
-                : customers.isEmpty
-                  ? Center(child: Text(loc.noCustomersFound, style: TextStyle(color: colorScheme.onSurface)))
-                  : ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 80),
-                      itemCount: customers.length,
-                      itemBuilder: (context, index) => _buildCustomerCard(customers[index]),
-                    ),
+                    ? Center(
+                        child:
+                            CircularProgressIndicator(color: colorScheme.primary))
+                    : customers.isEmpty
+                        ? Center(
+                            child: Text(loc.noCustomersFound,
+                                style: TextStyle(color: colorScheme.onSurface)))
+                        : ListView.builder(
+                            padding: const EdgeInsets.only(bottom: 80),
+                            itemCount: customers.length,
+                            itemBuilder: (context, index) =>
+                                _buildCustomerCard(customers[index]),
+                          ),
               ),
             ],
           ),
@@ -400,52 +425,63 @@ class _CustomersScreenState extends State<CustomersScreen> {
           if (_showLedgerOverlay) _buildLedgerOverlay(loc),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: colorScheme.primary,
-        onPressed: () => _showAddDialog(),
-        child: Icon(Icons.add, color: colorScheme.onPrimary),
-      ),
     );
   }
 
   Widget _buildDashboard(AppLocalizations loc) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingMedium,
+          vertical: AppDimensions.spacingMedium),
       height: 115,
       child: Row(
         children: [
-          Expanded(child: _buildKpiCard(loc, loc.dashboardTotal, countTotal, Money(balTotal), null)),
-          const SizedBox(width: 8),
-          Expanded(child: _buildKpiCard(loc, loc.dashboardActive, countActive, Money(balActive), null)),
-          const SizedBox(width: 8),
           Expanded(
-            child: _buildKpiCard(loc, loc.dashboardArchived, countArchived, Money(balArchived), () { 
-               setState(() {
-                 _showArchiveOverlay = true;
-                 _loadArchivedCustomers();
-               });
-            }, isOrange: true), 
+              child: _buildKpiCard(
+                  loc, loc.dashboardTotal, countTotal, Money(balTotal), null)),
+          const SizedBox(width: AppDimensions.spacingMedium),
+          Expanded(
+              child: _buildKpiCard(loc, loc.dashboardActive, countActive,
+                  Money(balActive), null)),
+          const SizedBox(width: AppDimensions.spacingMedium),
+          Expanded(
+            child: _buildKpiCard(
+                loc, loc.dashboardArchived, countArchived, Money(balArchived),
+                () {
+              setState(() {
+                _showArchiveOverlay = true;
+                _loadArchivedCustomers();
+              });
+            }, isOrange: true),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildKpiCard(AppLocalizations loc, String title, int count, Money amount, VoidCallback? onTap, {bool isOrange = false}) {
+  Widget _buildKpiCard(AppLocalizations loc, String title, int count,
+      Money amount, VoidCallback? onTap,
+      {bool isOrange = false}) {
     final colorScheme = Theme.of(context).colorScheme;
-    
-    final containerColor = isOrange ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
-    final contentColor = isOrange ? colorScheme.onTertiaryContainer : colorScheme.onPrimaryContainer;
+
+    final containerColor =
+        isOrange ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
+    final contentColor = isOrange
+        ? colorScheme.onTertiaryContainer
+        : colorScheme.onPrimaryContainer;
     final borderColor = isOrange ? colorScheme.tertiary : colorScheme.primary;
 
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.spacingMedium,
+            vertical: AppDimensions.spacingMedium),
         decoration: BoxDecoration(
           color: containerColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor, width: 1.2), 
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+          border: Border.all(color: borderColor, width: 1.2),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -454,16 +490,25 @@ class _CustomersScreenState extends State<CustomersScreen> {
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text(title, style: TextStyle(color: contentColor, fontWeight: FontWeight.bold, fontSize: 13)),
+              child: Text(title,
+                  style: TextStyle(
+                      color: contentColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: DesktopDimensions.bodySize)),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(Icons.people, size: 18, color: contentColor), 
+                Icon(Icons.people,
+                    size: DesktopDimensions.headingSize, color: contentColor),
                 Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text("$count", style: TextStyle(color: contentColor, fontWeight: FontWeight.bold, fontSize: 18)),
+                    child: Text("$count",
+                        style: TextStyle(
+                            color: contentColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: DesktopDimensions.headingSize)),
                   ),
                 ),
               ],
@@ -471,7 +516,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text("${loc.balanceShort}: ${amount.toString()}", style: TextStyle(color: contentColor, fontSize: 12, fontWeight: FontWeight.w600)),
+              child: Text("${loc.balanceShort}: ${amount.toString()}",
+                  style: TextStyle(
+                      color: contentColor,
+                      fontSize: DesktopDimensions.bodySize,
+                      fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -483,69 +532,131 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final Money balance = Money(customer.outstandingBalance);
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
-    final String name = isUrdu 
-        ? (customer.nameUrdu != null && customer.nameUrdu!.isNotEmpty ? customer.nameUrdu! : customer.nameEnglish) 
+    final String name = isUrdu
+        ? (customer.nameUrdu != null && customer.nameUrdu!.isNotEmpty
+            ? customer.nameUrdu!
+            : customer.nameEnglish)
         : customer.nameEnglish;
     final String phone = customer.contactPrimary ?? '';
 
     return Card(
-      elevation: 2, 
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      elevation: DesktopDimensions.cardElevation,
+      margin: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingMedium,
+          vertical: AppDimensions.spacingSmall),
       color: colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: colorScheme.outlineVariant, width: 1)),
+      shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+          side: BorderSide(color: colorScheme.outlineVariant, width: 1)),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), 
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: DesktopDimensions.spacingStandard,
+            vertical: AppDimensions.spacingSmall),
         dense: true,
         leading: CircleAvatar(
           radius: 18,
           backgroundColor: colorScheme.primaryContainer,
-          child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?', style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold)),
+          child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
+              style: TextStyle(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold)),
         ),
-        title: Text(name, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: isUrdu ? 20 : 16, fontFamily: isUrdu ? 'NooriNastaleeq' : null)),
+        title: Text(name,
+            style: TextStyle(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+                fontSize: isUrdu ? 20 : DesktopDimensions.bodySize,
+                fontFamily: isUrdu ? 'NooriNastaleeq' : null)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(phone, style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13)),
+            Text(phone,
+                style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: DesktopDimensions.captionSize)),
             if (customer.creditLimit > 0)
-              Text("${AppLocalizations.of(context)!.creditLimit}: ${Money(customer.creditLimit)}", style: TextStyle(fontSize: 11, color: colorScheme.secondary)),
+              Text(
+                  "${AppLocalizations.of(context)!.creditLimit}: ${Money(customer.creditLimit)}",
+                  style: TextStyle(
+                      fontSize: DesktopDimensions.captionSize,
+                      color: colorScheme.secondary)),
           ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-             if (balance != const Money(0))
+            if (balance != const Money(0))
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                margin: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.spacingMedium),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimensions.spacingSmall,
+                    vertical: AppDimensions.spacingSmall),
                 decoration: BoxDecoration(
-                  color: balance > const Money(0) ? colorScheme.errorContainer : colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: balance > const Money(0) ? colorScheme.error : colorScheme.primary)
-                ),
-                child: Text(balance.toString(), style: TextStyle(color: balance > const Money(0) ? colorScheme.error : colorScheme.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+                    color: balance > const Money(0)
+                        ? colorScheme.errorContainer
+                        : colorScheme.primaryContainer,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.spacingSmall),
+                    border: Border.all(
+                        color: balance > const Money(0)
+                            ? colorScheme.error
+                            : colorScheme.primary)),
+                child: Text(balance.toString(),
+                    style: TextStyle(
+                        color: balance > const Money(0)
+                            ? colorScheme.error
+                            : colorScheme.primary,
+                        fontSize: DesktopDimensions.captionSize,
+                        fontWeight: FontWeight.bold)),
               ),
-            
             if (!isOverlay)
-            IconButton(
-              icon: Icon(Icons.receipt_long, color: colorScheme.primary),
-              tooltip: "View Ledger",
-              onPressed: () => _openLedger(customer),
-            ),
-
+              IconButton(
+                icon: Icon(Icons.receipt_long, color: colorScheme.primary),
+                tooltip: "View Ledger",
+                onPressed: () => _openLedger(customer),
+              ),
             if (isOverlay)
-              IconButton(icon: Icon(Icons.unarchive, color: colorScheme.primary), onPressed: () => _toggleArchiveStatus(customer.id!, false))
+              IconButton(
+                  icon: Icon(Icons.unarchive, color: colorScheme.primary),
+                  onPressed: () => _toggleArchiveStatus(customer.id!, false))
             else
               PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert, color: colorScheme.onSurface), 
+                icon: Icon(Icons.more_vert, color: colorScheme.onSurface),
                 onSelected: (value) {
                   if (value == 'edit') _showAddDialog(customer: customer);
                   if (value == 'archive') _toggleArchiveStatus(customer.id!, true);
-                  if (value == 'delete') _deleteCustomer(customer.id!, balance as int);
+                  if (value == 'delete')
+                    _deleteCustomer(customer.id!, balance as int);
                 },
                 itemBuilder: (context) => [
-                   PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 18, color: colorScheme.onSurface), const SizedBox(width: 8), Text('Edit', style: TextStyle(color: colorScheme.onSurface))])),
-                   PopupMenuItem(value: 'archive', child: Row(children: [Icon(Icons.archive, size: 18, color: colorScheme.onSurface), const SizedBox(width: 8), Text('Archive', style: TextStyle(color: colorScheme.onSurface))])),
-                   PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 18, color: colorScheme.error), const SizedBox(width: 8), Text('Delete', style: TextStyle(color: colorScheme.error))])),
+                  PopupMenuItem(
+                      value: 'edit',
+                      child: Row(children: [
+                        Icon(Icons.edit,
+                            size: 18, color: colorScheme.onSurface),
+                        const SizedBox(width: 8),
+                        Text('Edit',
+                            style: TextStyle(color: colorScheme.onSurface))
+                      ])),
+                  PopupMenuItem(
+                      value: 'archive',
+                      child: Row(children: [
+                        Icon(Icons.archive,
+                            size: 18, color: colorScheme.onSurface),
+                        const SizedBox(width: 8),
+                        Text('Archive',
+                            style: TextStyle(color: colorScheme.onSurface))
+                      ])),
+                  PopupMenuItem(
+                      value: 'delete',
+                      child: Row(children: [
+                        Icon(Icons.delete, size: 18, color: colorScheme.error),
+                        const SizedBox(width: 8),
+                        Text('Delete',
+                            style: TextStyle(color: colorScheme.error))
+                      ])),
                 ],
               ),
           ],
@@ -858,31 +969,47 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
     return Stack(
       children: [
-        GestureDetector(onTap: () => setState(() => _showArchiveOverlay = false), child: Container(color: colorScheme.shadow.withOpacity(0.5))),
+        GestureDetector(
+            onTap: () => setState(() => _showArchiveOverlay = false),
+            child: Container(color: colorScheme.shadow.withOpacity(0.5))),
         Center(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             height: MediaQuery.of(context).size.height * 0.7,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: colorScheme.outline, width: 2), 
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+              border: Border.all(color: colorScheme.outline, width: 2),
             ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(loc.archivedCustomers, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                    IconButton(icon: Icon(Icons.close, color: colorScheme.onSurface), onPressed: () => setState(() => _showArchiveOverlay = false))
+                    Text(loc.archivedCustomers,
+                        style: TextStyle(
+                            fontSize: DesktopDimensions.appTitleSize,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface)),
+                    IconButton(
+                        icon: Icon(Icons.close, color: colorScheme.onSurface),
+                        onPressed: () =>
+                            setState(() => _showArchiveOverlay = false))
                   ],
                 ),
                 Divider(color: colorScheme.primary),
                 Expanded(
                   child: archivedCustomers.isEmpty
-                      ? Center(child: Text(loc.noCustomersFound, style: TextStyle(color: colorScheme.onSurface)))
-                      : ListView.builder(itemCount: archivedCustomers.length, itemBuilder: (context, index) => _buildCustomerCard(archivedCustomers[index], isOverlay: true)),
+                      ? Center(
+                          child: Text(loc.noCustomersFound,
+                              style: TextStyle(color: colorScheme.onSurface)))
+                      : ListView.builder(
+                          itemCount: archivedCustomers.length,
+                          itemBuilder: (context, index) => _buildCustomerCard(
+                              archivedCustomers[index],
+                              isOverlay: true)),
                 ),
               ],
             ),

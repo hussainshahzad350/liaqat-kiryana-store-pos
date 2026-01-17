@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/category_models.dart';
 import '../../core/repositories/categories_repository.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/main_layout.dart';
+import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_dimensions.dart';
+import '../../core/routes/app_routes.dart';
 
 // ==========================================
 // SCREEN IMPLEMENTATION
@@ -394,33 +399,57 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: Column(
+    return MainLayout(
+      currentRoute: AppRoutes.categories,
+      child: Column(
         children: [
-          // 1. Header / Toolbar
-          _buildHeader(loc, colorScheme),
-          
-          // 2. Main Content (3-Pane Layout)
+          AppHeader(
+            title: loc.categories,
+            icon: Icons.category_outlined,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: 'Search departments, categories...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _onSearchChanged('');
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                  borderSide: BorderSide(color: colorScheme.outline),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: DesktopDimensions.spacingStandard,
+                    vertical: AppDimensions.spacingMedium),
+                isDense: true,
+              ),
+            ),
+          ),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // PANE 1: Departments
                 SizedBox(
                   width: 250,
                   child: _buildDepartmentsPane(loc, colorScheme),
                 ),
                 VerticalDivider(width: 1, color: colorScheme.outlineVariant),
-
-                // PANE 2: Taxonomy Tree (Categories & Subcategories)
                 Expanded(
                   flex: 3,
                   child: _buildTaxonomyPane(loc, colorScheme),
                 ),
                 VerticalDivider(width: 1, color: colorScheme.outlineVariant),
-
-                // PANE 3: Details & Management
                 Expanded(
                   flex: 2,
                   child: _buildDetailsPane(loc, colorScheme),
@@ -434,78 +463,21 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   // ==========================================
-  // WIDGETS: HEADER
-  // ==========================================
-
-  Widget _buildHeader(AppLocalizations loc, ColorScheme colorScheme) {
-    return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.category_outlined, color: colorScheme.primary),
-          const SizedBox(width: 12),
-          Text(
-            loc.categories, // "Categories"
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(width: 32),
-          // Search Bar
-          Expanded(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                decoration: InputDecoration(
-                  hintText: 'Search departments, categories...',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged('');
-                          },
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: colorScheme.outline),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  isDense: true,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==========================================
   // WIDGETS: PANE 1 (DEPARTMENTS)
   // ==========================================
 
   Widget _buildDepartmentsPane(AppLocalizations loc, ColorScheme colorScheme) {
-    final filteredDepts = _searchResults == null 
-      ? _departments 
-      : _departments.where((d) => _searchResults!['departments']!.contains(d.id)).toList();
+    final filteredDepts = _searchResults == null
+        ? _departments
+        : _departments
+            .where((d) => _searchResults!['departments']!.contains(d.id))
+            .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
           color: colorScheme.surfaceVariant.withOpacity(0.3),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -513,7 +485,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               Text(
                 'DEPARTMENTS',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: DesktopDimensions.captionSize,
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurfaceVariant,
                   letterSpacing: 1,
@@ -537,7 +509,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             itemBuilder: (context, index) {
               final dept = filteredDepts[index];
               final isSelected = _selectedDepartment?.id == dept.id;
-              
+
               return ListTile(
                 selected: isSelected,
                 selectedTileColor: colorScheme.primaryContainer.withOpacity(0.4),
@@ -546,25 +518,32 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   width: 4,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: isSelected ? colorScheme.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(2),
+                    color:
+                        isSelected ? colorScheme.primary : Colors.transparent,
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.spacingSmall),
                   ),
                 ),
                 title: _buildHighlightedText(
                   dept.nameEn,
                   TextStyle(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     color: colorScheme.onSurface,
                   ),
                   colorScheme.primaryContainer,
                 ),
                 subtitle: _buildHighlightedText(
                   dept.nameUr,
-                  TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant, fontFamily: 'NooriNastaleeq'),
+                  TextStyle(
+                      fontSize: DesktopDimensions.captionSize,
+                      color: colorScheme.onSurfaceVariant,
+                      fontFamily: 'NooriNastaleeq'),
                   colorScheme.primaryContainer,
                 ),
                 trailing: !dept.isActive
-                    ? Icon(Icons.visibility_off, size: 14, color: colorScheme.outline)
+                    ? Icon(Icons.visibility_off,
+                        size: 14, color: colorScheme.outline)
                     : null,
               );
             },
@@ -580,18 +559,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   Widget _buildTaxonomyPane(AppLocalizations loc, ColorScheme colorScheme) {
     if (_selectedDepartment == null) {
-      return Center(child: Text('Select a Department', style: TextStyle(color: colorScheme.outline)));
+      return Center(
+          child:
+              Text('Select a Department', style: TextStyle(color: colorScheme.outline)));
     }
 
     final filteredCats = _searchResults == null
-      ? _categories
-      : _categories.where((c) => _searchResults!['categories']!.contains(c.id)).toList();
+        ? _categories
+        : _categories
+            .where((c) => _searchResults!['categories']!.contains(c.id))
+            .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
           color: colorScheme.surfaceVariant.withOpacity(0.3),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -599,7 +582,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               Text(
                 'CATEGORIES & SUBCATEGORIES',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: DesktopDimensions.captionSize,
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurfaceVariant,
                   letterSpacing: 1,
@@ -622,119 +605,142 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         else
           Expanded(
             child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: filteredCats.length,
-            itemBuilder: (context, index) {
-              final cat = filteredCats[index];
-              final subCats = _subCategoryCache[cat.id] ?? [];
-              final bool isLoaded = _subCategoryCache.containsKey(cat.id);
-              final isCatSelected = _selectedCategory?.id == cat.id && _selectionLevel == 2;
-              
-              final filteredSubs = _searchResults == null
-                  ? subCats
-                  : subCats.where((s) => _searchResults!['subcategories']!.contains(s.id)).toList();
+              padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+              itemCount: filteredCats.length,
+              itemBuilder: (context, index) {
+                final cat = filteredCats[index];
+                final subCats = _subCategoryCache[cat.id] ?? [];
+                final bool isLoaded = _subCategoryCache.containsKey(cat.id);
+                final isCatSelected =
+                    _selectedCategory?.id == cat.id && _selectionLevel == 2;
 
-              return Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(
-                    color: isCatSelected ? colorScheme.primary : colorScheme.outlineVariant,
-                    width: isCatSelected ? 2 : 1,
+                final filteredSubs = _searchResults == null
+                    ? subCats
+                    : subCats
+                        .where((s) =>
+                            _searchResults!['subcategories']!.contains(s.id))
+                        .toList();
+
+                return Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    side: BorderSide(
+                      color: isCatSelected
+                          ? colorScheme.primary
+                          : colorScheme.outlineVariant,
+                      width: isCatSelected ? 2 : 1,
+                    ),
+                    borderRadius: BorderRadius.circular(
+                        DesktopDimensions.cardBorderRadius),
                   ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                margin: const EdgeInsets.only(bottom: 12),
-                child: Theme(
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                  child: ExpansionTile(
-                    key: PageStorageKey('cat_${cat.id}'),
-                    initiallyExpanded: _searchResults != null, // Auto expand on search
-                    onExpansionChanged: (expanded) {
-                      if (expanded) _loadSubCategories(cat.id!);
-                    },
-                    backgroundColor: Colors.transparent,
-                    collapsedBackgroundColor: Colors.transparent,
-                    leading: Icon(Icons.folder, color: colorScheme.secondary),
-                    title: InkWell(
-                      onTap: () {
-                        setState(() {
-                          _selectedCategory = cat;
-                          _selectedSubCategory = null;
-                          _selectionLevel = 2;
-          _updateDetails();
-                        });
+                  margin: const EdgeInsets.only(
+                      bottom: DesktopDimensions.spacingStandard),
+                  child: Theme(
+                    data: Theme.of(context)
+                        .copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      key: PageStorageKey('cat_${cat.id}'),
+                      initiallyExpanded:
+                          _searchResults != null, // Auto expand on search
+                      onExpansionChanged: (expanded) {
+                        if (expanded) _loadSubCategories(cat.id!);
                       },
-                      child: Row(
-                        children: [
-                          _buildHighlightedText(
-                            cat.nameEn, 
-                            const TextStyle(fontWeight: FontWeight.bold),
-                            colorScheme.primaryContainer
-                          ),
-                          const SizedBox(width: 8),
-                          _buildHighlightedText(
-                            cat.nameUr, 
-                            TextStyle(color: colorScheme.onSurfaceVariant, fontFamily: 'NooriNastaleeq'),
-                            colorScheme.primaryContainer
-                          ),
-                        ],
-                      ),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.add, size: 20),
-                      onPressed: () {
-                        _showSubCategoryDialog(parentCatId: cat.id);
-                      },
-                      tooltip: 'Add Subcategory',
-                    ),
-                    children: [
-                      if (!isLoaded)
-                         const Padding(
-                           padding: EdgeInsets.all(16.0),
-                           child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
-                         )
-                      else if (filteredSubs.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            'No subcategories.',
-                            style: TextStyle(fontSize: 12, color: colorScheme.outline),
-                          ),
+                      backgroundColor: Colors.transparent,
+                      collapsedBackgroundColor: Colors.transparent,
+                      leading: Icon(Icons.folder, color: colorScheme.secondary),
+                      title: InkWell(
+                        onTap: () {
+                          setState(() {
+                            _selectedCategory = cat;
+                            _selectedSubCategory = null;
+                            _selectionLevel = 2;
+                            _updateDetails();
+                          });
+                        },
+                        child: Row(
+                          children: [
+                            _buildHighlightedText(
+                                cat.nameEn,
+                                const TextStyle(fontWeight: FontWeight.bold),
+                                colorScheme.primaryContainer),
+                            const SizedBox(width: AppDimensions.spacingMedium),
+                            _buildHighlightedText(
+                                cat.nameUr,
+                                TextStyle(
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontFamily: 'NooriNastaleeq'),
+                                colorScheme.primaryContainer),
+                          ],
                         ),
-                      if (isLoaded) ...filteredSubs.map((sub) {
-                        final isSubSelected = _selectedSubCategory?.id == sub.id;
-                        return ListTile(
-                          contentPadding: const EdgeInsets.only(left: 56, right: 16),
-                          selected: isSubSelected,
-                          selectedTileColor: colorScheme.primaryContainer.withOpacity(0.5),
-                          onTap: () {
-                            setState(() {
-                              _selectedCategory = cat; // Ensure parent is selected contextually
-                              _selectedSubCategory = sub;
-                              _selectionLevel = 3;
-                              _updateDetails();
-                            });
-                          },
-                          leading: Icon(Icons.subdirectory_arrow_right, size: 16, color: colorScheme.outline),
-                          title: _buildHighlightedText(
-                            sub.nameEn, 
-                            const TextStyle(),
-                            colorScheme.primaryContainer
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.add, size: 20),
+                        onPressed: () {
+                          _showSubCategoryDialog(parentCatId: cat.id);
+                        },
+                        tooltip: 'Add Subcategory',
+                      ),
+                      children: [
+                        if (!isLoaded)
+                          const Padding(
+                            padding: EdgeInsets.all(DesktopDimensions.spacingLarge),
+                            child: Center(
+                                child: SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2))),
+                          )
+                        else if (filteredSubs.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(
+                                DesktopDimensions.spacingLarge),
+                            child: Text(
+                              'No subcategories.',
+                              style: TextStyle(
+                                  fontSize: DesktopDimensions.captionSize,
+                                  color: colorScheme.outline),
+                            ),
                           ),
-                          subtitle: _buildHighlightedText(
-                            sub.nameUr, 
-                            TextStyle(color: colorScheme.onSurfaceVariant, fontFamily: 'NooriNastaleeq'),
-                            colorScheme.primaryContainer
-                          ),
-                        );
-                      }),
-                    ],
+                        if (isLoaded)
+                          ...filteredSubs.map((sub) {
+                            final isSubSelected =
+                                _selectedSubCategory?.id == sub.id;
+                            return ListTile(
+                              contentPadding: const EdgeInsets.only(
+                                  left: DesktopDimensions.spacingXXLarge,
+                                  right: DesktopDimensions.spacingLarge),
+                              selected: isSubSelected,
+                              selectedTileColor:
+                                  colorScheme.primaryContainer.withOpacity(0.5),
+                              onTap: () {
+                                setState(() {
+                                  _selectedCategory =
+                                      cat; // Ensure parent is selected contextually
+                                  _selectedSubCategory = sub;
+                                  _selectionLevel = 3;
+                                  _updateDetails();
+                                });
+                              },
+                              leading: Icon(Icons.subdirectory_arrow_right,
+                                  size: 16, color: colorScheme.outline),
+                              title: _buildHighlightedText(sub.nameEn,
+                                  const TextStyle(), colorScheme.primaryContainer),
+                              subtitle: _buildHighlightedText(
+                                  sub.nameUr,
+                                  TextStyle(
+                                      color: colorScheme.onSurfaceVariant,
+                                      fontFamily: 'NooriNastaleeq'),
+                                  colorScheme.primaryContainer),
+                            );
+                          }),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -750,8 +756,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.touch_app, size: 48, color: colorScheme.outlineVariant),
-            const SizedBox(height: 16),
-            Text('Select an item to manage', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+            const SizedBox(height: DesktopDimensions.spacingLarge),
+            Text('Select an item to manage',
+                style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ],
         ),
       );
@@ -797,9 +804,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         children: [
           // Details Header
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingXXLarge),
             decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+              border:
+                  Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -808,57 +816,75 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.spacingMedium,
+                          vertical: AppDimensions.spacingSmall),
                       decoration: BoxDecoration(
                         color: colorScheme.primary,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(
+                            AppDimensions.spacingSmall),
                       ),
                       child: Text(
                         typeLabel.toUpperCase(),
-                        style: TextStyle(fontSize: 10, color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
                 Row(
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(titleEn, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                          Text(titleUr, style: const TextStyle(fontSize: 18, fontFamily: 'NooriNastaleeq')),
+                          Text(titleEn,
+                              style: TextStyle(
+                                  fontSize: DesktopDimensions.headingSize,
+                                  fontWeight: FontWeight.bold)),
+                          Text(titleUr,
+                              style: TextStyle(
+                                  fontSize: DesktopDimensions.bodySize,
+                                  fontFamily: 'NooriNastaleeq')),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.spacingMedium),
                 // Breadcrumbs
                 _buildBreadcrumbs(colorScheme),
-                
-                const SizedBox(height: 24),
+
+                const SizedBox(height: DesktopDimensions.spacingXXLarge),
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          if (_selectionLevel == 1) _showDepartmentDialog(department: _selectedDepartment);
-                          if (_selectionLevel == 2) _showCategoryDialog(category: _selectedCategory);
-                          if (_selectionLevel == 3) _showSubCategoryDialog(subCategory: _selectedSubCategory);
+                          if (_selectionLevel == 1)
+                            _showDepartmentDialog(
+                                department: _selectedDepartment);
+                          if (_selectionLevel == 2)
+                            _showCategoryDialog(category: _selectedCategory);
+                          if (_selectionLevel == 3)
+                            _showSubCategoryDialog(
+                                subCategory: _selectedSubCategory);
                         },
                         icon: const Icon(Icons.edit, size: 18),
                         label: const Text('Edit Details'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesktopDimensions.spacingStandard),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: _deleteItem,
                         icon: const Icon(Icons.delete, size: 18),
                         label: const Text('Delete'),
-                        style: OutlinedButton.styleFrom(foregroundColor: colorScheme.error),
+                        style: OutlinedButton.styleFrom(
+                            foregroundColor: colorScheme.error),
                       ),
                     ),
                   ],
@@ -870,7 +896,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           // Specific Content based on selection
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(DesktopDimensions.spacingXXLarge),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -878,32 +904,36 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   Text(
                     'STATUS & VISIBILITY',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: DesktopDimensions.captionSize,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurfaceVariant,
                       letterSpacing: 1,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppDimensions.spacingMedium),
                   SwitchListTile(
                     title: const Text('Active'),
-                    subtitle: const Text('Enable or disable this entity globally'),
+                    subtitle:
+                        const Text('Enable or disable this entity globally'),
                     value: isActive,
                     onChanged: (val) async {
-                      await _updateStatus(isActive: val, isVisible: isVisibleInPOS);
+                      await _updateStatus(
+                          isActive: val, isVisible: isVisibleInPOS);
                     },
                     contentPadding: EdgeInsets.zero,
                   ),
                   SwitchListTile(
                     title: const Text('Visible in POS'),
-                    subtitle: const Text('Show this entity in the Point of Sale screen'),
+                    subtitle: const Text(
+                        'Show this entity in the Point of Sale screen'),
                     value: isVisibleInPOS,
                     onChanged: (val) async {
-                      await _updateStatus(isActive: isActive, isVisible: val);
+                      await _updateStatus(
+                          isActive: isActive, isVisible: val);
                     },
                     contentPadding: EdgeInsets.zero,
                   ),
-                  const Divider(height: 32),
+                  const Divider(height: DesktopDimensions.spacingXXLarge),
 
                   // Stats for all levels
                   _buildStats(colorScheme, typeLabel),

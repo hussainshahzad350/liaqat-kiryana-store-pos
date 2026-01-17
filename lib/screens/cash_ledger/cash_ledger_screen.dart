@@ -7,6 +7,11 @@ import 'package:liaqat_store/core/repositories/cash_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cash_ledger_model.dart';
 import '../../domain/entities/money.dart';
+import 'package:liaqat_store/core/constants/desktop_dimensions.dart';
+import 'package:liaqat_store/core/res/app_dimensions.dart';
+import 'package:liaqat_store/core/routes/app_routes.dart';
+import 'package:liaqat_store/widgets/app_header.dart';
+import 'package:liaqat_store/widgets/main_layout.dart';
 
 class CashLedgerScreen extends StatefulWidget {
   const CashLedgerScreen({super.key});
@@ -291,146 +296,170 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.cashLedger), // Ensure key 'cashLedger' exists
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-      ),
-      body: Column(
+    return MainLayout(
+      currentRoute: AppRoutes.cashLedger,
+      child: Column(
         children: [
-          // Balance Card
-          Card(
-            margin: const EdgeInsets.all(16),
-            color: colorScheme.primaryContainer,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(loc.currentBalance,
-                      style: TextStyle(
-                          fontSize: 16, color: colorScheme.onPrimaryContainer)),
-                  Text(
-                    currentBalance.formattedNoDecimal,
-                    style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onPrimaryContainer),
+          AppHeader(
+            title: loc.cashLedger,
+            icon: Icons.book_outlined,
+            actions: [
+              ElevatedButton.icon(
+                icon: Icon(Icons.add, color: colorScheme.onPrimaryContainer),
+                label: Text(loc.cashIn,
+                    style: TextStyle(color: colorScheme.onPrimaryContainer)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primaryContainer,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: AppDimensions.spacingLarge,
+                      horizontal: AppDimensions.spacingLarge),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.borderRadius),
                   ),
-                ],
+                ),
+                onPressed: () => _addTransaction('IN'),
+              ),
+              const SizedBox(width: DesktopDimensions.spacingStandard),
+              ElevatedButton.icon(
+                icon: Icon(Icons.remove, color: colorScheme.onErrorContainer),
+                label: Text(loc.cashOut,
+                    style: TextStyle(color: colorScheme.onErrorContainer)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.errorContainer,
+                  foregroundColor: colorScheme.onErrorContainer,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: AppDimensions.spacingLarge,
+                      horizontal: AppDimensions.spacingLarge),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppDimensions.borderRadius),
+                  ),
+                ),
+                onPressed: () => _addTransaction('OUT'),
+              ),
+            ],
+          ),
+          // Balance Card
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              DesktopDimensions.spacingLarge,
+              DesktopDimensions.spacingLarge,
+              DesktopDimensions.spacingLarge,
+              0,
+            ),
+            child: Card(
+              color: colorScheme.primaryContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(DesktopDimensions.spacingXXLarge),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(loc.currentBalance,
+                        style: TextStyle(
+                            fontSize: DesktopDimensions.bodySize,
+                            color: colorScheme.onPrimaryContainer)),
+                    Text(
+                      currentBalance.formattedNoDecimal,
+                      style: TextStyle(
+                          fontSize: DesktopDimensions.headingSize,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onPrimaryContainer),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
 
           // List
           Expanded(
-            child: _isFirstLoadRunning
-                ? Center(
-                    child:
-                        CircularProgressIndicator(color: colorScheme.primary))
-                : ledgerEntries.isEmpty
-                    ? Center(
-                        child: Text(loc.noData,
-                            style: TextStyle(color: colorScheme.onSurface)))
-                    : ListView.builder(
-                        controller: _scrollController,
-                        itemCount:
-                            ledgerEntries.length + (_isLoadMoreRunning ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index == ledgerEntries.length) {
-                            return Center(
-                                child: CircularProgressIndicator(
-                                    color: colorScheme.primary));
-                          }
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesktopDimensions.spacingLarge),
+              child: _isFirstLoadRunning
+                  ? Center(
+                      child: CircularProgressIndicator(
+                          color: colorScheme.primary))
+                  : ledgerEntries.isEmpty
+                      ? Center(
+                          child: Text(loc.noData,
+                              style: TextStyle(color: colorScheme.onSurface)))
+                      : ListView.builder(
+                          controller: _scrollController,
+                          itemCount: ledgerEntries.length +
+                              (_isLoadMoreRunning ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index == ledgerEntries.length) {
+                              return Center(
+                                  child: CircularProgressIndicator(
+                                      color: colorScheme.primary));
+                            }
 
-                          final entry = ledgerEntries[index];
-                          final isIncome = entry.isInflow;
+                            final entry = ledgerEntries[index];
+                            final isIncome = entry.isInflow;
 
-                          return Card(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 4),
-                            color: colorScheme.surface,
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: isIncome
-                                    ? colorScheme.primaryContainer
-                                    : colorScheme.errorContainer,
-                                child: Icon(
-                                  isIncome
-                                      ? Icons.arrow_downward
-                                      : Icons.arrow_upward,
-                                  color: isIncome
-                                      ? colorScheme.primary
-                                      : colorScheme.error,
+                            return Card(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: AppDimensions.spacingSmall),
+                              color: colorScheme.surface,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppDimensions.borderRadius),
+                              ),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: isIncome
+                                      ? colorScheme.primaryContainer
+                                      : colorScheme.errorContainer,
+                                  child: Icon(
+                                    isIncome
+                                        ? Icons.arrow_downward
+                                        : Icons.arrow_upward,
+                                    color: isIncome
+                                        ? colorScheme.primary
+                                        : colorScheme.error,
+                                  ),
+                                ),
+                                title: Text(entry.description,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface)),
+                                subtitle: Text(
+                                    '${entry.transactionDate} | ${entry.transactionTime}',
+                                    style: TextStyle(
+                                        color: colorScheme.onSurfaceVariant)),
+                                trailing: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: isIncome
+                                            ? colorScheme.primary
+                                            : colorScheme.error,
+                                        fontSize: DesktopDimensions.bodySize,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
+                                      style: TextStyle(
+                                          fontSize:
+                                              DesktopDimensions.captionSize,
+                                          color: colorScheme.onSurfaceVariant),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              title: Text(entry.description,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.onSurface)),
-                              subtitle: Text(
-                                  '${entry.transactionDate} | ${entry.transactionTime}',
-                                  style: TextStyle(
-                                      color: colorScheme.onSurfaceVariant)),
-                              trailing: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: isIncome
-                                          ? colorScheme.primary
-                                          : colorScheme.error,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: colorScheme.onSurfaceVariant),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-          ),
-
-          // Buttons
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: Icon(Icons.add, color: colorScheme.onPrimary),
-                    label: Text(loc.cashIn,
-                        style: TextStyle(color: colorScheme.onPrimary)),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 15)),
-                    onPressed: () => _addTransaction('IN'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: Icon(Icons.remove, color: colorScheme.onError),
-                    label: Text(loc.cashOut,
-                        style: TextStyle(color: colorScheme.onError)),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.error,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        foregroundColor: colorScheme.onError),
-                    onPressed: () => _addTransaction('OUT'),
-                  ),
-                ),
-              ],
+                            );
+                          },
+                        ),
             ),
           ),
         ],

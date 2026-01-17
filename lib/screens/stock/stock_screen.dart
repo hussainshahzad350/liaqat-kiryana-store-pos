@@ -17,7 +17,11 @@ import '../../core/entity/stock_summary_entity.dart';
 import '../../core/entity/stock_activity_entity.dart';
 import '../../services/pdf_export_service.dart';
 import '../../core/routes/app_routes.dart';
+import '../../widgets/app_header.dart';
 import '../../widgets/skeleton_loader.dart';
+import '../../widgets/main_layout.dart';
+import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_dimensions.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -334,32 +338,59 @@ class _StockScreenState extends State<StockScreen> {
             return null;
           }),
         },
-        child: Scaffold(
-      backgroundColor: colorScheme.surface,
-      // Coordinate Filter changes to Overview updates
-      body: BlocListener<StockFilterBloc, StockFilterState>(
-        listener: (context, filterState) {
-          context.read<StockOverviewBloc>().add(LoadStockOverview(
-                query: filterState.searchQuery,
-                status: filterState.statusFilter,
-                supplierId: filterState.selectedSupplierId,
-                categoryId: filterState.selectedCategoryId,
-              ));
-        },
-        child: Column(
-          children: [
-            // 1. Header & Actions (Uses FilterBloc for search state)
-            _buildHeader(context, loc, colorScheme),
+        child: MainLayout(
+          currentRoute: AppRoutes.stock,
+          child: BlocListener<StockFilterBloc, StockFilterState>(
+            listener: (context, filterState) {
+              context.read<StockOverviewBloc>().add(LoadStockOverview(
+                    query: filterState.searchQuery,
+                    status: filterState.statusFilter,
+                    supplierId: filterState.selectedSupplierId,
+                    categoryId: filterState.selectedCategoryId,
+                  ));
+            },
+            child: Column(
+              children: [
+                // 1. Header & Actions
+                AppHeader(
+                  title: loc.stockManagement,
+                  icon: Icons.inventory_2,
+                  actions: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.purchase);
+                      },
+                      icon: const Icon(Icons.add_shopping_cart),
+                      label: Text(loc.newPurchase),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.tertiaryContainer,
+                        foregroundColor: colorScheme.onTertiaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: DesktopDimensions.spacingStandard),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        _tableFocusNode.requestFocus();
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text(
+                                'Select an item from the table and press Enter to adjust')));
+                      },
+                      icon: const Icon(Icons.tune),
+                      label: Text(loc.adjustStock),
+                    ),
+                  ],
+                ),
 
-            // 2. KPI Strip (Uses OverviewBloc)
-            BlocBuilder<StockOverviewBloc, StockOverviewState>(
-              builder: (context, state) {
-                if (state is StockOverviewLoaded) {
-                  return _buildKPIStrip(context, loc, colorScheme, state.summary);
-                }
-                return _buildKPISkeleton(colorScheme);
-              },
-            ),
+                // 2. KPI Strip
+                BlocBuilder<StockOverviewBloc, StockOverviewState>(
+                  builder: (context, state) {
+                    if (state is StockOverviewLoaded) {
+                      return _buildKPIStrip(
+                          context, loc, colorScheme, state.summary);
+                    }
+                    return _buildKPISkeleton(colorScheme);
+                  },
+                ),
 
             // 3. Filters (Uses FilterBloc)
             _buildFilters(context, loc, colorScheme),
@@ -474,62 +505,27 @@ class _StockScreenState extends State<StockScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, AppLocalizations loc, ColorScheme colorScheme) {
+  Widget _buildKPIStrip(BuildContext context, AppLocalizations loc,
+      ColorScheme colorScheme, StockSummaryEntity summary) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      color: colorScheme.primary,
-      child: Row(
-        children: [
-          Icon(Icons.inventory_2, color: colorScheme.onPrimary, size: 28),
-          const SizedBox(width: 12),
-          Text(
-            loc.stockManagement, // "Inventory System"
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onPrimary,
-            ),
-          ),
-          const Spacer(),
-          // Actions
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.purchase);
-            },
-            icon: const Icon(Icons.add_shopping_cart),
-            label: Text(loc.newPurchase),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.tertiaryContainer,
-              foregroundColor: colorScheme.onTertiaryContainer,
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
-            onPressed: () {
-              // Focus table to allow keyboard nav to select item
-              _tableFocusNode.requestFocus();
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select an item from the table and press Enter to adjust')));
-            },
-            icon: const Icon(Icons.tune),
-            label: Text(loc.adjustStock),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKPIStrip(BuildContext context, AppLocalizations loc, ColorScheme colorScheme, StockSummaryEntity summary) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingMedium,
+          vertical: DesktopDimensions.spacingStandard),
       color: colorScheme.surfaceVariant.withOpacity(0.3),
       child: Row(
         children: [
-          _buildKPICard(loc.totalItems, '${summary.totalItemsCount}', Colors.blue),
-          _buildKPICard(loc.stockValue, summary.totalStockSalesValue.formattedNoDecimal, Colors.green),
-          _buildKPICard('Total Cost', summary.totalStockCost.formattedNoDecimal, Colors.grey),
-          _buildKPICard('Low Stock', '${summary.lowStockItemsCount}', Colors.orange),
-          _buildKPICard('Out of Stock', '${summary.outOfStockItemsCount}', Colors.red),
-          _buildKPICard('Expired', '${summary.expiredOrNearExpiryCount}', Colors.purple),
+          _buildKPICard(
+              loc.totalItems, '${summary.totalItemsCount}', Colors.blue),
+          _buildKPICard(loc.stockValue,
+              summary.totalStockSalesValue.formattedNoDecimal, Colors.green),
+          _buildKPICard('Total Cost', summary.totalStockCost.formattedNoDecimal,
+              Colors.grey),
+          _buildKPICard(
+              'Low Stock', '${summary.lowStockItemsCount}', Colors.orange),
+          _buildKPICard(
+              'Out of Stock', '${summary.outOfStockItemsCount}', Colors.red),
+          _buildKPICard(
+              'Expired', '${summary.expiredOrNearExpiryCount}', Colors.purple),
         ],
       ),
     );
@@ -538,18 +534,25 @@ class _StockScreenState extends State<StockScreen> {
   Widget _buildKPICard(String label, String value, Color color) {
     return Expanded(
       child: Card(
-        elevation: 2,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
+        elevation: DesktopDimensions.cardElevation,
+        margin: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.spacingMedium),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-              const SizedBox(height: 4),
+              Text(label,
+                  style: TextStyle(
+                      fontSize: DesktopDimensions.captionSize,
+                      color: Colors.grey[700])),
+              const SizedBox(height: AppDimensions.spacingSmall),
               Text(
                 value,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+                style: TextStyle(
+                    fontSize: DesktopDimensions.headingSize,
+                    fontWeight: FontWeight.bold,
+                    color: color),
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -559,9 +562,12 @@ class _StockScreenState extends State<StockScreen> {
     );
   }
 
-  Widget _buildFilters(BuildContext context, AppLocalizations loc, ColorScheme colorScheme) {
+  Widget _buildFilters(
+      BuildContext context, AppLocalizations loc, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingMedium,
+          vertical: AppDimensions.spacingMedium),
       child: BlocBuilder<StockFilterBloc, StockFilterState>(
         builder: (context, state) {
           return Column(
@@ -572,14 +578,15 @@ class _StockScreenState extends State<StockScreen> {
                     child: TextField(
                       focusNode: _searchFocusNode,
                       autofocus: true,
-                      onChanged: (val) => context.read<StockFilterBloc>().add(SetSearchQuery(val)),
+                      onChanged: (val) =>
+                          context.read<StockFilterBloc>().add(SetSearchQuery(val)),
                       decoration: InputDecoration(
                         hintText: loc.searchStock,
                         prefixIcon: const Icon(Icons.search),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
                   Expanded(
                     child: DropdownButton<int>(
                       value: state.selectedCategoryId,
@@ -587,15 +594,17 @@ class _StockScreenState extends State<StockScreen> {
                       isExpanded: true,
                       items: [
                         DropdownMenuItem(value: null, child: Text(loc.all)),
-                        ...state.availableCategories.map((c) => DropdownMenuItem(
-                              value: c['id'] as int,
-                              child: Text(c['name_english']),
-                            )),
+                        ...state.availableCategories
+                            .map((c) => DropdownMenuItem(
+                                  value: c['id'] as int,
+                                  child: Text(c['name_english']),
+                                )),
                       ],
-                      onChanged: (v) => context.read<StockFilterBloc>().add(SetCategoryFilter(v)),
+                      onChanged: (v) =>
+                          context.read<StockFilterBloc>().add(SetCategoryFilter(v)),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
                   Expanded(
                     child: DropdownButton<int>(
                       value: state.selectedSupplierId,
@@ -603,52 +612,64 @@ class _StockScreenState extends State<StockScreen> {
                       isExpanded: true,
                       items: [
                         DropdownMenuItem(value: null, child: Text(loc.all)),
-                        ...state.availableSuppliers.map((s) => DropdownMenuItem(
-                              value: s['id'] as int,
-                              child: Text(s['name_english']),
-                            )),
+                        ...state.availableSuppliers
+                            .map((s) => DropdownMenuItem(
+                                  value: s['id'] as int,
+                                  child: Text(s['name_english']),
+                                )),
                       ],
-                      onChanged: (v) => context.read<StockFilterBloc>().add(SetSupplierFilter(v)),
+                      onChanged: (v) =>
+                          context.read<StockFilterBloc>().add(SetSupplierFilter(v)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppDimensions.spacingMedium),
               Row(
                 children: [
                   Wrap(
-                    spacing: 8,
+                    spacing: AppDimensions.spacingMedium,
                     children: [
                       FilterChip(
                         label: const Text('All Items'),
                         selected: state.statusFilter == 'ALL',
-                        onSelected: (v) => context.read<StockFilterBloc>().add(SetStatusFilter('ALL')),
+                        onSelected: (v) => context
+                            .read<StockFilterBloc>()
+                            .add(SetStatusFilter('ALL')),
                       ),
                       FilterChip(
                         label: const Text('Low Stock'),
                         selected: state.statusFilter == 'LOW',
-                        onSelected: (v) => context.read<StockFilterBloc>().add(SetStatusFilter('LOW')),
+                        onSelected: (v) => context
+                            .read<StockFilterBloc>()
+                            .add(SetStatusFilter('LOW')),
                         backgroundColor: Colors.orange.withOpacity(0.1),
                         selectedColor: Colors.orange.withOpacity(0.3),
                       ),
                       FilterChip(
                         label: const Text('Out of Stock'),
                         selected: state.statusFilter == 'OUT',
-                        onSelected: (v) => context.read<StockFilterBloc>().add(SetStatusFilter('OUT')),
+                        onSelected: (v) => context
+                            .read<StockFilterBloc>()
+                            .add(SetStatusFilter('OUT')),
                         backgroundColor: Colors.red.withOpacity(0.1),
                         selectedColor: Colors.red.withOpacity(0.3),
                       ),
                       FilterChip(
                         label: const Text('Expired'),
                         selected: state.statusFilter == 'EXPIRED',
-                        onSelected: (v) => context.read<StockFilterBloc>().add(SetStatusFilter('EXPIRED')),
+                        onSelected: (v) => context
+                            .read<StockFilterBloc>()
+                            .add(SetStatusFilter('EXPIRED')),
                         backgroundColor: Colors.purple.withOpacity(0.1),
                         selectedColor: Colors.purple.withOpacity(0.3),
                       ),
                       FilterChip(
                         label: const Text('Old Stock'),
                         selected: state.statusFilter == 'OLD',
-                        onSelected: (v) => context.read<StockFilterBloc>().add(SetStatusFilter('OLD')),
+                        onSelected: (v) => context
+                            .read<StockFilterBloc>()
+                            .add(SetStatusFilter('OLD')),
                         backgroundColor: Colors.grey.withOpacity(0.1),
                         selectedColor: Colors.grey.withOpacity(0.3),
                       ),
@@ -663,9 +684,8 @@ class _StockScreenState extends State<StockScreen> {
     );
   }
 
-  Widget _buildStockTable(BuildContext context, AppLocalizations loc, ColorScheme colorScheme, List<StockItemEntity> items, bool hasReachedMax) {
-    
-    // Sorting logic
+  Widget _buildStockTable(BuildContext context, AppLocalizations loc,
+      ColorScheme colorScheme, List<StockItemEntity> items, bool hasReachedMax) {
     void onSort(int columnIndex, bool ascending) {
       setState(() {
         _sortColumnIndex = columnIndex;
@@ -673,28 +693,28 @@ class _StockScreenState extends State<StockScreen> {
       });
     }
 
-    // Create a copy to sort
     final sortedItems = List<StockItemEntity>.from(items);
     sortedItems.sort((a, b) {
       int result = 0;
       switch (_sortColumnIndex) {
-        case 0: // Item Name
+        case 0:
           result = a.nameEnglish.compareTo(b.nameEnglish);
           break;
-        case 1: // Category
+        case 1:
           result = (a.categoryName ?? '').compareTo(b.categoryName ?? '');
           break;
-        case 2: // Buy Price
+        case 2:
           result = a.costPrice.paisas.compareTo(b.costPrice.paisas);
           break;
-        case 3: // Sale Price
+        case 3:
           result = a.salePrice.paisas.compareTo(b.salePrice.paisas);
           break;
-        case 4: // Quantity
+        case 4:
           result = a.currentStock.compareTo(b.currentStock);
           break;
-        case 5: // Stock Value
-          result = a.totalSalesValue.paisas.compareTo(b.totalSalesValue.paisas);
+        case 5:
+          result =
+              a.totalSalesValue.paisas.compareTo(b.totalSalesValue.paisas);
           break;
       }
       return _isAscending ? result : -result;
@@ -703,20 +723,23 @@ class _StockScreenState extends State<StockScreen> {
     _currentDisplayedItems = sortedItems;
 
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      margin: const EdgeInsets.fromLTRB(DesktopDimensions.spacingMedium, 0,
+          DesktopDimensions.spacingMedium, 0),
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(DesktopDimensions.cardBorderRadius)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
             child: Text(
               'Current Inventory State',
-              style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: colorScheme.onSurface),
             ),
           ),
           Expanded(
@@ -724,97 +747,135 @@ class _StockScreenState extends State<StockScreen> {
               child: Focus(
                 focusNode: _tableFocusNode,
                 child: DataTable(
-                sortColumnIndex: _sortColumnIndex,
-                sortAscending: _isAscending,
-                headingRowColor: MaterialStateProperty.all(colorScheme.surfaceVariant),
-                columns: [
-                  DataColumn(label: Text(loc.item), onSort: onSort),
-                  DataColumn(label: Text(loc.category), onSort: onSort),
-                  DataColumn(label: const Text('Cost'), onSort: onSort, numeric: true), // Buy Price
-                  DataColumn(label: Text(loc.price), onSort: onSort, numeric: true), // Sale Price
-                  DataColumn(label: Text(loc.quantity), onSort: onSort, numeric: true),
-                  DataColumn(label: const Text('Value'), onSort: onSort, numeric: true), // Total Worth
-                  const DataColumn(label: Text('Status')),
-                  const DataColumn(label: Text('Actions')),
-                ],
-                showCheckboxColumn: false,
-                rows: sortedItems.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final item = entry.value;
-                  bool isLow = item.isLowStock;
-                  bool isOut = item.isOutOfStock;
-                  final isSelected = index == _focusedIndex;
+                  sortColumnIndex: _sortColumnIndex,
+                  sortAscending: _isAscending,
+                  headingRowColor:
+                      MaterialStateProperty.all(colorScheme.surfaceVariant),
+                  columns: [
+                    DataColumn(label: Text(loc.item), onSort: onSort),
+                    DataColumn(label: Text(loc.category), onSort: onSort),
+                    DataColumn(
+                        label: const Text('Cost'), onSort: onSort, numeric: true),
+                    DataColumn(
+                        label: Text(loc.price), onSort: onSort, numeric: true),
+                    DataColumn(
+                        label: Text(loc.quantity), onSort: onSort, numeric: true),
+                    DataColumn(
+                        label: const Text('Value'), onSort: onSort, numeric: true),
+                    const DataColumn(label: Text('Status')),
+                    const DataColumn(label: Text('Actions')),
+                  ],
+                  showCheckboxColumn: false,
+                  rows: sortedItems.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final item = entry.value;
+                    bool isLow = item.isLowStock;
+                    bool isOut = item.isOutOfStock;
+                    final isSelected = index == _focusedIndex;
 
-                  return DataRow(
-                    selected: isSelected,
-                    onSelectChanged: (selected) {
-                      if (selected == true) {
-                        setState(() => _focusedIndex = index);
-                        _openAdjustStockPanel(item);
-                      }
-                    },
-                    color: MaterialStateProperty.resolveWith<Color?>((states) {
-                      if (isSelected) return colorScheme.primaryContainer.withOpacity(0.3);
-                      return null;
-                    }),
-                    cells: [
-                      DataCell(Text(item.nameEnglish, style: const TextStyle(fontWeight: FontWeight.w500))),
-                      DataCell(Text(item.categoryName ?? '-')),
-                      DataCell(Text(item.costPrice.formattedNoDecimal)),
-                      DataCell(Text(item.salePrice.formattedNoDecimal)),
-                      DataCell(Text(item.currentStock.toString())),
-                      DataCell(Text(item.totalSalesValue.formattedNoDecimal)),
-                      DataCell(
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isOut ? Colors.red[100] : (isLow ? Colors.orange[100] : Colors.green[100]),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            isOut ? 'OUT' : (isLow ? 'LOW' : 'OK'),
-                            style: TextStyle(
-                              color: isOut ? Colors.red[900] : (isLow ? Colors.orange[900] : Colors.green[900]),
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                    return DataRow(
+                      selected: isSelected,
+                      onSelectChanged: (selected) {
+                        if (selected == true) {
+                          setState(() => _focusedIndex = index);
+                          _openAdjustStockPanel(item);
+                        }
+                      },
+                      color: MaterialStateProperty.resolveWith<Color?>(
+                          (states) {
+                        if (isSelected) {
+                          return colorScheme.primaryContainer.withOpacity(0.3);
+                        }
+                        return null;
+                      }),
+                      cells: [
+                        DataCell(Text(item.nameEnglish,
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w500))),
+                        DataCell(Text(item.categoryName ?? '-')),
+                        DataCell(Text(item.costPrice.formattedNoDecimal)),
+                        DataCell(Text(item.salePrice.formattedNoDecimal)),
+                        DataCell(Text(item.currentStock.toString())),
+                        DataCell(Text(item.totalSalesValue.formattedNoDecimal)),
+                        DataCell(
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppDimensions.spacingMedium,
+                                vertical: AppDimensions.spacingSmall),
+                            decoration: BoxDecoration(
+                              color: isOut
+                                  ? Colors.red[100]
+                                  : (isLow
+                                      ? Colors.orange[100]
+                                      : Colors.green[100]),
+                              borderRadius: BorderRadius.circular(
+                                  AppDimensions.spacingSmall),
+                            ),
+                            child: Text(
+                              isOut ? 'OUT' : (isLow ? 'LOW' : 'OK'),
+                              style: TextStyle(
+                                color: isOut
+                                    ? Colors.red[900]
+                                    : (isLow
+                                        ? Colors.orange[900]
+                                        : Colors.green[900]),
+                                fontSize: DesktopDimensions.captionSize,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      DataCell(
-                        PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert),
-                          onSelected: (value) {
-                            if (value == 'adjust') {
-                              _openAdjustStockPanel(item);
-                            } else if (value == 'purchase') {
-                              _showQuickPurchaseDialog(context, item);
-                            } else if (value == 'history') {
-                              _openSidePanel(
-                                'Item History: ${item.nameEnglish}',
-                                const Center(child: Text('History feature coming soon.')),
-                              );
-                            }
-                          },
-                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                            PopupMenuItem<String>(value: 'adjust', child: ListTile(leading: const Icon(Icons.tune), title: Text(loc.adjustStock))),
-                            PopupMenuItem<String>(value: 'purchase', child: ListTile(leading: const Icon(Icons.add_shopping_cart), title: Text(loc.newPurchase))),
-                            const PopupMenuItem<String>(value: 'history', child: ListTile(leading: Icon(Icons.history), title: Text('View History'))),
-                          ],
+                        DataCell(
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert),
+                            onSelected: (value) {
+                              if (value == 'adjust') {
+                                _openAdjustStockPanel(item);
+                              } else if (value == 'purchase') {
+                                _showQuickPurchaseDialog(context, item);
+                              } else if (value == 'history') {
+                                _openSidePanel(
+                                  'Item History: ${item.nameEnglish}',
+                                  const Center(
+                                      child:
+                                          Text('History feature coming soon.')),
+                                );
+                              }
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<String>>[
+                              PopupMenuItem<String>(
+                                  value: 'adjust',
+                                  child: ListTile(
+                                      leading: const Icon(Icons.tune),
+                                      title: Text(loc.adjustStock))),
+                              PopupMenuItem<String>(
+                                  value: 'purchase',
+                                  child: ListTile(
+                                      leading:
+                                          const Icon(Icons.add_shopping_cart),
+                                      title: Text(loc.newPurchase))),
+                              const PopupMenuItem<String>(
+                                  value: 'history',
+                                  child: ListTile(
+                                      leading: Icon(Icons.history),
+                                      title: Text('View History'))),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  );
-                }).toList(),
-              ),
+                      ],
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ),
           if (!hasReachedMax)
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(AppDimensions.spacingMedium),
               child: TextButton(
-                onPressed: () => context.read<StockOverviewBloc>().add(LoadMoreStockOverview()),
+                onPressed: () =>
+                    context.read<StockOverviewBloc>().add(LoadMoreStockOverview()),
                 child: const Text('Load More Items'),
               ),
             ),

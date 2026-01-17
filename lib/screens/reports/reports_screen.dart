@@ -7,6 +7,11 @@ import '../../bloc/reports/reports_state.dart';
 import '../../core/repositories/invoice_repository.dart';
 import '../../domain/entities/money.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/app_header.dart';
+import '../../widgets/main_layout.dart';
+import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_dimensions.dart';
+import '../../core/routes/app_routes.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -39,35 +44,47 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
       create: (context) => ReportsBloc(
         invoiceRepository: context.read<InvoiceRepository>(),
       ),
-      child: Scaffold(
-        backgroundColor: colorScheme.surface,
-        appBar: AppBar(
-          title: Text(loc.reports, style: TextStyle(color: colorScheme.onPrimary)),
-          backgroundColor: colorScheme.primary,
-          iconTheme: IconThemeData(color: colorScheme.onPrimary),
-          bottom: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            labelColor: colorScheme.onPrimary,
-            unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
-            indicatorColor: colorScheme.onPrimary,
-            tabs: [
-              Tab(icon: const Icon(Icons.shopping_bag), text: loc.sales),
-              Tab(icon: const Icon(Icons.trending_up), text: loc.profit),
-              Tab(icon: const Icon(Icons.shopping_cart), text: loc.purchase),
-              Tab(icon: const Icon(Icons.people), text: loc.customerBalance),
-              Tab(icon: const Icon(Icons.inventory), text: loc.stock),
-            ],
-          ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: const [
-            SalesReportTab(),
-            ProfitReportTab(),
-            PurchaseReportTab(),
-            CustomerReportTab(),
-            StockReportTab(),
+      child: MainLayout(
+        currentRoute: AppRoutes.reports,
+        child: Column(
+          children: [
+            AppHeader(
+              title: loc.reports,
+              icon: Icons.bar_chart,
+            ),
+            Container(
+              color: colorScheme.primary,
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                labelColor: colorScheme.onPrimary,
+                unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
+                indicatorColor: colorScheme.onPrimary,
+                tabs: [
+                  Tab(icon: const Icon(Icons.shopping_bag), text: loc.sales),
+                  Tab(icon: const Icon(Icons.trending_up), text: loc.profit),
+                  Tab(
+                      icon: const Icon(Icons.shopping_cart),
+                      text: loc.purchase),
+                  Tab(
+                      icon: const Icon(Icons.people),
+                      text: loc.customerBalance),
+                  Tab(icon: const Icon(Icons.inventory), text: loc.stock),
+                ],
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: const [
+                  SalesReportTab(),
+                  ProfitReportTab(),
+                  PurchaseReportTab(),
+                  CustomerReportTab(),
+                  StockReportTab(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -127,28 +144,34 @@ class _SalesReportTabState extends State<SalesReportTab> {
 
     return BlocBuilder<ReportsBloc, ReportsState>(
       builder: (context, state) {
-        final totalSales = state.salesReportData.fold<int>(0, (sum, invoice) => sum + invoice.totalAmount);
-        final avgDailySales = state.salesReportData.isNotEmpty ? totalSales / state.salesReportData.length : 0;
+        final totalSales = state.salesReportData
+            .fold<int>(0, (sum, invoice) => sum + invoice.totalAmount);
+        final avgDailySales = state.salesReportData.isNotEmpty
+            ? totalSales / state.salesReportData.length
+            : 0;
         final totalBills = state.salesReportData.length;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
           child: Column(
             children: [
               // Date Range Selector
               Card(
                 color: colorScheme.surface,
-                elevation: 2,
+                elevation: DesktopDimensions.cardElevation,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         loc.selectDate,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: DesktopDimensions.headingSize,
+                            color: colorScheme.onSurface),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: AppDimensions.spacingMedium),
                       Row(
                         children: [
                           Expanded(
@@ -158,20 +181,38 @@ class _SalesReportTabState extends State<SalesReportTab> {
                               style: TextStyle(color: colorScheme.onSurface),
                               decoration: InputDecoration(
                                 labelText: loc.startDate,
-                                labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                                suffixIcon: Icon(Icons.calendar_today, color: colorScheme.primary),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
-                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.primary)),
+                                labelStyle: TextStyle(
+                                    color: colorScheme.onSurfaceVariant),
+                                suffixIcon: Icon(Icons.calendar_today,
+                                    color: colorScheme.primary),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.cardBorderRadius)),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.cardBorderRadius),
+                                    borderSide: BorderSide(
+                                        color: colorScheme.outline)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.cardBorderRadius),
+                                    borderSide: BorderSide(
+                                        color: colorScheme.primary)),
                                 filled: true,
-                                fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+                                fillColor:
+                                    colorScheme.surfaceVariant.withOpacity(0.3),
                               ),
                               onTap: () => _selectDate(context, true),
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Text(loc.to, style: TextStyle(fontSize: 18, color: colorScheme.onSurface)),
-                          const SizedBox(width: 10),
+                          const SizedBox(
+                              width: DesktopDimensions.spacingMedium),
+                          Text(loc.to,
+                              style: TextStyle(
+                                  fontSize: DesktopDimensions.headingSize,
+                                  color: colorScheme.onSurface)),
+                          const SizedBox(
+                              width: DesktopDimensions.spacingMedium),
                           Expanded(
                             child: TextField(
                               controller: endDateController,
@@ -179,13 +220,26 @@ class _SalesReportTabState extends State<SalesReportTab> {
                               style: TextStyle(color: colorScheme.onSurface),
                               decoration: InputDecoration(
                                 labelText: loc.endDate,
-                                labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                                suffixIcon: Icon(Icons.calendar_today, color: colorScheme.primary),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
-                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.primary)),
+                                labelStyle: TextStyle(
+                                    color: colorScheme.onSurfaceVariant),
+                                suffixIcon: Icon(Icons.calendar_today,
+                                    color: colorScheme.primary),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.cardBorderRadius)),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.cardBorderRadius),
+                                    borderSide: BorderSide(
+                                        color: colorScheme.outline)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.cardBorderRadius),
+                                    borderSide: BorderSide(
+                                        color: colorScheme.primary)),
                                 filled: true,
-                                fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+                                fillColor:
+                                    colorScheme.surfaceVariant.withOpacity(0.3),
                               ),
                               onTap: () => _selectDate(context, false),
                             ),
@@ -197,7 +251,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: DesktopDimensions.spacingLarge),
 
               // Summary Cards
               Row(
@@ -210,7 +264,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                       icon: Icons.currency_rupee,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
                   Expanded(
                     child: SummaryCard(
                       title: loc.avgDaily,
@@ -219,7 +273,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                       icon: Icons.trending_up,
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
                   Expanded(
                     child: SummaryCard(
                       title: loc.totalBills,
@@ -231,14 +285,14 @@ class _SalesReportTabState extends State<SalesReportTab> {
                 ],
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: DesktopDimensions.spacingLarge),
 
               // Sales Table
               Card(
                 color: colorScheme.surface,
-                elevation: 2,
+                elevation: DesktopDimensions.cardElevation,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -246,32 +300,42 @@ class _SalesReportTabState extends State<SalesReportTab> {
                         children: [
                           Text(
                             loc.detailedSales,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: DesktopDimensions.headingSize,
+                                color: colorScheme.onSurface),
                           ),
                           const Spacer(),
                           IconButton(
-                            icon: Icon(Icons.download, color: colorScheme.primary),
+                            icon: Icon(Icons.download,
+                                color: colorScheme.primary),
                             onPressed: () {},
                             tooltip: loc.downloadReport,
                           ),
                           IconButton(
-                            icon: Icon(Icons.print, color: colorScheme.primary),
+                            icon:
+                                Icon(Icons.print, color: colorScheme.primary),
                             onPressed: () {},
                             tooltip: loc.printReport,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: AppDimensions.spacingMedium),
                       if (state.status == ReportStatus.loading)
                         const Center(child: CircularProgressIndicator())
                       else if (state.status == ReportStatus.error)
-                        Center(child: Text(state.errorMessage ?? 'Failed to load data'))
+                        Center(
+                            child:
+                                Text(state.errorMessage ?? 'Failed to load data'))
                       else
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
-                            headingRowColor: MaterialStateProperty.all(colorScheme.primary),
-                            headingTextStyle: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
+                            headingRowColor:
+                                MaterialStateProperty.all(colorScheme.primary),
+                            headingTextStyle: TextStyle(
+                                color: colorScheme.onPrimary,
+                                fontWeight: FontWeight.bold),
                             columns: [
                               DataColumn(label: Text(loc.date)),
                               DataColumn(label: Text(loc.billNo)),
@@ -280,10 +344,21 @@ class _SalesReportTabState extends State<SalesReportTab> {
                             ],
                             rows: state.salesReportData.map((invoice) {
                               return DataRow(cells: [
-                                DataCell(Text(DateFormat('yyyy-MM-dd').format(invoice.date), style: TextStyle(color: colorScheme.onSurface))),
-                                DataCell(Text(invoice.invoiceNumber, style: TextStyle(color: colorScheme.onSurface))),
-                                DataCell(Text(invoice.customerName ?? loc.walkInCustomer, style: TextStyle(color: colorScheme.onSurface))),
-                                DataCell(Text(Money(invoice.totalAmount).toString(), style: TextStyle(color: colorScheme.onSurface))),
+                                DataCell(Text(
+                                    DateFormat('yyyy-MM-dd').format(invoice.date),
+                                    style: TextStyle(
+                                        color: colorScheme.onSurface))),
+                                DataCell(Text(invoice.invoiceNumber,
+                                    style: TextStyle(
+                                        color: colorScheme.onSurface))),
+                                DataCell(Text(
+                                    invoice.customerName ?? loc.walkInCustomer,
+                                    style: TextStyle(
+                                        color: colorScheme.onSurface))),
+                                DataCell(Text(
+                                    Money(invoice.totalAmount).toString(),
+                                    style: TextStyle(
+                                        color: colorScheme.onSurface))),
                               ]);
                             }).toList(),
                           ),
@@ -311,22 +386,25 @@ class ProfitReportTab extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
       child: Column(
         children: [
           // Profit Summary
           Card(
             color: colorScheme.surface,
-            elevation: 2,
+            elevation: DesktopDimensions.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 children: [
                   Text(
                     loc.profitSummary,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                    style: TextStyle(
+                        fontSize: DesktopDimensions.headingSize,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: DesktopDimensions.spacingLarge),
                   Row(
                     children: [
                       Expanded(
@@ -336,7 +414,7 @@ class ProfitReportTab extends StatelessWidget {
                           color: colorScheme.primary,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: DesktopDimensions.spacingMedium),
                       Expanded(
                         child: ProfitCard(
                           title: loc.totalCost,
@@ -344,7 +422,7 @@ class ProfitReportTab extends StatelessWidget {
                           color: colorScheme.error,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: DesktopDimensions.spacingMedium),
                       Expanded(
                         child: ProfitCard(
                           title: loc.netProfit,
@@ -354,7 +432,7 @@ class ProfitReportTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: DesktopDimensions.spacingMedium),
                   Row(
                     children: [
                       Expanded(
@@ -364,7 +442,7 @@ class ProfitReportTab extends StatelessWidget {
                           color: colorScheme.secondary,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: DesktopDimensions.spacingMedium),
                       Expanded(
                         child: ProfitCard(
                           title: loc.avgProfitPerBill,
@@ -379,29 +457,45 @@ class ProfitReportTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: DesktopDimensions.spacingLarge),
 
           // Expenses Breakdown
           Card(
             color: colorScheme.surface,
-            elevation: 2,
+            elevation: DesktopDimensions.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.expenseDetails,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: DesktopDimensions.headingSize,
+                        color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: 10),
-                  ExpenseItem(name: loc.purchaseCost, amount: 'Rs 120,000', percentage: '78%'),
-                  ExpenseItem(name: loc.transport, amount: 'Rs 5,000', percentage: '3.2%'),
-                  ExpenseItem(name: loc.labor, amount: 'Rs 3,000', percentage: '1.9%'),
-                  ExpenseItem(name: loc.otherExpenses, amount: 'Rs 2,000', percentage: '1.3%'),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppDimensions.spacingMedium),
+                  ExpenseItem(
+                      name: loc.purchaseCost,
+                      amount: 'Rs 120,000',
+                      percentage: '78%'),
+                  ExpenseItem(
+                      name: loc.transport,
+                      amount: 'Rs 5,000',
+                      percentage: '3.2%'),
+                  ExpenseItem(
+                      name: loc.labor, amount: 'Rs 3,000', percentage: '1.9%'),
+                  ExpenseItem(
+                      name: loc.otherExpenses,
+                      amount: 'Rs 2,000',
+                      percentage: '1.3%'),
+                  const SizedBox(height: AppDimensions.spacingMedium),
                   const Divider(),
-                  ExpenseItem(name: loc.totalExpenses, amount: 'Rs 130,000', percentage: '84.4%'),
+                  ExpenseItem(
+                      name: loc.totalExpenses,
+                      amount: 'Rs 130,000',
+                      percentage: '84.4%'),
                 ],
               ),
             ),
@@ -458,22 +552,25 @@ class CustomerReportTab extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
       child: Column(
         children: [
           // Outstanding Summary
           Card(
             color: colorScheme.surface,
-            elevation: 2,
+            elevation: DesktopDimensions.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 children: [
                   Text(
                     loc.customerBalanceSummary,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                    style: TextStyle(
+                        fontSize: DesktopDimensions.headingSize,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: DesktopDimensions.spacingLarge),
                   Row(
                     children: [
                       Expanded(
@@ -484,7 +581,7 @@ class CustomerReportTab extends StatelessWidget {
                           icon: Icons.money_off,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: DesktopDimensions.spacingMedium),
                       Expanded(
                         child: SummaryCard(
                           title: loc.customers,
@@ -493,7 +590,7 @@ class CustomerReportTab extends StatelessWidget {
                           icon: Icons.people,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: DesktopDimensions.spacingMedium),
                       Expanded(
                         child: SummaryCard(
                           title: loc.avgBalance,
@@ -509,50 +606,71 @@ class CustomerReportTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: DesktopDimensions.spacingLarge),
 
           // Aging Analysis
           Card(
             color: colorScheme.surface,
-            elevation: 2,
+            elevation: DesktopDimensions.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.balanceAging,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: DesktopDimensions.headingSize,
+                        color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: 10),
-                  AgingItem(days: '0-30 ${loc.days}', amount: 'Rs 25,000', color: colorScheme.primary),
-                  AgingItem(days: '31-60 ${loc.days}', amount: 'Rs 12,000', color: colorScheme.tertiary),
-                  AgingItem(days: '61-90 ${loc.days}', amount: 'Rs 5,200', color: colorScheme.secondary),
-                  AgingItem(days: '90+ ${loc.days}', amount: 'Rs 3,000', color: colorScheme.error),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppDimensions.spacingMedium),
+                  AgingItem(
+                      days: '0-30 ${loc.days}',
+                      amount: 'Rs 25,000',
+                      color: colorScheme.primary),
+                  AgingItem(
+                      days: '31-60 ${loc.days}',
+                      amount: 'Rs 12,000',
+                      color: colorScheme.tertiary),
+                  AgingItem(
+                      days: '61-90 ${loc.days}',
+                      amount: 'Rs 5,200',
+                      color: colorScheme.secondary),
+                  AgingItem(
+                      days: '90+ ${loc.days}',
+                      amount: 'Rs 3,000',
+                      color: colorScheme.error),
+                  const SizedBox(height: AppDimensions.spacingMedium),
                   const Divider(),
-                  AgingItem(days: loc.total, amount: 'Rs 45,200', color: colorScheme.onSurface),
+                  AgingItem(
+                      days: loc.total,
+                      amount: 'Rs 45,200',
+                      color: colorScheme.onSurface),
                 ],
               ),
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: DesktopDimensions.spacingLarge),
 
           // Top Customers
           Card(
             color: colorScheme.surface,
-            elevation: 2,
+            elevation: DesktopDimensions.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.topCustomersBalance,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: DesktopDimensions.headingSize,
+                        color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppDimensions.spacingMedium),
                   CustomerBalanceItem(
                     name: 'Ali Khan',
                     balance: const Money(1250000),
@@ -579,22 +697,25 @@ class StockReportTab extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
       child: Column(
         children: [
           // Stock Value Summary
           Card(
             color: colorScheme.surface,
-            elevation: 2,
+            elevation: DesktopDimensions.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 children: [
                   Text(
                     loc.stockValueSummary,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                    style: TextStyle(
+                        fontSize: DesktopDimensions.headingSize,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: DesktopDimensions.spacingLarge),
                   Row(
                     children: [
                       Expanded(
@@ -605,7 +726,7 @@ class StockReportTab extends StatelessWidget {
                           icon: Icons.warehouse,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: DesktopDimensions.spacingMedium),
                       Expanded(
                         child: SummaryCard(
                           title: loc.totalItems,
@@ -614,7 +735,7 @@ class StockReportTab extends StatelessWidget {
                           icon: Icons.inventory,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: DesktopDimensions.spacingMedium),
                       Expanded(
                         child: SummaryCard(
                           title: loc.avgPrice,
@@ -630,22 +751,25 @@ class StockReportTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: DesktopDimensions.spacingLarge),
 
           // Category-wise Stock
           Card(
             color: colorScheme.surface,
-            elevation: 2,
+            elevation: DesktopDimensions.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.stockByCategory,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: colorScheme.onSurface),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: DesktopDimensions.headingSize,
+                        color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppDimensions.spacingMedium),
                   const StockCategoryItem(
                     category: 'Rice',
                     value: 'Rs 150,000',
@@ -657,26 +781,26 @@ class StockReportTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: DesktopDimensions.spacingLarge),
 
           // Low Stock Items
           Card(
             color: colorScheme.errorContainer,
-            elevation: 2,
+            elevation: DesktopDimensions.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       Icon(Icons.warning, color: colorScheme.error),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: AppDimensions.spacingMedium),
                       Text(
                         loc.lowStockItems,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: DesktopDimensions.headingSize,
                           color: colorScheme.error,
                         ),
                       ),
@@ -687,7 +811,7 @@ class StockReportTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppDimensions.spacingMedium),
                   const LowStockItem(
                     name: 'Rice',
                     current: '5 KG',
@@ -724,23 +848,31 @@ class SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      elevation: 2,
+      elevation: DesktopDimensions.cardElevation,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(AppDimensions.spacingMedium),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.cardBorderRadius),
               ),
               child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(title, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant), textAlign: TextAlign.center),
+            const SizedBox(height: AppDimensions.spacingMedium),
+            Text(value,
+                style: const TextStyle(
+                    fontSize: DesktopDimensions.bodySize,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: AppDimensions.spacingSmall),
+            Text(title,
+                style: TextStyle(
+                    fontSize: DesktopDimensions.captionSize,
+                    color: colorScheme.onSurfaceVariant),
+                textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -766,12 +898,20 @@ class ProfitCard extends StatelessWidget {
     return Card(
       color: color.withOpacity(0.1),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
         child: Column(
           children: [
-            Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
-            const SizedBox(height: 4),
-            Text(title, style: TextStyle(fontSize: 12, color: colorScheme.onSurface), textAlign: TextAlign.center),
+            Text(value,
+                style: TextStyle(
+                    fontSize: DesktopDimensions.headingSize,
+                    fontWeight: FontWeight.bold,
+                    color: color)),
+            const SizedBox(height: AppDimensions.spacingSmall),
+            Text(title,
+                style: TextStyle(
+                    fontSize: DesktopDimensions.captionSize,
+                    color: colorScheme.onSurface),
+                textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -795,15 +935,22 @@ class ExpenseItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
       child: Row(
         children: [
-          Expanded(child: Text(name, style: TextStyle(color: colorScheme.onSurface))),
+          Expanded(
+              child:
+                  Text(name, style: TextStyle(color: colorScheme.onSurface))),
           Text(amount, style: TextStyle(color: colorScheme.onSurface)),
-          const SizedBox(width: 20),
+          const SizedBox(width: DesktopDimensions.spacingLarge),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(color: colorScheme.surfaceVariant, borderRadius: BorderRadius.circular(4)),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.spacingMedium,
+                vertical: AppDimensions.spacingSmall),
+            decoration: BoxDecoration(
+                color: colorScheme.surfaceVariant,
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.spacingSmall)),
             child: Text(percentage),
           ),
         ],
@@ -828,13 +975,23 @@ class AgingItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
       child: Row(
         children: [
-          Container(width: 10, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: 10),
-          Expanded(child: Text(days, style: TextStyle(color: colorScheme.onSurface))),
-          Text(amount, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+          Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                  color: color,
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.spacingSmall))),
+          const SizedBox(width: AppDimensions.spacingMedium),
+          Expanded(
+              child:
+                  Text(days, style: TextStyle(color: colorScheme.onSurface))),
+          Text(amount,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
         ],
       ),
     );
@@ -859,32 +1016,51 @@ class CustomerBalanceItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppDimensions.spacingMedium),
       color: colorScheme.surface,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
         child: Row(
           children: [
             Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(color: colorScheme.errorContainer, borderRadius: BorderRadius.circular(8)),
-              child: Center(child: Icon(Icons.person, color: colorScheme.error, size: 20)),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: colorScheme.errorContainer,
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.spacingMedium)),
+              child: Center(
+                  child:
+                      Icon(Icons.person, color: colorScheme.error, size: 20)),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DesktopDimensions.spacingStandard),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                  Text(phone, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                  Text(name,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface)),
+                  Text(phone,
+                      style: TextStyle(
+                          fontSize: DesktopDimensions.captionSize,
+                          color: colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(balance.toString(), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: colorScheme.error)),
-                Text(days, style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                Text(balance.toString(),
+                    style: TextStyle(
+                        fontSize: DesktopDimensions.bodySize,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.error)),
+                Text(days,
+                    style: TextStyle(
+                        fontSize: DesktopDimensions.captionSize,
+                        color: colorScheme.onSurfaceVariant)),
               ],
             ),
           ],
@@ -913,17 +1089,25 @@ class StockCategoryItem extends StatelessWidget {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
       child: Row(
         children: [
-          Expanded(child: Text(category, style: TextStyle(color: colorScheme.onSurface))),
-          Text('$items ${loc.items}', style: TextStyle(color: colorScheme.onSurface)),
-          const SizedBox(width: 20),
+          Expanded(
+              child: Text(category,
+                  style: TextStyle(color: colorScheme.onSurface))),
+          Text('$items ${loc.items}',
+              style: TextStyle(color: colorScheme.onSurface)),
+          const SizedBox(width: DesktopDimensions.spacingLarge),
           Text(value, style: TextStyle(color: colorScheme.onSurface)),
-          const SizedBox(width: 20),
+          const SizedBox(width: DesktopDimensions.spacingLarge),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(color: colorScheme.surfaceVariant, borderRadius: BorderRadius.circular(4)),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.spacingMedium,
+                vertical: AppDimensions.spacingSmall),
+            decoration: BoxDecoration(
+                color: colorScheme.surfaceVariant,
+                borderRadius:
+                    BorderRadius.circular(AppDimensions.spacingSmall)),
             child: Text(percentage),
           ),
         ],
@@ -951,24 +1135,30 @@ class LowStockItem extends StatelessWidget {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: AppDimensions.spacingMedium),
       color: colorScheme.surface,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
         child: Row(
           children: [
             Icon(Icons.warning, size: 16, color: colorScheme.error),
-            const SizedBox(width: 8),
-            Expanded(child: Text(name, style: TextStyle(color: colorScheme.onSurface))),
+            const SizedBox(width: AppDimensions.spacingMedium),
+            Expanded(
+                child:
+                    Text(name, style: TextStyle(color: colorScheme.onSurface))),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('${loc.current}: $current', style: TextStyle(color: colorScheme.onSurface)),
-                Text('${loc.required}: $min', style: TextStyle(color: colorScheme.onSurface)),
+                Text('${loc.current}: $current',
+                    style: TextStyle(color: colorScheme.onSurface)),
+                Text('${loc.required}: $min',
+                    style: TextStyle(color: colorScheme.onSurface)),
               ],
             ),
-            const SizedBox(width: 12),
-            Text(difference, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.error)),
+            const SizedBox(width: DesktopDimensions.spacingStandard),
+            Text(difference,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: colorScheme.error)),
           ],
         ),
       ),
