@@ -33,6 +33,8 @@ class DesktopDimensions {
   static const double spacingStandard = 12.0;
   static const double spacingMedium = 16.0;
   static const double spacingLarge = 20.0;
+  static const double spacingXLarge = 32.0;
+  static const double spacingXXLarge = 48.0;
 
   // Responsive Breakpoints
   static const double breakpointLarge = 1400.0;

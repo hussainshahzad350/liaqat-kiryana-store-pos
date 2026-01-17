@@ -7,6 +7,7 @@ import 'app_navigation_sidebar.dart';
 import '../l10n/app_localizations.dart';
 import '../core/routes/app_routes.dart';
 import '../core/providers/sidebar_provider.dart';
+import 'app_header.dart';
 
 class MainLayout extends StatelessWidget {
   final String currentRoute;
@@ -67,7 +68,12 @@ class MainLayout extends StatelessWidget {
                   currentRoute: currentRoute,
                 ),
                 Expanded(
-                  child: child,
+                  child: Column(
+                    children: [
+                      AppHeader(currentRoute: currentRoute),
+                      Expanded(child: child),
+                    ],
+                  ),
                 ),
               ],
             ),

@@ -9,11 +9,8 @@ import '../../core/theme/theme_provider.dart';
 import '../../main.dart';
 import '../../core/utils/logger.dart';
 import '../../core/repositories/settings_repository.dart';
-import '../../widgets/app_header.dart';
-import '../../widgets/main_layout.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
-import '../../core/routes/app_routes.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -43,17 +40,18 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return MainLayout(
-      currentRoute: AppRoutes.settings,
+    return Padding(
+      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
       child: Column(
-        children: [
-          AppHeader(
-            title: loc.settings,
-            icon: Icons.settings,
-          ),
-          Container(
-            color: colorScheme.primary,
-            child: TabBar(
+          children: [
+            Container(
+              padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
+                ),
+                child: TabBar(
               controller: _tabController,
               isScrollable: true,
               labelColor: colorScheme.onPrimary,
@@ -66,23 +64,24 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
                 Tab(icon: const Icon(Icons.settings), text: loc.preferences),
                 Tab(icon: const Icon(Icons.info), text: loc.about),
               ],
+                ),
+              ),
             ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                ShopProfileTab(repository: _settingsRepository),
-                BackupTab(repository: _settingsRepository),
-                ReceiptTab(repository: _settingsRepository),
-                PreferencesTab(repository: _settingsRepository),
-                AboutTab(repository: _settingsRepository),
-              ],
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  ShopProfileTab(repository: _settingsRepository),
+                  BackupTab(repository: _settingsRepository),
+                  ReceiptTab(repository: _settingsRepository),
+                  PreferencesTab(repository: _settingsRepository),
+                  AboutTab(repository: _settingsRepository),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
   }
 }
 
@@ -178,6 +177,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
               child: Column(
                 children: [
                   Card(
+                    elevation: DesktopDimensions.cardElevation,
                     child: Padding(
                       padding:
                           const EdgeInsets.all(DesktopDimensions.cardPadding),
@@ -518,6 +518,7 @@ class _BackupTabState extends State<BackupTab> {
                       label: Text(loc.createBackupNow,
                           style: const TextStyle(color: Colors.white)),
                       onPressed: () async {
+                        final theme = Theme.of(context);
                         setState(() => isLoading = true);
                         final success = await _createBackup();
                         if (mounted) setState(() => isLoading = false);
@@ -528,10 +529,9 @@ class _BackupTabState extends State<BackupTab> {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text(
                               success ? loc.backupCreated : loc.backupFailed),
-                          // ignore: use_build_context_synchronously
                           backgroundColor: success
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).colorScheme.error,
+                              ? theme.primaryColor
+                              : theme.colorScheme.error,
                         ));
 
                         if (success) {
@@ -968,8 +968,9 @@ class _PreferencesTabState extends State<PreferencesTab> {
                                         value: ThemeMode.light,
                                         groupValue: themeProvider.themeMode,
                                         onChanged: (ThemeMode? value) {
-                                          if (value != null)
+                                          if (value != null) {
                                             themeProvider.setMode(value);
+                                          }
                                         },
                                         contentPadding: EdgeInsets.zero,
                                       ),
@@ -980,8 +981,9 @@ class _PreferencesTabState extends State<PreferencesTab> {
                                         value: ThemeMode.dark,
                                         groupValue: themeProvider.themeMode,
                                         onChanged: (ThemeMode? value) {
-                                          if (value != null)
+                                          if (value != null) {
                                             themeProvider.setMode(value);
+                                          }
                                         },
                                         contentPadding: EdgeInsets.zero,
                                       ),
@@ -992,8 +994,9 @@ class _PreferencesTabState extends State<PreferencesTab> {
                                         value: ThemeMode.system,
                                         groupValue: themeProvider.themeMode,
                                         onChanged: (ThemeMode? value) {
-                                          if (value != null)
+                                          if (value != null) {
                                             themeProvider.setMode(value);
+                                          }
                                         },
                                         contentPadding: EdgeInsets.zero,
                                       ),

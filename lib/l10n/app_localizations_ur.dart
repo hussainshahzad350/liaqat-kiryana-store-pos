@@ -381,6 +381,54 @@ class AppLocalizationsUr extends AppLocalizations {
   String get about => 'اینڈرول';
 
   @override
+  String get appDescription => 'خوردہ کاروبار کے لیے پوائنٹ آف سیل کا مکمل حل۔';
+
+  @override
+  String get techInfo => 'تکنیکی معلومات';
+
+  @override
+  String get framework => 'فریم ورک';
+
+  @override
+  String get platform => 'پلیٹ فارم';
+
+  @override
+  String get database => 'ڈیٹا بیس';
+
+  @override
+  String get stateManagement => 'اسٹیٹ مینیجمنٹ';
+
+  @override
+  String get uiFramework => 'UI فریم ورک';
+
+  @override
+  String get lastUpdated => 'آخری اپ ڈیٹ';
+
+  @override
+  String get features => 'اہم خصوصیات';
+
+  @override
+  String get featurePos => 'تیز پوائنٹ آف سیل';
+
+  @override
+  String get featureStockManagement => 'اسمارٹ اسٹاک مینیجمنٹ';
+
+  @override
+  String get featureCustomerManagement => 'کسٹمر لیجر اور ٹریکنگ';
+
+  @override
+  String get featureReporting => 'ایڈوانسڈ رپورٹنگ';
+
+  @override
+  String get featureBackup => 'خودکار بیک اپ';
+
+  @override
+  String get featureBilingual => 'دو لسانی سپورٹ (اردو/انگریزی)';
+
+  @override
+  String get featurePrinter => 'تھرمل پرنٹر انضمام';
+
+  @override
   String get changeLogo => 'لوگو تبدیل کریں';
 
   @override

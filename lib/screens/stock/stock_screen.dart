@@ -17,9 +17,7 @@ import '../../core/entity/stock_summary_entity.dart';
 import '../../core/entity/stock_activity_entity.dart';
 import '../../services/pdf_export_service.dart';
 import '../../core/routes/app_routes.dart';
-import '../../widgets/app_header.dart';
 import '../../widgets/skeleton_loader.dart';
-import '../../widgets/main_layout.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
 
@@ -338,9 +336,7 @@ class _StockScreenState extends State<StockScreen> {
             return null;
           }),
         },
-        child: MainLayout(
-          currentRoute: AppRoutes.stock,
-          child: BlocListener<StockFilterBloc, StockFilterState>(
+        child: BlocListener<StockFilterBloc, StockFilterState>(
             listener: (context, filterState) {
               context.read<StockOverviewBloc>().add(LoadStockOverview(
                     query: filterState.searchQuery,
@@ -351,183 +347,91 @@ class _StockScreenState extends State<StockScreen> {
             },
             child: Column(
               children: [
-                // 1. Header & Actions
-                AppHeader(
-                  title: loc.stockManagement,
-                  icon: Icons.inventory_2,
-                  actions: [
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.purchase);
-                      },
-                      icon: const Icon(Icons.add_shopping_cart),
-                      label: Text(loc.newPurchase),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.tertiaryContainer,
-                        foregroundColor: colorScheme.onTertiaryContainer,
+                // 1. Actions Toolbar
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DesktopDimensions.spacingMedium, 
+                    vertical: DesktopDimensions.spacingStandard
+                  ),
+                  color: colorScheme.surface,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                       ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, AppRoutes.purchase);
+                        },
+                        icon: const Icon(Icons.add_shopping_cart),
+                        label: Text(loc.newPurchase),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.tertiaryContainer,
+                          foregroundColor: colorScheme.onTertiaryContainer,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: DesktopDimensions.spacingStandard),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        _tableFocusNode.requestFocus();
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text(
-                                'Select an item from the table and press Enter to adjust')));
-                      },
-                      icon: const Icon(Icons.tune),
-                      label: Text(loc.adjustStock),
-                    ),
-                  ],
+                      const SizedBox(width: DesktopDimensions.spacingStandard),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          _tableFocusNode.requestFocus();
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content: Text(
+                                  'Select an item from the table and press Enter to adjust')));
+                        },
+                        icon: const Icon(Icons.tune),
+                        label: Text(loc.adjustStock),
+                      ),
+                    ],
+                  ),
                 ),
 
-                // 2. KPI Strip
-                BlocBuilder<StockOverviewBloc, StockOverviewState>(
-                  builder: (context, state) {
-                    if (state is StockOverviewLoaded) {
-                      return _buildKPIStrip(
-                          context, loc, colorScheme, state.summary);
-                    }
-                    return _buildKPISkeleton(colorScheme);
-                  },
-                ),
-
-            // 3. Filters (Uses FilterBloc)
-            _buildFilters(context, loc, colorScheme),
-
-            // 4. Main Content Area (Split View)
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left: Tables (Stock + Activities)
-                  Expanded(
-                    flex: _showSidePanel ? 6 : 10,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
                     child: Column(
                       children: [
-                        // Stock Table (The Heart)
-                        Expanded(
-                          flex: 2,
-                          child: BlocBuilder<StockOverviewBloc, StockOverviewState>(
-                            builder: (context, state) {
-                              if (state is StockOverviewLoading) {
-                                return _buildStockTableSkeleton(colorScheme);
-                              }
-                              if (state is StockOverviewError) {
-                                return Center(child: Text(state.message, style: TextStyle(color: colorScheme.error)));
-                              }
-                              if (state is StockOverviewLoaded) {
-                                bool hasReachedMax = false;
-                                try {
-                                  hasReachedMax = (state as dynamic).hasReachedMax ?? false;
-                                } catch (_) {
-                                  // Handle case where getter throws due to null return
-                                }
-                                return _buildStockTable(context, loc, colorScheme, state.items, hasReachedMax);
-                              }
-                              return const SizedBox.shrink();
-                            },
-                          ),
+                        // 2. KPI Strip
+                        BlocBuilder<StockOverviewBloc, StockOverviewState>(
+                          builder: (context, state) {
+                            if (state is StockOverviewLoaded) {
+                              return _buildKPIStrip(
+                                  context, loc, colorScheme, state.summary);
+                            }
+                            return _buildKPISkeleton(colorScheme);
+                          },
                         ),
-                        // Recent Activities (Audit Layer)
-                        Expanded(
-                          flex: 1,
-                          child: BlocBuilder<StockActivityBloc, StockActivityState>(
-                            builder: (context, state) {
-                              if (state is StockActivityLoading) {
-                                return _buildActivitySkeleton(colorScheme);
-                              }
-                              if (state is StockActivityError) {
-                                return Center(child: Text(state.message));
-                              }
-                              if (state is StockActivityLoaded) {
-                                return _buildRecentActivities(context, loc, colorScheme, state.activities, state.hasReachedMax);
-                              }
-                              return const SizedBox.shrink();
-                            },
-                          ),
-                        ),
+                        const SizedBox(height: DesktopDimensions.spacingLarge),
+                        // 3. Filters
+                        _buildFilters(context, loc, colorScheme),
+                        const SizedBox(height: DesktopDimensions.spacingLarge),
+                        // 4. Main Content Area
+                        Expanded(child: _buildMainContentArea(context, loc, colorScheme)),
                       ],
                     ),
                   ),
-                  
-                  // Right: Side Detail Panel
-                  if (_showSidePanel)
-                    Expanded(
-                      flex: 4,
-                      child: Container(
-                        decoration: BoxDecoration(
-                        border: Border(left: BorderSide(color: colorScheme.outlineVariant)),
-                        color: colorScheme.surface,
-                      ),
-                      child: Column(
-                        children: [
-                          // Panel Header
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            color: colorScheme.surfaceVariant.withOpacity(0.3),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _sidePanelTitle,
-                                    style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.close),
-                                  onPressed: _closeSidePanel,
-                                  iconSize: 20,
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Divider(height: 1),
-                          // Panel Content
-                          Expanded(
-                            child: _sidePanelContent ?? const Center(child: Text('No details')),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ),
-                ],
-              ),
-            ),
+                ),
           ],
         ),
       ),
-    ),
     ),
     );
   }
 
   Widget _buildKPIStrip(BuildContext context, AppLocalizations loc,
       ColorScheme colorScheme, StockSummaryEntity summary) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: DesktopDimensions.spacingMedium,
-          vertical: DesktopDimensions.spacingStandard),
-      color: colorScheme.surfaceVariant.withOpacity(0.3),
-      child: Row(
-        children: [
-          _buildKPICard(
-              loc.totalItems, '${summary.totalItemsCount}', Colors.blue),
-          _buildKPICard(loc.stockValue,
-              summary.totalStockSalesValue.formattedNoDecimal, Colors.green),
-          _buildKPICard('Total Cost', summary.totalStockCost.formattedNoDecimal,
-              Colors.grey),
-          _buildKPICard(
-              'Low Stock', '${summary.lowStockItemsCount}', Colors.orange),
-          _buildKPICard(
-              'Out of Stock', '${summary.outOfStockItemsCount}', Colors.red),
-          _buildKPICard(
-              'Expired', '${summary.expiredOrNearExpiryCount}', Colors.purple),
-        ],
-      ),
+    return Row(
+      children: [
+        _buildKPICard(
+            loc.totalItems, '${summary.totalItemsCount}', Colors.blue),
+        _buildKPICard(loc.stockValue,
+            summary.totalStockSalesValue.formattedNoDecimal, Colors.green),
+        _buildKPICard('Total Cost', summary.totalStockCost.formattedNoDecimal,
+            Colors.grey),
+        _buildKPICard(
+            'Low Stock', '${summary.lowStockItemsCount}', Colors.orange),
+        _buildKPICard(
+            'Out of Stock', '${summary.outOfStockItemsCount}', Colors.red),
+        _buildKPICard(
+            'Expired', '${summary.expiredOrNearExpiryCount}', Colors.purple),
+      ],
     );
   }
 
@@ -536,9 +440,11 @@ class _StockScreenState extends State<StockScreen> {
       child: Card(
         elevation: DesktopDimensions.cardElevation,
         margin: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.spacingMedium),
+            horizontal: DesktopDimensions.spacingSmall),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
         child: Padding(
-          padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+          padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -546,7 +452,7 @@ class _StockScreenState extends State<StockScreen> {
                   style: TextStyle(
                       fontSize: DesktopDimensions.captionSize,
                       color: Colors.grey[700])),
-              const SizedBox(height: AppDimensions.spacingSmall),
+              const SizedBox(height: DesktopDimensions.spacingSmall),
               Text(
                 value,
                 style: TextStyle(
@@ -564,11 +470,13 @@ class _StockScreenState extends State<StockScreen> {
 
   Widget _buildFilters(
       BuildContext context, AppLocalizations loc, ColorScheme colorScheme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: DesktopDimensions.spacingMedium,
-          vertical: AppDimensions.spacingMedium),
-      child: BlocBuilder<StockFilterBloc, StockFilterState>(
+    return Card(
+      elevation: DesktopDimensions.cardElevation,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+      child: Padding(
+        padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+        child: BlocBuilder<StockFilterBloc, StockFilterState>(
         builder: (context, state) {
           return Column(
             children: [
@@ -681,8 +589,9 @@ class _StockScreenState extends State<StockScreen> {
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildStockTable(BuildContext context, AppLocalizations loc,
       ColorScheme colorScheme, List<StockItemEntity> items, bool hasReachedMax) {
@@ -1066,6 +975,135 @@ class _StockScreenState extends State<StockScreen> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMainContentArea(BuildContext context, AppLocalizations loc, ColorScheme colorScheme) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left: Tables (Stock + Activities)
+        Expanded(
+          flex: _showSidePanel ? 6 : 10,
+          child: Column(
+            children: [
+              // Stock Table (The Heart)
+              Expanded(
+                flex: 2,
+                child: Card(
+                  elevation: DesktopDimensions.cardElevation,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                    child: BlocBuilder<StockOverviewBloc, StockOverviewState>(
+                      builder: (context, state) {
+                        if (state is StockOverviewLoading) {
+                          return _buildStockTableSkeleton(colorScheme);
+                        }
+                        if (state is StockOverviewError) {
+                          return Center(
+                              child: Text(state.message,
+                                  style: TextStyle(color: colorScheme.error)));
+                        }
+                        if (state is StockOverviewLoaded) {
+                          bool hasReachedMax = false;
+                          try {
+                            hasReachedMax = (state as dynamic).hasReachedMax ?? false;
+                          } catch (_) {}
+                          return _buildStockTable(
+                              context, loc, colorScheme, state.items, hasReachedMax);
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
+              // Recent Activities (Audit Layer)
+              Expanded(
+                flex: 1,
+                child: Card(
+                  elevation: DesktopDimensions.cardElevation,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                    child: BlocBuilder<StockActivityBloc, StockActivityState>(
+                      builder: (context, state) {
+                        if (state is StockActivityLoading) {
+                          return _buildActivitySkeleton(colorScheme);
+                        }
+                        if (state is StockActivityError) {
+                          return Center(child: Text(state.message));
+                        }
+                        if (state is StockActivityLoaded) {
+                          return _buildRecentActivities(context, loc, colorScheme,
+                              state.activities, state.hasReachedMax);
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Right: Side Detail Panel
+        if (_showSidePanel) ...[
+          const SizedBox(width: DesktopDimensions.spacingMedium),
+          Expanded(
+            flex: 4,
+            child: Card(
+              elevation: DesktopDimensions.cardElevation,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                child: Column(
+                  children: [
+                    // Panel Header
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      color: colorScheme.surfaceVariant.withOpacity(0.3),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _sidePanelTitle,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: _closeSidePanel,
+                            iconSize: 20,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    // Panel Content
+                    Expanded(
+                      child: _sidePanelContent ??
+                          const Center(child: Text('No details')),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

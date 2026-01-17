@@ -9,7 +9,6 @@ import '../../bloc/sales/sales_event.dart';
 import '../../bloc/sales/sales_state.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
-import '../../core/routes/app_routes.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
 import '../../core/repositories/customers_repository.dart';
@@ -19,8 +18,6 @@ import '../../models/product_model.dart';
 import '../../models/customer_model.dart';
 import '../../models/cart_item_model.dart';
 import '../../domain/entities/money.dart';
-import '../../widgets/app_header.dart';
-import '../../widgets/main_layout.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -1345,34 +1342,40 @@ class _SalesScreenState extends State<SalesScreen> {
                 }
               },
               builder: (context, state) {
-                return MainLayout(
-                  currentRoute: AppRoutes.sales,
-                  child: Stack(
+                return Stack(
                     children: [
                       Column(
                         children: [
-                          AppHeader(
-                            title: loc.posTitle,
-                            icon: Icons.point_of_sale,
-                            actions: [
-                              IconButton(
-                                icon: Icon(Icons.refresh,
-                                    color: colorScheme.onPrimary),
-                                onPressed: _refreshAllData,
-                                tooltip: 'Refresh',
-                              ),
-                              const SizedBox(
-                                  width: DesktopDimensions.spacingMedium),
-                              IconButton(
-                                icon: Icon(Icons.delete_sweep,
-                                    color: colorScheme.onPrimary),
-                                onPressed: _clearCart,
-                                tooltip: loc.clearCartTitle,
-                              ),
-                            ],
+                          // Actions Toolbar
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: DesktopDimensions.spacingMedium,
+                                vertical: DesktopDimensions.spacingStandard),
+                            color: colorScheme.surface,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.refresh,
+                                      color: colorScheme.primary),
+                                  onPressed: _refreshAllData,
+                                  tooltip: 'Refresh',
+                                ),
+                                const SizedBox(
+                                    width: DesktopDimensions.spacingMedium),
+                                IconButton(
+                                  icon: Icon(Icons.delete_sweep,
+                                      color: colorScheme.error),
+                                  onPressed: _clearCart,
+                                  tooltip: loc.clearCartTitle,
+                                ),
+                              ],
+                            ),
                           ),
                           Expanded(
-                            child: LayoutBuilder(
+                            child: Padding(
+                              padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                              child: LayoutBuilder(
                               builder: (context, constraints) {
                                 // Responsive Right Panel Width
                                 double rightPanelWidth = 500;
@@ -1395,54 +1398,61 @@ class _SalesScreenState extends State<SalesScreen> {
                                       child: Column(
                                         children: [
                                           // Item Search
-                                          Padding(
-                                            padding: const EdgeInsets.all(
-                                                DesktopDimensions.spacingMedium),
-                                            child: Focus(
-                                              onFocusChange: (hasFocus) {
-                                                if (hasFocus) {
-                                                  _productSearchFocusNode
-                                                      .requestFocus();
-                                                }
-                                              },
-                                              child: TextField(
-                                                controller:
-                                                    productSearchController,
-                                                focusNode:
-                                                    _productSearchFocusNode,
-                                                decoration: InputDecoration(
-                                                  hintText: loc.searchItemHint,
-                                                  isDense: true,
-                                                  prefixIcon: Icon(Icons.search,
-                                                      color: colorScheme
-                                                          .onSurfaceVariant),
-                                                  border: OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              DesktopDimensions
-                                                                  .cardBorderRadius)),
-                                                  filled: true,
-                                                  fillColor: colorScheme
-                                                      .surfaceVariant
-                                                      .withOpacity(0.5),
-                                                  contentPadding:
-                                                      const EdgeInsets
-                                                          .symmetric(
-                                                          vertical: 14,
-                                                          horizontal: 12),
-                                                ),
-                                                onChanged: _filterProducts,
-                                                onTap: () {
-                                                  if (productSearchController
-                                                      .text.isNotEmpty) {
-                                                    _filterProducts(
-                                                        productSearchController
-                                                            .text);
+                                          Card(
+                                            elevation: DesktopDimensions.cardElevation,
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(
+                                                    DesktopDimensions.cardBorderRadius)),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(
+                                                  DesktopDimensions.cardPadding),
+                                              child: Focus(
+                                                onFocusChange: (hasFocus) {
+                                                  if (hasFocus) {
+                                                    _productSearchFocusNode
+                                                        .requestFocus();
                                                   }
                                                 },
+                                                child: TextField(
+                                                  controller:
+                                                      productSearchController,
+                                                  focusNode:
+                                                      _productSearchFocusNode,
+                                                  decoration: InputDecoration(
+                                                    hintText: loc.searchItemHint,
+                                                    isDense: true,
+                                                    prefixIcon: Icon(Icons.search,
+                                                        color: colorScheme
+                                                            .onSurfaceVariant),
+                                                    border: OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                DesktopDimensions
+                                                                    .cardBorderRadius)),
+                                                    filled: true,
+                                                    fillColor: colorScheme
+                                                        .surfaceVariant
+                                                        .withOpacity(0.5),
+                                                    contentPadding:
+                                                        const EdgeInsets
+                                                            .symmetric(
+                                                            vertical: 14,
+                                                            horizontal: 12),
+                                                  ),
+                                                  onChanged: _filterProducts,
+                                                  onTap: () {
+                                                    if (productSearchController
+                                                        .text.isNotEmpty) {
+                                                      _filterProducts(
+                                                          productSearchController
+                                                              .text);
+                                                    }
+                                                  },
+                                                ),
                                               ),
                                             ),
                                           ),
+                                          const SizedBox(height: DesktopDimensions.spacingMedium),
 
                                           // Product Grid
                                           Expanded(
@@ -1673,13 +1683,13 @@ class _SalesScreenState extends State<SalesScreen> {
                               },
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
                       if (state.status == SalesStatus.loading)
                         _buildLoadingOverlay(loc, colorScheme),
                     ],
-                  ),
-                );
+                  );
               },
             ),
           ),
@@ -1727,19 +1737,19 @@ class _SalesScreenState extends State<SalesScreen> {
 
   Widget _buildProductCard(
       Product product, ColorScheme colorScheme, bool isFocused) {
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      color: colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-            color: isFocused
-                ? colorScheme.primary
-                : colorScheme.outlineVariant.withOpacity(0.3),
-            width: isFocused ? 2 : 1),
-      ),
+  return Card(
+    elevation: DesktopDimensions.cardElevation,
+    margin: EdgeInsets.zero,
+    clipBehavior: Clip.antiAlias,
+    color: colorScheme.surface,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+      side: BorderSide(
+          color: isFocused
+              ? colorScheme.primary
+              : colorScheme.outlineVariant.withOpacity(0.3),
+          width: isFocused ? 2 : 1),
+    ),
       child: InkWell(
         onTap: () => _addToCart(product),
         hoverColor: colorScheme.primaryContainer.withOpacity(0.3),
@@ -1829,19 +1839,31 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  Widget _buildRecentSalesSection(
-      AppLocalizations loc, ColorScheme colorScheme) {
-    return Container(
+  Widget _buildRecentSalesSection(AppLocalizations loc, ColorScheme colorScheme) {
+    return Card(
+    elevation: DesktopDimensions.cardElevation,
+    margin: const EdgeInsets.only(top: DesktopDimensions.spacingMedium),
+    shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+    child: Container(
       height: 200,
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
         color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: colorScheme.surfaceVariant.withOpacity(0.3),
+            padding: const EdgeInsets.symmetric(
+                horizontal: DesktopDimensions.spacingStandard,
+                vertical: DesktopDimensions.spacingSmall),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceVariant.withOpacity(0.3),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(DesktopDimensions.cardBorderRadius),
+                topRight: Radius.circular(DesktopDimensions.cardBorderRadius),
+              ),
+            ),
             width: double.infinity,
             child: Text(loc.recentSales,
                 style: TextStyle(
@@ -1945,13 +1967,17 @@ class _SalesScreenState extends State<SalesScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildCustomerSection(AppLocalizations loc, ColorScheme colorScheme) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      color: colorScheme.surface,
+    return Card(
+    elevation: DesktopDimensions.cardElevation,
+    shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+    child: Padding(
+      padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
       child: Column(
         children: [
           Row(
@@ -1970,7 +1996,8 @@ class _SalesScreenState extends State<SalesScreen> {
                             onPressed: () => _selectCustomer(null))
                         : null,
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius / 2)),
                     filled: true,
                     fillColor: colorScheme.surfaceVariant,
                   ),
@@ -2050,8 +2077,9 @@ class _SalesScreenState extends State<SalesScreen> {
             ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTotalsSection(AppLocalizations loc, ColorScheme colorScheme) {
     return Container(

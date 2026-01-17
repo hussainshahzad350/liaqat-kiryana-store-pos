@@ -267,17 +267,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
           }),
         },
         child: Scaffold(
-      appBar: AppBar(
-        title: const Text('New Purchase'),
-        actions: [
-          TextButton.icon(
-            onPressed: _savePurchase,
-            icon: const Icon(Icons.save),
-            label: const Text('SAVE'),
-            style: TextButton.styleFrom(foregroundColor: colorScheme.onPrimary),
-          )
-        ],
-      ),
+
       body: Column(
         children: [
           // Header Section
@@ -408,6 +398,15 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                   onPressed: _addItem,
                   icon: const Icon(Icons.add),
                   label: const Text('Add Item'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _savePurchase,
+                  icon: const Icon(Icons.save),
+                  label: const Text('SAVE'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                  ),
                 ),
                 Text(
                   'Total: ${Money(_totalAmount.toInt()).formattedNoDecimal}',

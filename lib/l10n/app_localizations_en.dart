@@ -381,6 +381,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about => 'About';
 
   @override
+  String get appDescription =>
+      'A complete Point of Sale solution for retail businesses.';
+
+  @override
+  String get techInfo => 'Technical Info';
+
+  @override
+  String get framework => 'Framework';
+
+  @override
+  String get platform => 'Platform';
+
+  @override
+  String get database => 'Database';
+
+  @override
+  String get stateManagement => 'State Management';
+
+  @override
+  String get uiFramework => 'UI Framework';
+
+  @override
+  String get lastUpdated => 'Last Updated';
+
+  @override
+  String get features => 'Key Features';
+
+  @override
+  String get featurePos => 'Fast Point of Sale';
+
+  @override
+  String get featureStockManagement => 'Smart Stock Management';
+
+  @override
+  String get featureCustomerManagement => 'Customer Ledger & Tracking';
+
+  @override
+  String get featureReporting => 'Advanced Reporting';
+
+  @override
+  String get featureBackup => 'Automated Backups';
+
+  @override
+  String get featureBilingual => 'Bilingual Support (Urdu/English)';
+
+  @override
+  String get featurePrinter => 'Thermal Printer Integration';
+
+  @override
   String get changeLogo => 'Change Logo';
 
   @override

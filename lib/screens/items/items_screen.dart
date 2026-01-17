@@ -173,14 +173,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text(localizations.itemsManagement, style: TextStyle(color: colorScheme.onPrimary)), // Ensure localizations and colorScheme are not null
-        backgroundColor: colorScheme.primary,
-        iconTheme: IconThemeData(color: colorScheme.onPrimary),
-        actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: _showAddItemDialog),
-        ],
-      ),
+
       body: Column(
           children: [
             // Top Toolbar

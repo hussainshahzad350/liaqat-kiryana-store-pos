@@ -10,11 +10,8 @@ import '../../models/invoice_item_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/customer_model.dart';
 import '../../domain/entities/money.dart';
-import '../../widgets/app_header.dart';
-import '../../widgets/main_layout.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
-import '../../core/routes/app_routes.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -352,18 +349,21 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-
-    return MainLayout(
-      currentRoute: AppRoutes.customers,
-      child: Stack(
-        children: [
-          // MAIN CONTENT
-          Column(
+    return Stack(
+      children: [
+        // MAIN CONTENT
+        Padding(
+          padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+          child: Column(
             children: [
-              AppHeader(
-                title: loc.customers,
-                icon: Icons.people,
-                actions: [
+            // Actions Toolbar
+            Container(
+              padding: const EdgeInsets.only(
+                bottom: DesktopDimensions.spacingMedium
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
                   ElevatedButton.icon(
                     onPressed: () => _showAddDialog(),
                     icon: const Icon(Icons.add),
@@ -371,11 +371,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   ),
                 ],
               ),
-              _buildDashboard(loc),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingMedium,
-                    vertical: AppDimensions.spacingMedium),
+            ),
+            _buildDashboard(loc),
+            Card(
+              elevation: DesktopDimensions.cardElevation,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+              child: Padding(
+                padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
                 child: TextField(
                   controller: searchController,
                   onChanged: (_) => _loadActiveCustomers(),
@@ -388,62 +391,67 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     fillColor: colorScheme.surfaceVariant,
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius),
+                            DesktopDimensions.cardBorderRadius / 2),
                         borderSide:
                             BorderSide(color: colorScheme.outline, width: 1.5)),
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius),
-                        borderSide: BorderSide(
-                            color: colorScheme.primary, width: 2.5)),
+                            DesktopDimensions.cardBorderRadius / 2),
+                        borderSide:
+                            BorderSide(color: colorScheme.primary, width: 2.5)),
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 15, vertical: 15),
+                        horizontal: 12, vertical: 12),
                   ),
                 ),
               ),
-              Expanded(
-                child: _isFirstLoadRunning
-                    ? Center(
-                        child:
-                            CircularProgressIndicator(color: colorScheme.primary))
-                    : customers.isEmpty
-                        ? Center(
-                            child: Text(loc.noCustomersFound,
-                                style: TextStyle(color: colorScheme.onSurface)))
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(bottom: 80),
-                            itemCount: customers.length,
-                            itemBuilder: (context, index) =>
-                                _buildCustomerCard(customers[index]),
-                          ),
+            ),
+            const SizedBox(height: DesktopDimensions.spacingMedium),
+            Expanded(
+              child: Card(
+                elevation: DesktopDimensions.cardElevation,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                  child: _isFirstLoadRunning
+                      ? Center(
+                          child: CircularProgressIndicator(color: colorScheme.primary))
+                      : customers.isEmpty
+                          ? Center(
+                              child: Text(loc.noCustomersFound,
+                                  style: TextStyle(color: colorScheme.onSurface)))
+                          : ListView.builder(
+                              padding: const EdgeInsets.only(bottom: 20),
+                              itemCount: customers.length,
+                              itemBuilder: (context, index) =>
+                                  _buildCustomerCard(customers[index])),
+                  ),
+                ),
               ),
             ],
           ),
+        ),
 
-          // OVERLAYS
-          _buildArchiveOverlay(loc),
-          if (_showLedgerOverlay) _buildLedgerOverlay(loc),
-        ],
-      ),
+        // OVERLAYS
+        _buildArchiveOverlay(loc),
+        if (_showLedgerOverlay) _buildLedgerOverlay(loc),
+      ],
     );
   }
 
   Widget _buildDashboard(AppLocalizations loc) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: DesktopDimensions.spacingMedium,
-          vertical: AppDimensions.spacingMedium),
-      height: 115,
+    return SizedBox(
+      height: 120,
       child: Row(
         children: [
           Expanded(
               child: _buildKpiCard(
                   loc, loc.dashboardTotal, countTotal, Money(balTotal), null)),
-          const SizedBox(width: AppDimensions.spacingMedium),
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           Expanded(
               child: _buildKpiCard(loc, loc.dashboardActive, countActive,
                   Money(balActive), null)),
-          const SizedBox(width: AppDimensions.spacingMedium),
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           Expanded(
             child: _buildKpiCard(
                 loc, loc.dashboardArchived, countArchived, Money(balArchived),
@@ -471,58 +479,59 @@ class _CustomersScreenState extends State<CustomersScreen> {
         : colorScheme.onPrimaryContainer;
     final borderColor = isOrange ? colorScheme.tertiary : colorScheme.primary;
 
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.spacingMedium,
-            vertical: AppDimensions.spacingMedium),
-        decoration: BoxDecoration(
-          color: containerColor,
-          borderRadius:
-              BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-          border: Border.all(color: borderColor, width: 1.2),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(title,
-                  style: TextStyle(
-                      color: contentColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: DesktopDimensions.bodySize)),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(Icons.people,
-                    size: DesktopDimensions.headingSize, color: contentColor),
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text("$count",
-                        style: TextStyle(
-                            color: contentColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: DesktopDimensions.headingSize)),
+    return Card(
+      elevation: DesktopDimensions.cardElevation,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        side: BorderSide(color: borderColor, width: 1.2),
+      ),
+      color: containerColor,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(title,
+                    style: TextStyle(
+                        color: contentColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: DesktopDimensions.bodySize)),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Icon(Icons.people,
+                      size: DesktopDimensions.headingSize, color: contentColor),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text("$count",
+                          style: TextStyle(
+                              color: contentColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: DesktopDimensions.headingSize)),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text("${loc.balanceShort}: ${amount.toString()}",
-                  style: TextStyle(
-                      color: contentColor,
-                      fontSize: DesktopDimensions.bodySize,
-                      fontWeight: FontWeight.w600)),
-            ),
-          ],
+                ],
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text("${loc.balanceShort}: ${amount.toString()}",
+                    style: TextStyle(
+                        color: contentColor,
+                        fontSize: DesktopDimensions.bodySize,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -627,8 +636,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 onSelected: (value) {
                   if (value == 'edit') _showAddDialog(customer: customer);
                   if (value == 'archive') _toggleArchiveStatus(customer.id!, true);
-                  if (value == 'delete')
+                  if (value == 'delete') {
                     _deleteCustomer(customer.id!, balance as int);
+                  }
                 },
                 itemBuilder: (context) => [
                   PopupMenuItem(

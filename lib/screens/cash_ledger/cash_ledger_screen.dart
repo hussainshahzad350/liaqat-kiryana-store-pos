@@ -9,9 +9,6 @@ import '../../models/cash_ledger_model.dart';
 import '../../domain/entities/money.dart';
 import 'package:liaqat_store/core/constants/desktop_dimensions.dart';
 import 'package:liaqat_store/core/res/app_dimensions.dart';
-import 'package:liaqat_store/core/routes/app_routes.dart';
-import 'package:liaqat_store/widgets/app_header.dart';
-import 'package:liaqat_store/widgets/main_layout.dart';
 
 class CashLedgerScreen extends StatefulWidget {
   const CashLedgerScreen({super.key});
@@ -296,174 +293,157 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return MainLayout(
-      currentRoute: AppRoutes.cashLedger,
+    return Padding(
+      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
       child: Column(
-        children: [
-          AppHeader(
-            title: loc.cashLedger,
-            icon: Icons.book_outlined,
-            actions: [
-              ElevatedButton.icon(
-                icon: Icon(Icons.add, color: colorScheme.onPrimaryContainer),
-                label: Text(loc.cashIn,
-                    style: TextStyle(color: colorScheme.onPrimaryContainer)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primaryContainer,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: AppDimensions.spacingLarge,
-                      horizontal: AppDimensions.spacingLarge),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.borderRadius),
+          children: [
+          Container(
+            padding: const EdgeInsets.only(
+              bottom: DesktopDimensions.spacingMedium,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _addTransaction('IN'),
+                  icon: const Icon(Icons.add),
+                  label: Text(loc.cashIn),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primaryContainer,
+                    foregroundColor: colorScheme.onPrimaryContainer,
                   ),
                 ),
-                onPressed: () => _addTransaction('IN'),
-              ),
-              const SizedBox(width: DesktopDimensions.spacingStandard),
-              ElevatedButton.icon(
-                icon: Icon(Icons.remove, color: colorScheme.onErrorContainer),
-                label: Text(loc.cashOut,
-                    style: TextStyle(color: colorScheme.onErrorContainer)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.errorContainer,
-                  foregroundColor: colorScheme.onErrorContainer,
-                  padding: const EdgeInsets.symmetric(
-                      vertical: AppDimensions.spacingLarge,
-                      horizontal: AppDimensions.spacingLarge),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.borderRadius),
+                const SizedBox(width: AppDimensions.spacingMedium),
+                ElevatedButton.icon(
+                  onPressed: () => _addTransaction('OUT'),
+                  icon: const Icon(Icons.remove),
+                  label: Text(loc.cashOut),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.errorContainer,
+                    foregroundColor: colorScheme.onErrorContainer,
                   ),
                 ),
-                onPressed: () => _addTransaction('OUT'),
-              ),
-            ],
+              ],
+            ),
           ),
           // Balance Card
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              DesktopDimensions.spacingLarge,
-              DesktopDimensions.spacingLarge,
-              DesktopDimensions.spacingLarge,
-              0,
+          Card(
+            elevation: DesktopDimensions.cardElevation,
+            color: colorScheme.primaryContainer,
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.cardBorderRadius),
             ),
-            child: Card(
-              color: colorScheme.primaryContainer,
-              shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(DesktopDimensions.spacingXXLarge),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(loc.currentBalance,
-                        style: TextStyle(
-                            fontSize: DesktopDimensions.bodySize,
-                            color: colorScheme.onPrimaryContainer)),
-                    Text(
-                      currentBalance.formattedNoDecimal,
+            child: Padding(
+              padding: const EdgeInsets.all(DesktopDimensions.spacingXXLarge),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(loc.currentBalance,
                       style: TextStyle(
-                          fontSize: DesktopDimensions.headingSize,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onPrimaryContainer),
-                    ),
-                  ],
-                ),
+                          fontSize: DesktopDimensions.bodySize,
+                          color: colorScheme.onPrimaryContainer)),
+                  Text(
+                    currentBalance.formattedNoDecimal,
+                    style: TextStyle(
+                        fontSize: DesktopDimensions.headingSize,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onPrimaryContainer),
+                  ),
+                ],
               ),
             ),
           ),
+          const SizedBox(height: DesktopDimensions.spacingMedium),
 
           // List
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: DesktopDimensions.spacingLarge),
-              child: _isFirstLoadRunning
-                  ? Center(
-                      child: CircularProgressIndicator(
-                          color: colorScheme.primary))
-                  : ledgerEntries.isEmpty
-                      ? Center(
-                          child: Text(loc.noData,
-                              style: TextStyle(color: colorScheme.onSurface)))
-                      : ListView.builder(
-                          controller: _scrollController,
-                          itemCount: ledgerEntries.length +
-                              (_isLoadMoreRunning ? 1 : 0),
-                          itemBuilder: (context, index) {
-                            if (index == ledgerEntries.length) {
-                              return Center(
-                                  child: CircularProgressIndicator(
-                                      color: colorScheme.primary));
-                            }
+            child: Card(
+              elevation: DesktopDimensions.cardElevation,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                child: _isFirstLoadRunning
+                    ? Center(
+                        child: CircularProgressIndicator(
+                            color: colorScheme.primary))
+                    : ledgerEntries.isEmpty
+                        ? Center(
+                            child: Text(loc.noData,
+                                style: TextStyle(color: colorScheme.onSurface)))
+                        : ListView.builder(
+                            controller: _scrollController,
+                            itemCount: ledgerEntries.length +
+                                (_isLoadMoreRunning ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index == ledgerEntries.length) {
+                                return Center(
+                                    child: CircularProgressIndicator(
+                                        color: colorScheme.primary));
+                              }
 
-                            final entry = ledgerEntries[index];
-                            final isIncome = entry.isInflow;
+                              final entry = ledgerEntries[index];
+                              final isIncome = entry.isInflow;
 
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: AppDimensions.spacingSmall),
-                              color: colorScheme.surface,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(
-                                    AppDimensions.borderRadius),
-                              ),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: isIncome
-                                      ? colorScheme.primaryContainer
-                                      : colorScheme.errorContainer,
-                                  child: Icon(
-                                    isIncome
-                                        ? Icons.arrow_downward
-                                        : Icons.arrow_upward,
-                                    color: isIncome
-                                        ? colorScheme.primary
-                                        : colorScheme.error,
-                                  ),
-                                ),
-                                title: Text(entry.description,
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.onSurface)),
-                                subtitle: Text(
-                                    '${entry.transactionDate} | ${entry.transactionTime}',
-                                    style: TextStyle(
-                                        color: colorScheme.onSurfaceVariant)),
-                                trailing: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
+                              return Column(
+                                children: [
+                                  ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: isIncome
+                                          ? colorScheme.primaryContainer
+                                          : colorScheme.errorContainer,
+                                      child: Icon(
+                                        isIncome
+                                            ? Icons.arrow_downward
+                                            : Icons.arrow_upward,
                                         color: isIncome
                                             ? colorScheme.primary
                                             : colorScheme.error,
-                                        fontSize: DesktopDimensions.bodySize,
                                       ),
                                     ),
-                                    Text(
-                                      'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
-                                      style: TextStyle(
-                                          fontSize:
-                                              DesktopDimensions.captionSize,
-                                          color: colorScheme.onSurfaceVariant),
+                                    title: Text(entry.description,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.onSurface)),
+                                    subtitle: Text(
+                                        '${entry.transactionDate} | ${entry.transactionTime}',
+                                        style: TextStyle(
+                                            color: colorScheme.onSurfaceVariant)),
+                                    trailing: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: isIncome
+                                                ? colorScheme.primary
+                                                : colorScheme.error,
+                                            fontSize: DesktopDimensions.bodySize,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
+                                          style: TextStyle(
+                                              fontSize:
+                                                  DesktopDimensions.captionSize,
+                                              color: colorScheme.onSurfaceVariant),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                                  ),
+                                  const Divider(height: 1),
+                                ],
+                              );
+                            },
+                          ),
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
   }
 }

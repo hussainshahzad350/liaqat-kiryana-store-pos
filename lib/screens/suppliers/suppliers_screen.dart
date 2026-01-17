@@ -9,11 +9,8 @@ import '../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart'; // Keep for PdfColor
 import '../../services/ledger_export_service.dart';
-import '../../widgets/app_header.dart';
-import '../../widgets/main_layout.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
-import '../../core/routes/app_routes.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -541,51 +538,65 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return MainLayout(
-      currentRoute: AppRoutes.suppliers,
-      child: Stack(
+    return Stack(
         children: [
-          Column(
-            children: [
-              AppHeader(
-                title: loc.suppliersManagement,
-                icon: Icons.business,
-                actions: [
-                  ElevatedButton.icon(
-                    onPressed: () => _showSupplierDialog(),
-                    icon: const Icon(Icons.add),
-                    label: Text(loc.addSupplier),
-                  ),
-                ],
+          Padding(
+            padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+            child: Column(
+              children: [
+              // Local Toolbar
+              Container(
+                padding: const EdgeInsets.only(
+                  bottom: DesktopDimensions.spacingMedium,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => _showSupplierDialog(),
+                      icon: const Icon(Icons.add),
+                      label: Text(loc.addSupplier),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primaryContainer,
+                        foregroundColor: colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               _buildDashboard(loc),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingMedium,
-                    vertical: AppDimensions.spacingMedium),
-                child: TextField(
-                  controller: searchController,
-                  onChanged: (val) => _firstLoad(),
-                  style: TextStyle(
-                      color: colorScheme.onSurface,
-                      fontSize: DesktopDimensions.bodySize),
-                  decoration: InputDecoration(
-                    hintText: loc.search,
-                    hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                    prefixIcon: Icon(Icons.search,
-                        size: 20, color: colorScheme.onSurfaceVariant),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius),
-                        borderSide: BorderSide(color: colorScheme.outline)),
-                    filled: true,
-                    fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                    isDense: true,
+              const SizedBox(height: DesktopDimensions.spacingMedium),
+              Card(
+                elevation: DesktopDimensions.cardElevation,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                child: Padding(
+                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: (val) => _firstLoad(),
+                    style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontSize: DesktopDimensions.bodySize),
+                    decoration: InputDecoration(
+                      hintText: loc.search,
+                      hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                      prefixIcon: Icon(Icons.search,
+                          size: 20, color: colorScheme.onSurfaceVariant),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius / 2),
+                          borderSide: BorderSide(color: colorScheme.outline)),
+                      filled: true,
+                      fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      isDense: true,
+                    ),
                   ),
                 ),
               ),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
               Expanded(
                 child: _isFirstLoadRunning
                     ? Center(
@@ -620,25 +631,22 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               ),
             ],
           ),
-          if (_showArchiveOverlay) _buildArchiveOverlay(loc),
+        ),
+        if (_showArchiveOverlay) _buildArchiveOverlay(loc),
           if (_selectedSupplierForLedger != null) _buildLedgerOverlay(loc),
         ],
-      ),
-    );
+      );
   }
 
   Widget _buildDashboard(AppLocalizations loc) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: DesktopDimensions.spacingMedium,
-          vertical: AppDimensions.spacingMedium),
-      height: 115,
+    return SizedBox(
+      height: 120,
       child: Row(
         children: [
           Expanded(child: _buildKpiCard("Total", countTotal, balTotal, null)),
-          const SizedBox(width: AppDimensions.spacingMedium),
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           Expanded(child: _buildKpiCard("Active", countActive, balTotal, null)),
-          const SizedBox(width: AppDimensions.spacingMedium),
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           Expanded(
             child: _buildKpiCard("Archived", countArchived, balArchived, () {
               setState(() {
@@ -660,38 +668,44 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final contentColor = isOrange
         ? colorScheme.onTertiaryContainer
         : colorScheme.onPrimaryContainer;
+    final borderColor = isOrange ? colorScheme.tertiary : colorScheme.primary;
 
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
-        decoration: BoxDecoration(
-            color: containerColor,
-            borderRadius:
-                BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title,
-                style: TextStyle(
-                    color: contentColor, fontWeight: FontWeight.bold)),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Icon(Icons.business, color: contentColor),
-                  Text("$count",
-                      style: TextStyle(
-                          color: contentColor,
-                          fontSize: DesktopDimensions.headingSize,
-                          fontWeight: FontWeight.bold))
-                ]),
-            Text(Money(amount).formattedNoDecimal,
-                style: TextStyle(
-                    color: contentColor,
-                    fontSize: DesktopDimensions.bodySize,
-                    fontWeight: FontWeight.bold)),
-          ],
+    return Card(
+      elevation: DesktopDimensions.cardElevation,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        side: BorderSide(color: borderColor, width: 1.2),
+      ),
+      color: containerColor,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title,
+                  style: TextStyle(
+                      color: contentColor, fontWeight: FontWeight.bold)),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(Icons.business, color: contentColor),
+                    Text("$count",
+                        style: TextStyle(
+                            color: contentColor,
+                            fontSize: DesktopDimensions.headingSize,
+                            fontWeight: FontWeight.bold))
+                  ]),
+              Text(Money(amount).formattedNoDecimal,
+                  style: TextStyle(
+                      color: contentColor,
+                      fontSize: DesktopDimensions.bodySize,
+                      fontWeight: FontWeight.bold)),
+            ],
+          ),
         ),
       ),
     );
@@ -789,8 +803,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             onSelected: (value) {
               if (value == 'edit') _showSupplierDialog(supplier: supplier);
               if (value == 'archive') _toggleArchiveStatus(supplier.id!, true);
-              if (value == 'delete')
+              if (value == 'delete') {
                 _deleteSupplier(supplier.id!, supplier.outstandingBalance);
+              }
             },
             itemBuilder: (context) => [
               PopupMenuItem(

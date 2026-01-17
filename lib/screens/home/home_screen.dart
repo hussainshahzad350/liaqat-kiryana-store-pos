@@ -4,7 +4,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/repositories/invoice_repository.dart';
 import '../../core/repositories/customers_repository.dart';
@@ -150,11 +149,6 @@ class _HomeScreenState extends State<HomeScreen> {
             autofocus: true,
             child: Column(
               children: [
-                // 1. Header (Fixed 64px)
-                const SizedBox(
-                  height: 64,
-                  child: HeaderBar(),
-                ),
 
                 // 2. Action Bar (Full Width)
                 _buildActionBar(localizations, colorScheme),
@@ -1533,167 +1527,6 @@ class _ToggleSidebarIntent extends Intent {
 // ============================================================================
 // REUSABLE HOVER WIDGETS
 // ============================================================================
-
-class HeaderBar extends StatelessWidget {
-  const HeaderBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      height: DesktopDimensions.headerHeight,
-      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingLarge),
-      decoration: BoxDecoration(
-        color: colorScheme.primary,
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // LEFT: Dashboard Label
-          SizedBox(
-            width: 100, // Keeping fixed width for alignment
-            child: Text(
-              localizations.dashboard,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onPrimary.withOpacity(0.9),
-              ),
-            ),
-          ),
-          
-          // CENTER: Shop Name
-          Expanded(
-            child: Center(
-              child: Text(
-                localizations.appTitle,
-                style: TextStyle(
-                  fontSize: DesktopDimensions.appTitleSize,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onPrimary,
-                  letterSpacing: 0.5,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-          
-          // RIGHT: Clock + Profile
-          SizedBox(
-            width: 280,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const LiveClock(),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(Icons.account_circle, color: colorScheme.onPrimary, size: 28),
-                  onPressed: () {
-                    Navigator.pushNamed(context, AppRoutes.settings);
-                  },
-                  tooltip: localizations.settings,
-                  padding: const EdgeInsets.all(8),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class LiveClock extends StatefulWidget {
-  const LiveClock({super.key});
-
-  @override
-  State<LiveClock> createState() => _LiveClockState();
-}
-
-class _LiveClockState extends State<LiveClock> {
-  late Timer _timer;
-  String _currentTime = '';
-  String _currentDate = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _updateTime();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
-  }
-
-  void _updateTime() {
-    if (!mounted) return;
-    final now = DateTime.now();
-    setState(() {
-      _currentTime = DateFormat('hh:mm a').format(now);
-      _currentDate = DateFormat('dd MMM yyyy').format(now);
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      width: DesktopDimensions.clockWidth,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.onPrimary.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colorScheme.onPrimary.withOpacity(0.3), width: 1),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.access_time, size: 14, color: colorScheme.onPrimary.withOpacity(0.9)),
-              const SizedBox(width: 6),
-              Text(
-                _currentTime,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text(
-            _currentDate,
-            style: TextStyle(
-              fontSize: 10,
-              color: colorScheme.onPrimary.withOpacity(0.8),
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _HoverableCard extends StatefulWidget {
   final Widget child;

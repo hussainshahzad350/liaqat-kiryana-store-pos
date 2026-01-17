@@ -7,11 +7,9 @@ import '../../bloc/reports/reports_state.dart';
 import '../../core/repositories/invoice_repository.dart';
 import '../../domain/entities/money.dart';
 import '../../l10n/app_localizations.dart';
-import '../../widgets/app_header.dart';
-import '../../widgets/main_layout.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
-import '../../core/routes/app_routes.dart';
+
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -44,17 +42,18 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
       create: (context) => ReportsBloc(
         invoiceRepository: context.read<InvoiceRepository>(),
       ),
-      child: MainLayout(
-        currentRoute: AppRoutes.reports,
+      child: Padding(
+        padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
         child: Column(
-          children: [
-            AppHeader(
-              title: loc.reports,
-              icon: Icons.bar_chart,
-            ),
+            children: [
             Container(
-              color: colorScheme.primary,
-              child: TabBar(
+              padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
+                ),
+                child: TabBar(
                 controller: _tabController,
                 isScrollable: true,
                 labelColor: colorScheme.onPrimary,
@@ -71,6 +70,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
                       text: loc.customerBalance),
                   Tab(icon: const Icon(Icons.inventory), text: loc.stock),
                 ],
+                ),
               ),
             ),
             Expanded(

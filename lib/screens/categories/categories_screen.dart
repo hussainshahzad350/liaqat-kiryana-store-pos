@@ -3,11 +3,8 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/category_models.dart';
 import '../../core/repositories/categories_repository.dart';
-import '../../widgets/app_header.dart';
-import '../../widgets/main_layout.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
-import '../../core/routes/app_routes.dart';
 
 // ==========================================
 // SCREEN IMPLEMENTATION
@@ -398,61 +395,83 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
-    return MainLayout(
-      currentRoute: AppRoutes.categories,
+    return Padding(
+      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
       child: Column(
         children: [
-          AppHeader(
-            title: loc.categories,
-            icon: Icons.category_outlined,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: 'Search departments, categories...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          _onSearchChanged('');
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-                  borderSide: BorderSide(color: colorScheme.outline),
+          Card(
+            elevation: DesktopDimensions.cardElevation,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+            child: Padding(
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              child: TextField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: 'Search departments, categories...',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearchChanged('');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
+                    borderSide: BorderSide(color: colorScheme.outline),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: DesktopDimensions.spacingStandard,
+                      vertical: 12),
+                  isDense: true,
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingStandard,
-                    vertical: AppDimensions.spacingMedium),
-                isDense: true,
               ),
             ),
           ),
+          const SizedBox(height: DesktopDimensions.spacingMedium),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(
                   width: 250,
-                  child: _buildDepartmentsPane(loc, colorScheme),
+                  child: Card(
+                    elevation: DesktopDimensions.cardElevation,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                        child: _buildDepartmentsPane(loc, colorScheme)),
+                  ),
                 ),
-                VerticalDivider(width: 1, color: colorScheme.outlineVariant),
+                const SizedBox(width: DesktopDimensions.spacingMedium),
                 Expanded(
                   flex: 3,
-                  child: _buildTaxonomyPane(loc, colorScheme),
+                  child: Card(
+                    elevation: DesktopDimensions.cardElevation,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                        child: _buildTaxonomyPane(loc, colorScheme)),
+                  ),
                 ),
-                VerticalDivider(width: 1, color: colorScheme.outlineVariant),
+                const SizedBox(width: DesktopDimensions.spacingMedium),
                 Expanded(
                   flex: 2,
-                  child: _buildDetailsPane(loc, colorScheme),
+                  child: Card(
+                    elevation: DesktopDimensions.cardElevation,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                        child: _buildDetailsPane(loc, colorScheme)),
+                  ),
                 ),
               ],
             ),
@@ -842,11 +861,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(titleEn,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: DesktopDimensions.headingSize,
                                   fontWeight: FontWeight.bold)),
                           Text(titleUr,
-                              style: TextStyle(
+                              style: const TextStyle(
                                   fontSize: DesktopDimensions.bodySize,
                                   fontFamily: 'NooriNastaleeq')),
                         ],
@@ -864,14 +883,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          if (_selectionLevel == 1)
+                          if (_selectionLevel == 1) {
                             _showDepartmentDialog(
                                 department: _selectedDepartment);
-                          if (_selectionLevel == 2)
+                          }
+                          if (_selectionLevel == 2) {
                             _showCategoryDialog(category: _selectedCategory);
-                          if (_selectionLevel == 3)
+                          }
+                          if (_selectionLevel == 3) {
                             _showSubCategoryDialog(
                                 subCategory: _selectedSubCategory);
+                          }
                         },
                         icon: const Icon(Icons.edit, size: 18),
                         label: const Text('Edit Details'),

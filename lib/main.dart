@@ -9,7 +9,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/providers/sidebar_provider.dart';
 import 'bloc/sales/sales_bloc.dart';
 import 'bloc/stock/stock_bloc.dart';
-import 'bloc/stock/stock_event.dart';
 import 'bloc/units/units_bloc.dart';
 import 'bloc/units/units_event.dart';
 import 'bloc/stock/stock_overveiw/stock_overview_bloc.dart';
@@ -80,7 +79,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SidebarProvider()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider(settingsRepository)),
+        ChangeNotifierProvider(
+            create: (_) => ThemeProvider(settingsRepository)),
         RepositoryProvider(create: (context) => settingsRepository),
         RepositoryProvider(create: (context) => ItemsRepository()),
         RepositoryProvider(create: (context) => CustomersRepository()),
@@ -91,6 +91,11 @@ void main() async {
         RepositoryProvider(create: (context) => PurchaseRepository()),
         RepositoryProvider(create: (context) => SuppliersRepository()),
         RepositoryProvider(create: (context) => CategoriesRepository()),
+        BlocProvider(
+          create: (context) => StockBloc(
+            itemsRepository: context.read<ItemsRepository>(),
+          ),
+        ),
       ],
       child: LiaqatStoreApp(initialLanguage: languageCode),
     ),

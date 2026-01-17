@@ -842,6 +842,102 @@ abstract class AppLocalizations {
   /// **'About'**
   String get about;
 
+  /// No description provided for @appDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A complete Point of Sale solution for retail businesses.'**
+  String get appDescription;
+
+  /// No description provided for @techInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical Info'**
+  String get techInfo;
+
+  /// No description provided for @framework.
+  ///
+  /// In en, this message translates to:
+  /// **'Framework'**
+  String get framework;
+
+  /// No description provided for @platform.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform'**
+  String get platform;
+
+  /// No description provided for @database.
+  ///
+  /// In en, this message translates to:
+  /// **'Database'**
+  String get database;
+
+  /// No description provided for @stateManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'State Management'**
+  String get stateManagement;
+
+  /// No description provided for @uiFramework.
+  ///
+  /// In en, this message translates to:
+  /// **'UI Framework'**
+  String get uiFramework;
+
+  /// No description provided for @lastUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Updated'**
+  String get lastUpdated;
+
+  /// No description provided for @features.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Features'**
+  String get features;
+
+  /// No description provided for @featurePos.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast Point of Sale'**
+  String get featurePos;
+
+  /// No description provided for @featureStockManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Stock Management'**
+  String get featureStockManagement;
+
+  /// No description provided for @featureCustomerManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Ledger & Tracking'**
+  String get featureCustomerManagement;
+
+  /// No description provided for @featureReporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Reporting'**
+  String get featureReporting;
+
+  /// No description provided for @featureBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Automated Backups'**
+  String get featureBackup;
+
+  /// No description provided for @featureBilingual.
+  ///
+  /// In en, this message translates to:
+  /// **'Bilingual Support (Urdu/English)'**
+  String get featureBilingual;
+
+  /// No description provided for @featurePrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'Thermal Printer Integration'**
+  String get featurePrinter;
+
   /// No description provided for @changeLogo.
   ///
   /// In en, this message translates to:

@@ -5,11 +5,8 @@ import '../../bloc/units/units_event.dart';
 import '../../bloc/units/units_state.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/unit_model.dart';
-import '../../widgets/main_layout.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
-import '../../core/routes/app_routes.dart';
-import '../../widgets/app_header.dart';
 
 
 class UnitsScreen extends StatefulWidget {
@@ -25,48 +22,40 @@ class _UnitsScreenState extends State<UnitsScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return MainLayout(
-      currentRoute: AppRoutes.units,
+    return Padding(
+      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppHeader(
-            title: loc.units,
-            icon: Icons.square_foot_outlined,
-            actions: [
-              ElevatedButton.icon(
-                onPressed: () => _showAddUnitDialog(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primaryContainer,
-                  foregroundColor: colorScheme.onPrimaryContainer,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.spacingLarge,
-                      vertical: AppDimensions.spacingMedium),
-                  shape: RoundedRectangleRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppDimensions.borderRadius),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          // Local Toolbar
+          Container(
+            padding: const EdgeInsets.only(
+              bottom: DesktopDimensions.spacingMedium,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _showAddUnitDialog(context),
+                  icon: const Icon(Icons.add),
+                  label: Text(loc.addItem),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primaryContainer,
+                    foregroundColor: colorScheme.onPrimaryContainer,
                   ),
                 ),
-                icon: const Icon(Icons.add),
-                label: Text(loc.addItem),
-              ),
-            ],
+              ],
+            ),
           ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
-              child: Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-                  side:
-                      BorderSide(color: colorScheme.outline.withOpacity(0.2)),
-                ),
-                color: colorScheme.surface,
-                clipBehavior: Clip.antiAlias,
-                child: Column(
-                  children: [
+            child: Card(
+              elevation: DesktopDimensions.cardElevation,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+              child: ClipRRect(
+                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                  child: Column(
+                    children: [
                     Container(
                       color: colorScheme.surfaceVariant.withOpacity(0.3),
                       padding: const EdgeInsets.symmetric(
@@ -304,8 +293,9 @@ class _UnitsScreenState extends State<UnitsScreen> {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 
