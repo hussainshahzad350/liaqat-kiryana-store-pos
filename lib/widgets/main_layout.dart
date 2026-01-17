@@ -1,12 +1,14 @@
 // lib/widgets/main_layout.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Import for keyboard shortcuts
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'app_navigation_sidebar.dart';
-import '../l10n/app_localizations.dart'; // Import for localization
-import '../core/routes/app_routes.dart'; // Import for AppRoutes
+import '../l10n/app_localizations.dart';
+import '../core/routes/app_routes.dart';
+import '../core/providers/sidebar_provider.dart';
 
-class MainLayout extends StatefulWidget {
+class MainLayout extends StatelessWidget {
   final String currentRoute;
   final Widget child;
 
@@ -17,39 +19,29 @@ class MainLayout extends StatefulWidget {
   });
 
   @override
-  State<MainLayout> createState() => _MainLayoutState();
-}
-
-class _MainLayoutState extends State<MainLayout> {
-  bool isSidebarExpanded = true;
-
-  @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
     final isEnglish = localizations.localeName == 'en';
     final colorScheme = Theme.of(context).colorScheme;
+    final sidebarProvider = Provider.of<SidebarProvider>(context, listen: false);
 
-    // Move the Intents here or to a separate file if they are truly global and used by multiple layouts.
-    // For now, moving them here as per the plan.
-    const _NewSaleIntent newSaleIntent = _NewSaleIntent();
-    const _RefreshIntent refreshIntent = _RefreshIntent();
-    const _ToggleSidebarIntent toggleSidebarIntent = _ToggleSidebarIntent();
+    const newSaleIntent = _NewSaleIntent();
+    const refreshIntent = _RefreshIntent();
+    const toggleSidebarIntent = _ToggleSidebarIntent();
 
     return Shortcuts(
       shortcuts: <LogicalKeySet, Intent>{
         LogicalKeySet(LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyN): newSaleIntent,
         LogicalKeySet(LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyR): refreshIntent,
-        LogicalKeySet(LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyB): toggleSidebarIntent, // 'B' for sidebar
+        LogicalKeySet(LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyB): toggleSidebarIntent,
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
           _NewSaleIntent: CallbackAction<_NewSaleIntent>(onInvoke: (intent) {
-            Navigator.pushNamed(context, AppRoutes.sales); // Assuming AppRoutes is imported
+            Navigator.pushNamed(context, AppRoutes.sales);
             return null;
           }),
           _RefreshIntent: CallbackAction<_RefreshIntent>(onInvoke: (intent) {
-            // How to refresh the current child screen? This needs more thought.
-            // For now, a simple snackbar or a refresh callback could be passed to MainLayout if needed.
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -62,31 +54,20 @@ class _MainLayoutState extends State<MainLayout> {
             return null;
           }),
           _ToggleSidebarIntent: CallbackAction<_ToggleSidebarIntent>(onInvoke: (intent) {
-            setState(() {
-              isSidebarExpanded = !isSidebarExpanded;
-            });
+            sidebarProvider.toggleSidebar();
             return null;
           }),
         },
         child: FocusTraversalGroup(
           child: Scaffold(
             body: Row(
-              textDirection: isEnglish ? TextDirection.ltr : TextDirection.rtl, // Set text direction based on language
+              textDirection: isEnglish ? TextDirection.ltr : TextDirection.rtl,
               children: [
-                // Sidebar
                 AppNavigationSidebar(
-                  currentRoute: widget.currentRoute,
-                  isExpanded: isSidebarExpanded,
-                  onToggle: () {
-                    setState(() {
-                      isSidebarExpanded = !isSidebarExpanded;
-                    });
-                  },
+                  currentRoute: currentRoute,
                 ),
-                
-                // Main Content
                 Expanded(
-                  child: widget.child,
+                  child: child,
                 ),
               ],
             ),
