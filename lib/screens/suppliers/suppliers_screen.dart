@@ -10,7 +10,6 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart'; // Keep for PdfColor
 import '../../services/ledger_export_service.dart';
 import '../../core/constants/desktop_dimensions.dart';
-import '../../core/res/app_dimensions.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -452,32 +451,32 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 style: TextStyle(color: colorScheme.onSurface),
                 decoration: _inputDecoration(loc.nameEnglish, Icons.person, colorScheme),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: nameUrduCtrl,
                 style: TextStyle(color: colorScheme.onSurface, fontFamily: 'NooriNastaleeq'),
                 decoration: _inputDecoration(loc.nameUrdu, Icons.translate, colorScheme),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: phoneCtrl,
                 keyboardType: TextInputType.phone,
                 style: TextStyle(color: colorScheme.onSurface),
                 decoration: _inputDecoration(loc.phoneNum, Icons.phone, colorScheme),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: addressCtrl,
                 style: TextStyle(color: colorScheme.onSurface),
                 decoration: _inputDecoration(loc.address, Icons.location_on, colorScheme),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: typeCtrl,
                 style: TextStyle(color: colorScheme.onSurface),
                 decoration: _inputDecoration("Supplier Type", Icons.category, colorScheme),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: balanceCtrl,
                 keyboardType: TextInputType.number,
@@ -615,7 +614,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                               if (index == suppliers.length) {
                                 return Padding(
                                   padding: const EdgeInsets.all(
-                                      AppDimensions.spacingMedium),
+                                      DesktopDimensions.spacingMedium),
                                   child: Center(
                                       child: CircularProgressIndicator(
                                           color: colorScheme.primary)),
@@ -722,7 +721,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       ),
       padding: const EdgeInsets.symmetric(
           horizontal: DesktopDimensions.spacingStandard,
-          vertical: AppDimensions.spacingMedium),
+          vertical: DesktopDimensions.spacingMedium),
       child: Row(
         children: [
           CircleAvatar(
@@ -753,15 +752,15 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                             color: colorScheme.onSurfaceVariant)),
                     if (supplier.supplierType != null &&
                         supplier.supplierType!.isNotEmpty) ...[
-                      const SizedBox(width: AppDimensions.spacingMedium),
+                      const SizedBox(width: DesktopDimensions.spacingMedium),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppDimensions.spacingSmall,
-                            vertical: AppDimensions.spacingSmall),
+                            horizontal: DesktopDimensions.spacingSmall,
+                            vertical: DesktopDimensions.spacingSmall),
                         decoration: BoxDecoration(
                           color: colorScheme.secondaryContainer,
                           borderRadius: BorderRadius.circular(
-                              AppDimensions.spacingSmall),
+                              DesktopDimensions.spacingSmall),
                         ),
                         child: Text(supplier.supplierType!,
                             style: TextStyle(
@@ -790,7 +789,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                       color: colorScheme.onSurfaceVariant)),
             ],
           ),
-          const SizedBox(width: AppDimensions.spacingMedium),
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           IconButton(
             icon: Icon(Icons.receipt_long, color: colorScheme.primary),
             tooltip: "View Ledger",
@@ -812,14 +811,14 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   value: 'edit',
                   child: Row(children: [
                     Icon(Icons.edit, size: 16, color: colorScheme.secondary),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: DesktopDimensions.spacingSmall),
                     Text(loc.editSupplier)
                   ])),
               PopupMenuItem(
                   value: 'archive',
                   child: Row(children: [
                     Icon(Icons.archive, size: 16, color: colorScheme.onSurface),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: DesktopDimensions.spacingSmall),
                     Text(loc.archiveAction)
                   ])),
               PopupMenuItem(
@@ -880,7 +879,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               Row(
                 children: [
                   _buildSummaryChip("Payable Balance", netBalance, colorScheme.primary, colorScheme),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesktopDimensions.spacingStandard),
                   ElevatedButton.icon(
                     onPressed: _showPaymentDialog,
                     icon: const Icon(Icons.payment, size: 18),
@@ -888,10 +887,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium, vertical: DesktopDimensions.spacingStandard),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: DesktopDimensions.spacingSmall),
                   IconButton(icon: const Icon(Icons.print), onPressed: () => _handleExport(loc), tooltip: "Export"),
                   IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _selectedSupplierForLedger = null)),
                 ],
@@ -929,7 +928,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
               ),
               if (_ledgerStartDate != null) IconButton(icon: const Icon(Icons.clear, size: 14), onPressed: () { setState(() { _ledgerStartDate = null; _ledgerEndDate = null; }); _getSupplierLedger(supplier.id!); }),
-              const SizedBox(width: 12),
+              const SizedBox(width: DesktopDimensions.spacingStandard),
               SegmentedButton<String>(
                 segments: const [ButtonSegment(value: 'ALL', label: Text('All')), ButtonSegment(value: 'BILL', label: Text('Bills')), ButtonSegment(value: 'PAYMENT', label: Text('Payments'))],
                 selected: {_ledgerFilterType},

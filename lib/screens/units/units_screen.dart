@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:liaqat_store/core/res/app_dimensions.dart';
 import '../../bloc/units/units_bloc.dart';
 import '../../bloc/units/units_event.dart';
 import '../../bloc/units/units_state.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/unit_model.dart';
 import '../../core/constants/desktop_dimensions.dart';
-import '../../core/res/app_dimensions.dart';
-
 
 class UnitsScreen extends StatefulWidget {
   const UnitsScreen({super.key});
@@ -25,8 +24,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
     return Padding(
       padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
       child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           // Local Toolbar
           Container(
             padding: const EdgeInsets.only(
@@ -51,11 +50,13 @@ class _UnitsScreenState extends State<UnitsScreen> {
             child: Card(
               elevation: DesktopDimensions.cardElevation,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.cardBorderRadius)),
               child: ClipRRect(
-                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-                  child: Column(
-                    children: [
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                child: Column(
+                  children: [
                     Container(
                       color: colorScheme.surfaceVariant.withOpacity(0.3),
                       padding: const EdgeInsets.symmetric(
@@ -96,12 +97,14 @@ class _UnitsScreenState extends State<UnitsScreen> {
                       child: BlocBuilder<UnitsBloc, UnitsState>(
                         builder: (context, state) {
                           if (state is UnitsLoading) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                                child: CircularProgressIndicator());
                           } else if (state is UnitsError) {
                             return Center(child: Text(state.message));
                           } else if (state is UnitsLoaded) {
                             if (state.units.isEmpty) {
-                              return const Center(child: Text('No units found'));
+                              return const Center(
+                                  child: Text('No units found'));
                             }
                             return ListView.separated(
                               itemCount: state.units.length,
@@ -147,17 +150,18 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                 width: 32,
                                                 height: 32,
                                                 margin: const EdgeInsets.only(
-                                                    right: AppDimensions
+                                                    right: DesktopDimensions
                                                         .spacingStandard),
                                                 decoration: BoxDecoration(
                                                   color: unit.isSystem
-                                                      ? colorScheme.surfaceVariant
+                                                      ? colorScheme
+                                                          .surfaceVariant
                                                       : colorScheme
                                                           .primaryContainer,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          AppDimensions
-                                                              .borderRadius),
+                                                  borderRadius: BorderRadius
+                                                      .circular(DesktopDimensions
+                                                              .cardBorderRadius /
+                                                          2),
                                                 ),
                                                 child: Icon(
                                                     unit.isSystem
@@ -179,21 +183,20 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                               if (unit.isSystem)
                                                 Container(
                                                   margin: const EdgeInsets.only(
-                                                      left: AppDimensions
+                                                      left: DesktopDimensions
                                                           .spacingMedium),
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal: AppDimensions
-                                                              .spacingMedium,
-                                                          vertical: AppDimensions
-                                                              .spacingSmall),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: AppDimensions
+                                                          .spacingMedium,
+                                                      vertical: AppDimensions
+                                                          .spacingSmall),
                                                   decoration: BoxDecoration(
                                                     color: colorScheme
                                                         .surfaceVariant,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            AppDimensions
-                                                                .borderRadiusSmall),
+                                                    borderRadius: BorderRadius
+                                                        .circular(AppDimensions
+                                                            .borderRadiusSmall),
                                                     border: Border.all(
                                                         color: colorScheme
                                                             .outline
@@ -213,11 +216,12 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                           child: Align(
                                             alignment: Alignment.centerLeft,
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: AppDimensions
-                                                      .spacingMedium,
-                                                  vertical: AppDimensions
-                                                      .spacingSmall),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: AppDimensions
+                                                          .spacingMedium,
+                                                      vertical: AppDimensions
+                                                          .spacingSmall),
                                               decoration: BoxDecoration(
                                                 color: colorScheme
                                                     .secondaryContainer,
@@ -251,9 +255,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                     : colorScheme.primary,
                                                 onPressed: unit.isSystem
                                                     ? null
-                                                    : () =>
-                                                        _showEditUnitDialog(
-                                                            context, unit),
+                                                    : () => _showEditUnitDialog(
+                                                        context, unit),
                                                 tooltip: unit.isSystem
                                                     ? 'System Unit'
                                                     : loc.editItem,
@@ -326,8 +329,10 @@ class _UnitsScreenState extends State<UnitsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text(loc.confirm, style: TextStyle(color: colorScheme.onSurface)),
-        content: Text(loc.confirmDeleteItem, style: TextStyle(color: colorScheme.onSurface)),
+        title:
+            Text(loc.confirm, style: TextStyle(color: colorScheme.onSurface)),
+        content: Text(loc.confirmDeleteItem,
+            style: TextStyle(color: colorScheme.onSurface)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -400,12 +405,12 @@ class _UnitDialogState extends State<UnitDialog> {
                     filled: true,
                     fillColor: colorScheme.surfaceVariant,
                     border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.borderRadius))),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius / 2))),
                 validator: (value) =>
                     value == null || value.isEmpty ? 'Required' : null,
               ),
-              const SizedBox(height: AppDimensions.spacingLarge),
+              const SizedBox(height: DesktopDimensions.spacingLarge),
               TextFormField(
                 controller: _codeCtrl,
                 style: TextStyle(color: colorScheme.onSurface),
@@ -414,8 +419,8 @@ class _UnitDialogState extends State<UnitDialog> {
                     filled: true,
                     fillColor: colorScheme.surfaceVariant,
                     border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppDimensions.borderRadius))),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius / 2))),
                 validator: (value) =>
                     value == null || value.isEmpty ? 'Required' : null,
               ),
@@ -426,7 +431,8 @@ class _UnitDialogState extends State<UnitDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface)),
+          child:
+              Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface)),
         ),
         ElevatedButton(
           onPressed: () {

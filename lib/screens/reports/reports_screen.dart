@@ -307,14 +307,16 @@ class _SalesReportTabState extends State<SalesReportTab> {
                           ),
                           const Spacer(),
                           IconButton(
-                            icon: Icon(Icons.download,
-                                color: colorScheme.primary),
+                            icon: const Icon(Icons.download,
+                                size: DesktopDimensions.kpiIconSize),
+                            color: colorScheme.primary,
                             onPressed: () {},
                             tooltip: loc.downloadReport,
                           ),
                           IconButton(
-                            icon:
-                                Icon(Icons.print, color: colorScheme.primary),
+                            icon: const Icon(Icons.print,
+                                size: DesktopDimensions.kpiIconSize),
+                            color: colorScheme.primary,
                             onPressed: () {},
                             tooltip: loc.printReport,
                           ),
@@ -331,10 +333,16 @@ class _SalesReportTabState extends State<SalesReportTab> {
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
+                            headingRowHeight: DesktopDimensions.bodySize * 2.5,
+                            dataRowMinHeight: DesktopDimensions.bodySize * 2.5,
+                            dataRowMaxHeight: DesktopDimensions.bodySize * 2.5,
+                            columnSpacing: DesktopDimensions.spacingMedium,
+                            horizontalMargin: DesktopDimensions.spacingMedium,
                             headingRowColor:
-                                MaterialStateProperty.all(colorScheme.primary),
+                                MaterialStateProperty.all(colorScheme.primaryContainer),
                             headingTextStyle: TextStyle(
-                                color: colorScheme.onPrimary,
+                                color: colorScheme.onPrimaryContainer,
+                                fontSize: DesktopDimensions.headingSize,
                                 fontWeight: FontWeight.bold),
                             columns: [
                               DataColumn(label: Text(loc.date)),

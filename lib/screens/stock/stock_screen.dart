@@ -19,7 +19,6 @@ import '../../services/pdf_export_service.dart';
 import '../../core/routes/app_routes.dart';
 import '../../widgets/skeleton_loader.dart';
 import '../../core/constants/desktop_dimensions.dart';
-import '../../core/res/app_dimensions.dart';
 
 class StockScreen extends StatefulWidget {
   const StockScreen({super.key});
@@ -126,7 +125,7 @@ class _StockScreenState extends State<StockScreen> {
                     child: const Text('No, Keep it'),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: DesktopDimensions.spacingMedium),
                 Expanded(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -159,7 +158,7 @@ class _StockScreenState extends State<StockScreen> {
       children: [
         // Receipt Header
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
           color: colorScheme.surface,
           child: Column(
             children: [
@@ -168,11 +167,11 @@ class _StockScreenState extends State<StockScreen> {
                 size: 48,
                 color: isCancelled ? Colors.grey : colorScheme.primary,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesktopDimensions.spacingSmall),
               Text(
                 activity.type.name.toUpperCase(),
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: DesktopDimensions.headingSize,
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurface,
                   decoration: isCancelled ? TextDecoration.lineThrough : null,
@@ -182,7 +181,7 @@ class _StockScreenState extends State<StockScreen> {
                 activity.referenceNumber,
                 style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesktopDimensions.spacingSmall),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -205,7 +204,7 @@ class _StockScreenState extends State<StockScreen> {
         // Details List
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             children: [
               _buildDetailRow('Date', DateFormat('yyyy-MM-dd').format(activity.timestamp)),
               _buildDetailRow('Time', DateFormat('hh:mm a').format(activity.timestamp)),
@@ -222,7 +221,7 @@ class _StockScreenState extends State<StockScreen> {
 
         // Actions Footer
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
           decoration: BoxDecoration(
             color: colorScheme.surface,
             border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
@@ -237,7 +236,7 @@ class _StockScreenState extends State<StockScreen> {
                   label: const Text('Cancel Transaction'),
                   style: OutlinedButton.styleFrom(foregroundColor: colorScheme.error),
                 ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DesktopDimensions.spacingSmall),
               ElevatedButton.icon(
                 onPressed: () async {
                   final locale = Localizations.localeOf(context);
@@ -532,11 +531,11 @@ class _StockScreenState extends State<StockScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: AppDimensions.spacingMedium),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
               Row(
                 children: [
                   Wrap(
-                    spacing: AppDimensions.spacingMedium,
+                    spacing: DesktopDimensions.spacingMedium,
                     children: [
                       FilterChip(
                         label: const Text('All Items'),
@@ -658,21 +657,20 @@ class _StockScreenState extends State<StockScreen> {
                 child: DataTable(
                   sortColumnIndex: _sortColumnIndex,
                   sortAscending: _isAscending,
+                  headingRowHeight: DesktopDimensions.bodySize * 2.5,
+                  dataRowMinHeight: DesktopDimensions.bodySize * 2.5,
+                  dataRowMaxHeight: DesktopDimensions.bodySize * 2.5,
                   headingRowColor:
-                      MaterialStateProperty.all(colorScheme.surfaceVariant),
+                      MaterialStateProperty.all(colorScheme.primaryContainer),
                   columns: [
-                    DataColumn(label: Text(loc.item), onSort: onSort),
-                    DataColumn(label: Text(loc.category), onSort: onSort),
-                    DataColumn(
-                        label: const Text('Cost'), onSort: onSort, numeric: true),
-                    DataColumn(
-                        label: Text(loc.price), onSort: onSort, numeric: true),
-                    DataColumn(
-                        label: Text(loc.quantity), onSort: onSort, numeric: true),
-                    DataColumn(
-                        label: const Text('Value'), onSort: onSort, numeric: true),
-                    const DataColumn(label: Text('Status')),
-                    const DataColumn(label: Text('Actions')),
+                    DataColumn(label: Text(loc.item, style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort),
+                    DataColumn(label: Text(loc.category, style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort),
+                    DataColumn(label: Text('Cost', style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort, numeric: true),
+                    DataColumn(label: Text(loc.price, style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort, numeric: true),
+                    DataColumn(label: Text(loc.quantity, style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort, numeric: true),
+                    DataColumn(label: Text('Value', style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort, numeric: true),
+                    DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer))),
+                    DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer))),
                   ],
                   showCheckboxColumn: false,
                   rows: sortedItems.asMap().entries.map((entry) {
@@ -709,8 +707,8 @@ class _StockScreenState extends State<StockScreen> {
                         DataCell(
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: AppDimensions.spacingMedium,
-                                vertical: AppDimensions.spacingSmall),
+                                horizontal: DesktopDimensions.spacingMedium,
+                                vertical: DesktopDimensions.spacingSmall),
                             decoration: BoxDecoration(
                               color: isOut
                                   ? Colors.red[100]
@@ -718,7 +716,7 @@ class _StockScreenState extends State<StockScreen> {
                                       ? Colors.orange[100]
                                       : Colors.green[100]),
                               borderRadius: BorderRadius.circular(
-                                  AppDimensions.spacingSmall),
+                                  DesktopDimensions.spacingSmall),
                             ),
                             child: Text(
                               isOut ? 'OUT' : (isLow ? 'LOW' : 'OK'),
@@ -781,7 +779,7 @@ class _StockScreenState extends State<StockScreen> {
           ),
           if (!hasReachedMax)
             Padding(
-              padding: const EdgeInsets.all(AppDimensions.spacingMedium),
+              padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
               child: TextButton(
                 onPressed: () =>
                     context.read<StockOverviewBloc>().add(LoadMoreStockOverview()),
@@ -807,19 +805,19 @@ class _StockScreenState extends State<StockScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SkeletonLoader(width: 200, height: 20),
-            const SizedBox(height: 20),
+            const SizedBox(height: DesktopDimensions.spacingLarge),
             Expanded(
               child: ListView.separated(
                 itemCount: 10,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                separatorBuilder: (_, __) => const SizedBox(height: DesktopDimensions.spacingMedium),
                 itemBuilder: (_, __) => const Row(
                   children: [
                     Expanded(flex: 2, child: SkeletonLoader(height: 16)),
-                    SizedBox(width: 16),
+                    SizedBox(width: DesktopDimensions.spacingMedium),
                     Expanded(flex: 1, child: SkeletonLoader(height: 16)),
-                    SizedBox(width: 16),
+                    SizedBox(width: DesktopDimensions.spacingMedium),
                     Expanded(flex: 1, child: SkeletonLoader(height: 16)),
-                    SizedBox(width: 16),
+                    SizedBox(width: DesktopDimensions.spacingMedium),
                     Expanded(flex: 1, child: SkeletonLoader(height: 16)),
                   ],
                 ),
@@ -845,11 +843,11 @@ class _StockScreenState extends State<StockScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SkeletonLoader(width: 150, height: 20),
-            const SizedBox(height: 20),
+            const SizedBox(height: DesktopDimensions.spacingLarge),
             Expanded(
               child: ListView.separated(
                 itemCount: 5,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, __) => const SizedBox(height: DesktopDimensions.spacingStandard),
                 itemBuilder: (_, __) => const SkeletonLoader(height: 30),
               ),
             ),
@@ -883,7 +881,7 @@ class _StockScreenState extends State<StockScreen> {
             child: Row(
               children: [
                 const Icon(Icons.history, size: 18),
-                const SizedBox(width: 8),
+                const SizedBox(width: DesktopDimensions.spacingSmall),
                 Text(
                   'Recent Inventory Activities (Audit Log)',
                   style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
@@ -1165,7 +1163,7 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('Current Stock: ${widget.item.currentStock} ${widget.item.unit}'),
-            const SizedBox(height: 16),
+            const SizedBox(height: DesktopDimensions.spacingMedium),
             TextFormField(
               controller: _quantityCtrl,
               autofocus: true,
@@ -1180,7 +1178,7 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: DesktopDimensions.spacingMedium),
             TextFormField(
               controller: _reasonCtrl,
               decoration: const InputDecoration(
@@ -1190,7 +1188,7 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
               validator: (value) => value == null || value.isEmpty ? 'Required' : null,
               onFieldSubmitted: (_) => _submit(),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: DesktopDimensions.spacingLarge),
             Row(
               children: [
                 Expanded(
@@ -1199,7 +1197,7 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
                     child: const Text('Cancel'),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: DesktopDimensions.spacingMedium),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _submit,

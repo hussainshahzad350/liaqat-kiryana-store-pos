@@ -8,7 +8,6 @@ import '../../l10n/app_localizations.dart';
 import '../../models/cash_ledger_model.dart';
 import '../../domain/entities/money.dart';
 import 'package:liaqat_store/core/constants/desktop_dimensions.dart';
-import 'package:liaqat_store/core/res/app_dimensions.dart';
 
 class CashLedgerScreen extends StatefulWidget {
   const CashLedgerScreen({super.key});
@@ -125,12 +124,14 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                       child: InkWell(
                         onTap: () => setStateDialog(() => selectedType = 'IN'),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: DesktopDimensions.spacingStandard),
                           decoration: BoxDecoration(
                             color: selectedType == 'IN'
                                 ? colorScheme.primaryContainer
                                 : colorScheme.surfaceVariant,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(
+                                DesktopDimensions.cardBorderRadius / 2),
                             border: Border.all(
                                 color: selectedType == 'IN'
                                     ? colorScheme.primary
@@ -146,17 +147,19 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: DesktopDimensions.spacingStandard),
                     Expanded(
                       child: InkWell(
                         onTap: () => setStateDialog(() => selectedType = 'OUT'),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: DesktopDimensions.spacingStandard),
                           decoration: BoxDecoration(
                             color: selectedType == 'OUT'
                                 ? colorScheme.errorContainer
                                 : colorScheme.surfaceVariant,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(
+                                DesktopDimensions.cardBorderRadius / 2),
                             border: Border.all(
                                 color: selectedType == 'OUT'
                                     ? colorScheme.error
@@ -174,7 +177,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
 
                 // Date Picker
                 InkWell(
@@ -198,21 +201,24 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                         horizontal: 12, vertical: 14),
                     decoration: BoxDecoration(
                       border: Border.all(color: colorScheme.outline),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(
+                          DesktopDimensions.cardBorderRadius / 2),
                       color: colorScheme.surface,
                     ),
                     child: Row(
                       children: [
                         Icon(Icons.calendar_today,
-                            size: 20, color: colorScheme.onSurfaceVariant),
-                        const SizedBox(width: 10),
+                            size: DesktopDimensions.kpiIconSize,
+                            color: colorScheme.onSurfaceVariant),
+                        const SizedBox(
+                            width: DesktopDimensions.spacingStandard),
                         Text(DateFormat('dd MMM yyyy').format(selectedDate),
                             style: TextStyle(color: colorScheme.onSurface)),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
 
                 TextField(
                   controller: amountCtrl,
@@ -221,11 +227,12 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                       filled: true,
                       fillColor: colorScheme.surfaceVariant,
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8))),
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius / 2))),
                   keyboardType: TextInputType.number,
                   style: TextStyle(color: colorScheme.onSurface),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: DesktopDimensions.spacingStandard),
                 TextField(
                   controller: descCtrl,
                   decoration: InputDecoration(
@@ -233,10 +240,11 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                       filled: true,
                       fillColor: colorScheme.surfaceVariant,
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8))),
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius / 2))),
                   style: TextStyle(color: colorScheme.onSurface),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: DesktopDimensions.spacingStandard),
                 TextField(
                   controller: remarksCtrl,
                   decoration: InputDecoration(
@@ -244,7 +252,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                       filled: true,
                       fillColor: colorScheme.surfaceVariant,
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8))),
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius / 2))),
                   style: TextStyle(color: colorScheme.onSurface),
                 ),
               ],
@@ -275,6 +284,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                 foregroundColor: selectedType == 'IN'
                     ? colorScheme.onPrimary
                     : colorScheme.onError,
+                minimumSize: const Size(0, DesktopDimensions.inputHeight),
               ),
               child: Text(loc.save),
             ),
@@ -296,7 +306,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
     return Padding(
       padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
       child: Column(
-          children: [
+        children: [
           Container(
             padding: const EdgeInsets.only(
               bottom: DesktopDimensions.spacingMedium,
@@ -313,7 +323,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                     foregroundColor: colorScheme.onPrimaryContainer,
                   ),
                 ),
-                const SizedBox(width: AppDimensions.spacingMedium),
+                const SizedBox(width: DesktopDimensions.spacingMedium),
                 ElevatedButton.icon(
                   onPressed: () => _addTransaction('OUT'),
                   icon: const Icon(Icons.remove),
@@ -361,9 +371,11 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
             child: Card(
               elevation: DesktopDimensions.cardElevation,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.cardBorderRadius)),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.cardBorderRadius),
                 child: _isFirstLoadRunning
                     ? Center(
                         child: CircularProgressIndicator(
@@ -409,10 +421,13 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                     subtitle: Text(
                                         '${entry.transactionDate} | ${entry.transactionTime}',
                                         style: TextStyle(
-                                            color: colorScheme.onSurfaceVariant)),
+                                            color:
+                                                colorScheme.onSurfaceVariant)),
                                     trailing: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
                                       children: [
                                         Text(
                                           '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
@@ -421,7 +436,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                             color: isIncome
                                                 ? colorScheme.primary
                                                 : colorScheme.error,
-                                            fontSize: DesktopDimensions.bodySize,
+                                            fontSize:
+                                                DesktopDimensions.bodySize,
                                           ),
                                         ),
                                         Text(
@@ -429,7 +445,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                           style: TextStyle(
                                               fontSize:
                                                   DesktopDimensions.captionSize,
-                                              color: colorScheme.onSurfaceVariant),
+                                              color:
+                                                  colorScheme.onSurfaceVariant),
                                         ),
                                       ],
                                     ),
@@ -439,11 +456,11 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                               );
                             },
                           ),
-                ),
               ),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
   }
 }

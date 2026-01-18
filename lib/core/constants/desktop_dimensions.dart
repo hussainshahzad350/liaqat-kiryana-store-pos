@@ -22,6 +22,9 @@ class DesktopDimensions {
   static const double kpiIconSize = 24.0;
   static const double kpiValueSize = 24.0;
   
+  // Inputs
+  static const double inputHeight = 40.0;
+  
   // Typography
   static const double appTitleSize = 20.0;
   static const double headingSize = 18.0;

@@ -1356,16 +1356,15 @@ class _SalesScreenState extends State<SalesScreen> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 IconButton(
-                                  icon: Icon(Icons.refresh,
-                                      color: colorScheme.primary),
+                                  icon: const Icon(Icons.refresh, size: DesktopDimensions.kpiIconSize),
+                                  color: colorScheme.primary,
                                   onPressed: _refreshAllData,
                                   tooltip: 'Refresh',
                                 ),
-                                const SizedBox(
-                                    width: DesktopDimensions.spacingMedium),
+                                const SizedBox(width: DesktopDimensions.spacingMedium),
                                 IconButton(
-                                  icon: Icon(Icons.delete_sweep,
-                                      color: colorScheme.error),
+                                  icon: const Icon(Icons.delete_sweep, size: DesktopDimensions.kpiIconSize),
+                                  color: colorScheme.error,
                                   onPressed: _clearCart,
                                   tooltip: loc.clearCartTitle,
                                 ),
@@ -2174,9 +2173,9 @@ class _SalesScreenState extends State<SalesScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
-                elevation: 4,
+                elevation: DesktopDimensions.cardElevation,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,

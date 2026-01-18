@@ -4,7 +4,6 @@ import '../../l10n/app_localizations.dart';
 import '../../models/category_models.dart';
 import '../../core/repositories/categories_repository.dart';
 import '../../core/constants/desktop_dimensions.dart';
-import '../../core/res/app_dimensions.dart';
 
 // ==========================================
 // SCREEN IMPLEMENTATION
@@ -540,7 +539,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     color:
                         isSelected ? colorScheme.primary : Colors.transparent,
                     borderRadius:
-                        BorderRadius.circular(AppDimensions.spacingSmall),
+                        BorderRadius.circular(DesktopDimensions.spacingSmall),
                   ),
                 ),
                 title: _buildHighlightedText(
@@ -682,7 +681,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                 cat.nameEn,
                                 const TextStyle(fontWeight: FontWeight.bold),
                                 colorScheme.primaryContainer),
-                            const SizedBox(width: AppDimensions.spacingMedium),
+                            const SizedBox(width: DesktopDimensions.spacingMedium),
                             _buildHighlightedText(
                                 cat.nameUr,
                                 TextStyle(
@@ -836,12 +835,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.spacingMedium,
-                          vertical: AppDimensions.spacingSmall),
+                          horizontal: DesktopDimensions.spacingMedium,
+                          vertical: DesktopDimensions.spacingSmall),
                       decoration: BoxDecoration(
                         color: colorScheme.primary,
                         borderRadius: BorderRadius.circular(
-                            AppDimensions.spacingSmall),
+                            DesktopDimensions.spacingSmall),
                       ),
                       child: Text(
                         typeLabel.toUpperCase(),
@@ -873,7 +872,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppDimensions.spacingMedium),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
                 // Breadcrumbs
                 _buildBreadcrumbs(colorScheme),
 
@@ -932,7 +931,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       letterSpacing: 1,
                     ),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: DesktopDimensions.spacingMedium),
                   SwitchListTile(
                     title: const Text('Active'),
                     subtitle:
@@ -1002,7 +1001,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             letterSpacing: 1,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: DesktopDimensions.spacingMedium),
         if (_selectionLevel == 1)
           _buildStatRow('Categories', _detailsSubCount.toString(), Icons.folder, colorScheme),
         if (_selectionLevel == 2)
@@ -1016,18 +1015,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   Widget _buildStatRow(String label, String value, IconData icon, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingStandard),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
             decoration: BoxDecoration(
               color: colorScheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
             ),
-            child: Icon(icon, size: 20, color: colorScheme.primary),
+            child: Icon(icon, size: DesktopDimensions.kpiIconSize, color: colorScheme.primary),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           Text(label, style: TextStyle(color: colorScheme.onSurface)),
           const Spacer(),
           Text(

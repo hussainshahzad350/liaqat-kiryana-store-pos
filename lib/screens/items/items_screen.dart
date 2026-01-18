@@ -2,13 +2,13 @@
 // ignore_for_file: deprecated_member_use, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import '../../core/repositories/items_repository.dart';
-import '../../l10n/app_localizations.dart';
-
-import '../../models/product_model.dart';
+import '../../core/constants/desktop_dimensions.dart';
 import '../../core/repositories/categories_repository.dart';
+import '../../core/repositories/items_repository.dart';
 import '../../core/repositories/units_repository.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/category_models.dart';
+import '../../models/product_model.dart';
 import '../../models/unit_model.dart';
 
 class ItemsScreen extends StatefulWidget {
@@ -67,7 +67,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
       final categories = await _categoriesRepository.getAllCategories();
       if (mounted) {
         setState(() {
-          _categoryNames = {for (var c in categories) if (c.id != null) c.id!: c.nameEn};
+          _categoryNames = {
+            for (var c in categories)
+              if (c.id != null) c.id!: c.nameEn
+          };
         });
       }
     } catch (e) {
@@ -80,11 +83,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
       // Fetch all categories first to get subcategories for each
       final categories = await _categoriesRepository.getAllCategories();
       final List<SubCategory> allSubs = [];
-      
+
       final futures = categories
           .where((c) => c.id != null)
           .map((c) => _categoriesRepository.getSubCategoriesByCategory(c.id!));
-      
+
       final results = await Future.wait(futures);
       for (var list in results) {
         allSubs.addAll(list);
@@ -92,7 +95,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
       if (mounted) {
         setState(() {
-          _subCategoryNames = {for (var s in allSubs) if (s.id != null) s.id!: s.nameEn};
+          _subCategoryNames = {
+            for (var s in allSubs)
+              if (s.id != null) s.id!: s.nameEn
+          };
         });
       }
     } catch (e) {
@@ -109,9 +115,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     try {
       final String searchQuery = searchController.text.trim();
-      
+
       List<Product> result;
-      
+
       if (searchQuery.isNotEmpty) {
         result = await _itemsRepository.searchProducts(searchQuery);
       } else {
@@ -142,7 +148,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       final String searchQuery = searchController.text.trim();
 
       List<Product> result;
-      
+
       if (searchQuery.isNotEmpty) {
         result = await _itemsRepository.searchProducts(searchQuery);
       } else {
@@ -157,7 +163,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         } else {
           _hasNextPage = false;
         }
-        
+
         _isLoadMoreRunning = false;
       });
     } catch (e) {
@@ -173,152 +179,316 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-
       body: Column(
-          children: [
-            // Top Toolbar
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  // Search Field (Left)
-                  Expanded(
-                    child: TextField(
-                      controller: searchController,
-                      style: TextStyle(color: colorScheme.onSurface),
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: (_) => _firstLoad(),
-                      decoration: InputDecoration(
-                        labelText: localizations.searchItem,
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        prefixIcon: IconButton(
-                          icon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
-                          onPressed: _firstLoad,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: colorScheme.outline),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: colorScheme.outline),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surfaceVariant,
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.clear, color: colorScheme.onSurfaceVariant),
-                          onPressed: () {
-                            searchController.clear();
-                            _firstLoad();
-                          },
-                        ),
+        children: [
+          // Top Toolbar
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                // Search Field (Left)
+                Expanded(
+                  child: TextField(
+                    controller: searchController,
+                    style: TextStyle(color: colorScheme.onSurface),
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _firstLoad(),
+                    decoration: InputDecoration(
+                      labelText: localizations.searchItem,
+                      labelStyle:
+                          TextStyle(color: colorScheme.onSurfaceVariant),
+                      prefixIcon: IconButton(
+                        icon: Icon(Icons.search,
+                            color: colorScheme.onSurfaceVariant),
+                        onPressed: _firstLoad,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius / 2),
+                        borderSide: BorderSide(color: colorScheme.outline),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius / 2),
+                        borderSide: BorderSide(color: colorScheme.outline),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius / 2),
+                        borderSide:
+                            BorderSide(color: colorScheme.primary, width: 2),
+                      ),
+                      filled: true,
+                      fillColor: colorScheme.surfaceVariant,
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.clear,
+                            color: colorScheme.onSurfaceVariant),
+                        onPressed: () {
+                          searchController.clear();
+                          _firstLoad();
+                        },
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  // Add Item Button (Right)
-                  ElevatedButton.icon(
-                    onPressed: _showAddItemDialog,
-                    icon: const Icon(Icons.add),
-                    label: Text(localizations.addItem),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
+                ),
+                const SizedBox(width: DesktopDimensions.spacingMedium),
+                // Add Item Button (Right)
+                ElevatedButton.icon(
+                  onPressed: _showAddItemDialog,
+                  icon: const Icon(Icons.add,
+                      size: DesktopDimensions.kpiIconSize),
+                  label: Text(localizations.addItem),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    minimumSize: const Size(0, 40),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: DesktopDimensions.spacingMedium),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                          DesktopDimensions.cardBorderRadius),
                     ),
+                    textStyle: const TextStyle(
+                        fontSize: DesktopDimensions.bodySize,
+                        fontWeight: FontWeight.bold),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            // Data Table
-            Expanded(
-              child: _isFirstLoadRunning
-                  ? const Center(child: CircularProgressIndicator())
-                  : items.isEmpty
-                      ? Center(child: Text(localizations.noItemsFound, style: TextStyle(color: colorScheme.onSurface)))
-                      : LayoutBuilder(
-                          builder: (context, constraints) {
-                            return SingleChildScrollView(
-                              controller: _scrollController,
-                              scrollDirection: Axis.vertical,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                                      child: DataTable(
-                                        headingRowHeight: 56,
-                                        dataRowMinHeight: 64,
-                                        dataRowMaxHeight: 64,
-                                        columnSpacing: 32,
-                                        horizontalMargin: 32,
-                                        headingRowColor: MaterialStateProperty.all(colorScheme.surfaceVariant),
-                                        dataRowColor: MaterialStateProperty.resolveWith<Color?>((Set<MaterialState> states) {
-                                          if (states.contains(MaterialState.hovered)) return colorScheme.surfaceVariant.withOpacity(0.2);
-                                          return null;
-                                        }),
-                                        columns: [
-                                          DataColumn(label: Text(localizations.englishName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                          DataColumn(label: Text(localizations.urduName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                          const DataColumn(label: Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                          const DataColumn(label: Text('Sub Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                          const DataColumn(label: Text('Brand', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                          const DataColumn(label: Text('Unit', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                          const DataColumn(label: Text('Packing', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                          const DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                                        ],
-                                        rows: items.map((item) {
-                                          return DataRow(
-                                            cells: [
-                                              DataCell(Text(item.nameEnglish, style: TextStyle(color: colorScheme.onSurface, fontSize: 14))),
-                                              DataCell(Text(item.nameUrdu ?? '-', style: TextStyle(fontFamily: 'NooriNastaleeq', color: colorScheme.onSurface, fontSize: 16))),
-                                              DataCell(Text(_categoryNames[item.categoryId] ?? '-', style: TextStyle(color: colorScheme.onSurface, fontSize: 14))),
-                                              DataCell(Text(_subCategoryNames[item.subCategoryId] ?? '-', style: TextStyle(color: colorScheme.onSurface, fontSize: 14))),
-                                              DataCell(Text(item.brand ?? '-', style: TextStyle(color: colorScheme.onSurface, fontSize: 14))),
-                                              DataCell(Text(item.unitType ?? '-', style: TextStyle(color: colorScheme.onSurface, fontSize: 14))),
-                                              DataCell(Text(item.packingType ?? '-', style: TextStyle(color: colorScheme.onSurface, fontSize: 14))),
-                                              DataCell(
-                                                Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    IconButton(
-                                                      icon: Icon(Icons.edit_outlined, color: colorScheme.secondary, size: 22),
-                                                      onPressed: () => _showEditItemDialog(item),
-                                                      tooltip: localizations.editItem,
-                                                      padding: EdgeInsets.zero,
-                                                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    IconButton(
-                                                      icon: Icon(Icons.delete_outline, color: colorScheme.error, size: 22),
-                                                      onPressed: () => _deleteItem(item.id!),
-                                                      tooltip: isUrdu ? 'آئٹم حذف کریں' : 'Delete Item',
-                                                      padding: EdgeInsets.zero,
-                                                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                                    ),
-                                                  ],
-                                                ),
+          ),
+          // Data Table
+          Expanded(
+            child: _isFirstLoadRunning
+                ? const Center(child: CircularProgressIndicator())
+                : items.isEmpty
+                    ? Center(
+                        child: Text(localizations.noItemsFound,
+                            style: TextStyle(color: colorScheme.onSurface)))
+                    : LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            controller: _scrollController,
+                            scrollDirection: Axis.vertical,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                        minWidth: constraints.maxWidth),
+                                    child: DataTable(
+                                      headingRowHeight:
+                                          DesktopDimensions.bodySize * 2.5,
+                                      dataRowMinHeight:
+                                          DesktopDimensions.bodySize * 2.5,
+                                      dataRowMaxHeight:
+                                          DesktopDimensions.bodySize * 2.5,
+                                      columnSpacing:
+                                          DesktopDimensions.spacingMedium,
+                                      horizontalMargin:
+                                          DesktopDimensions.spacingMedium,
+                                      headingRowColor:
+                                          MaterialStateProperty.all(
+                                              colorScheme.primaryContainer),
+                                      dataRowColor: MaterialStateProperty
+                                          .resolveWith<Color?>(
+                                              (Set<MaterialState> states) {
+                                        if (states
+                                            .contains(MaterialState.hovered)) {
+                                          return colorScheme.surfaceVariant
+                                              .withOpacity(0.2);
+                                        }
+                                        return null;
+                                      }),
+                                      columns: [
+                                        DataColumn(
+                                            label: Text(
+                                                localizations.englishName,
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: DesktopDimensions
+                                                        .headingSize,
+                                                    color: colorScheme
+                                                        .onPrimaryContainer))),
+                                        DataColumn(
+                                            label: Text(localizations.urduName,
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: DesktopDimensions
+                                                        .headingSize,
+                                                    color: colorScheme
+                                                        .onPrimaryContainer))),
+                                        DataColumn(
+                                            label: Text('Category',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: DesktopDimensions
+                                                        .headingSize,
+                                                    color: colorScheme
+                                                        .onPrimaryContainer))),
+                                        DataColumn(
+                                            label: Text('Sub Category',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: DesktopDimensions
+                                                        .headingSize,
+                                                    color: colorScheme
+                                                        .onPrimaryContainer))),
+                                        DataColumn(
+                                            label: Text('Brand',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: DesktopDimensions
+                                                        .headingSize,
+                                                    color: colorScheme
+                                                        .onPrimaryContainer))),
+                                        DataColumn(
+                                            label: Text('Unit',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: DesktopDimensions
+                                                        .headingSize,
+                                                    color: colorScheme
+                                                        .onPrimaryContainer))),
+                                        DataColumn(
+                                            label: Text('Packing',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: DesktopDimensions
+                                                        .headingSize,
+                                                    color: colorScheme
+                                                        .onPrimaryContainer))),
+                                        DataColumn(
+                                            label: Text('Actions',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: DesktopDimensions
+                                                        .headingSize,
+                                                    color: colorScheme
+                                                        .onPrimaryContainer))),
+                                      ],
+                                      rows: items.map((item) {
+                                        return DataRow(
+                                          cells: [
+                                            DataCell(Text(item.nameEnglish,
+                                                style: TextStyle(
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                    fontSize: DesktopDimensions
+                                                        .bodySize))),
+                                            DataCell(Text(item.nameUrdu ?? '-',
+                                                style: TextStyle(
+                                                    fontFamily:
+                                                        'NooriNastaleeq',
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                    fontSize: DesktopDimensions
+                                                            .bodySize +
+                                                        2))),
+                                            DataCell(Text(
+                                                _categoryNames[
+                                                        item.categoryId] ??
+                                                    '-',
+                                                style: TextStyle(
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                    fontSize: DesktopDimensions
+                                                        .bodySize))),
+                                            DataCell(Text(
+                                                _subCategoryNames[
+                                                        item.subCategoryId] ??
+                                                    '-',
+                                                style: TextStyle(
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                    fontSize: DesktopDimensions
+                                                        .bodySize))),
+                                            DataCell(Text(item.brand ?? '-',
+                                                style: TextStyle(
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                    fontSize: DesktopDimensions
+                                                        .bodySize))),
+                                            DataCell(Text(item.unitType ?? '-',
+                                                style: TextStyle(
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                    fontSize: DesktopDimensions
+                                                        .bodySize))),
+                                            DataCell(Text(
+                                                item.packingType ?? '-',
+                                                style: TextStyle(
+                                                    color:
+                                                        colorScheme.onSurface,
+                                                    fontSize: DesktopDimensions
+                                                        .bodySize))),
+                                            DataCell(
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  IconButton(
+                                                    icon: Icon(
+                                                        Icons.edit_outlined,
+                                                        color: colorScheme
+                                                            .secondary,
+                                                        size: 22),
+                                                    onPressed: () =>
+                                                        _showEditItemDialog(
+                                                            item),
+                                                    tooltip:
+                                                        localizations.editItem,
+                                                    padding: EdgeInsets.zero,
+                                                    constraints:
+                                                        const BoxConstraints(
+                                                            minWidth: 32,
+                                                            minHeight: 32),
+                                                  ),
+                                                  const SizedBox(
+                                                      width: DesktopDimensions
+                                                          .spacingSmall),
+                                                  IconButton(
+                                                    icon: Icon(
+                                                        Icons.delete_outline,
+                                                        color:
+                                                            colorScheme.error,
+                                                        size: 22),
+                                                    onPressed: () =>
+                                                        _deleteItem(item.id!),
+                                                    tooltip: isUrdu
+                                                        ? 'آئٹم حذف کریں'
+                                                        : 'Delete Item',
+                                                    padding: EdgeInsets.zero,
+                                                    constraints:
+                                                        const BoxConstraints(
+                                                            minWidth: 32,
+                                                            minHeight: 32),
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          );
-                                        }).toList(),
-                                      ),
+                                            ),
+                                          ],
+                                        );
+                                      }).toList(),
                                     ),
                                   ),
+                                ),
                                 if (_isLoadMoreRunning)
                                   const Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: Center(child: CircularProgressIndicator()),
+                                    padding: EdgeInsets.all(
+                                        DesktopDimensions.spacingMedium),
+                                    child: Center(
+                                        child: CircularProgressIndicator()),
                                   ),
                                 if (!_hasNextPage && items.isNotEmpty)
                                   Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Center(child: Text(localizations.endOfList, style: TextStyle(color: colorScheme.onSurfaceVariant))),
+                                    padding: const EdgeInsets.all(
+                                        DesktopDimensions.spacingMedium),
+                                    child: Center(
+                                        child: Text(localizations.endOfList,
+                                            style: TextStyle(
+                                                color: colorScheme
+                                                    .onSurfaceVariant))),
                                   ),
                               ],
                             ),
@@ -331,7 +501,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     );
   }
   // ... [Dialog methods _showAddItemDialog, _showEditItemDialog, _deleteItem remain unchanged] ...
-  
+
   // (Include previous helper methods here for complete file)
   Future<void> _showAddItemDialog() async {
     final Product? newProduct = await showDialog<Product>(
@@ -345,9 +515,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
     if (newProduct != null && mounted) {
       await _itemsRepository.addProduct(newProduct);
       _firstLoad();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.saveChangesSuccess), backgroundColor: Theme.of(context).colorScheme.primary)
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.saveChangesSuccess),
+          backgroundColor: Theme.of(context).colorScheme.primary));
     }
   }
 
@@ -364,16 +534,16 @@ class _ItemsScreenState extends State<ItemsScreen> {
     if (updatedProduct != null && mounted) {
       await _itemsRepository.updateProduct(item.id!, updatedProduct);
       _firstLoad();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.saveChangesSuccess), backgroundColor: Theme.of(context).colorScheme.primary)
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.saveChangesSuccess),
+          backgroundColor: Theme.of(context).colorScheme.primary));
     }
   }
 
   Future<void> _deleteItem(int id) async {
     final localizations = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     final confirmed = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -381,10 +551,15 @@ class _ItemsScreenState extends State<ItemsScreen> {
         title: Text(localizations.confirm),
         content: Text(localizations.confirmDeleteItem),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(localizations.no, style: TextStyle(color: colorScheme.onSurface))),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(localizations.no,
+                  style: TextStyle(color: colorScheme.onSurface))),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError),
             child: Text(localizations.yesDelete),
           ),
         ],
@@ -394,14 +569,18 @@ class _ItemsScreenState extends State<ItemsScreen> {
     if (confirmed == true) {
       try {
         await _itemsRepository.deleteProduct(id);
-        
+
         if (!mounted) return;
 
         _firstLoad();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizations.itemDeleted), backgroundColor: colorScheme.primary));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(localizations.itemDeleted),
+            backgroundColor: colorScheme.primary));
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${localizations.error}: $e'), backgroundColor: colorScheme.error));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('${localizations.error}: $e'),
+            backgroundColor: colorScheme.error));
       }
     }
   }
@@ -466,12 +645,15 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
 
   Future<void> _fetchSubCategories(int categoryId) async {
     try {
-      final subs = await widget.categoriesRepository.getSubCategoriesByCategory(categoryId);
+      final subs = await widget.categoriesRepository
+          .getSubCategoriesByCategory(categoryId);
       if (mounted) {
         setState(() {
           _subCategories = subs;
           // Ensure the selected subcategory exists in the fetched list
-          if (subs.isNotEmpty && _selectedSubCategoryId != null && !subs.any((s) => s.id == _selectedSubCategoryId)) {
+          if (subs.isNotEmpty &&
+              _selectedSubCategoryId != null &&
+              !subs.any((s) => s.id == _selectedSubCategoryId)) {
             _selectedSubCategoryId = null;
           }
         });
@@ -489,9 +671,15 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
       prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
       filled: true,
       fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.outline)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.outline)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: colorScheme.primary, width: 2)),
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.outline)),
+      enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.outline)),
+      focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
@@ -504,7 +692,9 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
 
     return AlertDialog(
       backgroundColor: colorScheme.surface,
-      title: Text(isEdit ? localizations.editItem : localizations.addItem, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+      title: Text(isEdit ? localizations.editItem : localizations.addItem,
+          style: TextStyle(
+              fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 700),
         child: FutureBuilder(
@@ -514,10 +704,14 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
           ]),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
+              return const SizedBox(
+                  height: 200,
+                  child: Center(child: CircularProgressIndicator()));
             }
             if (snapshot.hasError) {
-              return SizedBox(height: 200, child: Center(child: Text('Error: ${snapshot.error}')));
+              return SizedBox(
+                  height: 200,
+                  child: Center(child: Text('Error: ${snapshot.error}')));
             }
 
             final categories = snapshot.data?[0] as List<Category>? ?? [];
@@ -527,18 +721,35 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 10),
+                  const SizedBox(height: DesktopDimensions.spacingStandard),
                   Row(children: [
-                    Expanded(child: TextField(controller: _nameEngCtrl, decoration: _buildInputDecoration(localizations.englishName, Icons.inventory_2_outlined))),
-                    const SizedBox(width: 16),
-                    Expanded(child: TextField(controller: _nameUrduCtrl, decoration: _buildInputDecoration(localizations.urduName, Icons.translate), style: const TextStyle(fontFamily: 'NooriNastaleeq', fontSize: 16))),
+                    Expanded(
+                        child: TextField(
+                            controller: _nameEngCtrl,
+                            decoration: _buildInputDecoration(
+                                localizations.englishName,
+                                Icons.inventory_2_outlined))),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    Expanded(
+                        child: TextField(
+                            controller: _nameUrduCtrl,
+                            decoration: _buildInputDecoration(
+                                localizations.urduName, Icons.translate),
+                            style: const TextStyle(
+                                fontFamily: 'NooriNastaleeq',
+                                fontSize: DesktopDimensions.bodySize))),
                   ]),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: DesktopDimensions.spacingMedium),
                   Row(children: [
-                    Expanded(child: DropdownButtonFormField<int>(
+                    Expanded(
+                        child: DropdownButtonFormField<int>(
                       value: _selectedCategoryId,
-                      decoration: _buildInputDecoration(localizations.category, Icons.category_outlined),
-                      items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.nameEn))).toList(),
+                      decoration: _buildInputDecoration(
+                          localizations.category, Icons.category_outlined),
+                      items: categories
+                          .map((c) => DropdownMenuItem(
+                              value: c.id, child: Text(c.nameEn)))
+                          .toList(),
                       onChanged: (val) {
                         setState(() {
                           _selectedCategoryId = val;
@@ -548,39 +759,64 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                         if (val != null) _fetchSubCategories(val);
                       },
                     )),
-                    const SizedBox(width: 16),
-                    Expanded(child: DropdownButtonFormField<int>(
-                      value: _subCategories.any((s) => s.id == _selectedSubCategoryId) ? _selectedSubCategoryId : null,
-                      decoration: _buildInputDecoration('Sub Category', Icons.subdirectory_arrow_right),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    Expanded(
+                        child: DropdownButtonFormField<int>(
+                      value: _subCategories
+                              .any((s) => s.id == _selectedSubCategoryId)
+                          ? _selectedSubCategoryId
+                          : null,
+                      decoration: _buildInputDecoration(
+                          'Sub Category', Icons.subdirectory_arrow_right),
                       items: _subCategories
                           .where((s) => s.id != null)
-                          .map((s) => DropdownMenuItem(value: s.id, child: Text(s.nameEn)))
+                          .map((s) => DropdownMenuItem(
+                              value: s.id, child: Text(s.nameEn)))
                           .toList(),
-                      onChanged: (val) => setState(() => _selectedSubCategoryId = val),
+                      onChanged: (val) =>
+                          setState(() => _selectedSubCategoryId = val),
                     )),
                   ]),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: DesktopDimensions.spacingMedium),
                   Row(children: [
-                    Expanded(child: TextField(
+                    Expanded(
+                        child: TextField(
                       controller: _brandCtrl,
-                      decoration: _buildInputDecoration('Brand', Icons.branding_watermark_outlined),
+                      decoration: _buildInputDecoration(
+                          'Brand', Icons.branding_watermark_outlined),
                     )),
-                    const SizedBox(width: 16),
-                    Expanded(child: TextField(controller: _packingCtrl, decoration: _buildInputDecoration(localizations.packingType, Icons.archive_outlined))),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    Expanded(
+                        child: TextField(
+                            controller: _packingCtrl,
+                            decoration: _buildInputDecoration(
+                                localizations.packingType,
+                                Icons.archive_outlined))),
                   ]),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: DesktopDimensions.spacingMedium),
                   Row(children: [
-                    Expanded(child: DropdownButtonFormField<int>(
+                    Expanded(
+                        child: DropdownButtonFormField<int>(
                       value: _selectedUnitId,
-                      decoration: _buildInputDecoration(localizations.unit, Icons.straighten),
-                      items: units.map((u) => DropdownMenuItem(value: u.id, child: Text('${u.name} (${u.code})'))).toList(),
+                      decoration: _buildInputDecoration(
+                          localizations.unit, Icons.straighten),
+                      items: units
+                          .map((u) => DropdownMenuItem(
+                              value: u.id,
+                              child: Text('${u.name} (${u.code})')))
+                          .toList(),
                       onChanged: (val) => setState(() {
                         _selectedUnitId = val;
-                        _selectedUnitType = units.firstWhere((u) => u.id == val).code;
+                        _selectedUnitType =
+                            units.firstWhere((u) => u.id == val).code;
                       }),
                     )),
-                    const SizedBox(width: 16),
-                    Expanded(child: TextField(controller: _tagsCtrl, decoration: _buildInputDecoration(localizations.searchTags, Icons.tag))),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    Expanded(
+                        child: TextField(
+                            controller: _tagsCtrl,
+                            decoration: _buildInputDecoration(
+                                localizations.searchTags, Icons.tag))),
                   ]),
                 ],
               ),
@@ -589,19 +825,26 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text(localizations.cancel)),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(localizations.cancel)),
         ElevatedButton(
           onPressed: () {
             if (_nameEngCtrl.text.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${localizations.englishName} ${localizations.fieldRequired}")));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(
+                      "${localizations.englishName} ${localizations.fieldRequired}")));
               return;
             }
-            final product = (widget.product ?? Product(nameEnglish: '')).copyWith(
+            final product =
+                (widget.product ?? Product(nameEnglish: '')).copyWith(
               nameEnglish: _nameEngCtrl.text,
               nameUrdu: _nameUrduCtrl.text,
               categoryId: _selectedCategoryId,
               subCategoryId: _selectedSubCategoryId,
-              brand: _brandCtrl.text.trim().isEmpty ? null : _brandCtrl.text.trim(),
+              brand: _brandCtrl.text.trim().isEmpty
+                  ? null
+                  : _brandCtrl.text.trim(),
               unitId: _selectedUnitId,
               unitType: _selectedUnitType,
               packingType: _packingCtrl.text,

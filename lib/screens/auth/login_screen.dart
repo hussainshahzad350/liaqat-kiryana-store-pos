@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../l10n/app_localizations.dart'; // Import the localizations delegate
+import '../../l10n/app_localizations.dart';
+import '../../core/constants/desktop_dimensions.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,70 +29,85 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: Center( 
+      body: Center(
         child: Container(
-          width: 400, 
-          padding: const EdgeInsets.all(32),
+          width: 400,
+          padding: const EdgeInsets.all(DesktopDimensions.spacingXLarge),
           child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: DesktopDimensions.cardElevation,
+            shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.store, size: 80, color: colorScheme.primary),
-                  const SizedBox(height: 20),
-                  // UPDATED: Use localized app title
+                  const SizedBox(height: DesktopDimensions.spacingLarge),
                   Text(
-                    localizations.appTitle, 
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: colorScheme.primary),
+                    localizations.appTitle,
+                    style: TextStyle(
+                        fontSize: DesktopDimensions.appTitleSize,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 5),
-                  // UPDATED: Use localized POS system label
+                  const SizedBox(height: DesktopDimensions.spacingSmall),
                   Text(
-                    localizations.posSystem, 
-                    style: TextStyle(fontSize: 16, color: colorScheme.onSurfaceVariant),
+                    localizations.posSystem,
+                    style: TextStyle(
+                        fontSize: DesktopDimensions.bodySize,
+                        color: colorScheme.onSurfaceVariant),
                   ),
-                  const SizedBox(height: 30),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    style: TextStyle(color: colorScheme.onSurface),
-                    decoration: InputDecoration(
-                      // UPDATED: Use localized password label
-                      labelText: localizations.password,
-                      // Border handled by global theme
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                  const SizedBox(height: DesktopDimensions.spacingXLarge),
+                  SizedBox(
+                    height: DesktopDimensions.inputHeight,
+                    child: TextField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      style: TextStyle(
+                          color: colorScheme.onSurface,
+                          fontSize: DesktopDimensions.bodySize),
+                      decoration: InputDecoration(
+                        labelText: localizations.password,
+                        labelStyle:
+                            TextStyle(color: colorScheme.onSurfaceVariant),
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(_obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: DesktopDimensions.spacingLarge),
                   SizedBox(
                     width: double.infinity,
+                    height: DesktopDimensions.inputHeight,
                     child: ElevatedButton(
                       onPressed: () {
-                        // In a real app, you would validate the password here asynchronously
-                        // and check `if (!mounted) return;` before navigating.
                         Navigator.pushReplacementNamed(context, '/home');
                       },
-                      // UPDATED: Use localized Login button text
-                      child: Text(localizations.login, style: const TextStyle(fontSize: 18)),
+                      child: Text(localizations.login,
+                          style: const TextStyle(
+                              fontSize: DesktopDimensions.bodySize)),
                     ),
                   ),
-                  const SizedBox(height: 15),
-                  // UPDATED: Use localized Forgot Password text
+                  const SizedBox(height: DesktopDimensions.spacingMedium),
                   TextButton(
-                    onPressed: () {}, 
-                    child: Text(localizations.forgotPassword),
+                    onPressed: () {},
+                    child: Text(
+                      localizations.forgotPassword,
+                      style:
+                          const TextStyle(fontSize: DesktopDimensions.bodySize),
+                    ),
                   ),
                 ],
               ),

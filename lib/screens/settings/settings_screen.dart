@@ -167,6 +167,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
@@ -297,14 +298,18 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                             child: ElevatedButton(
                               onPressed: _saveProfile,
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical:
-                                        DesktopDimensions.spacingMedium),
-                                backgroundColor:
-                                    Theme.of(context).primaryColor,
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
+                                minimumSize: const Size(0, 48),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                                ),
+                                textStyle: const TextStyle(
+                                  fontSize: DesktopDimensions.bodySize,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              child: Text(loc.saveChanges,
-                                  style: const TextStyle(color: Colors.white)),
+                              child: Text(loc.saveChanges),
                             ),
                           ),
                         ],
@@ -459,6 +464,7 @@ class _BackupTabState extends State<BackupTab> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
@@ -540,9 +546,16 @@ class _BackupTabState extends State<BackupTab> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: DesktopDimensions.spacingMedium),
-                        backgroundColor: Theme.of(context).primaryColor,
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        minimumSize: const Size(0, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: DesktopDimensions.bodySize,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -1462,6 +1475,7 @@ class BackupItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
         ListTile(
@@ -1472,12 +1486,14 @@ class BackupItem extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: Icon(Icons.restore, color: Theme.of(context).primaryColor),
+                icon: const Icon(Icons.restore, size: DesktopDimensions.kpiIconSize),
+                color: colorScheme.primary,
                 onPressed: onRestore,
                 tooltip: loc.restore,
               ),
               IconButton(
-                icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                icon: const Icon(Icons.delete, size: DesktopDimensions.kpiIconSize),
+                color: colorScheme.error,
                 onPressed: onDelete,
                 tooltip: loc.delete,
               ),

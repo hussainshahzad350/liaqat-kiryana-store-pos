@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/desktop_dimensions.dart';
-import '../../core/res/app_dimensions.dart';
 import '../../l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -54,13 +53,13 @@ class AboutScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                               color: colorScheme.onSurface),
                         ),
-                        const SizedBox(height: AppDimensions.spacingSmall),
+                        const SizedBox(height: DesktopDimensions.spacingSmall),
                         Text(
                           '${loc.version}: 1.0.0',
                           style: textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant),
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: DesktopDimensions.spacingMedium),
                         Text(
                           loc.appDescription,
                           textAlign: TextAlign.center,
@@ -90,7 +89,7 @@ class AboutScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                               color: colorScheme.onSurface),
                         ),
-                        const SizedBox(height: AppDimensions.spacingLarge),
+                        const SizedBox(height: DesktopDimensions.spacingLarge),
                         _buildTechItem(context, loc.framework, 'Flutter 3.0+'),
                         _buildTechItem(context, loc.platform, 'Linux Desktop'),
                         _buildTechItem(context, loc.database,
@@ -122,7 +121,7 @@ class AboutScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                               color: colorScheme.onSurface),
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: DesktopDimensions.spacingMedium),
                         _buildFeatureItem(context, loc.featurePos),
                         _buildFeatureItem(context, loc.featureStockManagement),
                         _buildFeatureItem(
@@ -143,7 +142,7 @@ class AboutScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceVariant,
                     borderRadius:
-                        BorderRadius.circular(AppDimensions.borderRadius),
+                        BorderRadius.circular(DesktopDimensions.cardBorderRadius),
                   ),
                   child: Column(
                     children: [
@@ -153,7 +152,7 @@ class AboutScreen extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onSurfaceVariant),
                       ),
-                      const SizedBox(height: AppDimensions.spacingSmall),
+                      const SizedBox(height: DesktopDimensions.spacingSmall),
                       Text(
                         loc.allRightsReserved,
                         style: textTheme.bodySmall?.copyWith(
@@ -176,7 +175,7 @@ class AboutScreen extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingSmall),
       child: Row(
         children: [
           SizedBox(
@@ -212,11 +211,11 @@ class AboutScreen extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingSmall),
       child: Row(
         children: [
-          Icon(Icons.check_circle, color: colorScheme.primary, size: 16), // Use theme primary color
-          const SizedBox(width: 10),
+          Icon(Icons.check_circle, color: colorScheme.primary, size: DesktopDimensions.kpiIconSize), // Use theme primary color
+          const SizedBox(width: DesktopDimensions.spacingStandard),
           Expanded(
               child: Text(
                 feature,
