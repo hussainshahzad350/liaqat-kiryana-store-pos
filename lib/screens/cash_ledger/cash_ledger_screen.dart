@@ -28,6 +28,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
   bool _isLoadMoreRunning = false;
   int _page = 0;
   final int _limit = 20;
+  int _requestToken = 0;
   late final ScrollController _scrollController;
 
   @override
@@ -53,39 +54,53 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
   }
 
   Future<void> _refreshData() async {
+    final requestToken = ++_requestToken;
     setState(() {
       _isFirstLoadRunning = true;
       _page = 0;
       _hasNextPage = true;
       ledgerEntries = [];
+      _isLoadMoreRunning = false;
     });
-
+try {
     final bal = await _cashRepository.getCurrentCashBalance();
     final data = await _cashRepository.getCashLedger(limit: _limit, offset: 0);
-
-    if (!mounted) return;
+    if (!mounted || requestToken != _requestToken) return;
     setState(() {
       currentBalance = bal;
       ledgerEntries = data;
       _isFirstLoadRunning = false;
       if (data.length < _limit) _hasNextPage = false;
     });
+  } catch (_) {
+  if (!mounted || requestToken != _requestToken) return;
+  setState(() => _isFirstLoadRunning = false);
   }
+}
+
 
   Future<void> _loadMore() async {
     if (_isLoadMoreRunning || !_hasNextPage) return;
     setState(() => _isLoadMoreRunning = true);
 
-    _page++;
-    final data = await _cashRepository.getCashLedger(
-        limit: _limit, offset: _page * _limit);
-
-    if (!mounted) return;
-    setState(() {
-      if (data.isNotEmpty) ledgerEntries.addAll(data);
-      if (data.length < _limit) _hasNextPage = false;
-      _isLoadMoreRunning = false;
-    });
+    final requestToken = _requestToken;
+    final nextPage = _page + 1;
+    try {
+      final data = await _cashRepository.getCashLedger(
+        limit: _limit, offset: nextPage * _limit);
+      if (!mounted || requestToken != _requestToken) return;
+      setState(() {
+        if (data.isNotEmpty) {
+          _page = nextPage;
+          ledgerEntries.addAll(data);
+        }
+        if (data.length < _limit) _hasNextPage = false;
+        _isLoadMoreRunning = false;
+      });
+    } catch (_) {
+      if (!mounted || requestToken != _requestToken) return;
+      setState(() => _isLoadMoreRunning = false);
+    }
   }
 
   Future<void> _addTransaction(String initialType) async {
