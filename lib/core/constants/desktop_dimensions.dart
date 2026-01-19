@@ -5,6 +5,9 @@ class DesktopDimensions {
   static const double headerHeight = 70.0;
   static const double footerHeight = 40.0;
   static const double actionBarHeight = 70.0;
+  static const double headerTitleFontSize = 18.0;
+  static const double headerClockFontSize = 16.0;
+  static const double headerPaddingHorizontal = 20.0;
   
   // Panels
   static const double sidebarMinWidth = 300.0;
@@ -16,6 +19,9 @@ class DesktopDimensions {
   static const double cardPadding = 16.0;
   static const double cardBorderRadius = 12.0;
   static const double cardElevation = 2.0;
+  static const double aboutLogoSize = 100.0;
+  static const double aboutIconScale = 2.5;
+  static const double labelWidthStandard = 150.0;
   
   // KPIs
   static const double kpiHeight = 135.0;
@@ -38,8 +44,9 @@ class DesktopDimensions {
   static const double spacingLarge = 20.0;
   static const double spacingXLarge = 32.0;
   static const double spacingXXLarge = 48.0;
-  static const double spacingXSmall = 4.0;
   static const double spacingXXXLarge = 64.0;
+  static const double spacingXSmall = 4.0;
+  static const double spacingXXSmall = 2.0;
 
   // Responsive Breakpoints
   static const double breakpointLarge = 1400.0;
@@ -53,4 +60,12 @@ class DesktopDimensions {
 
   // Logo Size
   static const double logoSize = 80.0;
+
+  // Buttons
+  static const double buttonHeight = 40.0;
+  static const double buttonBorderRadius = 8.0;
+
+  // Tables & Lists
+  static const double tableRowHeight = 40.0;
+  static const double tableHeaderFontSize = 13.0;
 }
