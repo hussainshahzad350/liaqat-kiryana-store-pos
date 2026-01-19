@@ -11,7 +11,7 @@ class AboutScreen extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
       child: Column(
         children: [
           Expanded(
@@ -32,8 +32,8 @@ class AboutScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         Container(
-                          width: 100,
-                          height: 100,
+                          width: 80,
+                          height: 80,
                           decoration: BoxDecoration(
                             color: colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(
@@ -41,7 +41,7 @@ class AboutScreen extends StatelessWidget {
                           ),
                           child: Icon(
                             Icons.store,
-                            size: 60,
+                            size: 45,
                             color: colorScheme.onPrimaryContainer,
                           ),
                         ),
@@ -49,7 +49,7 @@ class AboutScreen extends StatelessWidget {
                             height: DesktopDimensions.spacingLarge),
                         Text(
                           loc.appTitle,
-                          style: textTheme.headlineSmall?.copyWith(
+                          style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: colorScheme.onSurface),
                         ),
@@ -59,7 +59,7 @@ class AboutScreen extends StatelessWidget {
                           style: textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant),
                         ),
-                        const SizedBox(height: DesktopDimensions.spacingMedium),
+                        const SizedBox(height: DesktopDimensions.spacingSmall),
                         Text(
                           loc.appDescription,
                           textAlign: TextAlign.center,
@@ -79,7 +79,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   child: Padding(
                     padding:
-                        const EdgeInsets.all(DesktopDimensions.spacingLarge),
+                        const const EdgeInsets.all(DesktopDimensions.spacingMedium),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -89,7 +89,7 @@ class AboutScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                               color: colorScheme.onSurface),
                         ),
-                        const SizedBox(height: DesktopDimensions.spacingLarge),
+                        const SizedBox(height: DesktopDimensions.spacingXSmall),
                         _buildTechItem(context, loc.framework, 'Flutter 3.0+'),
                         _buildTechItem(context, loc.platform, 'Linux Desktop'),
                         _buildTechItem(context, loc.database,
@@ -111,7 +111,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   child: Padding(
                     padding:
-                        const EdgeInsets.all(DesktopDimensions.spacingLarge),
+                        const const EdgeInsets.all(DesktopDimensions.spacingMedium),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -134,11 +134,11 @@ class AboutScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingXXLarge),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
                 
                 Container(
                   padding:
-                      const EdgeInsets.all(DesktopDimensions.spacingLarge),
+                      const EdgeInsets.all(DesktopDimensions.spacingMedium),
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceVariant,
                     borderRadius:
@@ -182,7 +182,7 @@ class AboutScreen extends StatelessWidget {
             width: 120,
             child: Text(
               label,
-              style: textTheme.bodyMedium?.copyWith(
+              style: textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w500,
                 color: colorScheme.onSurface,
               ),
@@ -190,14 +190,14 @@ class AboutScreen extends StatelessWidget {
           ),
           Text(
             ': ',
-            style: textTheme.bodyMedium?.copyWith(
+            style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurface,
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: textTheme.bodyMedium?.copyWith(
+              style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
