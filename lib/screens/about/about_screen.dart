@@ -28,12 +28,12 @@ class AboutScreen extends StatelessWidget {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(
-                        DesktopDimensions.spacingXXLarge),
+                        DesktopDimensions.spacingXLarge),
                     child: Column(
                       children: [
                         Container(
-                          width: 80,
-                          height: 80,
+                          width: DesktopDimensions.kpiHeight,
+                          height: DesktopDimensions.kpiHeight,
                           decoration: BoxDecoration(
                             color: colorScheme.primaryContainer,
                             borderRadius: BorderRadius.circular(
@@ -41,7 +41,7 @@ class AboutScreen extends StatelessWidget {
                           ),
                           child: Icon(
                             Icons.store,
-                            size: 45,
+                            size: DesktopDimensions.kpiIconSize * 2.5,
                             color: colorScheme.onPrimaryContainer,
                           ),
                         ),
@@ -161,7 +161,7 @@ class AboutScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingXXLarge),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
               ],
             ),
           ),
@@ -179,7 +179,7 @@ class AboutScreen extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 120,
+            width: DesktopDimensions.sidebarMinWidth / 3,
             child: Text(
               label,
               style: textTheme.bodySmall?.copyWith(
@@ -215,7 +215,7 @@ class AboutScreen extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.check_circle, color: colorScheme.primary, size: DesktopDimensions.kpiIconSize), // Use theme primary color
-          const SizedBox(width: DesktopDimensions.spacingStandard),
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           Expanded(
               child: Text(
                 feature,
