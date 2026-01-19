@@ -38,6 +38,8 @@ class DesktopDimensions {
   static const double spacingLarge = 20.0;
   static const double spacingXLarge = 32.0;
   static const double spacingXXLarge = 48.0;
+  static const double spacingXSmall = 4.0;
+  static const double spacingXXXLarge = 64.0;
 
   // Responsive Breakpoints
   static const double breakpointLarge = 1400.0;
@@ -48,4 +50,7 @@ class DesktopDimensions {
   static const double sidebarWidthLarge = 480.0;
   static const double sidebarWidthMedium = 400.0;
   static const double sidebarWidthSmall = 350.0;
+
+  // Logo Size
+  static const double logoSize = 80.0;
 }
