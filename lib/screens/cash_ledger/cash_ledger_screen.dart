@@ -293,16 +293,39 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                       const SizedBox(width: DesktopDimensions.spacingStandard),
                       ElevatedButton(
                         onPressed: () async {
-                          final amount = Money.fromRupeesString(amountCtrl.text);
-                          if (amount > const Money(0) && descCtrl.text.isNotEmpty) {
-                            await _cashRepository.addCashEntry(
-                                descCtrl.text, selectedType, amount, remarksCtrl.text);
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              _refreshData();
-                            }
+                          Money? amount;
+                          try {
+                            amount = Money.fromRupeesString(amountCtrl.text.trim());
+                          } catch (_) {
+                          // Show validation error
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(loc.invalidAmount),
+                              backgroundColor: colorScheme.error,
+                            ),
+                          );
+                          return;
+                        }
+                        if (amount != null && amount > const Money(0) && descCtrl.text.trim().isNotEmpty) {
+                          await _cashRepository.addCashEntry(
+                            descCtrl.text.trim(),
+                            selectedType,
+                            amount,
+                            remarksCtrl.text.trim()
+                          );
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            _refreshData();
                           }
-                        },
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(loc.amountMustBePositive),
+                              backgroundColor: colorScheme.error,
+                            ),
+                          );
+                        }
+                      },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: selectedType == 'IN'
                               ? colorScheme.primary
