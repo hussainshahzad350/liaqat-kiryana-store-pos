@@ -67,7 +67,7 @@ class DesktopDimensions {
   // Logo Size
   static const double logoSize = 80.0;
   
-  // Icon Sizes - FIXED DUPLICATES
+  // Icon Sizes
   static const double iconSizeXSmall = 12.0;
   static const double iconSizeSmall = 16.0;
   static const double iconSizeMedium = 20.0;
@@ -78,6 +78,9 @@ class DesktopDimensions {
   // Buttons
   static const double buttonHeight = 40.0;
   static const double buttonBorderRadius = 8.0;
+  static const double smallBorderRadius = 6.0;
+  static const double scrollLoadThreshold = 64.0;
+  static const double mediumBorderRadius = 8.0;
 
   // Tables & Lists
   static const double tableRowHeight = 40.0;
