@@ -192,8 +192,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
+              child:
             TextField(controller: nameEnController, decoration: const InputDecoration(labelText: 'Name (English)')),
             TextField(controller: nameUrController, decoration: const InputDecoration(labelText: 'Name (Urdu)')),
+            )
           ],
         ),
         actions: [
@@ -438,7 +442,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(
-                  width: 250,
+                  width: DesktopDimensions.sidebarWidthSmall,
                   child: Card(
                     elevation: DesktopDimensions.cardElevation,
                     shape: RoundedRectangleBorder(
@@ -510,7 +514,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, size: 18),
+                Icon(Icons.add_circle_outline, size: DesktopDimensions.iconSizeStandard),
                 onPressed: () {
                   _showDepartmentDialog();
                 },
@@ -607,7 +611,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.add, size: 18),
+                Icon(Icons.add, size: DesktopDimensions.iconSizeStandard),
                 onPressed: () {
                   _showCategoryDialog(parentDeptId: _selectedDepartment!.id);
                 },
@@ -623,7 +627,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         else
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+              padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
               itemCount: filteredCats.length,
               itemBuilder: (context, index) {
                 final cat = filteredCats[index];
@@ -692,7 +696,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         ),
                       ),
                       trailing: IconButton(
-                        icon: const Icon(Icons.add, size: 20),
+                        Icon(Icons.add, size: DesktopDimensions.iconSizeStandard),
                         onPressed: () {
                           _showSubCategoryDialog(parentCatId: cat.id);
                         },
@@ -822,7 +826,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         children: [
           // Details Header
           Container(
-            padding: const EdgeInsets.all(DesktopDimensions.spacingXXLarge),
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesktopDimensions.spacingXXLarge,
+              vertical: DesktopDimensions.spacingXLarge,
+            ),
+          ),
             decoration: BoxDecoration(
               border:
                   Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
@@ -941,7 +949,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       await _updateStatus(
                           isActive: val, isVisible: isVisibleInPOS);
                     },
-                    contentPadding: EdgeInsets.zero,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium,vertical: DesktopDimensions.spacingSmall),
                   ),
                   SwitchListTile(
                     title: const Text('Visible in POS'),
@@ -952,7 +960,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       await _updateStatus(
                           isActive: isActive, isVisible: val);
                     },
-                    contentPadding: EdgeInsets.zero,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium,vertical: DesktopDimensions.spacingSmall),
                   ),
                   const Divider(height: DesktopDimensions.spacingXXLarge),
 
@@ -979,7 +987,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(entry.value, style: TextStyle(color: isLast ? colorScheme.onSurface : colorScheme.outline, fontSize: 12)),
+            Text(entry.value, style: TextStyle(color: isLast ? colorScheme.onSurface : colorScheme.outline, fontSize: DesktopDimensions.captionSize)),
             if (!isLast)
               Icon(Icons.chevron_right, size: 16, color: colorScheme.outline),
           ],
@@ -995,7 +1003,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         Text(
           'STATISTICS',
           style: TextStyle(
-            fontSize: 12,
+            fontSize: DesktopDimensions.captionSize,
             fontWeight: FontWeight.bold,
             color: colorScheme.onSurfaceVariant,
             letterSpacing: 1,
