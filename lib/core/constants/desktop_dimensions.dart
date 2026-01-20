@@ -14,6 +14,7 @@ class DesktopDimensions {
   static const double sidebarMaxWidth = 500.0;
   static const double sidebarDefaultWidth = 450.0;
   static const double clockWidth = 200.0;
+  static const double departmentPaneWidth = 250.0;
   
   // Cards
   static const double cardPadding = 16.0;
@@ -22,6 +23,8 @@ class DesktopDimensions {
   static const double aboutLogoSize = 100.0;
   static const double aboutIconScale = 2.5;
   static const double labelWidthStandard = 150.0;
+  static const double searchCardPadding = 16.0;
+  
   
   // KPIs
   static const double kpiHeight = 135.0;
@@ -36,6 +39,9 @@ class DesktopDimensions {
   static const double headingSize = 18.0;
   static const double bodySize = 14.0;
   static const double captionSize = 11.0;
+  static const double breadcrumbFontSize = 12.0;
+  static const double statValueFontSize = 18.0;
+  static const double switchTileVerticalPadding = 0.0;
   
   // Spacing
   static const double spacingSmall = 8.0;
@@ -60,6 +66,8 @@ class DesktopDimensions {
 
   // Logo Size
   static const double logoSize = 80.0;
+  static const double iconSizeSmall = 18.0;
+  static const double iconSizeStandard = 20.0;
 
   // Buttons
   static const double buttonHeight = 40.0;
