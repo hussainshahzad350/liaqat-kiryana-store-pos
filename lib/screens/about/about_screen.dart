@@ -32,8 +32,8 @@ class AboutScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           Container(
-                            width: DesktopDimensions.kpiHeight,
-                            height: DesktopDimensions.kpiHeight,
+                            width: DesktopDimensions.aboutLogoSize,  // ✅ Fixed
+                            height: DesktopDimensions.aboutLogoSize, // ✅ Fixed
                             decoration: BoxDecoration(
                               color: colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(
@@ -41,7 +41,7 @@ class AboutScreen extends StatelessWidget {
                             ),
                             child: Icon(
                               Icons.store,
-                              size: DesktopDimensions.kpiIconSize * 2.5,
+                              size: DesktopDimensions.aboutIconScale,  // ✅ Fixed
                               color: colorScheme.onPrimaryContainer,
                             ),
                           ),
@@ -75,6 +75,7 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(height: DesktopDimensions.spacingLarge),
 
                   Card(
+                    elevation: DesktopDimensions.cardElevation,  // ✅ Added
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                           DesktopDimensions.cardBorderRadius),
@@ -111,6 +112,7 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(height: DesktopDimensions.spacingLarge),
 
                   Card(
+                    elevation: DesktopDimensions.cardElevation,  // ✅ Added
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                           DesktopDimensions.cardBorderRadius),
@@ -144,29 +146,32 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: DesktopDimensions.spacingLarge),
 
-                  Container(
-                    padding:
-                        const EdgeInsets.all(DesktopDimensions.spacingMedium),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
+                  // ✅ Changed from Container to Card for consistency
+                  Card(
+                    elevation: DesktopDimensions.cardElevation,  // ✅ Added
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                           DesktopDimensions.cardBorderRadius),
                     ),
-                    child: Column(
-                      children: [
-                        Text(
-                          loc.copyright,
-                          style: textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurfaceVariant),
-                        ),
-                        const SizedBox(height: DesktopDimensions.spacingSmall),
-                        Text(
-                          loc.allRightsReserved,
-                          style: textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                      ],
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                      child: Column(
+                        children: [
+                          Text(
+                            loc.copyright,
+                            style: textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurfaceVariant),
+                          ),
+                          const SizedBox(height: DesktopDimensions.spacingSmall),
+                          Text(
+                            loc.allRightsReserved,
+                            style: textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: DesktopDimensions.spacingLarge),
@@ -217,7 +222,6 @@ class AboutScreen extends StatelessWidget {
   }
 
   Widget _buildFeatureItem(BuildContext context, String feature) {
-    // Added context
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
@@ -227,7 +231,7 @@ class AboutScreen extends StatelessWidget {
         children: [
           Icon(Icons.check_circle,
               color: colorScheme.primary,
-              size: DesktopDimensions.kpiIconSize), // Use theme primary color
+              size: DesktopDimensions.kpiIconSize),
           const SizedBox(width: DesktopDimensions.spacingMedium),
           Expanded(
               child: Text(
