@@ -194,10 +194,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
-              child:
-            TextField(controller: nameEnController, decoration: const InputDecoration(labelText: 'Name (English)')),
-            TextField(controller: nameUrController, decoration: const InputDecoration(labelText: 'Name (Urdu)')),
-            )
+             child: TextField(
+               controller: nameEnController,
+               decoration: const InputDecoration(labelText: 'Name (English)'),
+              ),
+            ),
+            TextField(
+              controller: nameUrController,
+              decoration: const InputDecoration(labelText: 'Name (Urdu)'),
+            ),
           ],
         ),
         actions: [
@@ -514,7 +519,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
               ),
               IconButton(
-                Icon(Icons.add_circle_outline, size: DesktopDimensions.iconSizeStandard),
+                icon: Icon(Icons.add_circle_outline, size: DesktopDimensions.iconSizeStandard),
                 onPressed: () {
                   _showDepartmentDialog();
                 },
@@ -611,7 +616,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
               ),
               IconButton(
-                Icon(Icons.add, size: DesktopDimensions.iconSizeStandard),
+                icon: Icon(Icons.add, size: DesktopDimensions.iconSizeStandard),
                 onPressed: () {
                   _showCategoryDialog(parentDeptId: _selectedDepartment!.id);
                 },
@@ -696,7 +701,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         ),
                       ),
                       trailing: IconButton(
-                        Icon(Icons.add, size: DesktopDimensions.iconSizeStandard),
+                        icon: Icon(Icons.add, size: DesktopDimensions.iconSizeStandard),
                         onPressed: () {
                           _showSubCategoryDialog(parentCatId: cat.id);
                         },
