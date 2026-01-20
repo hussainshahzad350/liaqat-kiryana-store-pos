@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -37,16 +38,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   BorderRadius.circular(DesktopDimensions.cardBorderRadius),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesktopDimensions.cardPadding,
-                vertical: DesktopDimensions.spacingLarge,
-              ),
+              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.store,
-                    size: DesktopDimensions.kpiIconSize * 2.5,
+                    size: DesktopDimensions.aboutIconSize,
                     color: colorScheme.primary,
                   ),
 
@@ -54,10 +52,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   Text(
                     localizations.appTitle,
-                    style: TextStyle(
-                      fontSize: DesktopDimensions.appTitleSize,
-                      fontWeight: FontWeight.bold,
+                    style: textTheme.titleLarge?.copyWith(
                       color: colorScheme.primary,
+                      fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -66,14 +63,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   Text(
                     localizations.posSystem,
-                    style: TextStyle(
-                      fontSize: DesktopDimensions.bodySize,
+                    style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
 
                   const SizedBox(height: DesktopDimensions.spacingLarge),
 
+                  // Password Field
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: DesktopDimensions.spacingSmall),
@@ -82,14 +79,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: TextField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: TextStyle(
+                        style: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurface,
-                          fontSize: DesktopDimensions.bodySize,
                         ),
                         decoration: InputDecoration(
                           labelText: localizations.password,
-                          labelStyle:
-                              TextStyle(color: colorScheme.onSurfaceVariant),
+                          labelStyle: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                           prefixIcon: const Icon(Icons.lock),
                           suffixIcon: IconButton(
                             icon: Icon(_obscurePassword
@@ -108,18 +105,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: DesktopDimensions.spacingLarge),
 
+                  // Login Button
                   SizedBox(
                     width: double.infinity,
-                    height: DesktopDimensions.inputHeight,
+                    height: DesktopDimensions.buttonHeight,
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.pushReplacementNamed(context, '/home');
                       },
                       child: Text(
                         localizations.login,
-                        style: TextStyle(
-                          fontSize: DesktopDimensions.bodySize,
+                        style: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -127,12 +125,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: DesktopDimensions.spacingSmall),
 
+                  // Forgot Password
                   TextButton(
                     onPressed: () {},
                     child: Text(
                       localizations.forgotPassword,
-                      style: TextStyle(
-                        fontSize: DesktopDimensions.bodySize,
+                      style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.primary,
                       ),
                     ),
