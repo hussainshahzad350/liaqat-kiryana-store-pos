@@ -43,7 +43,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
   }
 
   void _scrollListener() {
-    if (_scrollController.position.extentAfter < 200 &&
+    if (_scrollController.position.extentAfter < DesktopDimensions.spacingXXXLarge &&
         !_isFirstLoadRunning &&
         !_isLoadMoreRunning &&
         _hasNextPage) {
@@ -104,6 +104,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
   Future<void> _addTransaction(String initialType) async {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final amountCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final remarksCtrl = TextEditingController();
@@ -114,190 +115,216 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
     await showDialog(
       context: context,
       builder: (context) => StatefulBuilder(builder: (context, setStateDialog) {
-        return AlertDialog(
+        return Dialog(
           backgroundColor: colorScheme.surface,
-          title: Text(
-            selectedType == 'IN' ? loc.newCashIn : loc.newCashOut,
-            style: TextStyle(color: colorScheme.onSurface),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Type Selector
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => setStateDialog(() => selectedType = 'IN'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: DesktopDimensions.spacingStandard),
-                          decoration: BoxDecoration(
-                            color: selectedType == 'IN'
-                                ? colorScheme.primaryContainer
-                                : colorScheme.surfaceVariant,
-                            borderRadius: BorderRadius.circular(
-                                DesktopDimensions.cardBorderRadius / 2),
-                            border: Border.all(
-                                color: selectedType == 'IN'
-                                    ? colorScheme.primary
-                                    : colorScheme.outline),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DesktopDimensions.dialogWidth,
+              maxHeight: DesktopDimensions.dialogHeight,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    selectedType == 'IN' ? loc.newCashIn : loc.newCashOut,
+                    style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+                  ),
+                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Type Selector
+                          Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => setStateDialog(() => selectedType = 'IN'),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+                                    decoration: BoxDecoration(
+                                      color: selectedType == 'IN'
+                                          ? colorScheme.primaryContainer
+                                          : colorScheme.surfaceVariant,
+                                      borderRadius: BorderRadius.circular(
+                                          DesktopDimensions.buttonBorderRadius),
+                                      border: Border.all(
+                                          color: selectedType == 'IN'
+                                              ? colorScheme.primary
+                                              : colorScheme.outline),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(loc.cashIn,
+                                        style: textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: selectedType == 'IN'
+                                                ? colorScheme.onPrimaryContainer
+                                                : colorScheme.onSurfaceVariant)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: DesktopDimensions.spacingStandard),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => setStateDialog(() => selectedType = 'OUT'),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+                                    decoration: BoxDecoration(
+                                      color: selectedType == 'OUT'
+                                          ? colorScheme.errorContainer
+                                          : colorScheme.surfaceVariant,
+                                      borderRadius: BorderRadius.circular(
+                                          DesktopDimensions.buttonBorderRadius),
+                                      border: Border.all(
+                                          color: selectedType == 'OUT'
+                                              ? colorScheme.error
+                                              : colorScheme.outline),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(loc.cashOut,
+                                        style: textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            color: selectedType == 'OUT'
+                                                ? colorScheme.onErrorContainer
+                                                : colorScheme.onSurfaceVariant)),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          alignment: Alignment.center,
-                          child: Text(loc.cashIn,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: selectedType == 'IN'
-                                      ? colorScheme.onPrimaryContainer
-                                      : colorScheme.onSurfaceVariant)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: DesktopDimensions.spacingStandard),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => setStateDialog(() => selectedType = 'OUT'),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: DesktopDimensions.spacingStandard),
-                          decoration: BoxDecoration(
-                            color: selectedType == 'OUT'
-                                ? colorScheme.errorContainer
-                                : colorScheme.surfaceVariant,
-                            borderRadius: BorderRadius.circular(
-                                DesktopDimensions.cardBorderRadius / 2),
-                            border: Border.all(
-                                color: selectedType == 'OUT'
-                                    ? colorScheme.error
-                                    : colorScheme.outline),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(loc.cashOut,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: selectedType == 'OUT'
-                                      ? colorScheme.onErrorContainer
-                                      : colorScheme.onSurfaceVariant)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: DesktopDimensions.spacingMedium),
+                          const SizedBox(height: DesktopDimensions.spacingMedium),
 
-                // Date Picker
-                InkWell(
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(),
-                      builder: (context, child) => Theme(
-                          data: Theme.of(context)
-                              .copyWith(colorScheme: colorScheme),
-                          child: child!),
-                    );
-                    if (picked != null) {
-                      setStateDialog(() => selectedDate = picked);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: DesktopDimensions.spacingStandard,
-                        vertical: DesktopDimensions.spacingStandard),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: colorScheme.outline),
-                      borderRadius: BorderRadius.circular(
-                          DesktopDimensions.cardBorderRadius / 2),
-                      color: colorScheme.surface,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today,
-                            size: DesktopDimensions.kpiIconSize,
-                            color: colorScheme.onSurfaceVariant),
-                        const SizedBox(
-                            width: DesktopDimensions.spacingStandard),
-                        Text(DateFormat('dd MMM yyyy').format(selectedDate),
-                            style: TextStyle(color: colorScheme.onSurface)),
-                      ],
+                          // Date Picker
+                          InkWell(
+                            onTap: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime.now(),
+                                builder: (context, child) => Theme(
+                                    data: Theme.of(context)
+                                        .copyWith(colorScheme: colorScheme),
+                                    child: child!),
+                              );
+                              if (picked != null) {
+                                setStateDialog(() => selectedDate = picked);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: colorScheme.outline),
+                                borderRadius: BorderRadius.circular(
+                                    DesktopDimensions.buttonBorderRadius),
+                                color: colorScheme.surface,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.calendar_today,
+                                      size: DesktopDimensions.iconSizeMedium,
+                                      color: colorScheme.onSurfaceVariant),
+                                  const SizedBox(
+                                      width: DesktopDimensions.spacingStandard),
+                                  Text(DateFormat('dd MMM yyyy').format(selectedDate),
+                                      style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: DesktopDimensions.spacingMedium),
+
+                          // Amount, Description, Remarks
+                          TextField(
+                            controller: amountCtrl,
+                            decoration: InputDecoration(
+                                labelText: loc.amount,
+                                filled: true,
+                                fillColor: colorScheme.surfaceVariant,
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.buttonBorderRadius))),
+                            keyboardType: TextInputType.number,
+                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                          ),
+                          const SizedBox(height: DesktopDimensions.spacingStandard),
+                          TextField(
+                            controller: descCtrl,
+                            decoration: InputDecoration(
+                                labelText: loc.description,
+                                filled: true,
+                                fillColor: colorScheme.surfaceVariant,
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.buttonBorderRadius))),
+                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                          ),
+                          const SizedBox(height: DesktopDimensions.spacingStandard),
+                          TextField(
+                            controller: remarksCtrl,
+                            decoration: InputDecoration(
+                                labelText: loc.remarks,
+                                filled: true,
+                                fillColor: colorScheme.surfaceVariant,
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.buttonBorderRadius))),
+                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: DesktopDimensions.spacingMedium),
-
-                // Amount, Description, Remarks
-                TextField(
-                  controller: amountCtrl,
-                  decoration: InputDecoration(
-                      labelText: loc.amount,
-                      filled: true,
-                      fillColor: colorScheme.surfaceVariant,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius / 2))),
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(color: colorScheme.onSurface),
-                ),
-                const SizedBox(height: DesktopDimensions.spacingStandard),
-                TextField(
-                  controller: descCtrl,
-                  decoration: InputDecoration(
-                      labelText: loc.description,
-                      filled: true,
-                      fillColor: colorScheme.surfaceVariant,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius / 2))),
-                  style: TextStyle(color: colorScheme.onSurface),
-                ),
-                const SizedBox(height: DesktopDimensions.spacingStandard),
-                TextField(
-                  controller: remarksCtrl,
-                  decoration: InputDecoration(
-                      labelText: loc.remarks,
-                      filled: true,
-                      fillColor: colorScheme.surfaceVariant,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius / 2))),
-                  style: TextStyle(color: colorScheme.onSurface),
-                ),
-              ],
+                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(loc.cancel,
+                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                      ),
+                      const SizedBox(width: DesktopDimensions.spacingStandard),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final amount = Money.fromRupeesString(amountCtrl.text);
+                          if (amount > const Money(0) && descCtrl.text.isNotEmpty) {
+                            await _cashRepository.addCashEntry(
+                                descCtrl.text, selectedType, amount, remarksCtrl.text);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              _refreshData();
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: selectedType == 'IN'
+                              ? colorScheme.primary
+                              : colorScheme.error,
+                          foregroundColor: selectedType == 'IN'
+                              ? colorScheme.onPrimary
+                              : colorScheme.onError,
+                          minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                        ),
+                        child: Text(loc.save,
+                            style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: selectedType == 'IN'
+                                    ? colorScheme.onPrimary
+                                    : colorScheme.onError)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(loc.cancel,
-                  style: TextStyle(color: colorScheme.onSurfaceVariant)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final amount = Money.fromRupeesString(amountCtrl.text);
-                if (amount > const Money(0) && descCtrl.text.isNotEmpty) {
-                  await _cashRepository.addCashEntry(
-                      descCtrl.text, selectedType, amount, remarksCtrl.text);
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    _refreshData();
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: selectedType == 'IN'
-                    ? colorScheme.primary
-                    : colorScheme.error,
-                foregroundColor: selectedType == 'IN'
-                    ? colorScheme.onPrimary
-                    : colorScheme.onError,
-                minimumSize: const Size(0, DesktopDimensions.inputHeight),
-              ),
-              child: Text(loc.save),
-            ),
-          ],
         );
       }),
     ).then((_) {
@@ -309,38 +336,39 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Padding(
       padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
       child: Column(
         children: [
           // Action Buttons
           Container(
-            padding:
-                const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton.icon(
                   onPressed: () => _addTransaction('IN'),
                   icon: const Icon(Icons.add),
-                  label: Text(AppLocalizations.of(context)!.cashIn),
+                  label: Text(loc.cashIn),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.primaryContainer,
-                    foregroundColor:
-                        Theme.of(context).colorScheme.onPrimaryContainer,
+                    backgroundColor: colorScheme.primaryContainer,
+                    foregroundColor: colorScheme.onPrimaryContainer,
+                    minimumSize: const Size(0, DesktopDimensions.buttonHeight),
                   ),
                 ),
                 const SizedBox(width: DesktopDimensions.spacingMedium),
                 ElevatedButton.icon(
                   onPressed: () => _addTransaction('OUT'),
                   icon: const Icon(Icons.remove),
-                  label: Text(AppLocalizations.of(context)!.cashOut),
+                  label: Text(loc.cashOut),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.errorContainer,
-                    foregroundColor:
-                        Theme.of(context).colorScheme.onErrorContainer,
+                    backgroundColor: colorScheme.errorContainer,
+                    foregroundColor: colorScheme.onErrorContainer,
+                    minimumSize: const Size(0, DesktopDimensions.buttonHeight),
                   ),
                 ),
               ],
@@ -349,7 +377,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
           // Balance Card
           Card(
             elevation: DesktopDimensions.cardElevation,
-            color: Theme.of(context).colorScheme.primaryContainer,
+            color: colorScheme.primaryContainer,
             shape: RoundedRectangleBorder(
               borderRadius:
                   BorderRadius.circular(DesktopDimensions.cardBorderRadius),
@@ -359,19 +387,14 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(AppLocalizations.of(context)!.currentBalance,
-                      style: TextStyle(
-                          fontSize: DesktopDimensions.bodySize,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onPrimaryContainer)),
+                  Text(loc.currentBalance,
+                      style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onPrimaryContainer)),
                   Text(
                     currentBalance.formattedNoDecimal,
-                    style: TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                    style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color:
-                            Theme.of(context).colorScheme.onPrimaryContainer),
+                        color: colorScheme.onPrimaryContainer),
                   ),
                 ],
               ),
@@ -391,14 +414,12 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                 child: _isFirstLoadRunning
                     ? Center(
                         child: CircularProgressIndicator(
-                            color: Theme.of(context).colorScheme.primary))
+                            color: colorScheme.primary))
                     : ledgerEntries.isEmpty
                         ? Center(
-                            child: Text(AppLocalizations.of(context)!.noData,
-                                style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface)),
+                            child: Text(loc.noData,
+                                style: textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurface)),
                           )
                         : ListView.builder(
                             controller: _scrollController,
@@ -408,9 +429,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                               if (index == ledgerEntries.length) {
                                 return Center(
                                     child: CircularProgressIndicator(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary));
+                                        color: colorScheme.primary));
                               }
 
                               final entry = ledgerEntries[index];
@@ -421,37 +440,25 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                   ListTile(
                                     leading: CircleAvatar(
                                       backgroundColor: isIncome
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .primaryContainer
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .errorContainer,
+                                          ? colorScheme.primaryContainer
+                                          : colorScheme.errorContainer,
                                       child: Icon(
                                         isIncome
                                             ? Icons.arrow_downward
                                             : Icons.arrow_upward,
                                         color: isIncome
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .error,
+                                            ? colorScheme.primary
+                                            : colorScheme.error,
                                       ),
                                     ),
                                     title: Text(entry.description,
-                                        style: TextStyle(
+                                        style: textTheme.bodyMedium?.copyWith(
                                             fontWeight: FontWeight.bold,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface)),
+                                            color: colorScheme.onSurface)),
                                     subtitle: Text(
                                         '${entry.transactionDate} | ${entry.transactionTime}',
-                                        style: TextStyle(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant)),
+                                        style: textTheme.bodySmall?.copyWith(
+                                            color: colorScheme.onSurfaceVariant)),
                                     trailing: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -460,27 +467,17 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                       children: [
                                         Text(
                                           '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
-                                          style: TextStyle(
+                                          style: textTheme.bodyMedium?.copyWith(
                                             fontWeight: FontWeight.bold,
                                             color: isIncome
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .error,
-                                            fontSize:
-                                                DesktopDimensions.bodySize,
+                                                ? colorScheme.primary
+                                                : colorScheme.error,
                                           ),
                                         ),
                                         Text(
                                           'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
-                                          style: TextStyle(
-                                              fontSize:
-                                                  DesktopDimensions.captionSize,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant),
+                                          style: textTheme.bodySmall?.copyWith(
+                                              color: colorScheme.onSurfaceVariant),
                                         ),
                                       ],
                                     ),
