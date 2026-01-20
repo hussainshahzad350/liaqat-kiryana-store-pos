@@ -1,6 +1,6 @@
 class DesktopDimensions {
-
   const DesktopDimensions._();
+  
   // Header & Footer
   static const double headerHeight = 70.0;
   static const double footerHeight = 40.0;
@@ -21,10 +21,8 @@ class DesktopDimensions {
   static const double cardBorderRadius = 12.0;
   static const double cardElevation = 2.0;
   static const double aboutLogoSize = 100.0;
-  static const double aboutIconScale = 2.5;
+  static const double aboutIconSize = 60.0;
   static const double labelWidthStandard = 150.0;
-  static const double searchCardPadding = 16.0;
-  
   
   // KPIs
   static const double kpiHeight = 135.0;
@@ -41,7 +39,9 @@ class DesktopDimensions {
   static const double captionSize = 11.0;
   static const double breadcrumbFontSize = 12.0;
   static const double statValueFontSize = 18.0;
-  static const double switchTileVerticalPadding = 0.0;
+  static const double titleLargeSize = 22.0;
+  static const double bodyLargeSize = 16.0;
+  static const double labelMediumSize = 13.0;
   
   // Spacing
   static const double spacingSmall = 8.0;
@@ -66,8 +66,14 @@ class DesktopDimensions {
 
   // Logo Size
   static const double logoSize = 80.0;
-  static const double iconSizeSmall = 18.0;
-  static const double iconSizeStandard = 20.0;
+  
+  // Icon Sizes - FIXED DUPLICATES
+  static const double iconSizeXSmall = 12.0;
+  static const double iconSizeSmall = 16.0;
+  static const double iconSizeMedium = 20.0;
+  static const double iconSizeLarge = 24.0;
+  static const double iconSizeXLarge = 32.0;
+  static const double iconSizeXXLarge = 48.0;
 
   // Buttons
   static const double buttonHeight = 40.0;
@@ -76,4 +82,28 @@ class DesktopDimensions {
   // Tables & Lists
   static const double tableRowHeight = 40.0;
   static const double tableHeaderFontSize = 13.0;
+  
+  // Forms/Input screens
+  static const double formFieldHeight = 48.0;
+  static const double formFieldBorderRadius = 8.0;
+  static const double formLabelWidth = 120.0;
+
+  // Dialogs/Modals
+  static const double dialogWidth = 500.0;
+  static const double dialogHeight = 400.0;
+  static const double dialogPadding = 24.0;
+  static const double dialogBorderRadius = 16.0;
+
+  // Badges/Chips
+  static const double badgeHeight = 24.0;
+  static const double badgeBorderRadius = 12.0;
+  
+  // Dividers/Separators
+  static const double dividerThickness = 1.0;
+  static const double separatorHeight = 1.0;
+  
+  // Shadows/Elevations
+  static const double elevationLow = 1.0;
+  static const double elevationMedium = 4.0;
+  static const double elevationHigh = 8.0;
 }
