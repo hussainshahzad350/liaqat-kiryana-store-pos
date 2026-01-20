@@ -8,8 +8,6 @@ import '../../l10n/app_localizations.dart';
 import '../../models/cash_ledger_model.dart';
 import '../../domain/entities/money.dart';
 import 'package:liaqat_store/core/constants/desktop_dimensions.dart';
-import '../../widgets/main_layout.dart';
-import '../../core/routes/app_routes.dart';
 
 class CashLedgerScreen extends StatefulWidget {
   const CashLedgerScreen({super.key});
@@ -62,22 +60,22 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
       ledgerEntries = [];
       _isLoadMoreRunning = false;
     });
-try {
-    final bal = await _cashRepository.getCurrentCashBalance();
-    final data = await _cashRepository.getCashLedger(limit: _limit, offset: 0);
-    if (!mounted || requestToken != _requestToken) return;
-    setState(() {
-      currentBalance = bal;
-      ledgerEntries = data;
-      _isFirstLoadRunning = false;
-      if (data.length < _limit) _hasNextPage = false;
-    });
-  } catch (_) {
-  if (!mounted || requestToken != _requestToken) return;
-  setState(() => _isFirstLoadRunning = false);
+    try {
+      final bal = await _cashRepository.getCurrentCashBalance();
+      final data =
+          await _cashRepository.getCashLedger(limit: _limit, offset: 0);
+      if (!mounted || requestToken != _requestToken) return;
+      setState(() {
+        currentBalance = bal;
+        ledgerEntries = data;
+        _isFirstLoadRunning = false;
+        if (data.length < _limit) _hasNextPage = false;
+      });
+    } catch (_) {
+      if (!mounted || requestToken != _requestToken) return;
+      setState(() => _isFirstLoadRunning = false);
+    }
   }
-}
-
 
   Future<void> _loadMore() async {
     if (_isLoadMoreRunning || !_hasNextPage) return;
@@ -87,7 +85,7 @@ try {
     final nextPage = _page + 1;
     try {
       final data = await _cashRepository.getCashLedger(
-        limit: _limit, offset: nextPage * _limit);
+          limit: _limit, offset: nextPage * _limit);
       if (!mounted || requestToken != _requestToken) return;
       setState(() {
         if (data.isNotEmpty) {
@@ -220,7 +218,8 @@ try {
                         Icon(Icons.calendar_today,
                             size: DesktopDimensions.kpiIconSize,
                             color: colorScheme.onSurfaceVariant),
-                        const SizedBox(width: DesktopDimensions.spacingStandard),
+                        const SizedBox(
+                            width: DesktopDimensions.spacingStandard),
                         Text(DateFormat('dd MMM yyyy').format(selectedDate),
                             style: TextStyle(color: colorScheme.onSurface)),
                       ],
@@ -310,194 +309,191 @@ try {
 
   @override
   Widget build(BuildContext context) {
-    return MainLayout(
-      currentRoute: AppRoutes.cashLedger,
-      child: Padding(
-        padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
-        child: Column(
-          children: [
-            // Action Buttons
-            Container(
-              padding:
-                  const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () => _addTransaction('IN'),
-                    icon: const Icon(Icons.add),
-                    label: Text(AppLocalizations.of(context)!.cashIn),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Theme.of(context).colorScheme.primaryContainer,
-                      foregroundColor:
-                          Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
+    return Padding(
+      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+      child: Column(
+        children: [
+          // Action Buttons
+          Container(
+            padding:
+                const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _addTransaction('IN'),
+                  icon: const Icon(Icons.add),
+                  label: Text(AppLocalizations.of(context)!.cashIn),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
-                  const SizedBox(width: DesktopDimensions.spacingMedium),
-                  ElevatedButton.icon(
-                    onPressed: () => _addTransaction('OUT'),
-                    icon: const Icon(Icons.remove),
-                    label: Text(AppLocalizations.of(context)!.cashOut),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Theme.of(context).colorScheme.errorContainer,
-                      foregroundColor:
-                          Theme.of(context).colorScheme.onErrorContainer,
-                    ),
+                ),
+                const SizedBox(width: DesktopDimensions.spacingMedium),
+                ElevatedButton.icon(
+                  onPressed: () => _addTransaction('OUT'),
+                  icon: const Icon(Icons.remove),
+                  label: Text(AppLocalizations.of(context)!.cashOut),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.errorContainer,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Balance Card
+          Card(
+            elevation: DesktopDimensions.cardElevation,
+            color: Theme.of(context).colorScheme.primaryContainer,
+            shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(DesktopDimensions.spacingXXLarge),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(AppLocalizations.of(context)!.currentBalance,
+                      style: TextStyle(
+                          fontSize: DesktopDimensions.bodySize,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimaryContainer)),
+                  Text(
+                    currentBalance.formattedNoDecimal,
+                    style: TextStyle(
+                        fontSize: DesktopDimensions.headingSize,
+                        fontWeight: FontWeight.bold,
+                        color:
+                            Theme.of(context).colorScheme.onPrimaryContainer),
                   ),
                 ],
               ),
             ),
-            // Balance Card
-            Card(
+          ),
+          const SizedBox(height: DesktopDimensions.spacingMedium),
+          // Ledger List
+          Expanded(
+            child: Card(
               elevation: DesktopDimensions.cardElevation,
-              color: Theme.of(context).colorScheme.primaryContainer,
               shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.cardBorderRadius)),
+              child: ClipRRect(
                 borderRadius:
                     BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(DesktopDimensions.spacingXXLarge),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(AppLocalizations.of(context)!.currentBalance,
-                        style: TextStyle(
-                            fontSize: DesktopDimensions.bodySize,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer)),
-                    Text(
-                      currentBalance.formattedNoDecimal,
-                      style: TextStyle(
-                          fontSize: DesktopDimensions.headingSize,
-                          fontWeight: FontWeight.bold,
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: DesktopDimensions.spacingMedium),
-            // Ledger List
-            Expanded(
-              child: Card(
-                elevation: DesktopDimensions.cardElevation,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                        DesktopDimensions.cardBorderRadius)),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                      DesktopDimensions.cardBorderRadius),
-                  child: _isFirstLoadRunning
-                      ? Center(
-                          child: CircularProgressIndicator(
-                              color:
-                                  Theme.of(context).colorScheme.primary))
-                      : ledgerEntries.isEmpty
-                          ? Center(
-                              child: Text(
-                                  AppLocalizations.of(context)!.noData,
-                                  style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface)),
-                            )
-                          : ListView.builder(
-                              controller: _scrollController,
-                              itemCount: ledgerEntries.length +
-                                  (_isLoadMoreRunning ? 1 : 0),
-                              itemBuilder: (context, index) {
-                                if (index == ledgerEntries.length) {
-                                  return Center(
-                                      child: CircularProgressIndicator(
-                                          color: Theme.of(context)
+                child: _isFirstLoadRunning
+                    ? Center(
+                        child: CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.primary))
+                    : ledgerEntries.isEmpty
+                        ? Center(
+                            child: Text(AppLocalizations.of(context)!.noData,
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface)),
+                          )
+                        : ListView.builder(
+                            controller: _scrollController,
+                            itemCount: ledgerEntries.length +
+                                (_isLoadMoreRunning ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index == ledgerEntries.length) {
+                                return Center(
+                                    child: CircularProgressIndicator(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary));
+                              }
+
+                              final entry = ledgerEntries[index];
+                              final isIncome = entry.isInflow;
+
+                              return Column(
+                                children: [
+                                  ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: isIncome
+                                          ? Theme.of(context)
                                               .colorScheme
-                                              .primary));
-                                }
-
-                                final entry = ledgerEntries[index];
-                                final isIncome = entry.isInflow;
-
-                                return Column(
-                                  children: [
-                                    ListTile(
-                                      leading: CircleAvatar(
-                                        backgroundColor: isIncome
+                                              .primaryContainer
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .errorContainer,
+                                      child: Icon(
+                                        isIncome
+                                            ? Icons.arrow_downward
+                                            : Icons.arrow_upward,
+                                        color: isIncome
                                             ? Theme.of(context)
                                                 .colorScheme
-                                                .primaryContainer
+                                                .primary
                                             : Theme.of(context)
                                                 .colorScheme
-                                                .errorContainer,
-                                        child: Icon(
-                                          isIncome
-                                              ? Icons.arrow_downward
-                                              : Icons.arrow_upward,
-                                          color: isIncome
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .error,
-                                        ),
-                                      ),
-                                      title: Text(entry.description,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface)),
-                                      subtitle: Text(
-                                          '${entry.transactionDate} | ${entry.transactionTime}',
-                                          style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant)),
-                                      trailing: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: isIncome
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .error,
-                                              fontSize:
-                                                  DesktopDimensions.bodySize,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
-                                            style: TextStyle(
-                                                fontSize:
-                                                    DesktopDimensions.captionSize,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurfaceVariant),
-                                          ),
-                                        ],
+                                                .error,
                                       ),
                                     ),
-                                    const Divider(height: 1),
-                                  ],
-                                );
-                              },
-                            ),
-                ),
+                                    title: Text(entry.description,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface)),
+                                    subtitle: Text(
+                                        '${entry.transactionDate} | ${entry.transactionTime}',
+                                        style: TextStyle(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurfaceVariant)),
+                                    trailing: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: isIncome
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .error,
+                                            fontSize:
+                                                DesktopDimensions.bodySize,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
+                                          style: TextStyle(
+                                              fontSize:
+                                                  DesktopDimensions.captionSize,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Divider(height: 1),
+                                ],
+                              );
+                            },
+                          ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
