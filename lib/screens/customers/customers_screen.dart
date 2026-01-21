@@ -1223,59 +1223,55 @@ Widget _buildMainContent(BuildContext context) {
             constraints: BoxConstraints(
               maxWidth: DesktopDimensions.breakpointMedium,
               maxHeight: DesktopDimensions.dialogHeight * 2,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-              border: Border.all(color: colorScheme.outline, width: 2),
             ),
-          ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      loc.archivedCustomers,
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close, color: colorScheme.onSurface),
-                      onPressed: () => setState(() => _showArchiveOverlay = false),
-                    ),
-                  ],
-                ),
-                Divider(color: colorScheme.primary),
-                Expanded(
-                  child: archivedCustomers.isEmpty
-                      ? Center(
-                          child: Text(
-                            loc.noCustomersFound,
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: archivedCustomers.length,
-                          itemBuilder: (context, index) => _buildCustomerCard(
-                            archivedCustomers[index],
-                            colorScheme,
-                            textTheme,
-                          ),
+            child: Container(
+              padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                border: Border.all(color: colorScheme.outline, width: 2),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        loc.archivedCustomers,
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
                         ),
-                ),
-              ],
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: colorScheme.onSurface),
+                        onPressed: () => setState(() => _showArchiveOverlay = false),
+                      ),
+                    ],
+                  ),
+                  Divider(color: colorScheme.primary),
+                  Expanded(
+                    child: archivedCustomers.isEmpty
+                        ? Center(
+                            child: Text(
+                              loc.noCustomersFound,
+                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: archivedCustomers.length,
+                            itemBuilder: (context, index) => _buildCustomerCard(
+                              archivedCustomers[index],
+                              colorScheme,
+                              textTheme,
+              ),
             ),
           ),
-        ),
-      ],
-    );
-  }
-
+        ],
+      ),
+    ),
+  ),
+),
   // --- ADD/EDIT DIALOG ---
   void _showAddDialog({Customer? customer}) {
     final colorScheme = Theme.of(context).colorScheme;
