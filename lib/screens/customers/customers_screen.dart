@@ -11,6 +11,8 @@ import '../../l10n/app_localizations.dart';
 import '../../models/customer_model.dart';
 import '../../domain/entities/money.dart';
 import '../../core/constants/desktop_dimensions.dart';
+import '../../widgets/main_layout.dart';
+import '../../core/routes/app_routes.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -86,7 +88,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
         });
       }
     } catch (e) {
-      debugPrint("Error loading stats: $e");
+      AppLogger.error("Error loading stats: $e");
     }
   }
 
@@ -111,7 +113,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
         });
       }
     } catch (e) {
-      debugPrint("Error loading customers: $e");
+      AppLogger.error("Error loading customers: $e");
       if (mounted) {
         setState(() => _isFirstLoadRunning = false);
       }
@@ -159,7 +161,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       );
       if (mounted) setState(() => _currentLedger = data);
     } catch (e) {
-      debugPrint("Error loading ledger: $e");
+      AppLogger.error("Error loading ledger: $e");
     }
   }
 
@@ -404,98 +406,100 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   // --- UI COMPONENTS ---
   // REWRITTEN WITH FOUNDATION COMPLIANCE
+Widget _buildMainContent(BuildContext context) {
+  final loc = AppLocalizations.of(context)!;
+  final colorScheme = Theme.of(context).colorScheme;
+  final textTheme = Theme.of(context).textTheme;
 
-  @override
-  Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+  return Padding(
+    padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+    child: Column(
+      children: [
+        // Actions Toolbar
+        _buildActionToolbar(loc, colorScheme, textTheme),
+        SizedBox(height: DesktopDimensions.spacingMedium),
 
-    return Padding(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
-      child: Column(
-        children: [
-          // Actions Toolbar
-          _buildActionToolbar(loc, colorScheme, textTheme),
-          SizedBox(height: DesktopDimensions.spacingMedium),
+        // Dashboard
+        _buildDashboard(loc, colorScheme, textTheme),
+        SizedBox(height: DesktopDimensions.spacingMedium),
 
-          // Dashboard
-          _buildDashboard(loc, colorScheme, textTheme),
-          SizedBox(height: DesktopDimensions.spacingMedium),
-
-          // Search Card
-          Card(
-            elevation: DesktopDimensions.cardElevation,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
-              child: TextField(
-                controller: searchController,
-                onChanged: (_) => _loadActiveCustomers(),
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-                decoration: InputDecoration(
-                  hintText: loc.searchPlaceholder,
-                  hintStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                  prefixIcon: Icon(Icons.search, color: colorScheme.primary),
-                  filled: true,
-                  fillColor: colorScheme.surfaceVariant,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
-                    borderSide: BorderSide(color: colorScheme.outline, width: 1.5),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
-                    borderSide: BorderSide(color: colorScheme.primary, width: 2.5),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingStandard,
-                    vertical: DesktopDimensions.spacingStandard,
-                  ),
+        // Search Card
+        Card(
+          elevation: DesktopDimensions.cardElevation,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+            child: TextField(
+              controller: searchController,
+              onChanged: (_) => _loadActiveCustomers(),
+              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+              decoration: InputDecoration(
+                hintText: loc.searchPlaceholder,
+                hintStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                prefixIcon: Icon(Icons.search, color: colorScheme.primary),
+                filled: true,
+                fillColor: colorScheme.surfaceVariant,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
+                  borderSide: BorderSide(color: colorScheme.outline, width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
+                  borderSide: BorderSide(color: colorScheme.primary, width: 2.5),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: DesktopDimensions.spacingStandard,
+                  vertical: DesktopDimensions.spacingStandard,
                 ),
               ),
             ),
           ),
-          SizedBox(height: DesktopDimensions.spacingMedium),
+        ),
+        SizedBox(height: DesktopDimensions.spacingMedium),
 
-          // Customers List
-          Expanded(
-            child: Card(
-              elevation: DesktopDimensions.cardElevation,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-                child: _isFirstLoadRunning
-                    ? Center(
-                        child: CircularProgressIndicator(color: colorScheme.primary),
-                      )
-                    : customers.isEmpty
-                        ? Center(
-                            child: Text(
-                              loc.noCustomersFound,
-                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-                            ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingLarge),
-                            itemCount: customers.length,
-                            itemBuilder: (context, index) => _buildCustomerCard(
-                              customers[index],
-                              colorScheme,
-                              textTheme,
-                            ),
+        // Customers List
+        Expanded(
+          child: Card(
+            elevation: DesktopDimensions.cardElevation,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+              child: _isFirstLoadRunning
+                  ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
+                  : customers.isEmpty
+                      ? Center(
+                          child: Text(
+                            loc.noCustomersFound,
+                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
                           ),
-              ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingLarge),
+                          itemCount: customers.length,
+                          itemBuilder: (context, index) => _buildCustomerCard(
+                            customers[index],
+                            colorScheme,
+                            textTheme,
+                          ),
+                        ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
+        ),
+      ],
+    ),
+  );
+}
+  @override
+  Widget build(BuildContext context) {
+  return MainLayout(
+    currentRoute: AppRoutes.customers,
+    child: _buildMainContent(context),
+  );
+}
   Widget _buildActionToolbar(AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
@@ -533,7 +537,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               textTheme,
             ),
           ),
-          SizedBox(width: DesktopDimensions.spacingMedium),
+          SizedBox(width: DesktopDimensions.spacingSmall),
           Expanded(
             child: _buildKpiCard(
               loc,
@@ -545,7 +549,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               textTheme,
             ),
           ),
-          SizedBox(width: DesktopDimensions.spacingMedium),
+          SizedBox(width: DesktopDimensions.spacingSmall),
           Expanded(
             child: _buildKpiCard(
               loc,
@@ -799,8 +803,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
         ),
         Center(
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.95,
-            height: MediaQuery.of(context).size.height * 0.95,
+            maxWidth: DesktopDimensions.breakpointMedium,
+            maxHeight: DesktopDimensions.dialogHeight * 2.5,
             decoration: BoxDecoration(
               color: colorScheme.surface,
               borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
@@ -936,8 +940,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
-                  minimumSize: const Size(0, DesktopDimensions.buttonHeight),
-                  padding: const EdgeInsets.symmetric(
+                  minimumSize: Size.fromHeight(DesktopDimensions.buttonHeight),
+                  padding: EdgeInsets.symmetric(
                     horizontal: DesktopDimensions.spacingMedium,
                     vertical: DesktopDimensions.spacingSmall,
                   ),
@@ -965,6 +969,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   Widget _buildLedgerFilterBar(AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
+      height: DesktopDimensions.tableRowHeight,
       padding: const EdgeInsets.symmetric(
         horizontal: DesktopDimensions.spacingMedium,
         vertical: DesktopDimensions.spacingSmall,
@@ -1214,15 +1219,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
           child: Container(color: colorScheme.shadow.withOpacity(0.5)),
         ),
         Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: DesktopDimensions.breakpointMedium,
+              maxHeight: DesktopDimensions.dialogHeight * 2,
+          ),
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            height: MediaQuery.of(context).size.height * 0.7,
             padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             decoration: BoxDecoration(
               color: colorScheme.surface,
               borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
               border: Border.all(color: colorScheme.outline, width: 2),
             ),
+          ),
             child: Column(
               children: [
                 Row(
