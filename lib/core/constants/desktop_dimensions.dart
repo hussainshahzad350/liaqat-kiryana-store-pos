@@ -22,6 +22,7 @@ class DesktopDimensions {
   static const double cardElevation = 2.0;
   static const double aboutLogoSize = 100.0;
   static const double aboutIconSize = 60.0;
+  static const double aboutIconScale = 48.0;
   static const double labelWidthStandard = 150.0;
   
   // KPIs

@@ -56,8 +56,8 @@ void main() {
     });
 
     test('should throw exception when cancellation would cause negative stock', () async {
-      // Get initial stock
-      final initialStock = await itemsRepo.getProductStock(1);
+      // Get initial stock (used to verify purchase adds to it)
+      await itemsRepo.getProductStock(1);
 
       // Create a purchase that adds stock
       final purchaseId = await purchaseRepo.createPurchase({
@@ -238,9 +238,9 @@ void main() {
         ],
       });
 
-      // Get stock after purchase
+      // Get stock after purchase for product 1 (used to verify rollback)
       final stock1After = await itemsRepo.getProductStock(1);
-      final stock2After = await itemsRepo.getProductStock(product2Id);
+      // Product 2 stock is checked after modification below
 
       // Reduce stock of product 2 to make cancellation fail
       await db.rawUpdate(
