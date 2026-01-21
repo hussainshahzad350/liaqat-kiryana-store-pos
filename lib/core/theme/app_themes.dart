@@ -171,14 +171,14 @@ class AppThemes {
         radius: const Radius.circular(10),
         thickness: MaterialStateProperty.all(8),
       ),
-      dialogTheme: DialogThemeData(
+      dialogTheme: DialogTheme(
         backgroundColor: cardColor,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         titleTextStyle: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
         contentTextStyle: TextStyle(color: textColor, fontSize: 16),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: cardColor,
         elevation: 2,
         surfaceTintColor: Colors.transparent,

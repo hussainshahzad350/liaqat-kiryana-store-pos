@@ -320,7 +320,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(loc.amountMustBePositive),
+                              content: Text(loc.invalidAmount),
                               backgroundColor: colorScheme.error,
                             ),
                           );

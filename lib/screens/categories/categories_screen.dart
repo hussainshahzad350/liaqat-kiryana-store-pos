@@ -835,7 +835,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               horizontal: DesktopDimensions.spacingXXLarge,
               vertical: DesktopDimensions.spacingXLarge,
             ),
-          ),
             decoration: BoxDecoration(
               border:
                   Border(bottom: BorderSide(color: colorScheme.outlineVariant)),

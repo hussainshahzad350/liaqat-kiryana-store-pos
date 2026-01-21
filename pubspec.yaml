@@ -24,7 +24,7 @@ dependencies:
   provider: ^6.1.1
   
   # UI & Utilities
-  intl: ^0.20.2  # <--- UPDATED VERSION
+  intl: ^0.19.0
   shared_preferences: ^2.2.2
   
   # File Handling
@@ -33,7 +33,6 @@ dependencies:
   # Printing & PDF
   printing: ^5.11.3
   pdf: ^3.10.6
-  analyzer: ^9.0.0
 
   # For taking photos
   image_picker: ^1.0.7

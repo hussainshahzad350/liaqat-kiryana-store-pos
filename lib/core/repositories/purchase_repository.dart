@@ -50,6 +50,7 @@ class PurchaseRepository {
   }
 
   /// Cancel a purchase and revert all effects (Stock, Balance)
+  /// Throws an exception if cancellation would result in negative stock.
   Future<void> cancelPurchase(int purchaseId, {String reason = 'Cancelled'}) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
@@ -74,7 +75,36 @@ class PurchaseRepository {
         whereArgs: [purchaseId],
       );
 
-      // 3. Reverse Stock (Subtract quantity)
+      // 3. Validate stock levels before reversal to prevent negative stock
+      for (var item in items) {
+        final productId = item['product_id'];
+        final quantityToSubtract = (item['quantity'] as num).toDouble();
+        
+        final productRes = await txn.query(
+          'products',
+          columns: ['current_stock', 'name_english'],
+          where: 'id = ?',
+          whereArgs: [productId],
+          limit: 1,
+        );
+        
+        if (productRes.isEmpty) {
+          throw Exception('Product ID $productId not found');
+        }
+        
+        final currentStock = (productRes.first['current_stock'] as num).toDouble();
+        final productName = productRes.first['name_english'] as String;
+        
+        if (currentStock < quantityToSubtract) {
+          throw Exception(
+            'Cannot cancel purchase: insufficient stock for "$productName". '
+            'Current stock: $currentStock, required to subtract: $quantityToSubtract. '
+            'Some items may have already been sold.'
+          );
+        }
+      }
+
+      // 4. Reverse Stock (Subtract quantity) - now safe after validation
       for (var item in items) {
         await txn.rawUpdate(
           'UPDATE products SET current_stock = current_stock - ? WHERE id = ?',
@@ -82,7 +112,7 @@ class PurchaseRepository {
         );
       }
 
-      // 4. Reverse Supplier Balance (Decrease payable)
+      // 5. Reverse Supplier Balance (Decrease payable)
       if (purchase['supplier_id'] != null) {
         await txn.rawUpdate(
           'UPDATE suppliers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
@@ -90,7 +120,7 @@ class PurchaseRepository {
         );
       }
 
-      // 5. Mark Cancelled
+      // 6. Mark Cancelled
       await txn.update(
         'purchases',
         {
