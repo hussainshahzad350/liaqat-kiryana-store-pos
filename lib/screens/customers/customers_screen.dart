@@ -23,17 +23,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
   final CustomersRepository _customersRepository = CustomersRepository();
   final InvoiceRepository _invoiceRepository = InvoiceRepository();
   final LedgerExportService _ledgerExportService = LedgerExportService();
-  
+
   // --- STATE VARIABLES ---
   List<Customer> customers = [];
   List<Customer> archivedCustomers = [];
-  
+
   // Ledger State
   bool _showArchiveOverlay = false;
   bool _showLedgerOverlay = false;
   List<Map<String, dynamic>> _currentLedger = [];
   Customer? _selectedCustomerForLedger;
-  
+
   // Ledger Filters
   DateTime? _ledgerStartDate;
   DateTime? _ledgerEndDate;
@@ -45,9 +45,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
   final TextEditingController searchController = TextEditingController();
 
   // Stats
-  int countTotal = 0; int balTotal = 0;
-  int countActive = 0; int balActive = 0;
-  int countArchived = 0; int balArchived = 0;
+  int countTotal = 0;
+  int balTotal = 0;
+  int countActive = 0;
+  int balActive = 0;
+  int countArchived = 0;
+  int balArchived = 0;
 
   @override
   void initState() {
@@ -74,7 +77,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Future<void> _loadStats() async {
     try {
       final stats = await _customersRepository.getCustomerStats();
-      
+
       if (mounted) {
         setState(() {
           countTotal = (stats['countTotal'] as num?)?.toInt() ?? 0;
@@ -96,12 +99,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
     }
     try {
       final searchText = searchController.text.trim();
-      
+
       List<Customer> result;
       if (searchText.isEmpty) {
         result = await _customersRepository.getActiveCustomers();
       } else {
-        result = await _customersRepository.searchCustomers(searchText, activeOnly: true);
+        result = await _customersRepository.searchCustomers(searchText,
+            activeOnly: true);
       }
 
       if (mounted) {
@@ -124,12 +128,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   Future<bool> _isPhoneUnique(String phone, {int? excludeId}) async {
-    return await _customersRepository.isPhoneUnique(phone, excludeId: excludeId);
+    return await _customersRepository.isPhoneUnique(phone,
+        excludeId: excludeId);
   }
 
   Future<bool> _canDelete(int id, int balance) async {
     if (balance != 0) return false;
-    return true; 
+    return true;
   }
 
   // --- LEDGER LOGIC ---
@@ -166,7 +171,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
   List<Map<String, dynamic>> get _filteredLedgerRows {
     return _currentLedger.where((row) {
       if (_ledgerFilterType == 'SALE' && row['type'] != 'SALE') return false;
-      if (_ledgerFilterType == 'RECEIPT' && row['type'] != 'PAYMENT' && row['type'] != 'RECEIPT') return false;
+      if (_ledgerFilterType == 'RECEIPT' &&
+          row['type'] != 'PAYMENT' &&
+          row['type'] != 'RECEIPT') {
+        return false;
+      }
 
       if (_ledgerSearchQuery.isNotEmpty) {
         final q = _ledgerSearchQuery.toLowerCase();
@@ -181,16 +190,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Future<void> _addPayment(Money amount, String notes) async {
     if (_selectedCustomerForLedger == null) return;
     final date = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-    await _customersRepository.addPayment(_selectedCustomerForLedger!.id!, amount.paisas, date, notes);
+    await _customersRepository.addPayment(
+        _selectedCustomerForLedger!.id!, amount.paisas, date, notes);
     await _refreshData();
     await _loadLedgerData();
   }
-  
+
   Future<void> _handleExport(AppLocalizations loc) async {
     if (_selectedCustomerForLedger == null || _currentLedger.isEmpty) return;
-    
+
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
-    
+
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -199,30 +209,27 @@ class _CustomersScreenState extends State<CustomersScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.picture_as_pdf, color: Theme.of(context).colorScheme.error),
-              title: Text('Print / PDF'),
+              leading: Icon(Icons.picture_as_pdf,
+                  color: Theme.of(context).colorScheme.error),
+              title: const Text('Print / PDF'),
               onTap: () {
                 Navigator.pop(context);
                 _ledgerExportService.exportToPdf(
-                  _currentLedger, 
-                  _selectedCustomerForLedger!, 
-                  isUrdu: isUrdu
-                );
+                    _currentLedger, _selectedCustomerForLedger!,
+                    isUrdu: isUrdu);
               },
             ),
             ListTile(
-              leading: Icon(Icons.table_chart, color: Theme.of(context).colorScheme.primary),
-              title: Text('Export to Excel (CSV)'),
+              leading: Icon(Icons.table_chart,
+                  color: Theme.of(context).colorScheme.primary),
+              title: const Text('Export to Excel (CSV)'),
               onTap: () async {
                 Navigator.pop(context);
                 final path = await _ledgerExportService.exportToCsv(
-                  _currentLedger, 
-                  _selectedCustomerForLedger!
-                );
+                    _currentLedger, _selectedCustomerForLedger!);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Saved to: $path'))
-                  );
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text('Saved to: $path')));
                 }
               },
             ),
@@ -245,7 +252,6 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }) async {
     final colorScheme = Theme.of(context).colorScheme;
     final loc = AppLocalizations.of(context)!;
-    final textTheme = Theme.of(context).textTheme;
 
     bool isUnique = await _isPhoneUnique(phone, excludeId: id);
     if (!isUnique) throw Exception(loc.phoneExistsError);
@@ -274,7 +280,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Future<void> _toggleArchiveStatus(int id, bool currentStatus) async {
     final customer = await _customersRepository.getCustomerById(id);
     if (customer == null) return;
-    
+
     final updatedCustomer = customer.copyWith(isActive: !currentStatus);
     await _customersRepository.updateCustomer(id, updatedCustomer);
     _refreshData();
@@ -285,17 +291,18 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    
+
     if (!(await _canDelete(id, balance))) {
       showDialog(
         context: context,
         builder: (context) => Dialog(
           backgroundColor: colorScheme.surface,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+            borderRadius:
+                BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
           ),
           child: ConstrainedBox(
-            constraints: BoxConstraints(
+            constraints: const BoxConstraints(
               maxWidth: DesktopDimensions.dialogWidth,
               maxHeight: DesktopDimensions.dialogHeight,
             ),
@@ -304,28 +311,35 @@ class _CustomersScreenState extends State<CustomersScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(loc.warning, style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface)),
-                  SizedBox(height: DesktopDimensions.spacingMedium),
-                  Text(loc.cannotDeleteBal, style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
-                  SizedBox(height: DesktopDimensions.spacingLarge),
+                  Text(loc.warning,
+                      style: textTheme.titleLarge
+                          ?.copyWith(color: colorScheme.onSurface)),
+                  const SizedBox(height: DesktopDimensions.spacingMedium),
+                  Text(loc.cannotDeleteBal,
+                      style: textTheme.bodyMedium
+                          ?.copyWith(color: colorScheme.onSurface)),
+                  const SizedBox(height: DesktopDimensions.spacingLarge),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text(loc.ok, style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                        child: Text(loc.ok,
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurface)),
                       ),
-                      SizedBox(width: DesktopDimensions.spacingStandard),
+                      const SizedBox(width: DesktopDimensions.spacingStandard),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.tertiary,
                           foregroundColor: colorScheme.onTertiary,
-                          minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                          minimumSize:
+                              const Size(0, DesktopDimensions.buttonHeight),
                         ),
                         onPressed: () {
                           Navigator.pop(context);
                           _toggleArchiveStatus(id, true);
-                        }, 
+                        },
                         child: Text(loc.archiveNow),
                       ),
                     ],
@@ -344,10 +358,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
       builder: (context) => Dialog(
         backgroundColor: colorScheme.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
         ),
         child: ConstrainedBox(
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             maxWidth: DesktopDimensions.dialogWidth,
             maxHeight: DesktopDimensions.dialogHeight,
           ),
@@ -356,25 +371,32 @@ class _CustomersScreenState extends State<CustomersScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(loc.confirm, style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface)),
-                SizedBox(height: DesktopDimensions.spacingMedium),
-                Text(loc.confirmDeleteItem, style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
-                SizedBox(height: DesktopDimensions.spacingLarge),
+                Text(loc.confirm,
+                    style: textTheme.titleLarge
+                        ?.copyWith(color: colorScheme.onSurface)),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
+                Text(loc.confirmDeleteItem,
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurface)),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: Text(loc.no, style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                      child: Text(loc.no,
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurface)),
                     ),
-                    SizedBox(width: DesktopDimensions.spacingStandard),
+                    const SizedBox(width: DesktopDimensions.spacingStandard),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.error,
                         foregroundColor: colorScheme.onError,
-                        minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                        minimumSize:
+                            const Size(0, DesktopDimensions.buttonHeight),
                       ),
-                      onPressed: () => Navigator.pop(context, true), 
+                      onPressed: () => Navigator.pop(context, true),
                       child: Text(loc.yesDelete),
                     ),
                   ],
@@ -411,92 +433,113 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Padding(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
-      child: Column(
-        children: [
-          // Actions Toolbar
-          _buildActionToolbar(loc, colorScheme, textTheme),
-          SizedBox(height: DesktopDimensions.spacingMedium),
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+          child: Column(
+            children: [
+              // Actions Toolbar
+              _buildActionToolbar(loc, colorScheme, textTheme),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
 
-          // Dashboard
-          _buildDashboard(loc, colorScheme, textTheme),
-          SizedBox(height: DesktopDimensions.spacingMedium),
+              // Dashboard
+              _buildDashboard(loc, colorScheme, textTheme),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
 
-          // Search Card
-          Card(
-            elevation: DesktopDimensions.cardElevation,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
-              child: TextField(
-                controller: searchController,
-                onChanged: (_) => _loadActiveCustomers(),
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-                decoration: InputDecoration(
-                  hintText: loc.searchPlaceholder,
-                  hintStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                  prefixIcon: Icon(Icons.search, color: colorScheme.primary),
-                  filled: true,
-                  fillColor: colorScheme.surfaceVariant,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
-                    borderSide: BorderSide(color: colorScheme.outline, width: 1.5),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
-                    borderSide: BorderSide(color: colorScheme.primary, width: 2.5),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingStandard,
-                    vertical: DesktopDimensions.spacingStandard,
+              // Search Card
+              Card(
+                elevation: DesktopDimensions.cardElevation,
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: (_) => _loadActiveCustomers(),
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurface),
+                    decoration: InputDecoration(
+                      hintText: loc.searchPlaceholder,
+                      hintStyle: textTheme.bodyMedium
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                      prefixIcon:
+                          Icon(Icons.search, color: colorScheme.primary),
+                      filled: true,
+                      fillColor: colorScheme.surfaceVariant,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.buttonBorderRadius),
+                        borderSide:
+                            BorderSide(color: colorScheme.outline, width: 1.5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.buttonBorderRadius),
+                        borderSide:
+                            BorderSide(color: colorScheme.primary, width: 2.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: DesktopDimensions.spacingStandard,
+                        vertical: DesktopDimensions.spacingStandard,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          SizedBox(height: DesktopDimensions.spacingMedium),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
 
-          // Customers List
-          Expanded(
-            child: Card(
-              elevation: DesktopDimensions.cardElevation,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-                child: _isFirstLoadRunning
-                    ? Center(
-                        child: CircularProgressIndicator(color: colorScheme.primary),
-                      )
-                    : customers.isEmpty
+              // Customers List
+              Expanded(
+                child: Card(
+                  elevation: DesktopDimensions.cardElevation,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                        DesktopDimensions.cardBorderRadius),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                        DesktopDimensions.cardBorderRadius),
+                    child: _isFirstLoadRunning
                         ? Center(
-                            child: Text(
-                              loc.noCustomersFound,
-                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-                            ),
+                            child: CircularProgressIndicator(
+                                color: colorScheme.primary),
                           )
-                        : ListView.builder(
-                            padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingLarge),
-                            itemCount: customers.length,
-                            itemBuilder: (context, index) => _buildCustomerCard(
-                              customers[index],
-                              colorScheme,
-                              textTheme,
-                            ),
-                          ),
+                        : customers.isEmpty
+                            ? Center(
+                                child: Text(
+                                  loc.noCustomersFound,
+                                  style: textTheme.bodyMedium
+                                      ?.copyWith(color: colorScheme.onSurface),
+                                ),
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.only(
+                                    bottom: DesktopDimensions.spacingLarge),
+                                itemCount: customers.length,
+                                itemBuilder: (context, index) =>
+                                    _buildCustomerCard(
+                                  customers[index],
+                                  colorScheme,
+                                  textTheme,
+                                ),
+                              ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+        if (_showLedgerOverlay) _buildLedgerOverlay(loc),
+        if (_showArchiveOverlay) _buildArchiveOverlay(loc),
+      ],
     );
   }
 
-  Widget _buildActionToolbar(AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildActionToolbar(
+      AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
       child: Row(
@@ -504,7 +547,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
         children: [
           ElevatedButton.icon(
             onPressed: () => _showAddDialog(),
-            icon: Icon(Icons.add, size: DesktopDimensions.iconSizeMedium),
+            icon: const Icon(Icons.add, size: DesktopDimensions.iconSizeMedium),
             label: Text(loc.addCustomer),
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
@@ -517,7 +560,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildDashboard(AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildDashboard(
+      AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return SizedBox(
       height: DesktopDimensions.kpiHeight,
       child: Row(
@@ -533,7 +577,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               textTheme,
             ),
           ),
-          SizedBox(width: DesktopDimensions.spacingMedium),
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           Expanded(
             child: _buildKpiCard(
               loc,
@@ -545,7 +589,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               textTheme,
             ),
           ),
-          SizedBox(width: DesktopDimensions.spacingMedium),
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           Expanded(
             child: _buildKpiCard(
               loc,
@@ -578,8 +622,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
     TextTheme textTheme, {
     bool isTertiary = false,
   }) {
-    final containerColor = isTertiary ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
-    final contentColor = isTertiary ? colorScheme.onTertiaryContainer : colorScheme.onPrimaryContainer;
+    final containerColor = isTertiary
+        ? colorScheme.tertiaryContainer
+        : colorScheme.primaryContainer;
+    final contentColor = isTertiary
+        ? colorScheme.onTertiaryContainer
+        : colorScheme.onPrimaryContainer;
     final borderColor = isTertiary ? colorScheme.tertiary : colorScheme.primary;
 
     return Card(
@@ -638,7 +686,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildCustomerCard(Customer customer, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildCustomerCard(
+      Customer customer, ColorScheme colorScheme, TextTheme textTheme) {
     final Money balance = Money(customer.outstandingBalance);
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
     final String name = isUrdu
@@ -690,12 +739,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
           children: [
             Text(
               phone,
-              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+              style: textTheme.bodySmall
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
             if (customer.creditLimit > 0)
               Text(
                 "${AppLocalizations.of(context)!.creditLimit}: ${Money(customer.creditLimit)}",
-                style: textTheme.bodySmall?.copyWith(color: colorScheme.secondary),
+                style:
+                    textTheme.bodySmall?.copyWith(color: colorScheme.secondary),
               ),
           ],
         ),
@@ -704,7 +755,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
           children: [
             if (balance != const Money(0))
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingSmall),
+                margin: const EdgeInsets.symmetric(
+                    horizontal: DesktopDimensions.spacingSmall),
                 padding: const EdgeInsets.symmetric(
                   horizontal: DesktopDimensions.spacingSmall,
                   vertical: DesktopDimensions.spacingXSmall,
@@ -713,7 +765,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   color: balance > const Money(0)
                       ? colorScheme.errorContainer
                       : colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.buttonBorderRadius),
                   border: Border.all(
                     color: balance > const Money(0)
                         ? colorScheme.error
@@ -739,7 +792,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
               icon: Icon(Icons.more_vert, color: colorScheme.onSurface),
               onSelected: (value) {
                 if (value == 'edit') _showAddDialog(customer: customer);
-                if (value == 'archive') _toggleArchiveStatus(customer.id!, true);
+                if (value == 'archive') {
+                  _toggleArchiveStatus(customer.id!, true);
+                }
                 if (value == 'delete') {
                   _deleteCustomer(customer.id!, balance as int);
                 }
@@ -749,9 +804,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   value: 'edit',
                   child: Row(
                     children: [
-                      Icon(Icons.edit, size: DesktopDimensions.iconSizeSmall, color: colorScheme.onSurface),
-                      SizedBox(width: DesktopDimensions.spacingSmall),
-                      Text('Edit', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                      Icon(Icons.edit,
+                          size: DesktopDimensions.iconSizeSmall,
+                          color: colorScheme.onSurface),
+                      const SizedBox(width: DesktopDimensions.spacingSmall),
+                      Text('Edit',
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurface)),
                     ],
                   ),
                 ),
@@ -759,9 +818,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   value: 'archive',
                   child: Row(
                     children: [
-                      Icon(Icons.archive, size: DesktopDimensions.iconSizeSmall, color: colorScheme.onSurface),
-                      SizedBox(width: DesktopDimensions.spacingSmall),
-                      Text('Archive', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                      Icon(Icons.archive,
+                          size: DesktopDimensions.iconSizeSmall,
+                          color: colorScheme.onSurface),
+                      const SizedBox(width: DesktopDimensions.spacingSmall),
+                      Text('Archive',
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurface)),
                     ],
                   ),
                 ),
@@ -769,9 +832,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete, size: DesktopDimensions.iconSizeSmall, color: colorScheme.error),
-                      SizedBox(width: DesktopDimensions.spacingSmall),
-                      Text('Delete', style: textTheme.bodyMedium?.copyWith(color: colorScheme.error)),
+                      Icon(Icons.delete,
+                          size: DesktopDimensions.iconSizeSmall,
+                          color: colorScheme.error),
+                      const SizedBox(width: DesktopDimensions.spacingSmall),
+                      Text('Delete',
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.error)),
                     ],
                   ),
                 ),
@@ -803,7 +870,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
             height: MediaQuery.of(context).size.height * 0.95,
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.cardBorderRadius),
               boxShadow: [
                 BoxShadow(
                   blurRadius: DesktopDimensions.cardElevation * 4,
@@ -815,7 +883,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               children: [
                 // Header
                 _buildLedgerHeader(customer, loc, colorScheme, textTheme),
-                
+
                 // Filter Bar
                 _buildLedgerFilterBar(loc, colorScheme, textTheme),
 
@@ -828,7 +896,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       ? Center(
                           child: Text(
                             "No transactions found",
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         )
                       : ListView.builder(
@@ -855,7 +924,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildLedgerHeader(Customer customer, AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildLedgerHeader(Customer customer, AppLocalizations loc,
+      ColorScheme colorScheme, TextTheme textTheme) {
     final Money balance = Money(customer.outstandingBalance);
     final isDebit = balance > const Money(0);
 
@@ -863,7 +933,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
       padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(DesktopDimensions.cardBorderRadius)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(DesktopDimensions.cardBorderRadius)),
         border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
@@ -887,19 +958,21 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-              SizedBox(height: DesktopDimensions.spacingXSmall),
+              const SizedBox(height: DesktopDimensions.spacingXSmall),
               Text(
                 customer.contactPrimary ?? '',
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                style: textTheme.bodyMedium
+                    ?.copyWith(color: colorScheme.onSurface),
               ),
               if (customer.address != null)
                 Text(
                   customer.address!,
-                  style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                  style: textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
             ],
           ),
-          Spacer(),
+          const Spacer(),
           // Financials
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -921,18 +994,20 @@ class _CustomersScreenState extends State<CustomersScreen> {
               if (customer.creditLimit > 0)
                 Text(
                   "Limit: ${Money(customer.creditLimit)}",
-                  style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                  style: textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
             ],
           ),
-          SizedBox(width: DesktopDimensions.spacingLarge),
+          const SizedBox(width: DesktopDimensions.spacingLarge),
           // Actions
           Row(
             children: [
               ElevatedButton.icon(
                 onPressed: _showPaymentDialog,
-                icon: Icon(Icons.add, size: DesktopDimensions.iconSizeMedium),
-                label: Text("Receive Payment"),
+                icon: const Icon(Icons.add,
+                    size: DesktopDimensions.iconSizeMedium),
+                label: const Text("Receive Payment"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
@@ -943,15 +1018,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   ),
                 ),
               ),
-              SizedBox(width: DesktopDimensions.spacingSmall),
+              const SizedBox(width: DesktopDimensions.spacingSmall),
               IconButton(
-                icon: Icon(Icons.print, size: DesktopDimensions.iconSizeMedium),
+                icon: const Icon(Icons.print,
+                    size: DesktopDimensions.iconSizeMedium),
                 onPressed: () => _handleExport(loc),
                 tooltip: "Export",
                 color: colorScheme.onSurfaceVariant,
               ),
               IconButton(
-                icon: Icon(Icons.close, size: DesktopDimensions.iconSizeMedium),
+                icon: const Icon(Icons.close,
+                    size: DesktopDimensions.iconSizeMedium),
                 onPressed: () => setState(() => _showLedgerOverlay = false),
                 tooltip: "Close",
                 color: colorScheme.onSurfaceVariant,
@@ -963,7 +1040,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildLedgerFilterBar(AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildLedgerFilterBar(
+      AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: DesktopDimensions.spacingMedium,
@@ -979,9 +1057,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 context: context,
                 firstDate: DateTime(2020),
                 lastDate: DateTime.now(),
-                initialDateRange: _ledgerStartDate != null && _ledgerEndDate != null 
-                  ? DateTimeRange(start: _ledgerStartDate!, end: _ledgerEndDate!) 
-                  : null,
+                initialDateRange:
+                    _ledgerStartDate != null && _ledgerEndDate != null
+                        ? DateTimeRange(
+                            start: _ledgerStartDate!, end: _ledgerEndDate!)
+                        : null,
               );
               if (picked != null) {
                 setState(() {
@@ -991,12 +1071,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 _loadLedgerData();
               }
             },
-            icon: Icon(Icons.calendar_today, size: DesktopDimensions.iconSizeSmall),
-            label: Text(
-              _ledgerStartDate == null 
-                ? "Date Range" 
-                : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}"
-            ),
+            icon: const Icon(Icons.calendar_today,
+                size: DesktopDimensions.iconSizeSmall),
+            label: Text(_ledgerStartDate == null
+                ? "Date Range"
+                : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}"),
             style: OutlinedButton.styleFrom(
               backgroundColor: colorScheme.surface,
               foregroundColor: colorScheme.onSurface,
@@ -1004,18 +1083,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
           if (_ledgerStartDate != null)
             IconButton(
-              icon: Icon(Icons.clear, size: DesktopDimensions.iconSizeSmall), 
+              icon: const Icon(Icons.clear,
+                  size: DesktopDimensions.iconSizeSmall),
               onPressed: () {
-                setState(() { 
-                  _ledgerStartDate = null; 
-                  _ledgerEndDate = null; 
+                setState(() {
+                  _ledgerStartDate = null;
+                  _ledgerEndDate = null;
                 });
                 _loadLedgerData();
               },
               color: colorScheme.onSurfaceVariant,
             ),
-          
-          SizedBox(width: DesktopDimensions.spacingMedium),
+
+          const SizedBox(width: DesktopDimensions.spacingMedium),
           // Type Filter
           SegmentedButton<String>(
             segments: const [
@@ -1030,41 +1110,49 @@ class _CustomersScreenState extends State<CustomersScreen> {
             style: ButtonStyle(
               visualDensity: VisualDensity.compact,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              backgroundColor: MaterialStateProperty.resolveWith<Color?>((states) {
-                if (states.contains(MaterialState.selected)) return Theme.of(context).colorScheme.primaryContainer;
+              backgroundColor:
+                  MaterialStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(MaterialState.selected)) {
+                  return Theme.of(context).colorScheme.primaryContainer;
+                }
                 return Theme.of(context).colorScheme.surface;
               }),
             ),
           ),
-          
-          Spacer(),
+
+          const Spacer(),
           // Search
           SizedBox(
             width: DesktopDimensions.sidebarWidthSmall,
             child: TextField(
               controller: _ledgerSearchCtrl,
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+              style:
+                  textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: "Search Doc # or Desc...",
-                hintStyle: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                prefixIcon: Icon(Icons.search, size: DesktopDimensions.iconSizeSmall),
-                suffixIcon: _ledgerSearchQuery.isNotEmpty 
-                  ? IconButton(
-                      icon: Icon(Icons.clear, size: DesktopDimensions.iconSizeSmall), 
-                      onPressed: () {
-                        _ledgerSearchCtrl.clear();
-                        setState(() => _ledgerSearchQuery = '');
-                      },
-                      color: colorScheme.onSurfaceVariant,
-                    ) 
-                  : null,
+                hintStyle: textTheme.bodyMedium
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
+                prefixIcon: const Icon(Icons.search,
+                    size: DesktopDimensions.iconSizeSmall),
+                suffixIcon: _ledgerSearchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear,
+                            size: DesktopDimensions.iconSizeSmall),
+                        onPressed: () {
+                          _ledgerSearchCtrl.clear();
+                          setState(() => _ledgerSearchQuery = '');
+                        },
+                        color: colorScheme.onSurfaceVariant,
+                      )
+                    : null,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: DesktopDimensions.spacingSmall,
                   horizontal: DesktopDimensions.spacingStandard,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.buttonBorderRadius),
                   borderSide: BorderSide(color: colorScheme.outline),
                 ),
                 filled: true,
@@ -1090,13 +1178,44 @@ class _CustomersScreenState extends State<CustomersScreen> {
       ),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text("Date", style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text("Doc No", style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text("Type", style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold))),
-          Expanded(flex: 4, child: Text("Description", style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text("Debit", textAlign: TextAlign.right, style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text("Credit", textAlign: TextAlign.right, style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold))),
-          Expanded(flex: 2, child: Text("Balance", textAlign: TextAlign.right, style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold))),
+          Expanded(
+              flex: 2,
+              child: Text("Date",
+                  style: textTheme.bodySmall
+                      ?.copyWith(fontWeight: FontWeight.bold))),
+          Expanded(
+              flex: 2,
+              child: Text("Doc No",
+                  style: textTheme.bodySmall
+                      ?.copyWith(fontWeight: FontWeight.bold))),
+          Expanded(
+              flex: 2,
+              child: Text("Type",
+                  style: textTheme.bodySmall
+                      ?.copyWith(fontWeight: FontWeight.bold))),
+          Expanded(
+              flex: 4,
+              child: Text("Description",
+                  style: textTheme.bodySmall
+                      ?.copyWith(fontWeight: FontWeight.bold))),
+          Expanded(
+              flex: 2,
+              child: Text("Debit",
+                  textAlign: TextAlign.right,
+                  style: textTheme.bodySmall
+                      ?.copyWith(fontWeight: FontWeight.bold))),
+          Expanded(
+              flex: 2,
+              child: Text("Credit",
+                  textAlign: TextAlign.right,
+                  style: textTheme.bodySmall
+                      ?.copyWith(fontWeight: FontWeight.bold))),
+          Expanded(
+              flex: 2,
+              child: Text("Balance",
+                  textAlign: TextAlign.right,
+                  style: textTheme.bodySmall
+                      ?.copyWith(fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -1114,11 +1233,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
       builder: (context) => Dialog(
         backgroundColor: colorScheme.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
           side: BorderSide(color: colorScheme.outline, width: 2),
         ),
         child: ConstrainedBox(
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             maxWidth: DesktopDimensions.dialogWidth,
             maxHeight: DesktopDimensions.dialogHeight,
           ),
@@ -1134,39 +1254,46 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
                 TextField(
                   controller: amountCtrl,
                   keyboardType: TextInputType.number,
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurface),
                   decoration: _cleanInput("Amount", Icons.money, colorScheme),
                 ),
-                SizedBox(height: DesktopDimensions.spacingMedium),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
                 TextField(
                   controller: notesCtrl,
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-                  decoration: _cleanInput("Notes (Optional)", Icons.note, colorScheme),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurface),
+                  decoration:
+                      _cleanInput("Notes (Optional)", Icons.note, colorScheme),
                 ),
-                SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text("Cancel", style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                      child: Text("Cancel",
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurface)),
                     ),
-                    SizedBox(width: DesktopDimensions.spacingStandard),
+                    const SizedBox(width: DesktopDimensions.spacingStandard),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
-                        minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                        minimumSize:
+                            const Size(0, DesktopDimensions.buttonHeight),
                       ),
                       onPressed: () {
                         if (amountCtrl.text.isNotEmpty) {
                           Money? amount;
                           try {
-                            amount = Money.fromRupeesString(amountCtrl.text.trim());
+                            amount =
+                                Money.fromRupeesString(amountCtrl.text.trim());
                           } catch (_) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -1176,7 +1303,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             );
                             return;
                           }
-                          if (amount != null && amount > const Money(0)) {
+                          if (amount > const Money(0)) {
                             Navigator.pop(context);
                             _addPayment(amount, notesCtrl.text);
                           } else {
@@ -1189,7 +1316,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           }
                         }
                       },
-                      child: Text("Save"),
+                      child: const Text("Save"),
                     ),
                   ],
                 ),
@@ -1220,7 +1347,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
             padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.cardBorderRadius),
               border: Border.all(color: colorScheme.outline, width: 2),
             ),
             child: Column(
@@ -1237,7 +1365,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     ),
                     IconButton(
                       icon: Icon(Icons.close, color: colorScheme.onSurface),
-                      onPressed: () => setState(() => _showArchiveOverlay = false),
+                      onPressed: () =>
+                          setState(() => _showArchiveOverlay = false),
                     ),
                   ],
                 ),
@@ -1247,7 +1376,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       ? Center(
                           child: Text(
                             loc.noCustomersFound,
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurface),
                           ),
                         )
                       : ListView.builder(
@@ -1272,12 +1402,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final loc = AppLocalizations.of(context)!;
-    final nameEnController = TextEditingController(text: customer?.nameEnglish ?? '');
-    final nameUrController = TextEditingController(text: customer?.nameUrdu ?? '');
-    final phoneController = TextEditingController(text: customer?.contactPrimary ?? '');
-    final addressController = TextEditingController(text: customer?.address ?? '');
+    final nameEnController =
+        TextEditingController(text: customer?.nameEnglish ?? '');
+    final nameUrController =
+        TextEditingController(text: customer?.nameUrdu ?? '');
+    final phoneController =
+        TextEditingController(text: customer?.contactPrimary ?? '');
+    final addressController =
+        TextEditingController(text: customer?.address ?? '');
     String currentLimit = (customer?.creditLimit ?? 0).toString();
-    final limitController = TextEditingController(text: currentLimit == "0" ? "" : currentLimit);
+    final limitController =
+        TextEditingController(text: currentLimit == "0" ? "" : currentLimit);
     bool isSaving = false;
     final bool isEdit = customer != null;
 
@@ -1290,16 +1425,18 @@ class _CustomersScreenState extends State<CustomersScreen> {
             return Dialog(
               backgroundColor: colorScheme.surface,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
                 side: BorderSide(color: colorScheme.outline, width: 2),
               ),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
+                constraints: const BoxConstraints(
                   maxWidth: DesktopDimensions.dialogWidth,
                   maxHeight: DesktopDimensions.dialogHeight,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+                  padding:
+                      const EdgeInsets.all(DesktopDimensions.dialogPadding),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1310,109 +1447,144 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: DesktopDimensions.spacingLarge),
+                      const SizedBox(height: DesktopDimensions.spacingLarge),
                       Expanded(
                         child: SingleChildScrollView(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               TextFormField(
-                                controller: nameEnController, 
-                                decoration: _cleanInput("${loc.nameEnglish} *", Icons.person, colorScheme), 
-                                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                                controller: nameEnController,
+                                decoration: _cleanInput("${loc.nameEnglish} *",
+                                    Icons.person, colorScheme),
+                                style: textTheme.bodyMedium
+                                    ?.copyWith(color: colorScheme.onSurface),
                                 readOnly: isEdit,
                                 enabled: !isEdit,
                               ),
-                              SizedBox(height: DesktopDimensions.spacingMedium),
+                              const SizedBox(
+                                  height: DesktopDimensions.spacingMedium),
                               TextFormField(
-                                controller: nameUrController, 
-                                textAlign: TextAlign.start, 
-                                decoration: _cleanInput("${loc.nameUrdu} *", Icons.translate, colorScheme), 
+                                controller: nameUrController,
+                                textAlign: TextAlign.start,
+                                decoration: _cleanInput("${loc.nameUrdu} *",
+                                    Icons.translate, colorScheme),
                                 style: textTheme.bodyMedium?.copyWith(
-                                  fontFamily: 'NooriNastaleeq', 
-                                  fontSize: DesktopDimensions.bodyLargeSize, 
+                                  fontFamily: 'NooriNastaleeq',
+                                  fontSize: DesktopDimensions.bodyLargeSize,
                                   color: colorScheme.onSurface,
                                 ),
                                 readOnly: isEdit,
                                 enabled: !isEdit,
                               ),
-                              SizedBox(height: DesktopDimensions.spacingMedium),
+                              const SizedBox(
+                                  height: DesktopDimensions.spacingMedium),
                               TextFormField(
-                                controller: phoneController, 
-                                decoration: _cleanInput("${loc.phoneLabel} *", Icons.phone, colorScheme), 
-                                keyboardType: TextInputType.phone, 
-                                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                                controller: phoneController,
+                                decoration: _cleanInput("${loc.phoneLabel} *",
+                                    Icons.phone, colorScheme),
+                                keyboardType: TextInputType.phone,
+                                style: textTheme.bodyMedium
+                                    ?.copyWith(color: colorScheme.onSurface),
                                 readOnly: isEdit,
                                 enabled: !isEdit,
                               ),
-                              SizedBox(height: DesktopDimensions.spacingMedium),
+                              const SizedBox(
+                                  height: DesktopDimensions.spacingMedium),
                               TextFormField(
-                                controller: addressController, 
-                                decoration: _cleanInput(loc.addressLabel, Icons.location_on, colorScheme), 
-                                maxLines: 2, 
-                                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                                controller: addressController,
+                                decoration: _cleanInput(loc.addressLabel,
+                                    Icons.location_on, colorScheme),
+                                maxLines: 2,
+                                style: textTheme.bodyMedium
+                                    ?.copyWith(color: colorScheme.onSurface),
                               ),
-                              SizedBox(height: DesktopDimensions.spacingMedium),
+                              const SizedBox(
+                                  height: DesktopDimensions.spacingMedium),
                               TextFormField(
-                                controller: limitController, 
-                                decoration: _cleanInput(loc.creditLimit, Icons.credit_card, colorScheme), 
-                                keyboardType: TextInputType.number, 
-                                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                                controller: limitController,
+                                decoration: _cleanInput(loc.creditLimit,
+                                    Icons.credit_card, colorScheme),
+                                keyboardType: TextInputType.number,
+                                style: textTheme.bodyMedium
+                                    ?.copyWith(color: colorScheme.onSurface),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      SizedBox(height: DesktopDimensions.spacingLarge),
+                      const SizedBox(height: DesktopDimensions.spacingLarge),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(
-                            onPressed: isSaving ? null : () => Navigator.pop(context),
-                            child: Text(loc.cancel, style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                            onPressed:
+                                isSaving ? null : () => Navigator.pop(context),
+                            child: Text(loc.cancel,
+                                style: textTheme.bodyMedium
+                                    ?.copyWith(color: colorScheme.onSurface)),
                           ),
-                          SizedBox(width: DesktopDimensions.spacingStandard),
+                          const SizedBox(
+                              width: DesktopDimensions.spacingStandard),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colorScheme.primary,
                               foregroundColor: colorScheme.onPrimary,
-                              minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                              minimumSize:
+                                  const Size(0, DesktopDimensions.buttonHeight),
                             ),
-                            onPressed: isSaving ? null : () async {
-                              if (nameEnController.text.trim().isEmpty) { 
-                                _showSnack("${loc.nameEnglish} ${loc.requiredField}", colorScheme.error); 
-                                return; 
-                              }
-                              if (nameUrController.text.trim().isEmpty) { 
-                                _showSnack("${loc.nameUrdu} ${loc.requiredField}", colorScheme.error); 
-                                return; 
-                              }
-                              if (phoneController.text.trim().isEmpty) { 
-                                _showSnack("${loc.phoneLabel} ${loc.requiredField}", colorScheme.error); 
-                                return; 
-                              }
+                            onPressed: isSaving
+                                ? null
+                                : () async {
+                                    if (nameEnController.text.trim().isEmpty) {
+                                      _showSnack(
+                                          "${loc.nameEnglish} ${loc.requiredField}",
+                                          colorScheme.error);
+                                      return;
+                                    }
+                                    if (nameUrController.text.trim().isEmpty) {
+                                      _showSnack(
+                                          "${loc.nameUrdu} ${loc.requiredField}",
+                                          colorScheme.error);
+                                      return;
+                                    }
+                                    if (phoneController.text.trim().isEmpty) {
+                                      _showSnack(
+                                          "${loc.phoneLabel} ${loc.requiredField}",
+                                          colorScheme.error);
+                                      return;
+                                    }
 
-                              setStateDialog(() => isSaving = true);
-                              try {
-                                await _addOrUpdateCustomer(
-                                  id: customer?.id, 
-                                  nameEng: nameEnController.text.trim(), 
-                                  nameUrdu: nameUrController.text.trim(), 
-                                  phone: phoneController.text.trim(), 
-                                  address: addressController.text.trim(), 
-                                  limit: Money.fromRupeesString(limitController.text).paisas,
-                                );
-                                if (context.mounted) Navigator.pop(context);
-                              } catch (e) {
-                                setStateDialog(() => isSaving = false);
-                                _showSnack(e.toString().replaceAll("Exception: ", ""), colorScheme.error);
-                              }
-                            },
-                            child: isSaving 
+                                    setStateDialog(() => isSaving = true);
+                                    try {
+                                      await _addOrUpdateCustomer(
+                                        id: customer?.id,
+                                        nameEng: nameEnController.text.trim(),
+                                        nameUrdu: nameUrController.text.trim(),
+                                        phone: phoneController.text.trim(),
+                                        address: addressController.text.trim(),
+                                        limit: Money.fromRupeesString(
+                                                limitController.text)
+                                            .paisas,
+                                      );
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                    } catch (e) {
+                                      setStateDialog(() => isSaving = false);
+                                      _showSnack(
+                                          e
+                                              .toString()
+                                              .replaceAll("Exception: ", ""),
+                                          colorScheme.error);
+                                    }
+                                  },
+                            child: isSaving
                                 ? SizedBox(
                                     width: DesktopDimensions.iconSizeMedium,
                                     height: DesktopDimensions.iconSizeMedium,
-                                    child: CircularProgressIndicator(color: colorScheme.onPrimary),
+                                    child: CircularProgressIndicator(
+                                        color: colorScheme.onPrimary),
                                   )
                                 : Text(loc.save),
                           ),
@@ -1429,19 +1601,23 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  InputDecoration _cleanInput(String label, IconData icon, ColorScheme colorScheme) {
+  InputDecoration _cleanInput(
+      String label, IconData icon, ColorScheme colorScheme) {
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: colorScheme.primary),
-      prefixIcon: Icon(icon, size: DesktopDimensions.iconSizeMedium, color: colorScheme.primary),
+      prefixIcon: Icon(icon,
+          size: DesktopDimensions.iconSizeMedium, color: colorScheme.primary),
       filled: true,
-      fillColor: colorScheme.surface, 
+      fillColor: colorScheme.surface,
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
+        borderRadius:
+            BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
         borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
+        borderRadius:
+            BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
         borderSide: BorderSide(color: colorScheme.primary, width: 2.5),
       ),
       contentPadding: const EdgeInsets.symmetric(
@@ -1489,7 +1665,8 @@ class _LedgerRowState extends State<_LedgerRow> {
       setState(() => _error = null);
       try {
         final invoiceId = widget.row['ref_no'] as int;
-        final invoice = await widget.invoiceRepository.getInvoiceWithItems(invoiceId);
+        final invoice =
+            await widget.invoiceRepository.getInvoiceWithItems(invoiceId);
         if (mounted) setState(() => _items = invoice?.items);
       } catch (e) {
         if (mounted) setState(() => _error = "Failed to load details");
@@ -1502,16 +1679,17 @@ class _LedgerRowState extends State<_LedgerRow> {
   Future<void> _cancelInvoice() async {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    
+
     final bool? confirmed = await showDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: colorScheme.surface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
         ),
         child: ConstrainedBox(
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             maxWidth: DesktopDimensions.dialogWidth,
             maxHeight: DesktopDimensions.dialogHeight,
           ),
@@ -1522,30 +1700,35 @@ class _LedgerRowState extends State<_LedgerRow> {
               children: [
                 Text(
                   'Confirm Cancellation',
-                  style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+                  style: textTheme.titleLarge
+                      ?.copyWith(color: colorScheme.onSurface),
                 ),
-                SizedBox(height: DesktopDimensions.spacingMedium),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
                 Text(
                   'Are you sure you want to cancel this invoice? This action cannot be undone.',
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurface),
                 ),
-                SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: Text('No', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                      child: Text('No',
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurface)),
                     ),
-                    SizedBox(width: DesktopDimensions.spacingStandard),
+                    const SizedBox(width: DesktopDimensions.spacingStandard),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context, true),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.error,
                         foregroundColor: colorScheme.onError,
-                        minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                        minimumSize:
+                            const Size(0, DesktopDimensions.buttonHeight),
                       ),
-                      child: Text('Yes, Cancel'),
+                      child: const Text('Yes, Cancel'),
                     ),
                   ],
                 ),
@@ -1567,7 +1750,7 @@ class _LedgerRowState extends State<_LedgerRow> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Invoice cancelled successfully'),
+              content: const Text('Invoice cancelled successfully'),
               backgroundColor: colorScheme.primary,
             ),
           );
@@ -1598,12 +1781,14 @@ class _LedgerRowState extends State<_LedgerRow> {
     final Money balance = Money((row['balance'] as num).toInt());
     final isSale = row['type'] == 'SALE';
     final isReceipt = row['type'] == 'PAYMENT' || row['type'] == 'RECEIPT';
-    
-    final bgColor = _isExpanded 
+
+    final bgColor = _isExpanded
         ? colorScheme.primaryContainer.withOpacity(0.1)
-        : (isReceipt 
+        : (isReceipt
             ? colorScheme.primaryContainer.withOpacity(0.05)
-            : (widget.isEven ? colorScheme.surface : colorScheme.surfaceVariant));
+            : (widget.isEven
+                ? colorScheme.surface
+                : colorScheme.surfaceVariant));
 
     return Column(
       children: [
@@ -1617,65 +1802,94 @@ class _LedgerRowState extends State<_LedgerRow> {
             ),
             decoration: BoxDecoration(
               color: bgColor,
-              border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
+              border:
+                  Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
             ),
             child: Row(
               children: [
-                Expanded(flex: 2, child: Text(dateStr, style: textTheme.bodySmall?.copyWith(fontFamily: 'RobotoMono'))),
-                Expanded(flex: 2, child: Text(isSale ? "INV-${row['ref_no']}" : "RCP-${row['ref_no']}", style: textTheme.bodySmall?.copyWith(fontFamily: 'RobotoMono'))),
-                Expanded(flex: 2, child: Text(
-                  isSale ? "SALE" : "RECEIPT",
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isSale ? colorScheme.primary : colorScheme.tertiary,
-                  ),
-                )),
-                Expanded(flex: 4, child: Row(
-                  children: [
-                    if (isSale) 
-                      Icon(
-                        _isExpanded ? Icons.arrow_drop_down : Icons.arrow_right,
-                        size: DesktopDimensions.iconSizeSmall,
-                        color: colorScheme.onSurfaceVariant,
+                Expanded(
+                    flex: 2,
+                    child: Text(dateStr,
+                        style: textTheme.bodySmall
+                            ?.copyWith(fontFamily: 'RobotoMono'))),
+                Expanded(
+                    flex: 2,
+                    child: Text(
+                        isSale
+                            ? "INV-${row['ref_no']}"
+                            : "RCP-${row['ref_no']}",
+                        style: textTheme.bodySmall
+                            ?.copyWith(fontFamily: 'RobotoMono'))),
+                Expanded(
+                    flex: 2,
+                    child: Text(
+                      isSale ? "SALE" : "RECEIPT",
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color:
+                            isSale ? colorScheme.primary : colorScheme.tertiary,
                       ),
-                    Expanded(
-                      child: Text(
-                        row['description'] ?? '',
-                        style: textTheme.bodySmall,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (isSale)
-                      IconButton(
-                        icon: Icon(
-                          Icons.cancel,
-                          color: colorScheme.error,
-                          size: DesktopDimensions.iconSizeSmall,
+                    )),
+                Expanded(
+                    flex: 4,
+                    child: Row(
+                      children: [
+                        if (isSale)
+                          Icon(
+                            _isExpanded
+                                ? Icons.arrow_drop_down
+                                : Icons.arrow_right,
+                            size: DesktopDimensions.iconSizeSmall,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        Expanded(
+                          child: Text(
+                            row['description'] ?? '',
+                            style: textTheme.bodySmall,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        tooltip: 'Cancel Invoice',
-                        onPressed: _cancelInvoice,
+                        if (isSale)
+                          IconButton(
+                            icon: Icon(
+                              Icons.cancel,
+                              color: colorScheme.error,
+                              size: DesktopDimensions.iconSizeSmall,
+                            ),
+                            tooltip: 'Cancel Invoice',
+                            onPressed: _cancelInvoice,
+                          ),
+                      ],
+                    )),
+                Expanded(
+                    flex: 2,
+                    child: Text(
+                      debit > const Money(0) ? debit.toString() : '-',
+                      textAlign: TextAlign.right,
+                      style: textTheme.bodySmall
+                          ?.copyWith(fontFamily: 'RobotoMono'),
+                    )),
+                Expanded(
+                    flex: 2,
+                    child: Text(
+                      credit > const Money(0) ? credit.toString() : '-',
+                      textAlign: TextAlign.right,
+                      style: textTheme.bodySmall
+                          ?.copyWith(fontFamily: 'RobotoMono'),
+                    )),
+                Expanded(
+                    flex: 2,
+                    child: Text(
+                      balance.toString(),
+                      textAlign: TextAlign.right,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'RobotoMono',
+                        color: balance > const Money(0)
+                            ? colorScheme.error
+                            : colorScheme.primary,
                       ),
-                  ],
-                )),
-                Expanded(flex: 2, child: Text(
-                  debit > const Money(0) ? debit.toString() : '-',
-                  textAlign: TextAlign.right,
-                  style: textTheme.bodySmall?.copyWith(fontFamily: 'RobotoMono'),
-                )),
-                Expanded(flex: 2, child: Text(
-                  credit > const Money(0) ? credit.toString() : '-',
-                  textAlign: TextAlign.right,
-                  style: textTheme.bodySmall?.copyWith(fontFamily: 'RobotoMono'),
-                )),
-                Expanded(flex: 2, child: Text(
-                  balance.toString(),
-                  textAlign: TextAlign.right,
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'RobotoMono',
-                    color: balance > const Money(0) ? colorScheme.error : colorScheme.primary,
-                  ),
-                )),
+                    )),
               ],
             ),
           ),
@@ -1690,96 +1904,133 @@ class _LedgerRowState extends State<_LedgerRow> {
               DesktopDimensions.spacingMedium,
             ),
             child: _isLoadingItems
-                ? Center(
+                ? const Center(
                     child: SizedBox(
                       width: DesktopDimensions.iconSizeMedium,
                       height: DesktopDimensions.iconSizeMedium,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   )
-                : _error != null 
-                  ? Center(
-                      child: Text(
-                        _error!,
-                        style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
-                      ),
-                    )
-                  : _items == null || _items!.isEmpty
+                : _error != null
                     ? Center(
                         child: Text(
-                          "No items found",
-                          style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+                          _error!,
+                          style: textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.error),
                         ),
                       )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Table(
-                            border: TableBorder(bottom: BorderSide(color: colorScheme.outline)),
-                            columnWidths: const {
-                              0: FlexColumnWidth(4),
-                              1: FlexColumnWidth(2),
-                              2: FlexColumnWidth(2),
-                              3: FlexColumnWidth(2),
-                            },
+                    : _items == null || _items!.isEmpty
+                        ? Center(
+                            child: Text(
+                              "No items found",
+                              style: textTheme.bodySmall
+                                  ?.copyWith(fontStyle: FontStyle.italic),
+                            ),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TableRow(
-                                decoration: BoxDecoration(color: colorScheme.surfaceVariant),
+                              Table(
+                                border: TableBorder(
+                                    bottom:
+                                        BorderSide(color: colorScheme.outline)),
+                                columnWidths: const {
+                                  0: FlexColumnWidth(4),
+                                  1: FlexColumnWidth(2),
+                                  2: FlexColumnWidth(2),
+                                  3: FlexColumnWidth(2),
+                                },
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingXSmall),
-                                    child: Text("Item", style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
+                                  TableRow(
+                                    decoration: BoxDecoration(
+                                        color: colorScheme.surfaceVariant),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(
+                                            DesktopDimensions.spacingXSmall),
+                                        child: Text("Item",
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(
+                                            DesktopDimensions.spacingXSmall),
+                                        child: Text("Qty",
+                                            textAlign: TextAlign.center,
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(
+                                            DesktopDimensions.spacingXSmall),
+                                        child: Text("Rate",
+                                            textAlign: TextAlign.right,
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(
+                                            DesktopDimensions.spacingXSmall),
+                                        child: Text("Total",
+                                            textAlign: TextAlign.right,
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                      ),
+                                    ],
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingXSmall),
-                                    child: Text("Qty", textAlign: TextAlign.center, style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingXSmall),
-                                    child: Text("Rate", textAlign: TextAlign.right, style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingXSmall),
-                                    child: Text("Total", textAlign: TextAlign.right, style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
-                                  ),
+                                  ..._items!.map((item) => TableRow(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(
+                                                DesktopDimensions
+                                                    .spacingXSmall),
+                                            child: Text(item.itemNameSnapshot,
+                                                style: textTheme.bodySmall),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(
+                                                DesktopDimensions
+                                                    .spacingXSmall),
+                                            child: Text(
+                                              item.quantity.toString(),
+                                              textAlign: TextAlign.center,
+                                              style: textTheme.bodySmall,
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(
+                                                DesktopDimensions
+                                                    .spacingXSmall),
+                                            child: Text(
+                                              Money(item.unitPrice).toString(),
+                                              textAlign: TextAlign.right,
+                                              style: textTheme.bodySmall,
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(
+                                                DesktopDimensions
+                                                    .spacingXSmall),
+                                            child: Text(
+                                              Money(item.totalPrice).toString(),
+                                              textAlign: TextAlign.right,
+                                              style: textTheme.bodySmall,
+                                            ),
+                                          ),
+                                        ],
+                                      )),
                                 ],
                               ),
-                              ..._items!.map((item) => TableRow(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingXSmall),
-                                    child: Text(item.itemNameSnapshot, style: textTheme.bodySmall),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingXSmall),
-                                    child: Text(
-                                      item.quantity.toString(),
-                                      textAlign: TextAlign.center,
-                                      style: textTheme.bodySmall,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingXSmall),
-                                    child: Text(
-                                      Money(item.unitPrice).toString(),
-                                      textAlign: TextAlign.right,
-                                      style: textTheme.bodySmall,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingXSmall),
-                                    child: Text(
-                                      Money(item.totalPrice).toString(),
-                                      textAlign: TextAlign.right,
-                                      style: textTheme.bodySmall,
-                                    ),
-                                  ),
-                                ],
-                              )).toList(),
                             ],
                           ),
-                        ],
-                      ),
           ),
       ],
     );

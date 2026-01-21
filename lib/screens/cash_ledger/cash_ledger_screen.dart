@@ -43,7 +43,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
   }
 
   void _scrollListener() {
-    if (_scrollController.position.extentAfter < DesktopDimensions.spacingXXXLarge &&
+    if (_scrollController.position.extentAfter <
+            DesktopDimensions.spacingXXXLarge &&
         !_isFirstLoadRunning &&
         !_isLoadMoreRunning &&
         _hasNextPage) {
@@ -118,10 +119,11 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
         return Dialog(
           backgroundColor: colorScheme.surface,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+            borderRadius:
+                BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
           ),
           child: ConstrainedBox(
-            constraints: BoxConstraints(
+            constraints: const BoxConstraints(
               maxWidth: DesktopDimensions.dialogWidth,
               maxHeight: DesktopDimensions.dialogHeight,
             ),
@@ -132,7 +134,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                 children: [
                   Text(
                     selectedType == 'IN' ? loc.newCashIn : loc.newCashOut,
-                    style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+                    style: textTheme.titleLarge
+                        ?.copyWith(color: colorScheme.onSurface),
                   ),
                   const SizedBox(height: DesktopDimensions.spacingLarge),
                   Expanded(
@@ -145,9 +148,11 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                             children: [
                               Expanded(
                                 child: InkWell(
-                                  onTap: () => setStateDialog(() => selectedType = 'IN'),
+                                  onTap: () =>
+                                      setStateDialog(() => selectedType = 'IN'),
                                   child: Container(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+                                    padding: const EdgeInsets.all(
+                                        DesktopDimensions.spacingStandard),
                                     decoration: BoxDecoration(
                                       color: selectedType == 'IN'
                                           ? colorScheme.primaryContainer
@@ -165,16 +170,20 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                             fontWeight: FontWeight.bold,
                                             color: selectedType == 'IN'
                                                 ? colorScheme.onPrimaryContainer
-                                                : colorScheme.onSurfaceVariant)),
+                                                : colorScheme
+                                                    .onSurfaceVariant)),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: DesktopDimensions.spacingStandard),
+                              const SizedBox(
+                                  width: DesktopDimensions.spacingStandard),
                               Expanded(
                                 child: InkWell(
-                                  onTap: () => setStateDialog(() => selectedType = 'OUT'),
+                                  onTap: () => setStateDialog(
+                                      () => selectedType = 'OUT'),
                                   child: Container(
-                                    padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+                                    padding: const EdgeInsets.all(
+                                        DesktopDimensions.spacingStandard),
                                     decoration: BoxDecoration(
                                       color: selectedType == 'OUT'
                                           ? colorScheme.errorContainer
@@ -192,13 +201,15 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                             fontWeight: FontWeight.bold,
                                             color: selectedType == 'OUT'
                                                 ? colorScheme.onErrorContainer
-                                                : colorScheme.onSurfaceVariant)),
+                                                : colorScheme
+                                                    .onSurfaceVariant)),
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: DesktopDimensions.spacingMedium),
+                          const SizedBox(
+                              height: DesktopDimensions.spacingMedium),
 
                           // Date Picker
                           InkWell(
@@ -218,7 +229,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                               }
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+                              padding: const EdgeInsets.all(
+                                  DesktopDimensions.spacingStandard),
                               decoration: BoxDecoration(
                                 border: Border.all(color: colorScheme.outline),
                                 borderRadius: BorderRadius.circular(
@@ -232,13 +244,17 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                       color: colorScheme.onSurfaceVariant),
                                   const SizedBox(
                                       width: DesktopDimensions.spacingStandard),
-                                  Text(DateFormat('dd MMM yyyy').format(selectedDate),
-                                      style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                                  Text(
+                                      DateFormat('dd MMM yyyy')
+                                          .format(selectedDate),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                          color: colorScheme.onSurface)),
                                 ],
                               ),
                             ),
                           ),
-                          const SizedBox(height: DesktopDimensions.spacingMedium),
+                          const SizedBox(
+                              height: DesktopDimensions.spacingMedium),
 
                           // Amount, Description, Remarks
                           TextField(
@@ -251,9 +267,11 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                     borderRadius: BorderRadius.circular(
                                         DesktopDimensions.buttonBorderRadius))),
                             keyboardType: TextInputType.number,
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurface),
                           ),
-                          const SizedBox(height: DesktopDimensions.spacingStandard),
+                          const SizedBox(
+                              height: DesktopDimensions.spacingStandard),
                           TextField(
                             controller: descCtrl,
                             decoration: InputDecoration(
@@ -263,9 +281,11 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
                                         DesktopDimensions.buttonBorderRadius))),
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurface),
                           ),
-                          const SizedBox(height: DesktopDimensions.spacingStandard),
+                          const SizedBox(
+                              height: DesktopDimensions.spacingStandard),
                           TextField(
                             controller: remarksCtrl,
                             decoration: InputDecoration(
@@ -275,7 +295,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
                                         DesktopDimensions.buttonBorderRadius))),
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurface),
                           ),
                         ],
                       ),
@@ -288,44 +309,46 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                       TextButton(
                         onPressed: () => Navigator.pop(context),
                         child: Text(loc.cancel,
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                            style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant)),
                       ),
                       const SizedBox(width: DesktopDimensions.spacingStandard),
                       ElevatedButton(
                         onPressed: () async {
                           Money? amount;
                           try {
-                            amount = Money.fromRupeesString(amountCtrl.text.trim());
+                            amount =
+                                Money.fromRupeesString(amountCtrl.text.trim());
                           } catch (_) {
-                          // Show validation error
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(loc.invalidAmount),
-                              backgroundColor: colorScheme.error,
-                            ),
-                          );
-                          return;
-                        }
-                        if (amount != null && amount > const Money(0) && descCtrl.text.trim().isNotEmpty) {
-                          await _cashRepository.addCashEntry(
-                            descCtrl.text.trim(),
-                            selectedType,
-                            amount,
-                            remarksCtrl.text.trim()
-                          );
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                            _refreshData();
+                            // Show validation error
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(loc.invalidAmount),
+                                backgroundColor: colorScheme.error,
+                              ),
+                            );
+                            return;
                           }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(loc.invalidAmount),
-                              backgroundColor: colorScheme.error,
-                            ),
-                          );
-                        }
-                      },
+                          if (amount > const Money(0) &&
+                              descCtrl.text.trim().isNotEmpty) {
+                            await _cashRepository.addCashEntry(
+                                descCtrl.text.trim(),
+                                selectedType,
+                                amount,
+                                remarksCtrl.text.trim());
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              _refreshData();
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(loc.invalidAmount),
+                                backgroundColor: colorScheme.error,
+                              ),
+                            );
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: selectedType == 'IN'
                               ? colorScheme.primary
@@ -333,7 +356,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                           foregroundColor: selectedType == 'IN'
                               ? colorScheme.onPrimary
                               : colorScheme.onError,
-                          minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                          minimumSize:
+                              const Size(0, DesktopDimensions.buttonHeight),
                         ),
                         child: Text(loc.save,
                             style: textTheme.bodyMedium?.copyWith(
@@ -411,8 +435,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(loc.currentBalance,
-                      style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer)),
+                      style: textTheme.bodyMedium
+                          ?.copyWith(color: colorScheme.onPrimaryContainer)),
                   Text(
                     currentBalance.formattedNoDecimal,
                     style: textTheme.titleLarge?.copyWith(
@@ -441,8 +465,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                     : ledgerEntries.isEmpty
                         ? Center(
                             child: Text(loc.noData,
-                                style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurface)),
+                                style: textTheme.bodyMedium
+                                    ?.copyWith(color: colorScheme.onSurface)),
                           )
                         : ListView.builder(
                             controller: _scrollController,
@@ -481,7 +505,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                     subtitle: Text(
                                         '${entry.transactionDate} | ${entry.transactionTime}',
                                         style: textTheme.bodySmall?.copyWith(
-                                            color: colorScheme.onSurfaceVariant)),
+                                            color:
+                                                colorScheme.onSurfaceVariant)),
                                     trailing: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -500,7 +525,8 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                         Text(
                                           'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
                                           style: textTheme.bodySmall?.copyWith(
-                                              color: colorScheme.onSurfaceVariant),
+                                              color:
+                                                  colorScheme.onSurfaceVariant),
                                         ),
                                       ],
                                     ),

@@ -22,10 +22,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Department? _selectedDepartment;
   Category? _selectedCategory;
   SubCategory? _selectedSubCategory;
-  
+
   // Selection Mode to determine what to show in Right Pane
   // 0: None, 1: Department, 2: Category, 3: SubCategory
-  int _selectionLevel = 0; 
+  int _selectionLevel = 0;
 
   // --- Data Store ---
   List<Department> _departments = [];
@@ -34,7 +34,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   final Map<int, List<SubCategory>> _subCategoryCache = {};
   bool _isLoading = true;
   bool _isLoadingCategories = false;
-  
+
   // --- Search ---
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounceTimer;
@@ -42,7 +42,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   // --- Details Pane Data ---
   int _detailsItemCount = 0; // Products count
-  int _detailsSubCount = 0;  // Sub-entities count (Cats or SubCats)
+  int _detailsSubCount = 0; // Sub-entities count (Cats or SubCats)
 
   @override
   void initState() {
@@ -66,7 +66,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     setState(() {
       _departments = depts;
       _isLoading = false;
-      
+
       // Maintain selection if possible, else reset
       if (_selectedDepartment != null) {
         if (!_departments.any((d) => d.id == _selectedDepartment!.id)) {
@@ -105,7 +105,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   Future<void> _loadSubCategories(int catId) async {
     if (_subCategoryCache.containsKey(catId)) return;
-    
+
     final subs = await _repository.getSubCategoriesByCategory(catId);
     if (mounted) {
       setState(() {
@@ -117,7 +117,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   void _onDepartmentSelected(Department dept) {
     if (_selectedDepartment?.id == dept.id) return;
-    
+
     setState(() {
       _selectedDepartment = dept;
       _selectedCategory = null;
@@ -136,19 +136,26 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
     if (_selectionLevel == 1 && _selectedDepartment != null) {
       subs = await _repository.getCategoryCount(_selectedDepartment!.id!);
-      items = await _repository.getProductCountByDepartment(_selectedDepartment!.id!);
+      items = await _repository
+          .getProductCountByDepartment(_selectedDepartment!.id!);
     } else if (_selectionLevel == 2 && _selectedCategory != null) {
       subs = await _repository.getSubCategoryCount(_selectedCategory!.id!);
-      items = await _repository.getProductCountByCategory(_selectedCategory!.id!);
+      items =
+          await _repository.getProductCountByCategory(_selectedCategory!.id!);
     }
     // Subcategories (Level 3) don't have children or direct product links in this schema
 
-    if (mounted) setState(() { _detailsItemCount = items; _detailsSubCount = subs; });
+    if (mounted) {
+      setState(() {
+        _detailsItemCount = items;
+        _detailsSubCount = subs;
+      });
+    }
   }
 
   void _onSearchChanged(String query) {
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
-    
+
     if (query.isEmpty) {
       setState(() {
         _searchResults = null;
@@ -175,7 +182,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         title: const Text('Error'),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
+          TextButton(
+              onPressed: () => Navigator.pop(context), child: const Text('OK')),
         ],
       ),
     );
@@ -193,10 +201,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
-             child: TextField(
-               controller: nameEnController,
-               decoration: const InputDecoration(labelText: 'Name (English)'),
+              padding: const EdgeInsets.only(
+                  bottom: DesktopDimensions.spacingMedium),
+              child: TextField(
+                controller: nameEnController,
+                decoration: const InputDecoration(labelText: 'Name (English)'),
               ),
             ),
             TextField(
@@ -206,14 +215,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               if (nameEnController.text.isEmpty) return;
-              
-              final exists = await _repository.departmentExists(nameEnController.text.trim(), excludeId: department?.id);
+
+              final exists = await _repository.departmentExists(
+                  nameEnController.text.trim(),
+                  excludeId: department?.id);
               if (exists) {
-                if (context.mounted) _showErrorDialog('Department with this name already exists.');
+                if (context.mounted) {
+                  _showErrorDialog('Department with this name already exists.');
+                }
                 return;
               }
 
@@ -255,22 +270,39 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               DropdownButtonFormField<int>(
                 value: selectedDeptId,
                 decoration: const InputDecoration(labelText: 'Department'),
-                items: _departments.map((d) => DropdownMenuItem(value: d.id, child: Text(d.nameEn))).toList(),
+                items: _departments
+                    .map((d) =>
+                        DropdownMenuItem(value: d.id, child: Text(d.nameEn)))
+                    .toList(),
                 onChanged: (val) => setState(() => selectedDeptId = val),
               ),
-              TextField(controller: nameEnController, decoration: const InputDecoration(labelText: 'Name (English)')),
-              TextField(controller: nameUrController, decoration: const InputDecoration(labelText: 'Name (Urdu)')),
+              TextField(
+                  controller: nameEnController,
+                  decoration:
+                      const InputDecoration(labelText: 'Name (English)')),
+              TextField(
+                  controller: nameUrController,
+                  decoration: const InputDecoration(labelText: 'Name (Urdu)')),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
-                if (nameEnController.text.isEmpty || selectedDeptId == null) return;
+                if (nameEnController.text.isEmpty || selectedDeptId == null) {
+                  return;
+                }
 
-                final exists = await _repository.categoryExists(selectedDeptId!, nameEnController.text.trim(), excludeId: category?.id);
+                final exists = await _repository.categoryExists(
+                    selectedDeptId!, nameEnController.text.trim(),
+                    excludeId: category?.id);
                 if (exists) {
-                  if (context.mounted) _showErrorDialog('Category with this name already exists in the selected department.');
+                  if (context.mounted) {
+                    _showErrorDialog(
+                        'Category with this name already exists in the selected department.');
+                  }
                   return;
                 }
 
@@ -307,31 +339,49 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(subCategory == null ? 'Add Subcategory' : 'Edit Subcategory'),
+          title: Text(
+              subCategory == null ? 'Add Subcategory' : 'Edit Subcategory'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Filter categories if department is selected, otherwise show all? 
+              // Filter categories if department is selected, otherwise show all?
               // For simplicity showing all categories or filtered by current department context
               DropdownButtonFormField<int>(
                 value: selectedCatId,
                 decoration: const InputDecoration(labelText: 'Category'),
-                items: _categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.nameEn))).toList(),
+                items: _categories
+                    .map((c) =>
+                        DropdownMenuItem(value: c.id, child: Text(c.nameEn)))
+                    .toList(),
                 onChanged: (val) => setState(() => selectedCatId = val),
               ),
-              TextField(controller: nameEnController, decoration: const InputDecoration(labelText: 'Name (English)')),
-              TextField(controller: nameUrController, decoration: const InputDecoration(labelText: 'Name (Urdu)')),
+              TextField(
+                  controller: nameEnController,
+                  decoration:
+                      const InputDecoration(labelText: 'Name (English)')),
+              TextField(
+                  controller: nameUrController,
+                  decoration: const InputDecoration(labelText: 'Name (Urdu)')),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
-                if (nameEnController.text.isEmpty || selectedCatId == null) return;
+                if (nameEnController.text.isEmpty || selectedCatId == null) {
+                  return;
+                }
 
-                final exists = await _repository.subCategoryExists(selectedCatId!, nameEnController.text.trim(), excludeId: subCategory?.id);
+                final exists = await _repository.subCategoryExists(
+                    selectedCatId!, nameEnController.text.trim(),
+                    excludeId: subCategory?.id);
                 if (exists) {
-                  if (context.mounted) _showErrorDialog('Subcategory with this name already exists in the selected category.');
+                  if (context.mounted) {
+                    _showErrorDialog(
+                        'Subcategory with this name already exists in the selected category.');
+                  }
                   return;
                 }
 
@@ -363,20 +413,25 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     if (_selectionLevel == 0) return;
 
     final bool confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: const Text('Are you sure you want to delete this item?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-            onPressed: () => Navigator.pop(context, true), 
-            child: const Text('Yes, Delete', style: TextStyle(color: Colors.white)),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Confirm Delete'),
+            content: const Text('Are you sure you want to delete this item?'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('No')),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.error),
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Yes, Delete',
+                    style: TextStyle(color: Colors.white)),
+              ),
+            ],
           ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
 
     if (!confirm) return;
 
@@ -390,7 +445,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       await _repository.deleteSubCategory(_selectedSubCategory!.id!);
       _selectedSubCategory = null;
     }
-    
+
     _selectionLevel = 0;
     _loadData();
   }
@@ -410,7 +465,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           Card(
             elevation: DesktopDimensions.cardElevation,
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
             child: Padding(
               padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
               child: TextField(
@@ -429,8 +485,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         )
                       : null,
                   border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
+                    borderRadius: BorderRadius.circular(
+                        DesktopDimensions.cardBorderRadius / 2),
                     borderSide: BorderSide(color: colorScheme.outline),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
@@ -451,9 +507,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   child: Card(
                     elevation: DesktopDimensions.cardElevation,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius)),
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius),
                         child: _buildDepartmentsPane(loc, colorScheme)),
                   ),
                 ),
@@ -463,9 +521,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   child: Card(
                     elevation: DesktopDimensions.cardElevation,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius)),
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius),
                         child: _buildTaxonomyPane(loc, colorScheme)),
                   ),
                 ),
@@ -475,9 +535,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   child: Card(
                     elevation: DesktopDimensions.cardElevation,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius)),
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius),
                         child: _buildDetailsPane(loc, colorScheme)),
                   ),
                 ),
@@ -519,7 +581,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.add_circle_outline, size: DesktopDimensions.iconSizeMedium),
+                icon: const Icon(Icons.add_circle_outline,
+                    size: DesktopDimensions.iconSizeMedium),
                 onPressed: () {
                   _showDepartmentDialog();
                 },
@@ -539,7 +602,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
               return ListTile(
                 selected: isSelected,
-                selectedTileColor: colorScheme.primaryContainer.withOpacity(0.4),
+                selectedTileColor:
+                    colorScheme.primaryContainer.withOpacity(0.4),
                 onTap: () => _onDepartmentSelected(dept),
                 leading: Container(
                   width: 4,
@@ -587,8 +651,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget _buildTaxonomyPane(AppLocalizations loc, ColorScheme colorScheme) {
     if (_selectedDepartment == null) {
       return Center(
-          child:
-              Text('Select a Department', style: TextStyle(color: colorScheme.outline)));
+          child: Text('Select a Department',
+              style: TextStyle(color: colorScheme.outline)));
     }
 
     final filteredCats = _searchResults == null
@@ -616,7 +680,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
               ),
               IconButton(
-                icon: Icon(Icons.add, size: DesktopDimensions.iconSizeMedium),
+                icon: const Icon(Icons.add,
+                    size: DesktopDimensions.iconSizeMedium),
                 onPressed: () {
                   _showCategoryDialog(parentDeptId: _selectedDepartment!.id);
                 },
@@ -690,7 +755,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                 cat.nameEn,
                                 const TextStyle(fontWeight: FontWeight.bold),
                                 colorScheme.primaryContainer),
-                            const SizedBox(width: DesktopDimensions.spacingMedium),
+                            const SizedBox(
+                                width: DesktopDimensions.spacingMedium),
                             _buildHighlightedText(
                                 cat.nameUr,
                                 TextStyle(
@@ -701,7 +767,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         ),
                       ),
                       trailing: IconButton(
-                        icon: Icon(Icons.add, size: DesktopDimensions.iconSizeMedium),
+                        icon: const Icon(Icons.add,
+                            size: DesktopDimensions.iconSizeMedium),
                         onPressed: () {
                           _showSubCategoryDialog(parentCatId: cat.id);
                         },
@@ -710,7 +777,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       children: [
                         if (!isLoaded)
                           const Padding(
-                            padding: EdgeInsets.all(DesktopDimensions.spacingLarge),
+                            padding:
+                                EdgeInsets.all(DesktopDimensions.spacingLarge),
                             child: Center(
                                 child: SizedBox(
                                     width: 20,
@@ -751,8 +819,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               },
                               leading: Icon(Icons.subdirectory_arrow_right,
                                   size: 16, color: colorScheme.outline),
-                              title: _buildHighlightedText(sub.nameEn,
-                                  const TextStyle(), colorScheme.primaryContainer),
+                              title: _buildHighlightedText(
+                                  sub.nameEn,
+                                  const TextStyle(),
+                                  colorScheme.primaryContainer),
                               subtitle: _buildHighlightedText(
                                   sub.nameUr,
                                   TextStyle(
@@ -953,7 +1023,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       await _updateStatus(
                           isActive: val, isVisible: isVisibleInPOS);
                     },
-                    contentPadding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium,vertical: DesktopDimensions.spacingSmall),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: DesktopDimensions.spacingMedium,
+                        vertical: DesktopDimensions.spacingSmall),
                   ),
                   SwitchListTile(
                     title: const Text('Visible in POS'),
@@ -961,10 +1033,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         'Show this entity in the Point of Sale screen'),
                     value: isVisibleInPOS,
                     onChanged: (val) async {
-                      await _updateStatus(
-                          isActive: isActive, isVisible: val);
+                      await _updateStatus(isActive: isActive, isVisible: val);
                     },
-                    contentPadding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium,vertical: DesktopDimensions.spacingSmall),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: DesktopDimensions.spacingMedium,
+                        vertical: DesktopDimensions.spacingSmall),
                   ),
                   const Divider(height: DesktopDimensions.spacingXXLarge),
 
@@ -982,8 +1055,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget _buildBreadcrumbs(ColorScheme colorScheme) {
     List<String> parts = ['Home'];
     if (_selectedDepartment != null) parts.add(_selectedDepartment!.nameEn);
-    if (_selectionLevel >= 2 && _selectedCategory != null) parts.add(_selectedCategory!.nameEn);
-    if (_selectionLevel >= 3 && _selectedSubCategory != null) parts.add(_selectedSubCategory!.nameEn);
+    if (_selectionLevel >= 2 && _selectedCategory != null) {
+      parts.add(_selectedCategory!.nameEn);
+    }
+    if (_selectionLevel >= 3 && _selectedSubCategory != null) {
+      parts.add(_selectedSubCategory!.nameEn);
+    }
 
     return Wrap(
       children: parts.asMap().entries.map((entry) {
@@ -991,7 +1068,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(entry.value, style: TextStyle(color: isLast ? colorScheme.onSurface : colorScheme.outline, fontSize: DesktopDimensions.captionSize)),
+            Text(entry.value,
+                style: TextStyle(
+                    color: isLast ? colorScheme.onSurface : colorScheme.outline,
+                    fontSize: DesktopDimensions.captionSize)),
             if (!isLast)
               Icon(Icons.chevron_right, size: 16, color: colorScheme.outline),
           ],
@@ -1015,17 +1095,21 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ),
         const SizedBox(height: DesktopDimensions.spacingMedium),
         if (_selectionLevel == 1)
-          _buildStatRow('Categories', _detailsSubCount.toString(), Icons.folder, colorScheme),
+          _buildStatRow('Categories', _detailsSubCount.toString(), Icons.folder,
+              colorScheme),
         if (_selectionLevel == 2)
-          _buildStatRow('Subcategories', _detailsSubCount.toString(), Icons.subdirectory_arrow_right, colorScheme),
-        
+          _buildStatRow('Subcategories', _detailsSubCount.toString(),
+              Icons.subdirectory_arrow_right, colorScheme),
+
         // Items count (Products)
-        _buildStatRow('Total Items', _detailsItemCount.toString(), Icons.inventory_2, colorScheme),
+        _buildStatRow('Total Items', _detailsItemCount.toString(),
+            Icons.inventory_2, colorScheme),
       ],
     );
   }
 
-  Widget _buildStatRow(String label, String value, IconData icon, ColorScheme colorScheme) {
+  Widget _buildStatRow(
+      String label, String value, IconData icon, ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingStandard),
       child: Row(
@@ -1034,9 +1118,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
             decoration: BoxDecoration(
               color: colorScheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
             ),
-            child: Icon(icon, size: DesktopDimensions.kpiIconSize, color: colorScheme.primary),
+            child: Icon(icon,
+                size: DesktopDimensions.kpiIconSize,
+                color: colorScheme.primary),
           ),
           const SizedBox(width: DesktopDimensions.spacingMedium),
           Text(label, style: TextStyle(color: colorScheme.onSurface)),
@@ -1054,27 +1141,46 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Future<void> _updateStatus({required bool isActive, required bool isVisible}) async {
+  Future<void> _updateStatus(
+      {required bool isActive, required bool isVisible}) async {
     if (_selectionLevel == 1) {
-      final updated = Department(id: _selectedDepartment!.id, nameEn: _selectedDepartment!.nameEn, nameUr: _selectedDepartment!.nameUr, isActive: isActive, isVisibleInPOS: isVisible);
+      final updated = Department(
+          id: _selectedDepartment!.id,
+          nameEn: _selectedDepartment!.nameEn,
+          nameUr: _selectedDepartment!.nameUr,
+          isActive: isActive,
+          isVisibleInPOS: isVisible);
       await _repository.updateDepartment(updated);
     } else if (_selectionLevel == 2) {
-      final updated = Category(id: _selectedCategory!.id, departmentId: _selectedCategory!.departmentId, nameEn: _selectedCategory!.nameEn, nameUr: _selectedCategory!.nameUr, isActive: isActive, isVisibleInPOS: isVisible);
+      final updated = Category(
+          id: _selectedCategory!.id,
+          departmentId: _selectedCategory!.departmentId,
+          nameEn: _selectedCategory!.nameEn,
+          nameUr: _selectedCategory!.nameUr,
+          isActive: isActive,
+          isVisibleInPOS: isVisible);
       await _repository.updateCategory(updated);
     } else if (_selectionLevel == 3) {
-      final updated = SubCategory(id: _selectedSubCategory!.id, categoryId: _selectedSubCategory!.categoryId, nameEn: _selectedSubCategory!.nameEn, nameUr: _selectedSubCategory!.nameUr, isActive: isActive, isVisibleInPOS: isVisible);
+      final updated = SubCategory(
+          id: _selectedSubCategory!.id,
+          categoryId: _selectedSubCategory!.categoryId,
+          nameEn: _selectedSubCategory!.nameEn,
+          nameUr: _selectedSubCategory!.nameUr,
+          isActive: isActive,
+          isVisibleInPOS: isVisible);
       await _repository.updateSubCategory(updated);
     }
     _loadData();
   }
 
-  Widget _buildHighlightedText(String text, TextStyle baseStyle, Color highlightColor) {
+  Widget _buildHighlightedText(
+      String text, TextStyle baseStyle, Color highlightColor) {
     final query = _searchController.text;
     if (query.isEmpty) return Text(text, style: baseStyle);
-    
+
     final matches = query.toLowerCase().allMatches(text.toLowerCase());
     if (matches.isEmpty) return Text(text, style: baseStyle);
-    
+
     final spans = <InlineSpan>[];
     int start = 0;
     for (final match in matches) {
@@ -1083,14 +1189,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       }
       spans.add(TextSpan(
         text: text.substring(match.start, match.end),
-        style: baseStyle.copyWith(backgroundColor: highlightColor, fontWeight: FontWeight.bold),
+        style: baseStyle.copyWith(
+            backgroundColor: highlightColor, fontWeight: FontWeight.bold),
       ));
       start = match.end;
     }
     if (start < text.length) {
       spans.add(TextSpan(text: text.substring(start)));
     }
-    
+
     return RichText(
       text: TextSpan(style: baseStyle, children: spans),
     );

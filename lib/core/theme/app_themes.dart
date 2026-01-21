@@ -12,21 +12,25 @@ class AppThemes {
     titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
     bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
     bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-    labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 1.25),
+    labelLarge: TextStyle(
+        fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 1.25),
   );
 
   static MaterialColor _getMaterialColor(String colorName) {
     switch (colorName) {
-      case 'blue': return Colors.blue;
-      case 'orange': return Colors.orange;
+      case 'blue':
+        return Colors.blue;
+      case 'orange':
+        return Colors.orange;
       case 'green':
-      default: return Colors.green;
+      default:
+        return Colors.green;
     }
   }
 
   static ThemeData getTheme(String colorName, Brightness brightness) {
     final MaterialColor palette = _getMaterialColor(colorName);
-    
+
     if (brightness == Brightness.light) {
       return _getShadedLightTheme(palette);
     } else {
@@ -162,7 +166,8 @@ class AppThemes {
         labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
         prefixIconColor: textColor.withOpacity(0.7),
         suffixIconColor: textColor.withOpacity(0.7),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       ),
       scrollbarTheme: ScrollbarThemeData(
         thumbVisibility: MaterialStateProperty.all(true),
@@ -171,14 +176,15 @@ class AppThemes {
         radius: const Radius.circular(10),
         thickness: MaterialStateProperty.all(8),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: cardColor,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        titleTextStyle: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
+        titleTextStyle: TextStyle(
+            color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
         contentTextStyle: TextStyle(color: textColor, fontSize: 16),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardColor,
         elevation: 2,
         surfaceTintColor: Colors.transparent,
@@ -197,7 +203,9 @@ class AppThemes {
           elevation: 0,
           // Removed border side for cleaner look in colored themes, or keep if desired
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24), // Adjusted for visual balance with text
+          padding: const EdgeInsets.symmetric(
+              vertical: 18,
+              horizontal: 24), // Adjusted for visual balance with text
         ),
       ),
     );
