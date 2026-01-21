@@ -56,6 +56,9 @@ void main() {
     });
 
     test('should throw exception when cancellation would cause negative stock', () async {
+      // Get initial stock (used to verify purchase adds to it)
+      await itemsRepo.getProductStock(1);
+
       // Create a purchase that adds stock
       final purchaseId = await purchaseRepo.createPurchase({
         'supplier_id': 1,
