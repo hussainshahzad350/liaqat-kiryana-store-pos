@@ -162,11 +162,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // 3. Footer Bar (Fixed 32px)
-                SizedBox(
-                  height: 32,
-                  child: _buildFooterBar(localizations, colorScheme),
-                ),
+                // 3. Footer Bar
+                _buildFooterBar(localizations, colorScheme),
               ],
             ),
           ),
@@ -225,12 +222,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   thumbVisibility: true,
                   child: SingleChildScrollView(
                     controller: _leftPanelScroller,
-                    padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                    padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
                     child: Column(
                       children: [
                         // KPI Grid
                         _buildKPIGrid(localizations, colorScheme),
-                        const SizedBox(height: DesktopDimensions.spacingMedium),
+                        const SizedBox(height: DesktopDimensions.spacingLarge),
                         // Details Grid
                         _buildDetailsGrid(localizations, colorScheme),
                       ],
@@ -288,7 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Recent Activity (Previously in sidebar)
                   // We give it a fixed height so it scrolls within the main scroller
                   ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 500),
+                    constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.6),
                     child: _buildRecentSalesCard(localizations, colorScheme),
                   ),
                 ],
@@ -331,25 +328,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildShortcutItem(String label, String shortcut, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingSmall),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: colorScheme.onSurface)),
+          Text(label, style: Theme.of(context).textTheme.bodyLarge),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+              horizontal: DesktopDimensions.spacingSmall,
+              vertical: DesktopDimensions.spacingXSmall,
+            ),
             decoration: BoxDecoration(
               color: colorScheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(DesktopDimensions.smallBorderRadius),
               border: Border.all(color: colorScheme.outlineVariant),
             ),
             child: Text(
               shortcut,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontFamily: 'monospace',
-                color: colorScheme.onSurfaceVariant,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace',
+                    color: colorScheme.onSurfaceVariant,
+                  ),
             ),
           ),
         ],
