@@ -108,14 +108,15 @@ class _SalesScreenState extends State<SalesScreen> {
       final bool? shouldExit = await showDialog(
         context: context,
         builder: (context) => Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
           child: Container(
             constraints: BoxConstraints(
-              minWidth: 800,
               maxWidth: MediaQuery.of(context).size.width * 0.6,
+              minWidth: DesktopDimensions.dialogWidth * 1.5,
             ),
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,8 +125,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(loc.unsavedTitle,
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: Theme.of(context).textTheme.titleLarge),
                     IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.pop(context, false),
@@ -134,9 +134,10 @@ class _SalesScreenState extends State<SalesScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Text(loc.unsavedMsg, style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 24),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
+                Text(loc.unsavedMsg,
+                    style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -144,7 +145,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       onPressed: () => Navigator.pop(context, false),
                       child: Text(loc.cancel),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.error,
@@ -208,14 +209,15 @@ class _SalesScreenState extends State<SalesScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        // Dialog content
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
         child: Container(
           constraints: BoxConstraints(
-            minWidth: 800,
+            minWidth: DesktopDimensions.dialogWidth * 1.5,
             maxWidth: MediaQuery.of(context).size.width * 0.6,
           ),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,8 +226,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(loc.addNewCustomer,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)),
+                      style: Theme.of(context).textTheme.titleLarge),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
@@ -235,7 +236,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 ],
               ),
               const Divider(),
-              const SizedBox(height: 16),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
@@ -245,16 +246,20 @@ class _SalesScreenState extends State<SalesScreen> {
                           controller: nameEngCtrl,
                           decoration:
                               InputDecoration(labelText: loc.nameEnglish)),
+                      const SizedBox(height: DesktopDimensions.spacingMedium),
                       TextField(
                           controller: nameUrduCtrl,
                           decoration: InputDecoration(labelText: loc.nameUrdu)),
+                      const SizedBox(height: DesktopDimensions.spacingMedium),
                       TextField(
                           controller: phoneCtrl,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(labelText: loc.phoneNum)),
+                      const SizedBox(height: DesktopDimensions.spacingMedium),
                       TextField(
                           controller: addressCtrl,
                           decoration: InputDecoration(labelText: loc.address)),
+                      const SizedBox(height: DesktopDimensions.spacingMedium),
                       TextField(
                           controller: creditLimitCtrl,
                           keyboardType: TextInputType.number,
@@ -264,14 +269,14 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: DesktopDimensions.spacingLarge),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: Text(loc.cancel)),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
@@ -378,13 +383,15 @@ class _SalesScreenState extends State<SalesScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
         child: Container(
           constraints: BoxConstraints(
-            minWidth: 800,
+            minWidth: DesktopDimensions.dialogWidth * 1.5,
             maxWidth: MediaQuery.of(context).size.width * 0.6,
           ),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,8 +400,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(loc.clearCartTitle,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)),
+                      style: Theme.of(context).textTheme.titleLarge),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
@@ -403,9 +409,10 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(loc.clearCartMsg, style: const TextStyle(fontSize: 16)),
-              const SizedBox(height: 24),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
+              Text(loc.clearCartMsg,
+                  style: Theme.of(context).textTheme.bodyLarge),
+              const SizedBox(height: DesktopDimensions.spacingLarge),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -413,7 +420,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     onPressed: () => Navigator.pop(dialogContext),
                     child: Text(loc.cancel),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.error,
@@ -489,13 +496,15 @@ class _SalesScreenState extends State<SalesScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
         child: Container(
           constraints: BoxConstraints(
-            minWidth: 800,
+            minWidth: DesktopDimensions.dialogWidth * 1.5,
             maxWidth: MediaQuery.of(context).size.width * 0.6,
           ),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -503,12 +512,14 @@ class _SalesScreenState extends State<SalesScreen> {
               Row(
                 children: [
                   Icon(Icons.warning, color: colorScheme.error),
-                  const SizedBox(width: 10),
-                  Text(loc.creditLimitExceeded,
-                      style: TextStyle(
+                  const SizedBox(width: DesktopDimensions.spacingSmall),
+                  Text(
+                    loc.creditLimitExceeded,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: colorScheme.error,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -519,21 +530,24 @@ class _SalesScreenState extends State<SalesScreen> {
                 ],
               ),
               const Divider(),
-              const SizedBox(height: 16),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(loc.creditLimitWarningMsg(creditLimit.toString()),
-                          style: TextStyle(
-                              color: colorScheme.onSurface, fontSize: 16)),
-                      const SizedBox(height: 20),
+                      Text(
+                        loc.creditLimitWarningMsg(creditLimit.toString()),
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: DesktopDimensions.spacingLarge),
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding:
+                            const EdgeInsets.all(DesktopDimensions.cardPadding),
                         decoration: BoxDecoration(
                           color: colorScheme.errorContainer,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -555,12 +569,17 @@ class _SalesScreenState extends State<SalesScreen> {
                               isBold: true,
                               color: colorScheme.error,
                             ),
-                            const SizedBox(height: 5),
+                            const SizedBox(
+                                height: DesktopDimensions.spacingSmall),
                             Text(
                               '${loc.excessAmount}: ${(potentialBalance - creditLimit).toString()}',
-                              style: TextStyle(
-                                  color: colorScheme.error,
-                                  fontWeight: FontWeight.bold),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.error,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ],
                         ),
@@ -569,7 +588,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: DesktopDimensions.spacingLarge),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -578,7 +597,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     child: Text(loc.cancel,
                         style: TextStyle(color: colorScheme.onSurfaceVariant)),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
                   OutlinedButton(
                     onPressed: () {
                       Navigator.pop(context);
@@ -590,7 +609,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     ),
                     child: Text(loc.increaseLimit),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
@@ -624,14 +643,15 @@ class _SalesScreenState extends State<SalesScreen> {
       context: context,
       builder: (dialogContext) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
           child: Container(
             constraints: BoxConstraints(
-              minWidth: 800,
-              maxWidth: MediaQuery.of(context).size.width * 0.6,
+              minWidth: DesktopDimensions.dialogWidth,
+              maxWidth: MediaQuery.of(context).size.width * 0.5,
             ),
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,8 +660,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(loc.increaseCreditLimit,
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold)),
+                        style: Theme.of(context).textTheme.titleLarge),
                     IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.pop(dialogContext),
@@ -651,10 +670,12 @@ class _SalesScreenState extends State<SalesScreen> {
                   ],
                 ),
                 const Divider(),
-                const SizedBox(height: 16),
-                Text('${loc.current}: ${currentLimit.toString()}',
-                    style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 16),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
+                Text(
+                  '${loc.current}: ${currentLimit.toString()}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
                 TextField(
                   controller: limitCtrl,
                   keyboardType:
@@ -664,7 +685,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     border: const OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -672,7 +693,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       onPressed: () => Navigator.pop(dialogContext),
                       child: Text(loc.cancel),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
                     ElevatedButton(
                       onPressed: () async {
                         Money newLimit = Money.fromRupeesString(limitCtrl.text);
@@ -798,13 +819,14 @@ class _SalesScreenState extends State<SalesScreen> {
 
             return Dialog(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius:
+                      BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
               child: Container(
                 constraints: BoxConstraints(
-                  minWidth: 800,
+                  minWidth: DesktopDimensions.dialogWidth * 1.5,
                   maxWidth: MediaQuery.of(context).size.width * 0.6,
                 ),
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -812,12 +834,14 @@ class _SalesScreenState extends State<SalesScreen> {
                     Row(
                       children: [
                         Icon(Icons.shopping_cart, color: colorScheme.primary),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: DesktopDimensions.spacingSmall),
                         Text(loc.checkoutButton,
-                            style: TextStyle(
-                                color: colorScheme.primary,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold)),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.bold)),
                         const Spacer(),
                         IconButton(
                           icon: const Icon(Icons.close),
@@ -828,7 +852,7 @@ class _SalesScreenState extends State<SalesScreen> {
                       ],
                     ),
                     const Divider(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: DesktopDimensions.spacingMedium),
                     Flexible(
                       child: SingleChildScrollView(
                         child: Column(
@@ -837,46 +861,56 @@ class _SalesScreenState extends State<SalesScreen> {
                             if (isRegistered) ...[
                               Text(
                                   '${loc.searchCustomerHint}: ${selectedCustomerMap!.nameEnglish}',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: colorScheme.onSurface)),
-                              const SizedBox(height: 5),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(fontWeight: FontWeight.bold)),
+                              const SizedBox(
+                                  height: DesktopDimensions.spacingSmall),
                               Container(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(
+                                    DesktopDimensions.spacingSmall),
                                 decoration: BoxDecoration(
                                     color: colorScheme.secondaryContainer,
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.smallBorderRadius),
                                     border: Border.all(
                                         color: colorScheme.secondary)),
                                 child: Row(
                                   children: [
                                     Icon(Icons.info_outline,
-                                        size: 16, color: colorScheme.secondary),
-                                    const SizedBox(width: 5),
+                                        size: DesktopDimensions.iconSizeSmall,
+                                        color: colorScheme.secondary),
+                                    const SizedBox(
+                                        width: DesktopDimensions.spacingSmall),
                                     Text(
                                         '${loc.prevBalance}: ${oldBalance.toString()}',
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            color: colorScheme
-                                                .onSecondaryContainer)),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelMedium
+                                            ?.copyWith(
+                                                color: colorScheme
+                                                    .onSecondaryContainer)),
                                   ],
                                 ),
                               ),
-                              const Divider(height: 20),
+                              const Divider(
+                                  height: DesktopDimensions.spacingLarge),
                             ],
                             _infoRow(loc.billTotal, billTotal.toString(),
                                 isBold: true,
-                                size: 18,
+                                size: DesktopDimensions.headingSize,
                                 color: colorScheme.onSurface),
                             const Divider(),
-                            const SizedBox(height: 10),
+                            const SizedBox(
+                                height: DesktopDimensions.spacingStandard),
                             Text(loc.paymentLabel,
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: colorScheme.onSurface)),
-                            const SizedBox(height: 10),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(
+                                height: DesktopDimensions.spacingStandard),
                             _input(loc.cashInput, cashCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
@@ -909,30 +943,35 @@ class _SalesScreenState extends State<SalesScreen> {
                               _input(loc.creditInput, creditCtrl, (v) {
                                 setDialogState(() {});
                               }),
-                            const SizedBox(height: 10),
+                            const SizedBox(
+                                height: DesktopDimensions.spacingStandard),
                             if (!isRegistered)
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(loc.changeDue,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.onSurface)),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.bold)),
                                   Text(change.toString(),
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: change >= const Money(0)
-                                              ? colorScheme.primary
-                                              : colorScheme.error)),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: change >= const Money(0)
+                                                  ? colorScheme.primary
+                                                  : colorScheme.error)),
                                 ],
                               ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: DesktopDimensions.spacingLarge),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -940,7 +979,7 @@ class _SalesScreenState extends State<SalesScreen> {
                           onPressed: () => Navigator.pop(context),
                           child: Text(loc.cancel),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: DesktopDimensions.spacingMedium),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colorScheme.primary,
@@ -961,29 +1000,35 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   Widget _infoRow(String label, String value,
-      {bool isBold = false, double size = 14, Color? color}) {
+      {bool isBold = false, double? size, Color? color}) {
+    final textTheme = Theme.of(context).textTheme;
     final defaultColor = Theme.of(context).colorScheme.onSurface;
+
+    TextStyle? baseStyle;
+    if (size == null) {
+      baseStyle = textTheme.bodyMedium;
+    } else if (size >= DesktopDimensions.headingSize) {
+      baseStyle = textTheme.titleMedium;
+    } else if (size >= DesktopDimensions.bodyLargeSize) {
+      baseStyle = textTheme.bodyLarge;
+    } else {
+      baseStyle = textTheme.bodyMedium;
+    }
+
+    final finalStyle = baseStyle?.copyWith(
+      fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+      color: color ?? defaultColor,
+      fontSize: size,
+    );
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(
+          vertical: DesktopDimensions.spacingXXSmall),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: size,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: color ?? defaultColor,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: size,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: color ?? defaultColor,
-            ),
-          ),
+          Text(label, style: finalStyle),
+          Text(value, style: finalStyle),
         ],
       ),
     );
@@ -993,32 +1038,38 @@ class _SalesScreenState extends State<SalesScreen> {
       String label, TextEditingController ctrl, Function(String) onChanged,
       {bool enabled = true}) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingStandard),
       child: Row(children: [
         SizedBox(
-            width: 130,
-            child: Text(label,
-                style: TextStyle(fontSize: 14, color: colorScheme.onSurface))),
+            width: DesktopDimensions.labelWidthStandard,
+            child: Text(label, style: textTheme.bodyLarge)),
         Expanded(
-          child: TextField(
-            controller: ctrl,
-            enabled: enabled,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              isDense: true,
-              contentPadding: const EdgeInsets.all(10),
-              border: const OutlineInputBorder(),
-              prefixText: 'Rs ',
-              filled: !enabled,
-              fillColor: enabled ? null : colorScheme.surfaceVariant,
+          child: SizedBox(
+            height: DesktopDimensions.formFieldHeight,
+            child: TextField(
+              controller: ctrl,
+              enabled: enabled,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: DesktopDimensions.spacingStandard),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                        DesktopDimensions.formFieldBorderRadius)),
+                prefixText: 'Rs ',
+                filled: !enabled,
+                fillColor: enabled ? null : colorScheme.surfaceVariant,
+              ),
+              style: textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: enabled
+                      ? colorScheme.onSurface
+                      : colorScheme.onSurfaceVariant),
+              onChanged: onChanged,
             ),
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: enabled
-                    ? colorScheme.onSurface
-                    : colorScheme.onSurfaceVariant),
-            onChanged: onChanged,
           ),
         ),
       ]),
@@ -1049,6 +1100,7 @@ class _SalesScreenState extends State<SalesScreen> {
   void _showPostSaleDialog(Invoice invoice) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     showDialog(
       context: context,
@@ -1056,40 +1108,38 @@ class _SalesScreenState extends State<SalesScreen> {
       builder: (context) => WillPopScope(
         onWillPop: () async => false,
         child: Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 450),
-            padding: const EdgeInsets.all(24),
+            constraints:
+                const BoxConstraints(maxWidth: DesktopDimensions.dialogWidth),
+            padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.check_circle, color: Colors.green, size: 64),
-                const SizedBox(height: 16),
-                Text(loc.saleCompleted,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold)),
+                Icon(Icons.check_circle,
+                    color: colorScheme.primary,
+                    size: DesktopDimensions.aboutIconSize),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
+                Text(loc.saleCompleted, style: textTheme.titleLarge),
                 Text('${loc.bill} #${invoice.invoiceNumber}',
-                    style: TextStyle(color: colorScheme.onSurfaceVariant)),
-                const SizedBox(height: 32),
-
-                // Print
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurfaceVariant)),
+                const SizedBox(height: DesktopDimensions.spacingXLarge),
                 SizedBox(
                   width: double.infinity,
+                  height: DesktopDimensions.buttonHeight,
                   child: OutlinedButton.icon(
                     onPressed: () => _handlePrintReceipt(invoice),
                     icon: const Icon(Icons.print),
                     label: Text(loc.printReceipt),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
                   ),
                 ),
-                const SizedBox(height: 12),
-
-                // Save PDF
+                const SizedBox(height: DesktopDimensions.spacingStandard),
                 SizedBox(
                   width: double.infinity,
+                  height: DesktopDimensions.buttonHeight,
                   child: OutlinedButton.icon(
                     onPressed: () async {
                       try {
@@ -1112,16 +1162,12 @@ class _SalesScreenState extends State<SalesScreen> {
                     },
                     icon: const Icon(Icons.picture_as_pdf),
                     label: Text(loc.saveAsPdf),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
-
-                // New Sale
+                const SizedBox(height: DesktopDimensions.spacingLarge),
                 SizedBox(
                   width: double.infinity,
+                  height: DesktopDimensions.buttonHeight,
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
@@ -1129,13 +1175,12 @@ class _SalesScreenState extends State<SalesScreen> {
                       _refreshAllData();
                     },
                     icon: const Icon(Icons.add_shopping_cart),
-                    label: Text(loc.startNewSale),
+                    label: Text(loc.startNewSale.toUpperCase()),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
-                      textStyle: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
+                      textStyle: textTheme.bodyLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -1206,13 +1251,15 @@ class _SalesScreenState extends State<SalesScreen> {
     final bool? confirm = await showDialog(
       context: context,
       builder: (c) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
         child: Container(
           constraints: BoxConstraints(
-            minWidth: 800,
+            minWidth: DesktopDimensions.dialogWidth * 1.5,
             maxWidth: MediaQuery.of(context).size.width * 0.6,
           ),
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1221,8 +1268,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(loc.cancelSaleTitle,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)),
+                      style: Theme.of(context).textTheme.titleLarge),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(c, false),
@@ -1231,9 +1277,10 @@ class _SalesScreenState extends State<SalesScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(loc.cancelSaleMessage, style: const TextStyle(fontSize: 16)),
-              const SizedBox(height: 16),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
+              Text(loc.cancelSaleMessage,
+                  style: Theme.of(context).textTheme.bodyLarge),
+              const SizedBox(height: DesktopDimensions.spacingMedium),
               TextField(
                 controller: reasonCtrl,
                 decoration: InputDecoration(
@@ -1241,7 +1288,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   border: const OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: DesktopDimensions.spacingLarge),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -1249,7 +1296,7 @@ class _SalesScreenState extends State<SalesScreen> {
                     onPressed: () => Navigator.pop(c, false),
                     child: Text(loc.cancel),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DesktopDimensions.spacingMedium),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.error,
@@ -1736,26 +1783,28 @@ class _SalesScreenState extends State<SalesScreen> {
 
   Widget _buildProductCard(
       Product product, ColorScheme colorScheme, bool isFocused) {
-  return Card(
-    elevation: DesktopDimensions.cardElevation,
-    margin: EdgeInsets.zero,
-    clipBehavior: Clip.antiAlias,
-    color: colorScheme.surface,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-      side: BorderSide(
-          color: isFocused
-              ? colorScheme.primary
-              : colorScheme.outlineVariant.withOpacity(0.3),
-          width: isFocused ? 2 : 1),
-    ),
+    final textTheme = Theme.of(context).textTheme;
+    return Card(
+      elevation: DesktopDimensions.cardElevation,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      color: colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        side: BorderSide(
+            color: isFocused
+                ? colorScheme.primary
+                : colorScheme.outlineVariant.withOpacity(0.3),
+            width: isFocused ? 2 : 1),
+      ),
       child: InkWell(
         onTap: () => _addToCart(product),
         hoverColor: colorScheme.primaryContainer.withOpacity(0.3),
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -1763,16 +1812,15 @@ class _SalesScreenState extends State<SalesScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.inventory_2_outlined,
-                          size: 16,
+                          size: DesktopDimensions.iconSizeSmall,
                           color: colorScheme.primary.withOpacity(0.7)),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: DesktopDimensions.spacingXSmall),
                       Flexible(
                         child: Text(
                           product.salePrice.formatted,
-                          style: TextStyle(
+                          style: textTheme.bodyLarge?.copyWith(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.w800,
-                            fontSize: 16,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1780,14 +1828,13 @@ class _SalesScreenState extends State<SalesScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: DesktopDimensions.spacingXSmall),
                   Text(
                     product.nameEnglish,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 13,
+                    style: textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: colorScheme.onSurface,
                       height: 1.2,
@@ -1796,8 +1843,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   if (product.nameUrdu != null && product.nameUrdu!.isNotEmpty)
                     Text(
                       product.nameUrdu!,
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: textTheme.bodySmall?.copyWith(
                         fontFamily: 'NooriNastaleeq',
                         color: colorScheme.onSurfaceVariant,
                         height: 1.2,
@@ -1810,20 +1856,22 @@ class _SalesScreenState extends State<SalesScreen> {
               ),
             ),
             Positioned(
-              top: 6,
-              right: 6,
+              top: DesktopDimensions.spacingXSmall,
+              right: DesktopDimensions.spacingXSmall,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesktopDimensions.spacingXSmall,
+                    vertical: DesktopDimensions.spacingXXSmall),
                 decoration: BoxDecoration(
                   color: (product.currentStock) < 10
                       ? colorScheme.errorContainer
                       : colorScheme.surfaceVariant,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.smallBorderRadius),
                 ),
                 child: Text(
                   '${product.currentStock}',
-                  style: TextStyle(
-                    fontSize: 10,
+                  style: textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: (product.currentStock) < 10
                         ? colorScheme.onErrorContainer
@@ -1838,137 +1886,154 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-  Widget _buildRecentSalesSection(AppLocalizations loc, ColorScheme colorScheme) {
+  Widget _buildRecentSalesSection(
+      AppLocalizations loc, ColorScheme colorScheme) {
+    final textTheme = Theme.of(context).textTheme;
     return Card(
-    elevation: DesktopDimensions.cardElevation,
-    margin: const EdgeInsets.only(top: DesktopDimensions.spacingMedium),
-    shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
-    child: Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: DesktopDimensions.spacingStandard,
-                vertical: DesktopDimensions.spacingSmall),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant.withOpacity(0.3),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(DesktopDimensions.cardBorderRadius),
-                topRight: Radius.circular(DesktopDimensions.cardBorderRadius),
+      elevation: DesktopDimensions.cardElevation,
+      margin: const EdgeInsets.only(top: DesktopDimensions.spacingMedium),
+      shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesktopDimensions.spacingStandard,
+                  vertical: DesktopDimensions.spacingSmall),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceVariant.withOpacity(0.3),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(DesktopDimensions.cardBorderRadius),
+                  topRight:
+                      Radius.circular(DesktopDimensions.cardBorderRadius),
+                ),
+              ),
+              width: double.infinity,
+              child: Text(loc.recentSales,
+                  style: textTheme.titleSmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant)),
+            ),
+            Expanded(
+              child: ListView.separated(
+                itemCount: recentInvoices.length,
+                separatorBuilder: (c, i) =>
+                    const Divider(height: DesktopDimensions.dividerThickness),
+                itemBuilder: (context, index) {
+                  final invoice = recentInvoices[index];
+                  final isCancelled = invoice.status == 'CANCELLED';
+                  return ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: DesktopDimensions.spacingStandard),
+                    leading: CircleAvatar(
+                      radius: DesktopDimensions.iconSizeSmall,
+                      backgroundColor: isCancelled
+                          ? colorScheme.errorContainer
+                          : colorScheme.primaryContainer,
+                      child: Text('${index + 1}',
+                          style: textTheme.labelSmall?.copyWith(
+                              color: isCancelled
+                                  ? colorScheme.onErrorContainer
+                                  : colorScheme.onPrimaryContainer)),
+                    ),
+                    title: Text(
+                      invoice.customerName ?? loc.walkInCustomer,
+                      style: textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        decoration:
+                            isCancelled ? TextDecoration.lineThrough : null,
+                        color: isCancelled
+                            ? colorScheme.onSurface.withOpacity(0.6)
+                            : colorScheme.onSurface,
+                      ),
+                    ),
+                    subtitle: Text(invoice.invoiceNumber,
+                        style: textTheme.labelSmall
+                            ?.copyWith(color: colorScheme.onSurfaceVariant)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(Money(invoice.totalAmount).formatted,
+                            style: textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(width: DesktopDimensions.spacingSmall),
+                        PopupMenuButton<String>(
+                          icon: Icon(Icons.more_vert,
+                              size: DesktopDimensions.iconSizeMedium,
+                              color: colorScheme.onSurfaceVariant),
+                          padding: EdgeInsets.zero,
+                          onSelected: (value) {
+                            if (value == 'print') _handlePrintReceipt(invoice);
+                            if (value == 'edit') _handleEditInvoice(invoice);
+                            if (value == 'cancel') {
+                              _cancelSale(invoice.id!, invoice.invoiceNumber);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            if (!isCancelled) ...[
+                              PopupMenuItem(
+                                  value: 'print',
+                                  child: Row(children: [
+                                    const Icon(Icons.print,
+                                        size:
+                                            DesktopDimensions.iconSizeSmall),
+                                    const SizedBox(
+                                        width:
+                                            DesktopDimensions.spacingSmall),
+                                    Text('Print', style: textTheme.bodyMedium)
+                                  ])),
+                              PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(children: [
+                                    const Icon(Icons.edit,
+                                        size:
+                                            DesktopDimensions.iconSizeSmall),
+                                    const SizedBox(
+                                        width:
+                                            DesktopDimensions.spacingSmall),
+                                    Text('Edit', style: textTheme.bodyMedium)
+                                  ])),
+                              PopupMenuItem(
+                                  value: 'cancel',
+                                  child: Row(children: [
+                                    Icon(Icons.cancel,
+                                        size: DesktopDimensions.iconSizeSmall,
+                                        color: colorScheme.error),
+                                    const SizedBox(
+                                        width:
+                                            DesktopDimensions.spacingSmall),
+                                    Text('Cancel',
+                                        style: textTheme.bodyMedium
+                                            ?.copyWith(
+                                                color: colorScheme.error))
+                                  ])),
+                            ] else ...[
+                              PopupMenuItem(
+                                  enabled: false,
+                                  child: Text('Cancelled',
+                                      style: textTheme.bodyMedium)),
+                            ]
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
-            width: double.infinity,
-            child: Text(loc.recentSales,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurfaceVariant)),
-          ),
-          Expanded(
-            child: ListView.separated(
-              itemCount: recentInvoices.length,
-              separatorBuilder: (c, i) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final invoice = recentInvoices[index];
-                final isCancelled = invoice.status == 'CANCELLED';
-                return ListTile(
-                  dense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                  leading: CircleAvatar(
-                    radius: 14,
-                    backgroundColor: isCancelled
-                        ? colorScheme.errorContainer
-                        : colorScheme.primaryContainer,
-                    child: Text('${index + 1}',
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: isCancelled
-                                ? colorScheme.onErrorContainer
-                                : colorScheme.onPrimaryContainer)),
-                  ),
-                  title: Text(
-                    invoice.customerName ?? loc.walkInCustomer,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      decoration:
-                          isCancelled ? TextDecoration.lineThrough : null,
-                      color: isCancelled
-                          ? colorScheme.onSurface.withOpacity(0.6)
-                          : colorScheme.onSurface,
-                    ),
-                  ),
-                  subtitle: Text(invoice.invoiceNumber,
-                      style: TextStyle(
-                          fontSize: 11, color: colorScheme.onSurfaceVariant)),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(Money(invoice.totalAmount).formatted,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: colorScheme.onSurface)),
-                      const SizedBox(width: 8),
-                      PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert,
-                            size: 18, color: colorScheme.onSurfaceVariant),
-                        padding: EdgeInsets.zero,
-                        onSelected: (value) {
-                          if (value == 'print') _handlePrintReceipt(invoice);
-                          if (value == 'edit') _handleEditInvoice(invoice);
-                          if (value == 'cancel') {
-                            _cancelSale(invoice.id!, invoice.invoiceNumber);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          if (!isCancelled) ...[
-                            const PopupMenuItem(
-                                value: 'print',
-                                child: Row(children: [
-                                  Icon(Icons.print, size: 16),
-                                  SizedBox(width: 8),
-                                  Text('Print')
-                                ])),
-                            const PopupMenuItem(
-                                value: 'edit',
-                                child: Row(children: [
-                                  Icon(Icons.edit, size: 16),
-                                  SizedBox(width: 8),
-                                  Text('Edit')
-                                ])),
-                            PopupMenuItem(
-                                value: 'cancel',
-                                child: Row(children: [
-                                  Icon(Icons.cancel,
-                                      size: 16, color: colorScheme.error),
-                                  const SizedBox(width: 8),
-                                  Text('Cancel',
-                                      style:
-                                          TextStyle(color: colorScheme.error))
-                                ])),
-                          ] else ...[
-                            const PopupMenuItem(
-                                enabled: false, child: Text('Cancelled')),
-                          ]
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildCustomerSection(AppLocalizations loc, ColorScheme colorScheme) {
     return Card(
@@ -2014,19 +2079,19 @@ class _SalesScreenState extends State<SalesScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: DesktopDimensions.spacingSmall),
               SizedBox(
-                height: 48,
+                height: DesktopDimensions.buttonHeight,
+                width: DesktopDimensions.buttonHeight,
                 child: ElevatedButton(
                   onPressed: _showAddCustomerDialog,
                   style: ElevatedButton.styleFrom(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                    padding: EdgeInsets.zero,
                     backgroundColor: colorScheme.primaryContainer,
                     foregroundColor: colorScheme.onPrimaryContainer,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    minimumSize: const Size(48, 48),
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.buttonBorderRadius)),
                   ),
                   child: const Icon(Icons.person_add),
                 ),
@@ -2036,14 +2101,17 @@ class _SalesScreenState extends State<SalesScreen> {
           if (showCustomerList)
             Container(
               constraints: const BoxConstraints(maxHeight: 200),
-              margin: const EdgeInsets.only(top: 5),
+              margin:
+                  const EdgeInsets.only(top: DesktopDimensions.spacingXSmall),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
                 border: Border.all(color: colorScheme.outline),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
                 boxShadow: [
                   BoxShadow(
-                      color: colorScheme.shadow.withOpacity(0.1), blurRadius: 4)
+                      color: colorScheme.shadow.withOpacity(0.1),
+                      blurRadius: DesktopDimensions.spacingXSmall)
                 ],
               ),
               child: filteredCustomers.isEmpty
@@ -2081,93 +2149,85 @@ class _SalesScreenState extends State<SalesScreen> {
 }
 
   Widget _buildTotalsSection(AppLocalizations loc, ColorScheme colorScheme) {
+    final textTheme = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, -4),
-            blurRadius: 8,
+            blurRadius: DesktopDimensions.spacingSmall,
           )
         ],
       ),
       child: Column(
         children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(loc.subtotal,
-                style: TextStyle(
-                    color: colorScheme.onSurfaceVariant, fontSize: 14)),
+            Text(loc.subtotal, style: textTheme.bodyLarge),
             Text(subtotal.toString(),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                    fontSize: 14))
+                style: textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ))
           ]),
-          const SizedBox(height: 8),
+          const SizedBox(height: DesktopDimensions.spacingStandard),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(loc.discount,
-                style: TextStyle(
-                    color: colorScheme.onSurfaceVariant, fontSize: 14)),
+            Text(loc.discount, style: textTheme.bodyLarge),
             SizedBox(
-              width: 100,
-              height: 32,
+              width: 120,
+              height: DesktopDimensions.buttonHeight,
               child: TextField(
                 controller: discountController,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.end,
                 decoration: InputDecoration(
                   isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: DesktopDimensions.spacingStandard,
+                      horizontal: DesktopDimensions.spacingStandard),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(4)),
+                      borderRadius: BorderRadius.circular(
+                          DesktopDimensions.buttonBorderRadius)),
                   hintText: '0',
                 ),
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                    fontSize: 14),
+                style: textTheme.bodyLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
                 onChanged: (_) => setState(() => _calculateTotals()),
               ),
             ),
           ]),
           if (previousBalance > const Money(0))
             Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding:
+                  const EdgeInsets.only(top: DesktopDimensions.spacingStandard),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(loc.prevBalance,
-                        style:
-                            TextStyle(color: colorScheme.error, fontSize: 14)),
+                        style: textTheme.bodyLarge
+                            ?.copyWith(color: colorScheme.error)),
                     Text(previousBalance.toString(),
-                        style: TextStyle(
+                        style: textTheme.bodyLarge?.copyWith(
                             color: colorScheme.error,
-                            fontSize: 14,
                             fontWeight: FontWeight.bold))
                   ]),
             ),
-          const SizedBox(height: 12),
+          const SizedBox(height: DesktopDimensions.spacingStandard),
           const Divider(),
-          const SizedBox(height: 12),
+          const SizedBox(height: DesktopDimensions.spacingStandard),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text(loc.grandTotal.toUpperCase(),
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: colorScheme.onSurface)),
+                style: textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w800)),
             Text(grandTotal.toString(),
-                style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: colorScheme.primary))
+                style: textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w900, color: colorScheme.primary))
           ]),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesktopDimensions.spacingMedium),
           SizedBox(
             width: double.infinity,
-            height: 56,
+            height: DesktopDimensions.buttonHeight * 1.4,
             child: ElevatedButton(
               onPressed: cartItems.isEmpty ? null : _showCheckoutDialog,
               style: ElevatedButton.styleFrom(
@@ -2175,37 +2235,34 @@ class _SalesScreenState extends State<SalesScreen> {
                 foregroundColor: colorScheme.onPrimary,
                 elevation: DesktopDimensions.cardElevation,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                    borderRadius: BorderRadius.circular(
+                        DesktopDimensions.cardBorderRadius)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.payment, size: 28),
-                  const SizedBox(width: 12),
+                  const Icon(Icons.payment,
+                      size: DesktopDimensions.iconSizeXLarge),
+                  const SizedBox(width: DesktopDimensions.spacingStandard),
                   Text(
                     loc.checkoutButton.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimary,
-                      letterSpacing: 1.0,
-                    ),
+                    style: textTheme.titleLarge
+                        ?.copyWith(color: colorScheme.onPrimary),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesktopDimensions.spacingStandard),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: DesktopDimensions.spacingSmall,
+                        vertical: DesktopDimensions.spacingXSmall),
                     decoration: BoxDecoration(
                       color: colorScheme.onPrimary.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(
+                          DesktopDimensions.smallBorderRadius),
                     ),
                     child: Text(
                       "F9",
-                      style: TextStyle(
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                      style: textTheme.bodySmall
+                          ?.copyWith(color: colorScheme.onPrimary),
                     ),
                   ),
                 ],
@@ -2302,8 +2359,11 @@ class _CartItemRowState extends State<_CartItemRow> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingStandard,
+          vertical: DesktopDimensions.spacingSmall),
       color: widget.index % 2 == 0
           ? widget.colorScheme.surface
           : widget.colorScheme.surfaceVariant.withOpacity(0.2),
@@ -2318,76 +2378,75 @@ class _CartItemRowState extends State<_CartItemRow> {
                   widget.isRTL && widget.item.nameUrdu.isNotEmpty
                       ? widget.item.nameUrdu
                       : widget.item.nameEnglish,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: widget.colorScheme.onSurface),
+                  style: textTheme.labelMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (widget.item.itemCode != null)
                   Text(widget.item.itemCode!,
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: widget.colorScheme.onSurfaceVariant)),
+                      style: textTheme.labelSmall
+                          ?.copyWith(color: widget.colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
           SizedBox(
-            width: 70,
+            width: 80,
+            height: DesktopDimensions.formFieldHeight,
             child: TextField(
               controller: _priceCtrl,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
               decoration: const InputDecoration(
                 isDense: true,
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                contentPadding: EdgeInsets.symmetric(
+                    vertical: DesktopDimensions.spacingSmall,
+                    horizontal: DesktopDimensions.spacingXSmall),
                 border: InputBorder.none,
                 hintText: '0',
               ),
-              style:
-                  TextStyle(fontSize: 13, color: widget.colorScheme.onSurface),
+              style: textTheme.bodyMedium,
               onChanged: (_) => _onChanged(),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: DesktopDimensions.spacingSmall),
           SizedBox(
-            width: 60,
+            width: 70,
+            height: DesktopDimensions.formFieldHeight,
             child: TextField(
               controller: _qtyCtrl,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 isDense: true,
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                border: OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(
+                    vertical: DesktopDimensions.spacingSmall,
+                    horizontal: DesktopDimensions.spacingXSmall),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                        DesktopDimensions.formFieldBorderRadius)),
               ),
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: widget.colorScheme.onSurface),
+              style: textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
               onChanged: (_) => _onChanged(),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: DesktopDimensions.spacingSmall),
           SizedBox(
-            width: 70,
+            width: 80,
             child: Text(
               widget.item.total.toString().replaceAll('Rs ', ''),
               textAlign: TextAlign.end,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: widget.colorScheme.onSurface),
+              style: textTheme.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           SizedBox(
-            width: 32,
+            width: DesktopDimensions.iconSizeXLarge,
             child: IconButton(
-              icon:
-                  Icon(Icons.close, color: widget.colorScheme.error, size: 18),
+              icon: Icon(Icons.close,
+                  color: widget.colorScheme.error,
+                  size: DesktopDimensions.iconSizeMedium),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               onPressed: () => widget.onRemove(widget.index),
