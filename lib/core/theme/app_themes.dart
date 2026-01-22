@@ -170,11 +170,11 @@ class AppThemes {
             const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       ),
       scrollbarTheme: ScrollbarThemeData(
-        thumbVisibility: MaterialStateProperty.all(true),
-        trackVisibility: MaterialStateProperty.all(true),
-        thumbColor: MaterialStateProperty.all(textColor.withOpacity(0.4)),
+        thumbVisibility: WidgetStateProperty.all(true),
+        trackVisibility: WidgetStateProperty.all(true),
+        thumbColor: WidgetStateProperty.all(textColor.withOpacity(0.4)),
         radius: const Radius.circular(10),
-        thickness: MaterialStateProperty.all(8),
+        thickness: WidgetStateProperty.all(8),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: cardColor,
