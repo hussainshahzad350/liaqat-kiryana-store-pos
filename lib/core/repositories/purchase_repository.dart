@@ -76,10 +76,18 @@ class PurchaseRepository {
       );
 
       // 3. Validate stock levels before reversal to prevent negative stock
+      final requiredByProduct = <int, double>{};
       for (var item in items) {
         final productId = item['product_id'];
-        final quantityToSubtract = (item['quantity'] as num).toDouble();
-        
+        final productId = item['product_id'] as int;
+        final quantity = (item['quantity'] as num).toDouble();
+        requiredByProduct[productId] =
+          (requiredByProduct[productId] ?? 0) + quantity;
+        }
+      for (final entry in requiredByProduct.entries) {
+        final productId = entry.key;
+        final quantityToSubtract = entry.value;
+
         final productRes = await txn.query(
           'products',
           columns: ['current_stock', 'name_english'],
@@ -87,14 +95,12 @@ class PurchaseRepository {
           whereArgs: [productId],
           limit: 1,
         );
-        
         if (productRes.isEmpty) {
           throw Exception('Product ID $productId not found');
         }
-        
         final currentStock = (productRes.first['current_stock'] as num).toDouble();
         final productName = productRes.first['name_english'] as String;
-        
+
         if (currentStock < quantityToSubtract) {
           throw Exception(
             'Cannot cancel purchase: insufficient stock for "$productName". '
@@ -103,7 +109,6 @@ class PurchaseRepository {
           );
         }
       }
-
       // 4. Reverse Stock (Subtract quantity) - now safe after validation
       for (var item in items) {
         await txn.rawUpdate(
