@@ -17,6 +17,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         return localizations.dashboard;
       case AppRoutes.sales:
         return localizations.sales;
+      case AppRoutes.purchase:
+        return "Purchase";
       case AppRoutes.stock:
         return localizations.stockManagement;
       case AppRoutes.customers:
