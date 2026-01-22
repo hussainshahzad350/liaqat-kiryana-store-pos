@@ -7,6 +7,7 @@ import '../../core/repositories/suppliers_repository.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../domain/entities/money.dart';
 import '../../core/routes/app_routes.dart';
+import '../../widgets/main_layout.dart';
 
 class PurchaseScreen extends StatefulWidget {
   const PurchaseScreen({super.key});
@@ -49,7 +50,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Select Supplier'),
         content: SizedBox(
-          width: double.maxFinite,
+          width: DesktopDimensions.dialogWidth,
           child: ListView.builder(
             shrinkWrap: true,
             itemCount: suppliers.length,
@@ -71,13 +72,14 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton.icon(
             onPressed: () {
               // Navigate to Add Supplier Screen (Shortcut)
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRoutes.suppliers);
             },
-            child: const Text('+ New Supplier'),
+            icon: const Icon(Icons.add),
+            label: const Text('New Supplier'),
           ),
         ],
       ),
@@ -95,14 +97,17 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Select Item'),
         content: SizedBox(
-          width: double.maxFinite,
-          height: 300,
+          width: DesktopDimensions.dialogWidth,
+          height: DesktopDimensions.dialogHeight,
           child: Column(
             children: [
-              const TextField(
+              TextField(
                 decoration: InputDecoration(
                   hintText: 'Search Item...',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)
+                  )
                 ),
               ),
               const SizedBox(height: DesktopDimensions.spacingSmall),
@@ -130,12 +135,13 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pushNamed(context, AppRoutes.items);
             },
-            child: const Text('+ New Item'),
+            icon: const Icon(Icons.add),
+            label: const Text('New Item'),
           ),
         ],
       ),
@@ -154,59 +160,72 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
       builder: (context) => AlertDialog(
         title: Text('Add: ${item['name_english']}'),
         content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: qtyCtrl,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                    labelText: 'Quantity', border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: DesktopDimensions.spacingStandard),
-              TextField(
-                controller: costCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                    labelText: 'Buy Price (Unit)',
-                    border: OutlineInputBorder(),
-                    prefixText: 'Rs '),
-              ),
-              const SizedBox(height: DesktopDimensions.spacingStandard),
-              TextField(
-                controller: batchCtrl,
-                decoration: const InputDecoration(
-                    labelText: 'Batch Number (Optional)',
-                    border: OutlineInputBorder()),
-              ),
-              const SizedBox(height: DesktopDimensions.spacingStandard),
-              TextField(
-                controller: expiryCtrl,
-                decoration: const InputDecoration(
-                    labelText: 'Expiry Date (YYYY-MM-DD)',
-                    border: OutlineInputBorder(),
-                    hintText: '2025-12-31'),
-                onTap: () async {
-                  DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now().add(const Duration(days: 365)),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2100),
-                  );
-                  if (picked != null) {
-                    expiryCtrl.text = DateFormat('yyyy-MM-dd').format(picked);
-                  }
-                },
-              ),
-            ],
+          child: SizedBox(
+            width: DesktopDimensions.dialogWidth,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: qtyCtrl,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                      labelText: 'Quantity',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius))),
+                ),
+                const SizedBox(height: DesktopDimensions.spacingStandard),
+                TextField(
+                  controller: costCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                      labelText: 'Buy Price (Unit)',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius)),
+                      prefixText: 'Rs '),
+                ),
+                const SizedBox(height: DesktopDimensions.spacingStandard),
+                TextField(
+                  controller: batchCtrl,
+                  decoration: InputDecoration(
+                      labelText: 'Batch Number (Optional)',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius))),
+                ),
+                const SizedBox(height: DesktopDimensions.spacingStandard),
+                TextField(
+                  controller: expiryCtrl,
+                  decoration: InputDecoration(
+                      labelText: 'Expiry Date (YYYY-MM-DD)',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius)),
+                      hintText: '2025-12-31'),
+                  onTap: () async {
+                    DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now().add(const Duration(days: 365)),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) {
+                      expiryCtrl.text = DateFormat('yyyy-MM-dd').format(picked);
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancel')),
-          ElevatedButton(
+          ElevatedButton.icon(
+            icon: const Icon(Icons.add_shopping_cart),
             onPressed: () {
               final qty = double.tryParse(qtyCtrl.text) ?? 0;
               final cost = Money.fromRupeesString(costCtrl.text).paisas;
@@ -226,7 +245,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                 Navigator.pop(context);
               }
             },
-            child: const Text('Add to Bill'),
+            label: const Text('Add to Bill'),
           ),
         ],
       ),
@@ -272,26 +291,27 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Shortcuts(
-      shortcuts: const <ShortcutActivator, Intent>{
-        SingleActivator(LogicalKeyboardKey.keyS, control: true):
-            SavePurchaseIntent(),
-        SingleActivator(LogicalKeyboardKey.keyI, control: true):
-            AddItemIntent(),
-      },
-      child: Actions(
-        actions: <Type, Action<Intent>>{
-          SavePurchaseIntent: CallbackAction<SavePurchaseIntent>(onInvoke: (_) {
-            _savePurchase();
-            return null;
-          }),
-          AddItemIntent: CallbackAction<AddItemIntent>(onInvoke: (_) {
-            _addItem();
-            return null;
-          }),
+    return MainLayout(
+      currentRoute: AppRoutes.purchase,
+      child: Shortcuts(
+        shortcuts: const <ShortcutActivator, Intent>{
+          SingleActivator(LogicalKeyboardKey.keyS, control: true):
+              SavePurchaseIntent(),
+          SingleActivator(LogicalKeyboardKey.keyI, control: true):
+              AddItemIntent(),
         },
-        child: Scaffold(
-          body: Column(
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            SavePurchaseIntent: CallbackAction<SavePurchaseIntent>(onInvoke: (_) {
+              _savePurchase();
+              return null;
+            }),
+            AddItemIntent: CallbackAction<AddItemIntent>(onInvoke: (_) {
+              _addItem();
+              return null;
+            }),
+          },
+          child: Column(
             children: [
               // Header Section
               Container(
@@ -309,16 +329,15 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                                 labelText: 'Supplier',
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                        DesktopDimensions.cardBorderRadius /
-                                            2)),
+                                        DesktopDimensions.cardBorderRadius)),
                                 prefixIcon: const Icon(Icons.store),
                               ),
                               child: Text(
                                 _selectedSupplier?['name_english'] ??
                                     'Select Supplier',
-                                style: TextStyle(
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                   color: _selectedSupplier == null
-                                      ? Colors.grey
+                                      ? colorScheme.onSurface.withOpacity(0.5)
                                       : colorScheme.onSurface,
                                 ),
                               ),
@@ -333,7 +352,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                               labelText: 'Supplier Invoice #',
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(
-                                      DesktopDimensions.cardBorderRadius / 2)),
+                                      DesktopDimensions.cardBorderRadius)),
                             ),
                           ),
                         ),
@@ -356,9 +375,12 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                               }
                             },
                             child: InputDecorator(
-                              decoration: const InputDecoration(
+                              decoration:  InputDecoration(
                                 labelText: 'Purchase Date',
-                                border: OutlineInputBorder(),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      DesktopDimensions.cardBorderRadius)
+                                ),
                                 prefixIcon: Icon(Icons.calendar_today),
                               ),
                               child: Text(DateFormat('yyyy-MM-dd')
@@ -370,9 +392,12 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                         Expanded(
                           child: TextField(
                             controller: _notesCtrl,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Notes',
-                              border: OutlineInputBorder(),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                      DesktopDimensions.cardBorderRadius)
+                              ),
                             ),
                           ),
                         ),
@@ -388,31 +413,37 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                     ? Center(
                         child: TextButton.icon(
                           onPressed: _addItem,
-                          icon: const Icon(Icons.add_circle_outline, size: 48),
-                          label: const Text('Add Items'),
+                          icon: Icon(Icons.add_circle_outline,
+                              size: DesktopDimensions.iconSizeXXLarge,
+                              color: colorScheme.primary),
+                          label: Text('Add Items',
+                              style: Theme.of(context).textTheme.headlineSmall),
                         ),
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
                         itemCount: _cartItems.length,
-                        separatorBuilder: (_, __) => const Divider(),
+                        separatorBuilder: (_, __) =>
+                            Divider(color: colorScheme.outlineVariant),
                         itemBuilder: (context, index) {
                           final item = _cartItems[index];
                           return ListTile(
                             title: Text(item['name'],
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
+                                style: Theme.of(context).textTheme.bodyLarge),
                             subtitle: Text(
                               'Qty: ${item['quantity']} | Batch: ${item['batch_number'] ?? '-'} | Exp: ${item['expiry_date'] ?? '-'}',
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(Money(item['total_amount'])
-                                    .formattedNoDecimal),
+                                Text(
+                                  Money(item['total_amount']).formattedNoDecimal,
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
+                                  icon: Icon(Icons.delete,
+                                      color: colorScheme.error),
                                   onPressed: () => setState(
                                       () => _cartItems.removeAt(index)),
                                 ),
@@ -428,11 +459,11 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                 padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
-                        color: Colors.black12,
+                        color: colorScheme.shadow.withOpacity(0.1),
                         blurRadius: 4,
-                        offset: Offset(0, -2))
+                        offset: const Offset(0, -2))
                   ],
                 ),
                 child: Row(
@@ -441,47 +472,43 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                     ElevatedButton.icon(
                       onPressed: _addItem,
                       icon: const Icon(Icons.add,
-                          size: DesktopDimensions.kpiIconSize),
+                          size: DesktopDimensions.iconSizeLarge),
                       label: const Text('Add Item'),
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, 40),
+                        minimumSize: const Size(0, DesktopDimensions.buttonHeight),
                         padding: const EdgeInsets.symmetric(
                             horizontal: DesktopDimensions.spacingMedium),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius),
+                              DesktopDimensions.buttonBorderRadius),
                         ),
-                        textStyle: const TextStyle(
-                            fontSize: DesktopDimensions.bodySize,
-                            fontWeight: FontWeight.bold),
+                        textStyle: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ),
                     ElevatedButton.icon(
                       onPressed: _savePurchase,
                       icon: const Icon(Icons.save,
-                          size: DesktopDimensions.kpiIconSize),
+                          size: DesktopDimensions.iconSizeLarge),
                       label: const Text('SAVE'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
-                        minimumSize: const Size(0, 40),
+                        minimumSize: const Size(0, DesktopDimensions.buttonHeight),
                         padding: const EdgeInsets.symmetric(
                             horizontal: DesktopDimensions.spacingMedium),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius),
+                              DesktopDimensions.buttonBorderRadius),
                         ),
-                        textStyle: const TextStyle(
-                            fontSize: DesktopDimensions.bodySize,
-                            fontWeight: FontWeight.bold),
+                        textStyle: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ),
                     Text(
                       'Total: ${Money(_totalAmount.toInt()).formattedNoDecimal}',
-                      style: TextStyle(
-                          fontSize: DesktopDimensions.bodySize + 2,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary),
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(color: colorScheme.primary),
                     ),
                   ],
                 ),
