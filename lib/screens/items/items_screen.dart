@@ -174,6 +174,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
 
@@ -183,20 +184,20 @@ class _ItemsScreenState extends State<ItemsScreen> {
         children: [
           // Top Toolbar
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             child: Row(
               children: [
                 // Search Field (Left)
                 Expanded(
                   child: TextField(
                     controller: searchController,
-                    style: TextStyle(color: colorScheme.onSurface),
+                    style: textTheme.bodyLarge,
                     textInputAction: TextInputAction.search,
                     onSubmitted: (_) => _firstLoad(),
                     decoration: InputDecoration(
                       labelText: localizations.searchItem,
-                      labelStyle:
-                          TextStyle(color: colorScheme.onSurfaceVariant),
+                      labelStyle: textTheme.bodyMedium
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
                       prefixIcon: IconButton(
                         icon: Icon(Icons.search,
                             color: colorScheme.onSurfaceVariant),
@@ -204,19 +205,18 @@ class _ItemsScreenState extends State<ItemsScreen> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius / 2),
+                            DesktopDimensions.buttonBorderRadius),
                         borderSide: BorderSide(color: colorScheme.outline),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius / 2),
+                            DesktopDimensions.buttonBorderRadius),
                         borderSide: BorderSide(color: colorScheme.outline),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius / 2),
-                        borderSide:
-                            BorderSide(color: colorScheme.primary, width: 2),
+                            DesktopDimensions.buttonBorderRadius),
+                        borderSide: BorderSide(color: colorScheme.primary),
                       ),
                       filled: true,
                       fillColor: colorScheme.surfaceVariant,
@@ -236,21 +236,21 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 ElevatedButton.icon(
                   onPressed: _showAddItemDialog,
                   icon: const Icon(Icons.add,
-                      size: DesktopDimensions.kpiIconSize),
+                      size: DesktopDimensions.iconSizeLarge),
                   label: Text(localizations.addItem),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
-                    minimumSize: const Size(0, 40),
+                    minimumSize:
+                        const Size(0, DesktopDimensions.buttonHeight),
                     padding: const EdgeInsets.symmetric(
                         horizontal: DesktopDimensions.spacingMedium),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                           DesktopDimensions.cardBorderRadius),
                     ),
-                    textStyle: const TextStyle(
-                        fontSize: DesktopDimensions.bodySize,
-                        fontWeight: FontWeight.bold),
+                    textStyle: textTheme.bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -262,8 +262,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : items.isEmpty
                     ? Center(
-                        child: Text(localizations.noItemsFound,
-                            style: TextStyle(color: colorScheme.onSurface)))
+                        child: Text(
+                        localizations.noItemsFound,
+                        style: textTheme.bodyLarge,
+                      ))
                     : LayoutBuilder(
                         builder: (context, constraints) {
                           return SingleChildScrollView(
@@ -304,165 +306,131 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                       columns: [
                                         DataColumn(
                                             label: Text(
-                                                localizations.englishName,
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: DesktopDimensions
-                                                        .headingSize,
-                                                    color: colorScheme
-                                                        .onPrimaryContainer))),
+                                          localizations.englishName,
+                                          style: textTheme.titleSmall?.copyWith(
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                              fontWeight: FontWeight.bold),
+                                        )),
                                         DataColumn(
-                                            label: Text(localizations.urduName,
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: DesktopDimensions
-                                                        .headingSize,
-                                                    color: colorScheme
-                                                        .onPrimaryContainer))),
+                                            label: Text(
+                                          localizations.urduName,
+                                          style: textTheme.titleSmall?.copyWith(
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                              fontWeight: FontWeight.bold),
+                                        )),
                                         DataColumn(
-                                            label: Text('Category',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: DesktopDimensions
-                                                        .headingSize,
-                                                    color: colorScheme
-                                                        .onPrimaryContainer))),
+                                            label: Text(
+                                          'Category',
+                                          style: textTheme.titleSmall?.copyWith(
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                              fontWeight: FontWeight.bold),
+                                        )),
                                         DataColumn(
-                                            label: Text('Sub Category',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: DesktopDimensions
-                                                        .headingSize,
-                                                    color: colorScheme
-                                                        .onPrimaryContainer))),
+                                            label: Text(
+                                          'Sub Category',
+                                          style: textTheme.titleSmall?.copyWith(
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                              fontWeight: FontWeight.bold),
+                                        )),
                                         DataColumn(
-                                            label: Text('Brand',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: DesktopDimensions
-                                                        .headingSize,
-                                                    color: colorScheme
-                                                        .onPrimaryContainer))),
+                                            label: Text(
+                                          'Brand',
+                                          style: textTheme.titleSmall?.copyWith(
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                              fontWeight: FontWeight.bold),
+                                        )),
                                         DataColumn(
-                                            label: Text('Unit',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: DesktopDimensions
-                                                        .headingSize,
-                                                    color: colorScheme
-                                                        .onPrimaryContainer))),
+                                            label: Text(
+                                          'Unit',
+                                          style: textTheme.titleSmall?.copyWith(
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                              fontWeight: FontWeight.bold),
+                                        )),
                                         DataColumn(
-                                            label: Text('Packing',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: DesktopDimensions
-                                                        .headingSize,
-                                                    color: colorScheme
-                                                        .onPrimaryContainer))),
+                                            label: Text(
+                                          'Packing',
+                                          style: textTheme.titleSmall?.copyWith(
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                              fontWeight: FontWeight.bold),
+                                        )),
                                         DataColumn(
-                                            label: Text('Actions',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: DesktopDimensions
-                                                        .headingSize,
-                                                    color: colorScheme
-                                                        .onPrimaryContainer))),
+                                            label: Text(
+                                          'Actions',
+                                          style: textTheme.titleSmall?.copyWith(
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                              fontWeight: FontWeight.bold),
+                                        )),
                                       ],
                                       rows: items.map((item) {
                                         return DataRow(
                                           cells: [
                                             DataCell(Text(item.nameEnglish,
-                                                style: TextStyle(
-                                                    color:
-                                                        colorScheme.onSurface,
-                                                    fontSize: DesktopDimensions
-                                                        .bodySize))),
-                                            DataCell(Text(item.nameUrdu ?? '-',
-                                                style: TextStyle(
-                                                    fontFamily:
-                                                        'NooriNastaleeq',
-                                                    color:
-                                                        colorScheme.onSurface,
-                                                    fontSize: DesktopDimensions
-                                                            .bodySize +
-                                                        2))),
+                                                style: textTheme.bodyMedium)),
+                                            DataCell(Text(
+                                              item.nameUrdu ?? '-',
+                                              style: textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                      fontFamily:
+                                                          'NooriNastaleeq'),
+                                            )),
                                             DataCell(Text(
                                                 _categoryNames[
                                                         item.categoryId] ??
                                                     '-',
-                                                style: TextStyle(
-                                                    color:
-                                                        colorScheme.onSurface,
-                                                    fontSize: DesktopDimensions
-                                                        .bodySize))),
+                                                style: textTheme.bodyMedium)),
                                             DataCell(Text(
                                                 _subCategoryNames[
                                                         item.subCategoryId] ??
                                                     '-',
-                                                style: TextStyle(
-                                                    color:
-                                                        colorScheme.onSurface,
-                                                    fontSize: DesktopDimensions
-                                                        .bodySize))),
+                                                style: textTheme.bodyMedium)),
                                             DataCell(Text(item.brand ?? '-',
-                                                style: TextStyle(
-                                                    color:
-                                                        colorScheme.onSurface,
-                                                    fontSize: DesktopDimensions
-                                                        .bodySize))),
+                                                style: textTheme.bodyMedium)),
                                             DataCell(Text(item.unitType ?? '-',
-                                                style: TextStyle(
-                                                    color:
-                                                        colorScheme.onSurface,
-                                                    fontSize: DesktopDimensions
-                                                        .bodySize))),
+                                                style: textTheme.bodyMedium)),
                                             DataCell(Text(
                                                 item.packingType ?? '-',
-                                                style: TextStyle(
-                                                    color:
-                                                        colorScheme.onSurface,
-                                                    fontSize: DesktopDimensions
-                                                        .bodySize))),
+                                                style: textTheme.bodyMedium)),
                                             DataCell(
                                               Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   IconButton(
                                                     icon: Icon(
-                                                        Icons.edit_outlined,
-                                                        color: colorScheme
-                                                            .secondary,
-                                                        size: 22),
+                                                      Icons.edit_outlined,
+                                                      color:
+                                                          colorScheme.secondary,
+                                                      size: DesktopDimensions
+                                                          .iconSizeMedium,
+                                                    ),
                                                     onPressed: () =>
                                                         _showEditItemDialog(
                                                             item),
                                                     tooltip:
                                                         localizations.editItem,
-                                                    padding: EdgeInsets.zero,
-                                                    constraints:
-                                                        const BoxConstraints(
-                                                            minWidth: 32,
-                                                            minHeight: 32),
                                                   ),
                                                   const SizedBox(
                                                       width: DesktopDimensions
                                                           .spacingSmall),
                                                   IconButton(
                                                     icon: Icon(
-                                                        Icons.delete_outline,
-                                                        color:
-                                                            colorScheme.error,
-                                                        size: 22),
+                                                      Icons.delete_outline,
+                                                      color: colorScheme.error,
+                                                      size: DesktopDimensions
+                                                          .iconSizeMedium,
+                                                    ),
                                                     onPressed: () =>
                                                         _deleteItem(item.id!),
                                                     tooltip: isUrdu
                                                         ? 'آئٹم حذف کریں'
                                                         : 'Delete Item',
-                                                    padding: EdgeInsets.zero,
-                                                    constraints:
-                                                        const BoxConstraints(
-                                                            minWidth: 32,
-                                                            minHeight: 32),
                                                   ),
                                                 ],
                                               ),
@@ -485,10 +453,13 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                     padding: const EdgeInsets.all(
                                         DesktopDimensions.spacingMedium),
                                     child: Center(
-                                        child: Text(localizations.endOfList,
-                                            style: TextStyle(
-                                                color: colorScheme
-                                                    .onSurfaceVariant))),
+                                      child: Text(
+                                        localizations.endOfList,
+                                        style: textTheme.bodySmall?.copyWith(
+                                            color:
+                                                colorScheme.onSurfaceVariant),
+                                      ),
+                                    ),
                                   ),
                               ],
                             ),
@@ -664,39 +635,53 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
   }
 
   InputDecoration _buildInputDecoration(String label, IconData icon) {
+    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+      labelStyle: textTheme.bodyMedium
+          ?.copyWith(color: colorScheme.onSurfaceVariant),
       prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
       filled: true,
       fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outline)),
+        borderRadius:
+            BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+        borderSide: BorderSide(color: colorScheme.outline),
+      ),
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.outline)),
+        borderRadius:
+            BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+        borderSide: BorderSide(color: colorScheme.outline),
+      ),
       focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        borderRadius:
+            BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+        borderSide: BorderSide(color: colorScheme.primary),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: DesktopDimensions.spacingMedium,
+        vertical: DesktopDimensions.spacingMedium,
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final isEdit = widget.product != null;
 
     return AlertDialog(
       backgroundColor: colorScheme.surface,
-      title: Text(isEdit ? localizations.editItem : localizations.addItem,
-          style: TextStyle(
-              fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
+      title: Text(
+        isEdit ? localizations.editItem : localizations.addItem,
+        style: textTheme.headlineSmall,
+      ),
       content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 700),
+        constraints: const BoxConstraints(maxWidth: DesktopDimensions.dialogWidth),
         child: FutureBuilder(
           future: Future.wait([
             widget.categoriesRepository.getAllCategories(),
@@ -705,12 +690,12 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const SizedBox(
-                  height: 200,
+                  height: DesktopDimensions.dialogHeight,
                   child: Center(child: CircularProgressIndicator()));
             }
             if (snapshot.hasError) {
               return SizedBox(
-                  height: 200,
+                  height: DesktopDimensions.dialogHeight,
                   child: Center(child: Text('Error: ${snapshot.error}')));
             }
 
@@ -725,19 +710,21 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                   Row(children: [
                     Expanded(
                         child: TextField(
-                            controller: _nameEngCtrl,
-                            decoration: _buildInputDecoration(
-                                localizations.englishName,
-                                Icons.inventory_2_outlined))),
+                      controller: _nameEngCtrl,
+                      style: textTheme.bodyLarge,
+                      decoration: _buildInputDecoration(
+                          localizations.englishName,
+                          Icons.inventory_2_outlined),
+                    )),
                     const SizedBox(width: DesktopDimensions.spacingMedium),
                     Expanded(
                         child: TextField(
-                            controller: _nameUrduCtrl,
-                            decoration: _buildInputDecoration(
-                                localizations.urduName, Icons.translate),
-                            style: const TextStyle(
-                                fontFamily: 'NooriNastaleeq',
-                                fontSize: DesktopDimensions.bodySize))),
+                      controller: _nameUrduCtrl,
+                      decoration: _buildInputDecoration(
+                          localizations.urduName, Icons.translate),
+                      style: textTheme.bodyLarge
+                          ?.copyWith(fontFamily: 'NooriNastaleeq'),
+                    )),
                   ]),
                   const SizedBox(height: DesktopDimensions.spacingMedium),
                   Row(children: [
