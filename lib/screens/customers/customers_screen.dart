@@ -796,7 +796,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   _toggleArchiveStatus(customer.id!, true);
                 }
                 if (value == 'delete') {
-                  _deleteCustomer(customer.id!, balance as int);
+                  _deleteCustomer(customer.id!, customer.outstandingBalance);
                 }
               },
               itemBuilder: (context) => [
