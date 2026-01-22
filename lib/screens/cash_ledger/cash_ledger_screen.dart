@@ -340,6 +340,13 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                               Navigator.pop(context);
                               _refreshData();
                             }
+                          } else if (descCtrl.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(loc.descriptionRequired),
+                                backgroundColor: colorScheme.error,
+                              ),
+                            );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
