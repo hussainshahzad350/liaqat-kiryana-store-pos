@@ -17,6 +17,19 @@ class PurchaseRepository {
         'status': 'COMPLETED',
       });
 
+      // 1. VALIDATE PURCHASE TOTAL
+      int calculatedTotal = 0;
+      for (var item in purchaseData['items']) {
+        calculatedTotal += (item['total_amount'] as num).toInt();
+      }
+
+      if (calculatedTotal != purchaseData['total_amount']) {
+        throw Exception(
+          'Purchase total mismatch: Items total ($calculatedTotal) '
+          '!= Purchase total (${purchaseData['total_amount']})'
+        );
+      }
+      
       // 2. Insert Items & Update Stock
       for (var item in purchaseData['items']) {
         await txn.insert('purchase_items', {
