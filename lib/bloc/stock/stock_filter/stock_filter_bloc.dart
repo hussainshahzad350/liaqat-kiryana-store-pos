@@ -11,7 +11,10 @@ class StockFilterBloc extends Bloc<StockFilterEvent, StockFilterState> {
   StockFilterBloc(this._suppliersRepository, this._categoriesRepository) : super(const StockFilterState()) {
     on<LoadFilters>(_onLoadFilters);
     on<SetSearchQuery>((event, emit) {
-      emit(state.copyWith(searchQuery: event.query));
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!isClosed) {
+        emit(state.copyWith(searchQuery: event.query));
+      }
     });
     on<SetStatusFilter>((event, emit) {
       emit(state.copyWith(statusFilter: event.status));
