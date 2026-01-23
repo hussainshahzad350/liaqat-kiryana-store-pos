@@ -47,10 +47,16 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     on<ProductsUpdated>(_onProductsUpdated);
 
     _stockSubscription = _stockBloc?.stream.listen((stockState) {
-      if (stockState.stock.isNotEmpty) {
-        add(ProductsUpdated(stockState.stock));
-      }
-    });
+      if (_stockBloc != null) {
+        _stockSubscription = _stockBloc!.stream
+          .distinct()
+          .listen((stockState) {
+            
+        if (stockState.stock.isNotEmpty) {
+          add(ProductsUpdated(stockState.stock));
+        }
+      });
+    }
   }
 
   @override
