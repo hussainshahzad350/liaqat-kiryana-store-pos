@@ -31,7 +31,7 @@ class InvoiceRepository {
     if (items.isEmpty) {
       throw ArgumentError('Invoice must have at least one item');
     }
-
+    
     final now = DateTime.now();
     final String yy = (now.year % 100).toString().padLeft(2, '0');
     final String mm = now.month.toString().padLeft(2, '0');
@@ -113,6 +113,16 @@ class InvoiceRepository {
         if (updated == 0) {
           throw Exception('Insufficient stock for product ID: $productId');
         }
+
+        await txn.insert('stock_activities', {
+          'product_id': productId,
+          'quantity_change': -quantity,
+          'transaction_type': 'SALE',
+          'reference_type': 'INVOICE',
+          'reference_id': invoiceId,
+          'user': 'SYSTEM',
+          'created_at': DateTime.now().toIso8601String(),
+        });
       }
 
       // 6. Update Customer Ledger
@@ -249,10 +259,23 @@ class InvoiceRepository {
       );
 
       for (var item in items) {
+        final productId = item['product_id'] as int;
+        final quantity = (item['quantity'] as num).toDouble();
+        
         await txn.rawUpdate(
           'UPDATE products SET current_stock = current_stock + ? WHERE id = ?',
-          [(item['quantity'] as num).toDouble(), item['product_id']],
+          [quantity, productId],
         );
+
+        await txn.insert('stock_activities', {
+          'product_id': productId,
+          'quantity_change': quantity,
+          'transaction_type': 'SALE_CANCEL',
+          'reference_type': 'INVOICE',
+          'reference_id': invoiceId,
+          'user': cancelledBy,
+          'created_at': DateTime.now().toIso8601String(),
+        });
       }
 
       // 4. Reverse Customer Ledger
