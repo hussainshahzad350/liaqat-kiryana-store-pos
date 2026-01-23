@@ -79,7 +79,6 @@ class PurchaseRepository {
       final requiredByProduct = <int, double>{};
       for (var item in items) {
         final productId = item['product_id'];
-        final productId = item['product_id'] as int;
         final quantity = (item['quantity'] as num).toDouble();
         requiredByProduct[productId] =
           (requiredByProduct[productId] ?? 0) + quantity;
