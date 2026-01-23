@@ -7,6 +7,7 @@ class Purchase {
   final String? notes;
   final String status;
   final DateTime? createdAt;
+  final List<PurchaseItem> items; // <- added
 
   Purchase({
     this.id,
@@ -17,9 +18,10 @@ class Purchase {
     this.notes,
     this.status = 'COMPLETED',
     this.createdAt,
+    this.items = const [], // <- default empty list
   });
 
-  factory Purchase.fromMap(Map<String, dynamic> map) {
+  factory Purchase.fromMap(Map<String, dynamic> map, {List<PurchaseItem>? items}) {
     return Purchase(
       id: map['id'] as int?,
       supplierId: map['supplier_id'] as int,
@@ -33,6 +35,7 @@ class Purchase {
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'] as String)
           : null,
+      items: items ?? [],
     );
   }
 
@@ -46,56 +49,32 @@ class Purchase {
       'notes': notes,
       'status': status,
       'created_at': createdAt?.toIso8601String(),
+      // Items are handled separately in purchase_items table
     };
   }
-}
 
-class PurchaseItem {
-  final int? id;
-  final int purchaseId;
-  final int? productId;
-  final int quantity;
-  final int costPrice;
-  final int totalAmount;
-  final String? batchNumber;
-  final DateTime? expiryDate;
-
-  PurchaseItem({
-    this.id,
-    required this.purchaseId,
-    this.productId,
-    this.quantity = 0,
-    this.costPrice = 0,
-    this.totalAmount = 0,
-    this.batchNumber,
-    this.expiryDate,
-  });
-
-  factory PurchaseItem.fromMap(Map<String, dynamic> map) {
-    return PurchaseItem(
-      id: map['id'] as int?,
-      purchaseId: map['purchase_id'] as int,
-      productId: map['product_id'] as int?,
-      quantity: (map['quantity'] as num?)?.toInt() ?? 0,
-      costPrice: (map['cost_price'] as num?)?.toInt() ?? 0,
-      totalAmount: (map['total_amount'] as num?)?.toInt() ?? 0,
-      batchNumber: map['batch_number'] as String?,
-      expiryDate: map['expiry_date'] != null
-          ? DateTime.tryParse(map['expiry_date'] as String)
-          : null,
+  // Optional: Copy with method to easily add/update items
+  Purchase copyWith({
+    int? id,
+    int? supplierId,
+    String? invoiceNumber,
+    DateTime? purchaseDate,
+    int? totalAmount,
+    String? notes,
+    String? status,
+    DateTime? createdAt,
+    List<PurchaseItem>? items,
+  }) {
+    return Purchase(
+      id: id ?? this.id,
+      supplierId: supplierId ?? this.supplierId,
+      invoiceNumber: invoiceNumber ?? this.invoiceNumber,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
+      totalAmount: totalAmount ?? this.totalAmount,
+      notes: notes ?? this.notes,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      items: items ?? this.items,
     );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'purchase_id': purchaseId,
-      'product_id': productId,
-      'quantity': quantity,
-      'cost_price': costPrice,
-      'total_amount': totalAmount,
-      'batch_number': batchNumber,
-      'expiry_date': expiryDate?.toIso8601String(),
-    };
   }
 }
