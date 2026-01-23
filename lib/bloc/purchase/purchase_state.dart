@@ -28,6 +28,8 @@ class PurchaseState extends Equatable {
     return Money(totalPaisas);
   }
 
+  // TODO(UI): Confirm whether supplier deselection is allowed?
+  
   PurchaseState copyWith({
     PurchaseStatus? status,
     List<Map<String, dynamic>>? suppliers,
@@ -35,12 +37,13 @@ class PurchaseState extends Equatable {
     int? selectedSupplierId,
     List<PurchaseItemEntity>? cartItems,
     String? error,
+    bool clearSupplier = false,
   }) {
     return PurchaseState(
       status: status ?? this.status,
       suppliers: suppliers ?? this.suppliers,
       products: products ?? this.products,
-      selectedSupplierId: selectedSupplierId ?? this.selectedSupplierId,
+      selectedSupplierId: clearSupplier ? null : (selectedSupplierId ?? this.selectedSupplierId),
       cartItems: cartItems ?? this.cartItems,
       error: error ?? this.error,
     );
