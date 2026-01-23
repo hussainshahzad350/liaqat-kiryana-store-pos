@@ -376,7 +376,7 @@ class InvoiceRepository {
         c.name_english as customer_name
       FROM invoices i
       LEFT JOIN customers c ON i.customer_id = c.id
-      ORDER BY i.created_at DESC
+      ORDER BY i.invoice_date DESC
       LIMIT ?
     ''', [limit]);
 
