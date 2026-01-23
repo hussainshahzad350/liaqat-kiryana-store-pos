@@ -57,6 +57,32 @@ class PurchaseRepository {
         );
       }
 
+      // 4. Insert Supplier Ledger Entry (Purchase increases payable)
+      if (purchaseData['supplier_id'] != null) {
+        final supplierId = purchaseData['supplier_id'];
+
+        final lastEntry = await txn.rawQuery(
+          'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+          [supplierId],
+        );
+
+        int previousBalance =
+          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
+        
+        int newBalance = previousBalance + (purchaseData['total_amount'] as int);
+
+        await txn.insert('supplier_ledger', {
+          'supplier_id': supplierId,
+          'transaction_date': purchaseData['purchase_date'],
+          'description': 'Purchase Invoice #${purchaseData['invoice_number']}',
+          'ref_type': 'PURCHASE',
+          'ref_id': purchaseId,
+          'debit': purchaseData['total_amount'], // we owe supplier more
+          'credit': 0,
+          'balance': newBalance,
+        });
+      }
+
       AppLogger.info('Purchase created successfully: $purchaseId', tag: 'PurchaseRepo');
       return purchaseId;
     });
@@ -137,7 +163,34 @@ class PurchaseRepository {
         );
       }
 
-      // 6. Mark Cancelled
+      // 6. Insert Supplier Ledger Reversal Entry
+      if (purchase['supplier_id'] != null) {
+        final supplierId = purchase['supplier_id'];
+        
+        final lastEntry = await txn.rawQuery(
+          'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+          [supplierId],
+        );
+
+        int previousBalance =
+          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
+
+        int newBalance = previousBalance - (purchase['total_amount'] as int);
+        if (newBalance < 0) newBalance = 0;
+
+        await txn.insert('supplier_ledger', {
+          'supplier_id': supplierId,
+          'transaction_date': DateTime.now().toIso8601String(),
+          'description': 'Purchase Cancelled #${purchase['invoice_number']}',
+          'ref_type': 'PURCHASE_CANCEL',
+          'ref_id': purchaseId,
+          'debit': 0,
+          'credit': purchase['total_amount'], // payable reduced
+          'balance': newBalance,
+        });
+      }
+      
+      // 7. Mark Cancelled
       await txn.update(
         'purchases',
         {
