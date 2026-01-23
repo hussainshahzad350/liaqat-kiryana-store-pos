@@ -2,6 +2,7 @@
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
 import '../../models/product_model.dart';
+import '../../models/stock_adjustment_model.dart';
 
 class ItemsRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -105,7 +106,7 @@ class ItemsRepository {
   }
 
   /// Adjust stock (add or subtract)
-  Future<int> adjustStock(int id, num adjustment, {String? reason, String? reference}) async {
+  Future<int> adjustStock(int id, num adjustment, {String? reason, String? reference, String? user,}) async {
     final db = await _dbHelper.database;
     
     return await db.transaction((txn) async {
@@ -122,7 +123,7 @@ class ItemsRepository {
         throw Exception('Product not found');
       }
 
-      final currentStock = (result.first['current_stock'] as num).toDouble();
+      final currentStock = (result.first['current_stock'] as num).toDouble() ?? 0.0;
       final newStock = currentStock + adjustment;
 
       if (newStock < 0) {
@@ -130,16 +131,19 @@ class ItemsRepository {
       }
 
       // Log Adjustment
-      await txn.insert('stock_adjustments', {
-        'product_id': id,
-        'adjustment_date': DateTime.now().toIso8601String(),
-        'quantity_change': adjustment,
-        'reason': reason ?? 'Manual Adjustment',
-        'reference': reference,
-        'user': 'Admin', // Replace with actual user if auth exists
-      });
+      final adjustmentRecord = StockAdjustment(
+        productId: id,
+        adjustmentDate: DateTime.now(),
+        quantityChange: adjustment.toDouble(),
+        reason: reason ?? 'Manual Adjustment',
+        reference: reference ?? 'MANUAL',
+        user: user ?? 'SYSTEM',
+      );
 
-      // Update stock
+      // Insert into stock_adjustments table
+      await txn.insert('stock_adjustments', adjustmentRecord.toMap());
+
+      // Update products table
       return await txn.update(
         'products',
         {'current_stock': newStock},
@@ -170,7 +174,7 @@ class ItemsRepository {
         throw Exception('Product not found');
       }
 
-      final currentStock = (result.first['current_stock'] as num).toDouble();
+      final currentStock = (result.first['current_stock'] as num).toDouble() ?? 0.0;
       final currentAvgPrice = (result.first['avg_cost_price'] as num).toInt();
 
       // Calculate new weighted average
@@ -493,7 +497,20 @@ class ItemsRepository {
     );
   }
 
-  /// Bulk update sale prices (by category or percentage)
+  // Stock Adjustments for product
+
+  Future<List<StockAdjustment>> getStockAdjustmentsForProduct(int productId) async {
+    final db = await _dbHelper.database;
+    final result = await db.query(
+      'stock_adjustments',
+      where: 'product_id = ?',
+      whereArgs: [productId],
+      orderBy: 'adjustment_date DESC',
+    );
+    return result.map((map) => StockAdjustment.fromMap(map)).toList();
+  }
+
+  // Bulk update sale prices (by category or percentage)
   Future<int> bulkUpdateSalePrices({
     int? categoryId,
     double? percentageIncrease,
