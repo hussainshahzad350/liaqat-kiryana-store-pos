@@ -57,7 +57,10 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
 
   Future<void> _onSubmit(SubmitPurchase event, Emitter<PurchaseState> emit) async {
     if (state.selectedSupplierId == null) {
-      emit(state.copyWith(error: 'Please select a supplier'));
+      emit(state.copyWith(
+        status: PurchaseStatus.failure,
+        error: 'Please select a supplier'
+      ));
       return;
     }
     if (state.cartItems.isEmpty) {
