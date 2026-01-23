@@ -253,8 +253,9 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     Money grandTotal = subtotal - discount;
     if (grandTotal < const Money(0)) grandTotal = const Money(0);
 
-    Money previousBalance =
-        Money(state.selectedCustomer?.outstandingBalance ?? 0);
+    Money previousBalance = state.selectedCustomer != null
+      ? Money(state.selectedCustomer!.outstandingBalance)
+      : Money.zero;
 
     emit(state.copyWith(
       subtotal: subtotal,
