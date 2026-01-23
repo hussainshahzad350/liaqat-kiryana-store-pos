@@ -2,15 +2,15 @@ import '../../bloc/stock/stock_bloc.dart';
 import '../../bloc/stock/stock_event.dart';
 import '../database/database_helper.dart';
 import '../../models/purchase_model.dart';
-import '../../models/purchase_item_model.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
 
 class PurchaseRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   // ========================================
-  // CREATE PURCHASE WITH ITEMS & LEDGER
+  // CREATE PURCHASE WITH TRANSACTION
   // ========================================
   Future<int> createPurchaseWithTransaction({
     required int supplierId,
@@ -31,10 +31,9 @@ class PurchaseRepository {
 
     final purchaseId = await db.transaction<int>((txn) async {
       // 1. Insert Purchase
-      final tempInvoiceNumber = invoiceNumber ?? 'TEMP-${now.microsecondsSinceEpoch}';
       final id = await txn.insert('purchases', {
         'supplier_id': supplierId,
-        'invoice_number': tempInvoiceNumber,
+        'invoice_number': invoiceNumber,
         'purchase_date': purchaseDate,
         'total_amount': totalAmount,
         'notes': notes,
@@ -47,6 +46,8 @@ class PurchaseRepository {
         final quantity = (item['quantity'] as num).toDouble();
         final costPrice = (item['cost_price'] as num).toInt();
         final total = (item['total_amount'] as num).toInt();
+        final batchNumber = item['batch_number'] as String;
+        final expiryDate = item['expiry_date'] as DateTime;
 
         await txn.insert('purchase_items', {
           'purchase_id': id,
@@ -54,26 +55,28 @@ class PurchaseRepository {
           'quantity': quantity,
           'cost_price': costPrice,
           'total_amount': total,
-          'batch_number': item['batch_number'],
-          'expiry_date': item['expiry_date']?.toIso8601String(),
+          'batch_number': batchNumber,
+          'expiry_date': expiryDate.toIso8601String(),
         });
 
-        // Update product stock
-        await txn.rawUpdate(
-          'UPDATE products SET current_stock = current_stock + ? WHERE id = ?',
-          [quantity, productId],
-        );
-
-        // Optional: Stock activities log
+        // Batch-level stock activity
         await txn.insert('stock_activities', {
           'product_id': productId,
           'quantity_change': quantity,
           'transaction_type': 'PURCHASE',
           'reference_type': 'PURCHASE',
           'reference_id': id,
+          'batch_number': batchNumber,
+          'expiry_date': expiryDate.toIso8601String(),
           'user': 'SYSTEM',
-          'created_at': now.toIso8601String(),
+          'created_at': DateTime.now().toIso8601String(),
         });
+
+        // Update total stock
+        await txn.rawUpdate(
+          'UPDATE products SET current_stock = current_stock + ? WHERE id = ?',
+          [quantity, productId],
+        );
       }
 
       // 3. Update Supplier Ledger
@@ -81,30 +84,29 @@ class PurchaseRepository {
         'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
         [supplierId],
       );
-      int prevBalance = lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
+      int prevBalance =
+          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
       int newBalance = prevBalance + totalAmount;
 
       await txn.insert('supplier_ledger', {
         'supplier_id': supplierId,
         'transaction_date': purchaseDate,
-        'description': 'Purchase #$tempInvoiceNumber',
+        'description': 'Purchase #$id',
         'ref_type': 'PURCHASE',
         'ref_id': id,
         'debit': totalAmount,
         'credit': 0,
         'balance': newBalance,
-        'created_at': now.toIso8601String(),
+        'created_at': DateTime.now().toIso8601String(),
       });
 
-      // 4. Update Supplier balance cache
-      await txn.update('suppliers', {'outstanding_balance': newBalance},
-          where: 'id = ?', whereArgs: [supplierId]);
-
-      AppLogger.info('Purchase created: (ID: $id)', tag: 'PurchaseRepo');
+      AppLogger.info('Purchase created: ID $id', tag: 'PurchaseRepo');
       return id;
     });
 
+    // Refresh stock in BLoC
     stockBloc?.add(LoadStock());
+
     return purchaseId;
   }
 
@@ -120,7 +122,7 @@ class PurchaseRepository {
     final db = await _dbHelper.database;
 
     await db.transaction((txn) async {
-      // Fetch Purchase
+      // 1. Fetch Purchase
       final purchaseRes = await txn.query(
         'purchases',
         where: 'id = ? AND status = ?',
@@ -133,65 +135,77 @@ class PurchaseRepository {
 
       final purchase = purchaseRes.first;
       final supplierId = purchase['supplier_id'] as int;
-      final invoiceNumber = purchase['invoice_number'] as String?;
 
-      // 1. Mark as CANCELLED
-      await txn.update('purchases', {
-        'status': 'CANCELLED',
-        'notes': '${purchase['notes'] ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]',
-      }, where: 'id = ?', whereArgs: [purchaseId]);
+      // 2. Mark as CANCELLED
+      await txn.update(
+        'purchases',
+        {
+          'status': 'CANCELLED',
+          'notes':
+              '${purchase['notes'] ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]',
+        },
+        where: 'id = ?',
+        whereArgs: [purchaseId],
+      );
 
-      // 2. Revert Stock
-      final items = await txn.query('purchase_items', where: 'purchase_id = ?', whereArgs: [purchaseId]);
+      // 3. Revert Stock & Stock Activities
+      final items = await txn.query(
+        'purchase_items',
+        where: 'purchase_id = ?',
+        whereArgs: [purchaseId],
+      );
+
       for (var item in items) {
         final productId = item['product_id'] as int;
         final quantity = (item['quantity'] as num).toDouble();
+        final batchNumber = item['batch_number'] as String;
+        final expiryDate = DateTime.tryParse(item['expiry_date'] as String)!;
 
+        // Reduce total stock
         await txn.rawUpdate(
           'UPDATE products SET current_stock = current_stock - ? WHERE id = ?',
           [quantity, productId],
         );
 
+        // Log stock activity
         await txn.insert('stock_activities', {
           'product_id': productId,
           'quantity_change': -quantity,
           'transaction_type': 'PURCHASE_CANCEL',
           'reference_type': 'PURCHASE',
           'reference_id': purchaseId,
+          'batch_number': batchNumber,
+          'expiry_date': expiryDate.toIso8601String(),
           'user': cancelledBy,
           'created_at': DateTime.now().toIso8601String(),
         });
       }
 
-      // 3. Reverse Supplier Ledger
+      // 4. Reverse Supplier Ledger
       final lastEntry = await txn.rawQuery(
         'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
         [supplierId],
       );
-      int prevBalance = lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
-      int totalAmount = (purchase['total_amount'] as num?)?.toInt() ?? 0;
-      int newBalance = prevBalance - totalAmount;
-      if (newBalance < 0) newBalance = 0;
+      int prevBalance =
+          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
+      int newBalance = prevBalance - (purchase['total_amount'] as int);
 
       await txn.insert('supplier_ledger', {
         'supplier_id': supplierId,
         'transaction_date': DateTime.now().toIso8601String(),
-        'description': 'Purchase Cancelled: #$invoiceNumber',
+        'description': 'Purchase Cancelled: #$purchaseId',
         'ref_type': 'ADJUSTMENT',
         'ref_id': purchaseId,
         'debit': 0,
-        'credit': totalAmount,
+        'credit': purchase['total_amount'],
         'balance': newBalance,
         'created_at': DateTime.now().toIso8601String(),
       });
 
-      // Update supplier balance cache
-      await txn.update('suppliers', {'outstanding_balance': newBalance},
-          where: 'id = ?', whereArgs: [supplierId]);
-
-      AppLogger.info('Purchase cancelled: #$invoiceNumber', tag: 'PurchaseRepo');
+      AppLogger.info('Purchase cancelled: ID $purchaseId', tag: 'PurchaseRepo');
     });
 
+    // Refresh stock in BLoC
     stockBloc?.add(LoadStock());
   }
 
@@ -200,19 +214,43 @@ class PurchaseRepository {
   // ========================================
   Future<Purchase?> getPurchaseWithItems(int purchaseId) async {
     final db = await _dbHelper.database;
+    final purchaseMap = await db.query(
+      'purchases',
+      where: 'id = ?',
+      whereArgs: [purchaseId],
+      limit: 1,
+    );
 
-    final purchaseMap = await db.query('purchases', where: 'id = ?', whereArgs: [purchaseId], limit: 1);
     if (purchaseMap.isEmpty) return null;
 
-    final itemsMap = await db.query('purchase_items', where: 'purchase_id = ?', whereArgs: [purchaseId]);
-    final items = itemsMap.map((e) => PurchaseItem.fromMap(e)).toList();
+    final itemsMap = await db.query(
+      'purchase_items',
+      where: 'purchase_id = ?',
+      whereArgs: [purchaseId],
+    );
 
-    return Purchase.fromMap(purchaseMap.first, items: items);
+    final items = itemsMap.map((e) => PurchaseItem.fromMap(e)).toList();
+    final purchase = Purchase.fromMap(purchaseMap.first);
+
+    return Purchase(
+      id: purchase.id,
+      supplierId: purchase.supplierId,
+      invoiceNumber: purchase.invoiceNumber,
+      purchaseDate: purchase.purchaseDate,
+      totalAmount: purchase.totalAmount,
+      notes: purchase.notes,
+      status: purchase.status,
+      createdAt: purchase.createdAt,
+    );
   }
 
   Future<List<Purchase>> getRecentPurchases({int limit = 20}) async {
     final db = await _dbHelper.database;
-    final result = await db.query('purchases', orderBy: 'created_at DESC', limit: limit);
+    final result = await db.query(
+      'purchases',
+      orderBy: 'created_at DESC',
+      limit: limit,
+    );
     return result.map((map) => Purchase.fromMap(map)).toList();
   }
 
@@ -227,16 +265,15 @@ class PurchaseRepository {
     return result.map((map) => Purchase.fromMap(map)).toList();
   }
 
-  Future<void> deletePurchase(int purchaseId) async {
+  Future<List<Purchase>> getPurchasesByDateRange(
+      String startDate, String endDate) async {
     final db = await _dbHelper.database;
-    await db.transaction((txn) async {
-      await txn.delete('purchase_items', where: 'purchase_id = ?', whereArgs: [purchaseId]);
-      await txn.delete('purchases', where: 'id = ?', whereArgs: [purchaseId]);
-    });
-  }
-
-  Future<void> updatePurchase(Purchase purchase) async {
-    final db = await _dbHelper.database;
-    await db.update('purchases', purchase.toMap(), where: 'id = ?', whereArgs: [purchase.id]);
+    final result = await db.query(
+      'purchases',
+      where: 'purchase_date BETWEEN ? AND ?',
+      whereArgs: [startDate, endDate],
+      orderBy: 'purchase_date DESC',
+    );
+    return result.map((map) => Purchase.fromMap(map)).toList();
   }
 }
