@@ -267,7 +267,7 @@ class DatabaseHelper {
         FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
       )
     ''');
-
+    // 17. Purchase Items
     await db.execute('''
       CREATE TABLE IF NOT EXISTS purchase_items (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -282,7 +282,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 17. Supplier Payments
+    // 18. Supplier Payments
     await db.execute('''
       CREATE TABLE IF NOT EXISTS supplier_payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -295,7 +295,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // 18. Customer Ledger
+    // 19. Customer Ledger
     await db.execute('''
       CREATE TABLE IF NOT EXISTS customer_ledger (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -310,6 +310,26 @@ class DatabaseHelper {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
       )
+    ''');
+    // 20. Stock Adjustments
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS stock_adjustments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER NOT NULL,
+        adjustment_date TEXT NOT NULL,
+        quantity_change REAL NOT NULL,
+        reason TEXT,
+        reference TEXT DEFAULT 'ADJUSTMENT',
+        user TEXT DEFAULT SYSTEM,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Index for faster queries by product
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_stock_adjustments_product 
+      ON stock_adjustments(product_id)
     ''');
 
     // Performance Indexes (Ensure these exist on fresh install)
