@@ -109,7 +109,10 @@ class DatabaseHelper {
         sale_price INTEGER DEFAULT 0,
         barcode TEXT,
         expiry_date TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
+        FOREIGN KEY (sub_category_id) REFERENCES subcategories(id) ON DELETE SET NULL,
+        FOREIGN KEY (unit_id) REFERENCES units(id) ON DELETE SET NULL
       )
     ''');
 
@@ -320,7 +323,7 @@ class DatabaseHelper {
         quantity_change REAL NOT NULL,
         reason TEXT,
         reference TEXT DEFAULT 'ADJUSTMENT',
-        user TEXT DEFAULT SYSTEM,
+        user TEXT DEFAULT 'SYSTEM',
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
       )
@@ -332,6 +335,23 @@ class DatabaseHelper {
       ON stock_adjustments(product_id)
     ''');
 
+    // 21. Supplier Ledger
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS supplier_ledger (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        supplier_id INTEGER NOT NULL,
+        transaction_date TEXT NOT NULL,
+        description TEXT NOT NULL,
+        ref_type TEXT NOT NULL CHECK (ref_type IN ('PURCHASE', 'PURCHASE_RETURN', 'PAYMENT', 'ADJUSTMENT')),
+        ref_id INTEGER NOT NULL,
+        debit INTEGER DEFAULT 0,
+        credit INTEGER DEFAULT 0,
+        balance INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
+      )
+    ''');
+    
     // Performance Indexes (Ensure these exist on fresh install)
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_products_name_english ON products(name_english)');
@@ -357,6 +377,10 @@ class DatabaseHelper {
         'CREATE INDEX IF NOT EXISTS idx_ledger_customer_date ON customer_ledger(customer_id, transaction_date)');
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_ledger_ref ON customer_ledger(ref_type, ref_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_supplier_ledger_supplier_date ON supplier_ledger(supplier_id, transaction_date)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_supplier_ledger_ref ON supplier_ledger(ref_type, ref_id)');
   }
 
   Future<void> _insertSampleData(Database db) async {
