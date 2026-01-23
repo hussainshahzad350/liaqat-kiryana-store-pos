@@ -8,7 +8,9 @@ import '../utils/logger.dart';
 class SupplierPurchaseRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
-  /// Create a purchase transaction
+  // ========================================
+  // CREATE PURCHASE (Full Transaction)
+  // ========================================
   Future<int> createPurchase({
     required int supplierId,
     required List<Map<String, dynamic>> items,
@@ -24,7 +26,7 @@ class SupplierPurchaseRepository {
     }
 
     final now = DateTime.now();
-    final String purchaseDate = DateFormat('yyyy-MM-dd HH:mm').format(now);
+    final purchaseDate = DateFormat('yyyy-MM-dd HH:mm').format(now);
 
     final purchaseId = await db.transaction<int>((txn) async {
       // 1. Insert Purchase
@@ -35,6 +37,7 @@ class SupplierPurchaseRepository {
         'total_amount': totalAmount,
         'notes': notes,
         'status': 'COMPLETED',
+        'created_at': purchaseDate,
       });
 
       // 2. Insert Items & Update Stock
@@ -100,7 +103,9 @@ class SupplierPurchaseRepository {
     return purchaseId;
   }
 
-  /// Cancel a purchase
+  // ========================================
+  // CANCEL PURCHASE
+  // ========================================
   Future<void> cancelPurchase({
     required int purchaseId,
     required String cancelledBy,
@@ -110,7 +115,6 @@ class SupplierPurchaseRepository {
     final db = await _dbHelper.database;
 
     await db.transaction((txn) async {
-      // 1. Fetch purchase
       final purchaseRes = await txn.query(
         'purchases',
         where: 'id = ? AND status = ?',
@@ -126,7 +130,7 @@ class SupplierPurchaseRepository {
       final supplierId = purchase['supplier_id'] as int;
       final totalAmount = (purchase['total_amount'] as num).toInt();
 
-      // 2. Mark as CANCELLED
+      // Mark purchase as CANCELLED
       await txn.update(
         'purchases',
         {
@@ -138,7 +142,7 @@ class SupplierPurchaseRepository {
         whereArgs: [purchaseId],
       );
 
-      // 3. Revert Stock
+      // Revert stock
       final items = await txn.query(
         'purchase_items',
         where: 'purchase_id = ?',
@@ -165,7 +169,7 @@ class SupplierPurchaseRepository {
         });
       }
 
-      // 4. Reverse Supplier Ledger
+      // Reverse Supplier Ledger
       final lastEntry = await txn.rawQuery(
         'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
         [supplierId],
@@ -192,5 +196,121 @@ class SupplierPurchaseRepository {
     });
 
     stockBloc?.add(LoadStock());
+  }
+
+  // ========================================
+  // PURCHASE QUERIES
+  // ========================================
+
+  /// Get purchase with items by ID
+  Future<Map<String, dynamic>?> getPurchaseWithItems(int purchaseId) async {
+    final db = await _dbHelper.database;
+
+    final purchaseList =
+        await db.query('purchases', where: 'id = ?', whereArgs: [purchaseId]);
+
+    if (purchaseList.isEmpty) return null;
+
+    final items = await db.query(
+      'purchase_items',
+      where: 'purchase_id = ?',
+      whereArgs: [purchaseId],
+    );
+
+    return {
+      'purchase': purchaseList.first,
+      'items': items,
+    };
+  }
+
+  /// Get recent purchases
+  Future<List<Map<String, dynamic>>> getRecentPurchases({int limit = 20}) async {
+    final db = await _dbHelper.database;
+
+    final result = await db.query(
+      'purchases',
+      orderBy: 'purchase_date DESC',
+      limit: limit,
+    );
+
+    return result;
+  }
+
+  /// Get purchases by supplier
+  Future<List<Map<String, dynamic>>> getPurchasesBySupplier(int supplierId) async {
+    final db = await _dbHelper.database;
+
+    final result = await db.query(
+      'purchases',
+      where: 'supplier_id = ?',
+      whereArgs: [supplierId],
+      orderBy: 'purchase_date DESC',
+    );
+
+    return result;
+  }
+
+  /// Get purchases by date range
+  Future<List<Map<String, dynamic>>> getPurchasesByDateRange(
+    String startDate,
+    String endDate,
+  ) async {
+    final db = await _dbHelper.database;
+
+    final result = await db.query(
+      'purchases',
+      where: 'purchase_date BETWEEN ? AND ?',
+      whereArgs: [startDate, endDate],
+      orderBy: 'purchase_date DESC',
+    );
+
+    return result;
+  }
+
+  /// Get supplier purchase total
+  Future<int> getSupplierTotalPurchases(int supplierId) async {
+    final db = await _dbHelper.database;
+
+    final result = await db.rawQuery(
+      'SELECT SUM(total_amount) as total FROM purchases WHERE supplier_id = ? AND status = ?',
+      [supplierId, 'COMPLETED'],
+    );
+
+    return (result.first['total'] as num?)?.toInt() ?? 0;
+  }
+
+  /// Validate stock before purchase (optional, for bulk validation)
+  Future<Map<String, dynamic>> validatePurchaseStock(List<Map<String, dynamic>> items) async {
+    final db = await _dbHelper.database;
+
+    for (var item in items) {
+      final productId = item['product_id'];
+      final qty = (item['quantity'] as num).toDouble();
+
+      final result = await db.query(
+        'products',
+        columns: ['current_stock', 'name_english'],
+        where: 'id = ?',
+        whereArgs: [productId],
+        limit: 1,
+      );
+
+      if (result.isEmpty) {
+        return {'valid': false, 'error': 'Product not found: $productId'};
+      }
+
+      final currentStock = (result.first['current_stock'] as num).toDouble();
+      final productName = result.first['name_english'];
+
+      if (currentStock < 0) {
+        return {
+          'valid': false,
+          'error': 'Stock cannot be negative',
+          'productName': productName,
+        };
+      }
+    }
+
+    return {'valid': true};
   }
 }
