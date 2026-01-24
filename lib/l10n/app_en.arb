@@ -563,5 +563,23 @@
   "searchTags": "Search Tags",
   "deleteItem": "Delete Item",
   "all": "All",
-  "yes": "Yes"
+  "yes": "Yes",
+  "balanceShort": "Bal: {amount}",
+  "@balanceShort": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "ledgerAmountIn": "+ {amount}",
+  "@ledgerAmountIn": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "ledgerAmountOut": "- {amount}",
+  "@ledgerAmountOut": {
+    "placeholders": {
+      "amount": {}
+    }
+  }
 }

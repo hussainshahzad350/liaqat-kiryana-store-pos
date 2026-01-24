@@ -570,5 +570,23 @@
   "searchTags": "تلاش کے الفاظ",
   "deleteItem": "آئٹم حذف کریں",
   "all": "سب",
-  "yes": "ہاں"
+  "yes": "ہاں",
+  "balanceShort": "بیلنس: {amount}",
+  "@balanceShort": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "ledgerAmountIn": "+ {amount}",
+  "@ledgerAmountIn": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "ledgerAmountOut": "- {amount}",
+  "@ledgerAmountOut": {
+    "placeholders": {
+      "amount": {}
+    }
+  }
 }

@@ -245,7 +245,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                   const SizedBox(
                                       width: DesktopDimensions.spacingStandard),
                                   Text(
-                                      DateFormat('dd MMM yyyy')
+                                      DateFormat.yMMMd(Localizations.localeOf(context).toString())
                                           .format(selectedDate),
                                       style: textTheme.bodyMedium?.copyWith(
                                           color: colorScheme.onSurface)),
@@ -521,7 +521,9 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                           CrossAxisAlignment.end,
                                       children: [
                                         Text(
-                                          '${isIncome ? '+' : '-'} ${Money((entry.amount as num).toInt()).formattedNoDecimal}',
+                                          isIncome
+                                              ? loc.ledgerAmountIn(Money((entry.amount as num).toInt()).formattedNoDecimal)
+                                              : loc.ledgerAmountOut(Money((entry.amount as num).toInt()).formattedNoDecimal),
                                           style: textTheme.bodyMedium?.copyWith(
                                             fontWeight: FontWeight.bold,
                                             color: isIncome
@@ -530,7 +532,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                           ),
                                         ),
                                         Text(
-                                          'Bal: ${Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal}',
+                                          loc.balanceShort(Money((entry.balanceAfter as num?)?.toInt() ?? 0).formattedNoDecimal),
                                           style: textTheme.bodySmall?.copyWith(
                                               color:
                                                   colorScheme.onSurfaceVariant),
