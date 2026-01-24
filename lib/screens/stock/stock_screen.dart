@@ -164,8 +164,8 @@ class _StockScreenState extends State<StockScreen> {
             children: [
               Icon(
                 _getActivityIcon(activity.type),
-                size: 48,
-                color: isCancelled ? Colors.grey : colorScheme.primary,
+                size: DesktopDimensions.iconSizeXXLarge,
+                color: isCancelled ? colorScheme.onSurface.withOpacity(0.5) : colorScheme.primary,
               ),
               const SizedBox(height: DesktopDimensions.spacingSmall),
               Text(
@@ -183,10 +183,10 @@ class _StockScreenState extends State<StockScreen> {
               ),
               const SizedBox(height: DesktopDimensions.spacingSmall),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingSmall, vertical: DesktopDimensions.spacingXSmall),
                 decoration: BoxDecoration(
                   color: isCancelled ? colorScheme.errorContainer : colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(DesktopDimensions.extraSmallBorderRadius),
                 ),
                 child: Text(
                   activity.status,
@@ -264,13 +264,16 @@ class _StockScreenState extends State<StockScreen> {
   }
 
   Widget _buildDetailRow(String label, String value) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          Flexible(child: Text(value, textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w500))),
+          Text(label, style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+          Flexible(child: Text(value, textAlign: TextAlign.right, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500))),
         ],
       ),
     );
@@ -419,17 +422,17 @@ class _StockScreenState extends State<StockScreen> {
     return Row(
       children: [
         _buildKPICard(
-            loc.totalItems, '${summary.totalItemsCount}', Colors.blue),
+            loc.totalItems, '${summary.totalItemsCount}', colorScheme.primary),
         _buildKPICard(loc.stockValue,
-            summary.totalStockSalesValue.formattedNoDecimal, Colors.green),
+            summary.totalStockSalesValue.formattedNoDecimal, colorScheme.secondary),
         _buildKPICard('Total Cost', summary.totalStockCost.formattedNoDecimal,
-            Colors.grey),
+            colorScheme.onSurfaceVariant),
         _buildKPICard(
-            'Low Stock', '${summary.lowStockItemsCount}', Colors.orange),
+            'Low Stock', '${summary.lowStockItemsCount}', colorScheme.tertiary),
         _buildKPICard(
-            'Out of Stock', '${summary.outOfStockItemsCount}', Colors.red),
+            'Out of Stock', '${summary.outOfStockItemsCount}', colorScheme.error),
         _buildKPICard(
-            'Expired', '${summary.expiredOrNearExpiryCount}', Colors.purple),
+            'Expired', '${summary.expiredOrNearExpiryCount}', colorScheme.onErrorContainer),
       ],
     );
   }
@@ -448,10 +451,9 @@ class _StockScreenState extends State<StockScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style: TextStyle(
-                      fontSize: DesktopDimensions.captionSize,
-                      color: Colors.grey[700])),
-              const SizedBox(height: DesktopDimensions.spacingSmall),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              const SizedBox(height: DesktopDimensions.spacingXSmall),
               Text(
                 value,
                 style: TextStyle(
@@ -550,8 +552,9 @@ class _StockScreenState extends State<StockScreen> {
                         onSelected: (v) => context
                             .read<StockFilterBloc>()
                             .add(SetStatusFilter('LOW')),
-                        backgroundColor: Colors.orange.withOpacity(0.1),
-                        selectedColor: Colors.orange.withOpacity(0.3),
+                        backgroundColor: colorScheme.tertiaryContainer.withOpacity(0.3),
+                        selectedColor: colorScheme.tertiaryContainer,
+                        shape: StadiumBorder(side: BorderSide(color: state.statusFilter == 'LOW' ? colorScheme.tertiary : Colors.transparent)),
                       ),
                       FilterChip(
                         label: const Text('Out of Stock'),
@@ -559,8 +562,9 @@ class _StockScreenState extends State<StockScreen> {
                         onSelected: (v) => context
                             .read<StockFilterBloc>()
                             .add(SetStatusFilter('OUT')),
-                        backgroundColor: Colors.red.withOpacity(0.1),
-                        selectedColor: Colors.red.withOpacity(0.3),
+                        backgroundColor: colorScheme.errorContainer.withOpacity(0.3),
+                        selectedColor: colorScheme.errorContainer,
+                        shape: StadiumBorder(side: BorderSide(color: state.statusFilter == 'OUT' ? colorScheme.error : Colors.transparent)),
                       ),
                       FilterChip(
                         label: const Text('Expired'),
@@ -568,8 +572,9 @@ class _StockScreenState extends State<StockScreen> {
                         onSelected: (v) => context
                             .read<StockFilterBloc>()
                             .add(SetStatusFilter('EXPIRED')),
-                        backgroundColor: Colors.purple.withOpacity(0.1),
-                        selectedColor: Colors.purple.withOpacity(0.3),
+                        backgroundColor: colorScheme.onErrorContainer.withOpacity(0.3),
+                        selectedColor: colorScheme.onErrorContainer,
+                        shape: StadiumBorder(side: BorderSide(color: state.statusFilter == 'EXPIRED' ? colorScheme.onError : Colors.transparent)),
                       ),
                       FilterChip(
                         label: const Text('Old Stock'),
@@ -577,8 +582,9 @@ class _StockScreenState extends State<StockScreen> {
                         onSelected: (v) => context
                             .read<StockFilterBloc>()
                             .add(SetStatusFilter('OLD')),
-                        backgroundColor: Colors.grey.withOpacity(0.1),
-                        selectedColor: Colors.grey.withOpacity(0.3),
+                        backgroundColor: colorScheme.secondaryContainer.withOpacity(0.3),
+                        selectedColor: colorScheme.secondaryContainer,
+                        shape: StadiumBorder(side: BorderSide(color: state.statusFilter == 'OLD' ? colorScheme.secondary : Colors.transparent)),
                       ),
                     ],
                   ),
@@ -631,8 +637,7 @@ class _StockScreenState extends State<StockScreen> {
     _currentDisplayedItems = sortedItems;
 
     return Card(
-      margin: const EdgeInsets.fromLTRB(DesktopDimensions.spacingMedium, 0,
-          DesktopDimensions.spacingMedium, 0),
+      margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colorScheme.outlineVariant),
@@ -643,11 +648,11 @@ class _StockScreenState extends State<StockScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             child: Text(
               'Current Inventory State',
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
@@ -657,20 +662,24 @@ class _StockScreenState extends State<StockScreen> {
                 child: DataTable(
                   sortColumnIndex: _sortColumnIndex,
                   sortAscending: _isAscending,
-                  headingRowHeight: DesktopDimensions.bodySize * 2.5,
-                  dataRowMinHeight: DesktopDimensions.bodySize * 2.5,
-                  dataRowMaxHeight: DesktopDimensions.bodySize * 2.5,
+                  headingRowHeight: DesktopDimensions.tableHeaderHeight,
+                  dataRowMinHeight: DesktopDimensions.tableDataRowHeight,
+                  dataRowMaxHeight: DesktopDimensions.tableDataRowHeight,
                   headingRowColor:
                       MaterialStateProperty.all(colorScheme.primaryContainer),
+                  headingTextStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
                   columns: [
-                    DataColumn(label: Text(loc.item, style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort),
-                    DataColumn(label: Text(loc.category, style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort),
-                    DataColumn(label: Text('Cost', style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort, numeric: true),
-                    DataColumn(label: Text(loc.price, style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort, numeric: true),
-                    DataColumn(label: Text(loc.quantity, style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort, numeric: true),
-                    DataColumn(label: Text('Value', style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer)), onSort: onSort, numeric: true),
-                    DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer))),
-                    DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: DesktopDimensions.headingSize, color: colorScheme.onPrimaryContainer))),
+                    DataColumn(label: Text(loc.item), onSort: onSort),
+                    DataColumn(label: Text(loc.category), onSort: onSort),
+                    DataColumn(label: Text('Cost'), onSort: onSort, numeric: true),
+                    DataColumn(label: Text(loc.price), onSort: onSort, numeric: true),
+                    DataColumn(label: Text(loc.quantity), onSort: onSort, numeric: true),
+                    DataColumn(label: Text('Value'), onSort: onSort, numeric: true),
+                    DataColumn(label: Text('Status')),
+                    DataColumn(label: Text('Actions')),
                   ],
                   showCheckboxColumn: false,
                   rows: sortedItems.asMap().entries.map((entry) {
@@ -697,8 +706,10 @@ class _StockScreenState extends State<StockScreen> {
                       }),
                       cells: [
                         DataCell(Text(item.nameEnglish,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w500))),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w500))),
                         DataCell(Text(item.categoryName ?? '-')),
                         DataCell(Text(item.costPrice.formattedNoDecimal)),
                         DataCell(Text(item.salePrice.formattedNoDecimal)),
@@ -707,28 +718,30 @@ class _StockScreenState extends State<StockScreen> {
                         DataCell(
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: DesktopDimensions.spacingMedium,
-                                vertical: DesktopDimensions.spacingSmall),
+                                horizontal: DesktopDimensions.spacingSmall,
+                                vertical: DesktopDimensions.spacingXSmall),
                             decoration: BoxDecoration(
                               color: isOut
-                                  ? Colors.red[100]
+                                  ? colorScheme.errorContainer
                                   : (isLow
-                                      ? Colors.orange[100]
-                                      : Colors.green[100]),
+                                      ? colorScheme.tertiaryContainer
+                                      : colorScheme.primaryContainer),
                               borderRadius: BorderRadius.circular(
-                                  DesktopDimensions.spacingSmall),
+                                  DesktopDimensions.extraSmallBorderRadius),
                             ),
                             child: Text(
                               isOut ? 'OUT' : (isLow ? 'LOW' : 'OK'),
-                              style: TextStyle(
-                                color: isOut
-                                    ? Colors.red[900]
-                                    : (isLow
-                                        ? Colors.orange[900]
-                                        : Colors.green[900]),
-                                fontSize: DesktopDimensions.captionSize,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color: isOut
+                                        ? colorScheme.onErrorContainer
+                                        : (isLow
+                                            ? colorScheme.onTertiaryContainer
+                                            : colorScheme.onPrimaryContainer),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                         ),
@@ -793,18 +806,18 @@ class _StockScreenState extends State<StockScreen> {
 
   Widget _buildStockTableSkeleton(ColorScheme colorScheme) {
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+      margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(DesktopDimensions.cardBorderRadius)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SkeletonLoader(width: 200, height: 20),
+            const SkeletonLoader(width: 200, height: DesktopDimensions.headingSize),
             const SizedBox(height: DesktopDimensions.spacingLarge),
             Expanded(
               child: ListView.separated(
@@ -812,13 +825,13 @@ class _StockScreenState extends State<StockScreen> {
                 separatorBuilder: (_, __) => const SizedBox(height: DesktopDimensions.spacingMedium),
                 itemBuilder: (_, __) => const Row(
                   children: [
-                    Expanded(flex: 2, child: SkeletonLoader(height: 16)),
+                    Expanded(flex: 2, child: SkeletonLoader(height: DesktopDimensions.bodySize)),
                     SizedBox(width: DesktopDimensions.spacingMedium),
-                    Expanded(flex: 1, child: SkeletonLoader(height: 16)),
+                    Expanded(flex: 1, child: SkeletonLoader(height: DesktopDimensions.bodySize)),
                     SizedBox(width: DesktopDimensions.spacingMedium),
-                    Expanded(flex: 1, child: SkeletonLoader(height: 16)),
+                    Expanded(flex: 1, child: SkeletonLoader(height: DesktopDimensions.bodySize)),
                     SizedBox(width: DesktopDimensions.spacingMedium),
-                    Expanded(flex: 1, child: SkeletonLoader(height: 16)),
+                    Expanded(flex: 1, child: SkeletonLoader(height: DesktopDimensions.bodySize)),
                   ],
                 ),
               ),
@@ -831,24 +844,24 @@ class _StockScreenState extends State<StockScreen> {
 
   Widget _buildActivitySkeleton(ColorScheme colorScheme) {
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(DesktopDimensions.cardBorderRadius)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SkeletonLoader(width: 150, height: 20),
+            const SkeletonLoader(width: 150, height: DesktopDimensions.headingSize),
             const SizedBox(height: DesktopDimensions.spacingLarge),
             Expanded(
               child: ListView.separated(
                 itemCount: 5,
                 separatorBuilder: (_, __) => const SizedBox(height: DesktopDimensions.spacingStandard),
-                itemBuilder: (_, __) => const SkeletonLoader(height: 30),
+                itemBuilder: (_, __) => const SkeletonLoader(height: DesktopDimensions.bodySize * 2),
               ),
             ),
           ],
@@ -859,32 +872,34 @@ class _StockScreenState extends State<StockScreen> {
 
   Widget _buildKPISkeleton(ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium, vertical: DesktopDimensions.spacingStandard),
       color: colorScheme.surfaceVariant.withOpacity(0.3),
-      child: const Row(children: [Expanded(child: SkeletonLoader(height: 60))]),
+      child: const Row(children: [Expanded(child: SkeletonLoader(height: DesktopDimensions.kpiHeight))]),
     );
   }
 
   Widget _buildRecentActivities(BuildContext context, AppLocalizations loc, ColorScheme colorScheme, List<StockActivityEntity> activities, bool hasReachedMax) {
+    final textTheme = Theme.of(context).textTheme;
     return Card(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16), // Bottom margin only
+      margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(DesktopDimensions.cardBorderRadius)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             child: Row(
               children: [
-                const Icon(Icons.history, size: 18),
+                const Icon(Icons.history, size: DesktopDimensions.iconSizeSmallMedium),
                 const SizedBox(width: DesktopDimensions.spacingSmall),
                 Text(
                   'Recent Inventory Activities (Audit Log)',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                  style: textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                 ),
               ],
             ),
@@ -892,8 +907,8 @@ class _StockScreenState extends State<StockScreen> {
           Expanded(
             child: SingleChildScrollView(
               child: DataTable(
-                headingRowHeight: 40,
-                dataRowHeight: 48,
+                headingRowHeight: DesktopDimensions.tableHeaderHeight,
+                dataRowHeight: DesktopDimensions.tableDataRowHeight,
                 columns: const [
                   DataColumn(label: Text('Date & Time')),
                   DataColumn(label: Text('Type')),
@@ -904,49 +919,48 @@ class _StockScreenState extends State<StockScreen> {
                   DataColumn(label: Text('Action')),
                 ],
                 rows: activities.map((act) {
-                  Color typeColor = Colors.grey;
-                  if (act.type == ActivityType.sale) typeColor = Colors.blue;
-                  if (act.type == ActivityType.adjustment) typeColor = Colors.orange;
-                  if (act.type == ActivityType.purchase) typeColor = Colors.green;
+                  Color typeColor = colorScheme.onSurfaceVariant;
+                  if (act.type == ActivityType.sale) typeColor = colorScheme.primary;
+                  if (act.type == ActivityType.adjustment) typeColor = colorScheme.tertiary;
+                  if (act.type == ActivityType.purchase) typeColor = colorScheme.secondary;
 
                   final qty = act.quantityChange;
-                  final qtyColor = qty > 0 ? Colors.green : (qty < 0 ? Colors.red : Colors.grey);
+                  final qtyColor = qty > 0 ? colorScheme.secondary : (qty < 0 ? colorScheme.error : colorScheme.onSurface);
                   final dateStr = act.timestamp.toString().substring(0, 16).replaceFirst('T', ' ');
 
                   return DataRow(
                     cells: [
-                      DataCell(Text(dateStr, style: const TextStyle(fontSize: 12))),
+                      DataCell(Text(dateStr, style: textTheme.bodySmall)),
                       DataCell(Row(
                         children: [
-                          Icon(Icons.circle, size: 8, color: typeColor),
-                          const SizedBox(width: 8),
-                          Text(act.type.name.toUpperCase(), style: const TextStyle(fontSize: 12)),
+                          Icon(Icons.circle, size: DesktopDimensions.iconSizeXXXSmall, color: typeColor),
+                          const SizedBox(width: DesktopDimensions.spacingSmall),
+                          Text(act.type.name.toUpperCase(), style: textTheme.bodySmall),
                         ],
                       )),
-                      DataCell(Text(act.referenceNumber, style: const TextStyle(fontSize: 12))),
+                      DataCell(Text(act.referenceNumber, style: textTheme.bodySmall)),
                       DataCell(Text(
                         qty > 0 ? '+$qty' : '$qty',
-                        style: TextStyle(color: qtyColor, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: textTheme.bodySmall?.copyWith(color: qtyColor, fontWeight: FontWeight.bold),
                       )),
-                      DataCell(Text(act.user, style: const TextStyle(fontSize: 12))),
+                      DataCell(Text(act.user, style: textTheme.bodySmall)),
                       DataCell(Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingSmall, vertical: DesktopDimensions.spacingXSmall),
                         decoration: BoxDecoration(
-                          color: act.status == 'CANCELLED' ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4),
+                          color: act.status == 'CANCELLED' ? colorScheme.errorContainer.withOpacity(0.5) : colorScheme.primaryContainer.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(DesktopDimensions.extraSmallBorderRadius),
                         ),
                         child: Text(
                           act.status,
-                          style: TextStyle(
-                            fontSize: 10,
+                          style: textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: act.status == 'CANCELLED' ? Colors.red : Colors.green,
+                            color: act.status == 'CANCELLED' ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
                           ),
                         ),
                       )),
                       DataCell(
                         IconButton(
-                          icon: const Icon(Icons.visibility, size: 18),
+                          icon: const Icon(Icons.visibility, size: DesktopDimensions.iconSizeSmallMedium),
                           onPressed: () {
                             _openSidePanel(
                               'Activity: ${act.referenceNumber}',
@@ -963,7 +977,7 @@ class _StockScreenState extends State<StockScreen> {
           ),
           if (!hasReachedMax)
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
               child: TextButton(
                 onPressed: () {
                   context.read<StockActivityBloc>().add(LoadMoreStockActivities());
@@ -1066,14 +1080,14 @@ class _StockScreenState extends State<StockScreen> {
                     // Panel Header
                     Container(
                       padding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium, vertical: DesktopDimensions.spacingStandard),
                       color: colorScheme.surfaceVariant.withOpacity(0.3),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
                               _sidePanelTitle,
-                              style: TextStyle(
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.onSurface),
                               overflow: TextOverflow.ellipsis,
@@ -1082,7 +1096,7 @@ class _StockScreenState extends State<StockScreen> {
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: _closeSidePanel,
-                            iconSize: 20,
+                            iconSize: DesktopDimensions.iconSizeMedium,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
                           ),
@@ -1156,7 +1170,7 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
       child: Form(
         key: _formKey,
         child: Column(

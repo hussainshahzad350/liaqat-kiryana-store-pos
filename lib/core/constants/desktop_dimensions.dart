@@ -43,6 +43,7 @@ class DesktopDimensions {
   static const double titleLargeSize = 22.0;
   static const double bodyLargeSize = 16.0;
   static const double labelMediumSize = 13.0;
+  static const double badgeFontSize = 10.0;
   
   // Spacing
   static const double spacingSmall = 8.0;
@@ -71,10 +72,12 @@ class DesktopDimensions {
   // Icon Sizes
   static const double iconSizeXSmall = 12.0;
   static const double iconSizeSmall = 16.0;
+  static const double iconSizeSmallMedium = 18.0;
   static const double iconSizeMedium = 20.0;
   static const double iconSizeLarge = 24.0;
   static const double iconSizeXLarge = 32.0;
   static const double iconSizeXXLarge = 48.0;
+  static const double iconSizeXXXSmall = 8.0;
 
   // Buttons
   static const double buttonHeight = 40.0;
@@ -82,9 +85,12 @@ class DesktopDimensions {
   static const double smallBorderRadius = 6.0;
   static const double scrollLoadThreshold = 64.0;
   static const double mediumBorderRadius = 8.0;
+  static const double extraSmallBorderRadius = 4.0;
 
   // Tables & Lists
   static const double tableRowHeight = 40.0;
+  static const double tableHeaderHeight = 40.0;
+  static const double tableDataRowHeight = 48.0;
   static const double tableHeaderFontSize = 13.0;
   
   // Forms/Input screens
