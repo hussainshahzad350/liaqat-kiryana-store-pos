@@ -273,7 +273,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                           ),
                                         ),
                                         SizedBox(
-                                          width: 120,
+                                          width:
+                                              DesktopDimensions.formLabelWidth,
                                           child: Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.end,
