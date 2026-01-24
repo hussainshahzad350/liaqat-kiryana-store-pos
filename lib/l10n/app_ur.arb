@@ -142,7 +142,12 @@
   "database": "ڈیٹا بیس",
   "stateManagement": "اسٹیٹ مینیجمنٹ",
   "uiFramework": "UI فریم ورک",
-  "lastUpdated": "آخری اپ ڈیٹ",
+  "lastUpdated": "آخری اپ ڈیٹ: {date}",
+  "@lastUpdated": {
+    "placeholders": {
+      "date": {}
+    }
+  },
   "features": "اہم خصوصیات",
   "featurePos": "تیز پوائنٹ آف سیل",
   "featureStockManagement": "اسمارٹ اسٹاک مینیجمنٹ",

@@ -142,7 +142,12 @@
   "database": "Database",
   "stateManagement": "State Management",
   "uiFramework": "UI Framework",
-  "lastUpdated": "Last Updated",
+  "lastUpdated": "Last Updated: {date}",
+  "@lastUpdated": {
+    "placeholders": {
+      "date": {}
+    }
+  },
   "features": "Key Features",
   "featurePos": "Fast Point of Sale",
   "featureStockManagement": "Smart Stock Management",

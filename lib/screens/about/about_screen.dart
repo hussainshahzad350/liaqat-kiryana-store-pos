@@ -103,8 +103,13 @@ class AboutScreen extends StatelessWidget {
                           _buildTechItem(context, loc.stateManagement, 'Bloc'),
                           _buildTechItem(
                               context, loc.uiFramework, 'Material Design 3'),
-                          _buildTechItem(
-                              context, loc.lastUpdated, 'December 2024'),
+                          const SizedBox(
+                              height: DesktopDimensions.spacingXSmall),
+                          Text(
+                            loc.lastUpdated('December 2024'),
+                            style: textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onSurface),
+                          ),
                         ],
                       ),
                     ),
