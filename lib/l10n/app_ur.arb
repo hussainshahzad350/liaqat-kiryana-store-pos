@@ -638,4 +638,54 @@
   "yesDelete": "ہاں، حذف کریں",
   "home": "ہوم",
   "categories": "کیٹیگریز"
+,
+  "printOrPdf": "پرنٹ / پی ڈی ایف",
+  "exportToExcelCsv": "ایکسل (CSV) میں ایکسپورٹ کریں",
+  "savedToPath": "محفوظ کیا گیا: {path}",
+  "@savedToPath": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "viewLedgerTooltip": "لیجر دیکھیں",
+  "editAction": "ترمیم",
+  "archiveAction": "آرکائیو",
+  "deleteAction": "حذف کریں",
+  "noTransactionsFound": "کوئی لین دین نہیں ملا",
+  "currentBalanceLabel": "موجودہ بیلنس",
+  "creditLimitLabel": "حد: {amount}",
+  "@creditLimitLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "receivePaymentButton": "ادائیگی وصول کریں",
+  "exportTooltip": "ایکسپورٹ",
+  "closeTooltip": "بند کریں",
+  "dateRangeButton": "تاریخ کی حد",
+  "filterReceipts": "رسیدیں",
+  "searchDocOrDescPlaceholder": "دستاویز # یا تفصیل تلاش کریں...",
+  "docNoHeader": "دستاویز نمبر",
+  "typeHeader": "قسم",
+  "debitHeader": "ڈیبٹ",
+  "creditHeader": "کریڈٹ",
+  "balanceHeader": "بیلنس",
+  "receivePaymentTitle": "ادائیگی وصول کریں",
+  "notesOptionalLabel": "نوٹس (اختیاری)",
+  "failedToLoadDetails": "تفصیلات لوڈ کرنے میں ناکام",
+  "confirmCancellationTitle": "منسوخی کی تصدیق کریں",
+  "confirmCancelInvoiceMessage": "کیا آپ واقعی اس انوائس کو منسوخ کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔",
+  "yesCancelButton": "ہاں، منسوخ کریں",
+  "invoiceCancelledSuccess": "انوائس کامیابی سے منسوخ ہو گئی",
+  "errorMessage": "خرابی: {error}",
+  "@errorMessage": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "saleType": "فروخت",
+  "receiptType": "رسید",
+  "cancelInvoiceTooltip": "انوائس منسوخ کریں",
+  "rateHeader": "شرح",
+  "totalHeader": "کل"
 }

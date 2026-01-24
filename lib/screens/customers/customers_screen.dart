@@ -211,7 +211,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             ListTile(
               leading: Icon(Icons.picture_as_pdf,
                   color: Theme.of(context).colorScheme.error),
-              title: const Text('Print / PDF'),
+              title: Text(loc.printOrPdf),
               onTap: () {
                 Navigator.pop(context);
                 _ledgerExportService.exportToPdf(
@@ -222,14 +222,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
             ListTile(
               leading: Icon(Icons.table_chart,
                   color: Theme.of(context).colorScheme.primary),
-              title: const Text('Export to Excel (CSV)'),
+              title: Text(loc.exportToExcelCsv),
               onTap: () async {
                 Navigator.pop(context);
                 final path = await _ledgerExportService.exportToCsv(
                     _currentLedger, _selectedCustomerForLedger!);
                 if (mounted) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text('Saved to: $path')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(loc.savedToPath(path))));
                 }
               },
             ),
@@ -785,7 +785,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               ),
             IconButton(
               icon: Icon(Icons.receipt_long, color: colorScheme.primary),
-              tooltip: "View Ledger",
+              tooltip: AppLocalizations.of(context)!.viewLedgerTooltip,
               onPressed: () => _openLedger(customer),
             ),
             PopupMenuButton<String>(
@@ -799,50 +799,53 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   _deleteCustomer(customer.id!, customer.outstandingBalance);
                 }
               },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit,
-                          size: DesktopDimensions.iconSizeSmall,
-                          color: colorScheme.onSurface),
-                      const SizedBox(width: DesktopDimensions.spacingSmall),
-                      Text('Edit',
-                          style: textTheme.bodyMedium
-                              ?.copyWith(color: colorScheme.onSurface)),
-                    ],
+              itemBuilder: (context) {
+                final loc = AppLocalizations.of(context)!;
+                return [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit,
+                            size: DesktopDimensions.iconSizeSmall,
+                            color: colorScheme.onSurface),
+                        const SizedBox(width: DesktopDimensions.spacingSmall),
+                        Text(loc.editAction,
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurface)),
+                      ],
+                    ),
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'archive',
-                  child: Row(
-                    children: [
-                      Icon(Icons.archive,
-                          size: DesktopDimensions.iconSizeSmall,
-                          color: colorScheme.onSurface),
-                      const SizedBox(width: DesktopDimensions.spacingSmall),
-                      Text('Archive',
-                          style: textTheme.bodyMedium
-                              ?.copyWith(color: colorScheme.onSurface)),
-                    ],
+                  PopupMenuItem(
+                    value: 'archive',
+                    child: Row(
+                      children: [
+                        Icon(Icons.archive,
+                            size: DesktopDimensions.iconSizeSmall,
+                            color: colorScheme.onSurface),
+                        const SizedBox(width: DesktopDimensions.spacingSmall),
+                        Text(loc.archiveAction,
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurface)),
+                      ],
+                    ),
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete,
-                          size: DesktopDimensions.iconSizeSmall,
-                          color: colorScheme.error),
-                      const SizedBox(width: DesktopDimensions.spacingSmall),
-                      Text('Delete',
-                          style: textTheme.bodyMedium
-                              ?.copyWith(color: colorScheme.error)),
-                    ],
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete,
+                            size: DesktopDimensions.iconSizeSmall,
+                            color: colorScheme.error),
+                        const SizedBox(width: DesktopDimensions.spacingSmall),
+                        Text(loc.deleteAction,
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.error)),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ];
+              },
             ),
           ],
         ),
@@ -895,7 +898,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   child: _filteredLedgerRows.isEmpty
                       ? Center(
                           child: Text(
-                            "No transactions found",
+                            loc.noTransactionsFound,
                             style: textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
@@ -978,7 +981,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                "Current Balance",
+                loc.currentBalanceLabel,
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
@@ -993,7 +996,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               ),
               if (customer.creditLimit > 0)
                 Text(
-                  "Limit: ${Money(customer.creditLimit)}",
+                  loc.creditLimitLabel(Money(customer.creditLimit).toString()),
                   style: textTheme.bodySmall
                       ?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
@@ -1007,7 +1010,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 onPressed: _showPaymentDialog,
                 icon: const Icon(Icons.add,
                     size: DesktopDimensions.iconSizeMedium),
-                label: const Text("Receive Payment"),
+                label: Text(loc.receivePaymentButton),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
@@ -1023,14 +1026,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 icon: const Icon(Icons.print,
                     size: DesktopDimensions.iconSizeMedium),
                 onPressed: () => _handleExport(loc),
-                tooltip: "Export",
+                tooltip: loc.exportTooltip,
                 color: colorScheme.onSurfaceVariant,
               ),
               IconButton(
                 icon: const Icon(Icons.close,
                     size: DesktopDimensions.iconSizeMedium),
                 onPressed: () => setState(() => _showLedgerOverlay = false),
-                tooltip: "Close",
+                tooltip: loc.closeTooltip,
                 color: colorScheme.onSurfaceVariant,
               ),
             ],
@@ -1074,7 +1077,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
             icon: const Icon(Icons.calendar_today,
                 size: DesktopDimensions.iconSizeSmall),
             label: Text(_ledgerStartDate == null
-                ? "Date Range"
+                ? loc.dateRangeButton
                 : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}"),
             style: OutlinedButton.styleFrom(
               backgroundColor: colorScheme.surface,
@@ -1098,10 +1101,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
           const SizedBox(width: DesktopDimensions.spacingMedium),
           // Type Filter
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'ALL', label: Text('All')),
-              ButtonSegment(value: 'SALE', label: Text('Sales')),
-              ButtonSegment(value: 'RECEIPT', label: Text('Receipts')),
+            segments: [
+              ButtonSegment(value: 'ALL', label: Text(loc.all)),
+              ButtonSegment(value: 'SALE', label: Text(loc.sales)),
+              ButtonSegment(value: 'RECEIPT', label: Text(loc.filterReceipts)),
             ],
             selected: {_ledgerFilterType},
             onSelectionChanged: (Set<String> newSelection) {
@@ -1129,7 +1132,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               style:
                   textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
               decoration: InputDecoration(
-                hintText: "Search Doc # or Desc...",
+                hintText: loc.searchDocOrDescPlaceholder,
                 hintStyle: textTheme.bodyMedium
                     ?.copyWith(color: colorScheme.onSurfaceVariant),
                 prefixIcon: const Icon(Icons.search,
@@ -1180,39 +1183,39 @@ class _CustomersScreenState extends State<CustomersScreen> {
         children: [
           Expanded(
               flex: 2,
-              child: Text("Date",
+              child: Text(loc.date,
                   style: textTheme.bodySmall
                       ?.copyWith(fontWeight: FontWeight.bold))),
           Expanded(
               flex: 2,
-              child: Text("Doc No",
+              child: Text(loc.docNoHeader,
                   style: textTheme.bodySmall
                       ?.copyWith(fontWeight: FontWeight.bold))),
           Expanded(
               flex: 2,
-              child: Text("Type",
+              child: Text(loc.typeHeader,
                   style: textTheme.bodySmall
                       ?.copyWith(fontWeight: FontWeight.bold))),
           Expanded(
               flex: 4,
-              child: Text("Description",
+              child: Text(loc.description,
                   style: textTheme.bodySmall
                       ?.copyWith(fontWeight: FontWeight.bold))),
           Expanded(
               flex: 2,
-              child: Text("Debit",
+              child: Text(loc.debitHeader,
                   textAlign: TextAlign.right,
                   style: textTheme.bodySmall
                       ?.copyWith(fontWeight: FontWeight.bold))),
           Expanded(
               flex: 2,
-              child: Text("Credit",
+              child: Text(loc.creditHeader,
                   textAlign: TextAlign.right,
                   style: textTheme.bodySmall
                       ?.copyWith(fontWeight: FontWeight.bold))),
           Expanded(
               flex: 2,
-              child: Text("Balance",
+              child: Text(loc.balanceHeader,
                   textAlign: TextAlign.right,
                   style: textTheme.bodySmall
                       ?.copyWith(fontWeight: FontWeight.bold))),
@@ -1248,7 +1251,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "Receive Payment",
+                  loc.receivePaymentTitle,
                   style: textTheme.titleLarge?.copyWith(
                     color: colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
@@ -1260,15 +1263,16 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   keyboardType: TextInputType.number,
                   style: textTheme.bodyMedium
                       ?.copyWith(color: colorScheme.onSurface),
-                  decoration: _cleanInput("Amount", Icons.money, colorScheme),
+                  decoration:
+                      _cleanInput(loc.amount, Icons.money, colorScheme),
                 ),
                 const SizedBox(height: DesktopDimensions.spacingMedium),
                 TextField(
                   controller: notesCtrl,
                   style: textTheme.bodyMedium
                       ?.copyWith(color: colorScheme.onSurface),
-                  decoration:
-                      _cleanInput("Notes (Optional)", Icons.note, colorScheme),
+                  decoration: _cleanInput(
+                      loc.notesOptionalLabel, Icons.note, colorScheme),
                 ),
                 const SizedBox(height: DesktopDimensions.spacingLarge),
                 Row(
@@ -1276,7 +1280,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text("Cancel",
+                      child: Text(loc.cancel,
                           style: textTheme.bodyMedium
                               ?.copyWith(color: colorScheme.onSurface)),
                     ),
@@ -1316,7 +1320,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           }
                         }
                       },
-                      child: const Text("Save"),
+                      child: Text(loc.save),
                     ),
                   ],
                 ),
@@ -1669,7 +1673,9 @@ class _LedgerRowState extends State<_LedgerRow> {
             await widget.invoiceRepository.getInvoiceWithItems(invoiceId);
         if (mounted) setState(() => _items = invoice?.items);
       } catch (e) {
-        if (mounted) setState(() => _error = "Failed to load details");
+        if (mounted) {
+          setState(() => _error = AppLocalizations.of(context)!.failedToLoadDetails);
+        }
       } finally {
         if (mounted) setState(() => _isLoadingItems = false);
       }
@@ -1699,13 +1705,13 @@ class _LedgerRowState extends State<_LedgerRow> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Confirm Cancellation',
+                  AppLocalizations.of(context)!.confirmCancellationTitle,
                   style: textTheme.titleLarge
                       ?.copyWith(color: colorScheme.onSurface),
                 ),
                 const SizedBox(height: DesktopDimensions.spacingMedium),
                 Text(
-                  'Are you sure you want to cancel this invoice? This action cannot be undone.',
+                  AppLocalizations.of(context)!.confirmCancelInvoiceMessage,
                   style: textTheme.bodyMedium
                       ?.copyWith(color: colorScheme.onSurface),
                 ),
@@ -1715,7 +1721,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: Text('No',
+                      child: Text(AppLocalizations.of(context)!.no,
                           style: textTheme.bodyMedium
                               ?.copyWith(color: colorScheme.onSurface)),
                     ),
@@ -1728,7 +1734,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                         minimumSize:
                             const Size(0, DesktopDimensions.buttonHeight),
                       ),
-                      child: const Text('Yes, Cancel'),
+                      child: Text(AppLocalizations.of(context)!.yesCancelButton),
                     ),
                   ],
                 ),
@@ -1750,7 +1756,8 @@ class _LedgerRowState extends State<_LedgerRow> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Invoice cancelled successfully'),
+              content: Text(
+                  AppLocalizations.of(context)!.invoiceCancelledSuccess),
               backgroundColor: colorScheme.primary,
             ),
           );
@@ -1760,7 +1767,8 @@ class _LedgerRowState extends State<_LedgerRow> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error: ${e.toString()}'),
+              content: Text(
+                  AppLocalizations.of(context)!.errorMessage(e.toString())),
               backgroundColor: colorScheme.error,
             ),
           );
@@ -1823,7 +1831,9 @@ class _LedgerRowState extends State<_LedgerRow> {
                 Expanded(
                     flex: 2,
                     child: Text(
-                      isSale ? "SALE" : "RECEIPT",
+                      isSale
+                          ? AppLocalizations.of(context)!.saleType
+                          : AppLocalizations.of(context)!.receiptType,
                       style: textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color:
@@ -1856,7 +1866,8 @@ class _LedgerRowState extends State<_LedgerRow> {
                               color: colorScheme.error,
                               size: DesktopDimensions.iconSizeSmall,
                             ),
-                            tooltip: 'Cancel Invoice',
+                            tooltip:
+                                AppLocalizations.of(context)!.cancelInvoiceTooltip,
                             onPressed: _cancelInvoice,
                           ),
                       ],
@@ -1948,7 +1959,8 @@ class _LedgerRowState extends State<_LedgerRow> {
                                       Padding(
                                         padding: const EdgeInsets.all(
                                             DesktopDimensions.spacingXSmall),
-                                        child: Text("Item",
+                                        child: Text(
+                                            AppLocalizations.of(context)!.item,
                                             style: textTheme.bodySmall
                                                 ?.copyWith(
                                                     fontWeight:
@@ -1957,7 +1969,8 @@ class _LedgerRowState extends State<_LedgerRow> {
                                       Padding(
                                         padding: const EdgeInsets.all(
                                             DesktopDimensions.spacingXSmall),
-                                        child: Text("Qty",
+                                        child: Text(
+                                            AppLocalizations.of(context)!.qty,
                                             textAlign: TextAlign.center,
                                             style: textTheme.bodySmall
                                                 ?.copyWith(
@@ -1967,7 +1980,9 @@ class _LedgerRowState extends State<_LedgerRow> {
                                       Padding(
                                         padding: const EdgeInsets.all(
                                             DesktopDimensions.spacingXSmall),
-                                        child: Text("Rate",
+                                        child: Text(
+                                            AppLocalizations.of(context)!
+                                                .rateHeader,
                                             textAlign: TextAlign.right,
                                             style: textTheme.bodySmall
                                                 ?.copyWith(
@@ -1977,7 +1992,9 @@ class _LedgerRowState extends State<_LedgerRow> {
                                       Padding(
                                         padding: const EdgeInsets.all(
                                             DesktopDimensions.spacingXSmall),
-                                        child: Text("Total",
+                                        child: Text(
+                                            AppLocalizations.of(context)!
+                                                .totalHeader,
                                             textAlign: TextAlign.right,
                                             style: textTheme.bodySmall
                                                 ?.copyWith(
