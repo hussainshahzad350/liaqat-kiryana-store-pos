@@ -58,37 +58,57 @@ class _UnitsScreenState extends State<UnitsScreen> {
                 child: Column(
                   children: [
                     Container(
-                      color: colorScheme.surfaceVariant.withOpacity(0.3),
+                      color: colorScheme.primaryContainer,
                       padding: const EdgeInsets.symmetric(
                           horizontal: DesktopDimensions.spacingLarge,
                           vertical: DesktopDimensions.spacingStandard),
                       child: Row(
                         children: [
                           SizedBox(
-                              width: 60,
-                              child: Text('#',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.onSurfaceVariant))),
+                            width: DesktopDimensions.aboutIconSize,
+                            child: Text(
+                              '#',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                      color: colorScheme.onPrimaryContainer),
+                            ),
+                          ),
                           Expanded(
-                              flex: 2,
-                              child: Text(loc.name,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.onSurfaceVariant))),
+                            flex: 2,
+                            child: Text(
+                              loc.name,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                      color: colorScheme.onPrimaryContainer),
+                            ),
+                          ),
                           Expanded(
-                              flex: 1,
-                              child: Text('Code',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.onSurfaceVariant))),
+                            flex: 1,
+                            child: Text(
+                              'Code',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                      color: colorScheme.onPrimaryContainer),
+                            ),
+                          ),
                           SizedBox(
-                              width: 120,
-                              child: Text('Actions',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: colorScheme.onSurfaceVariant),
-                                  textAlign: TextAlign.end)),
+                            width: DesktopDimensions.formLabelWidth,
+                            child: Text(
+                              'Actions',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                      color: colorScheme.onPrimaryContainer),
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -109,8 +129,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                             return ListView.separated(
                               itemCount: state.units.length,
                               separatorBuilder: (context, index) => Divider(
-                                  height: 1,
-                                  color: colorScheme.outline.withOpacity(0.1)),
+                                  height: 1, color: colorScheme.outlineVariant),
                               itemBuilder: (context, index) {
                                 final unit = state.units[index];
                                 return InkWell(
@@ -126,29 +145,35 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                       _showEditUnitDialog(context, unit);
                                     }
                                   },
-                                  hoverColor:
-                                      colorScheme.primary.withOpacity(0.05),
+                                  hoverColor: colorScheme.primaryContainer
+                                      .withOpacity(0.1),
                                   child: Container(
+                                    height: DesktopDimensions.bodySize * 2.5,
                                     padding: const EdgeInsets.symmetric(
                                         horizontal:
                                             DesktopDimensions.spacingLarge,
                                         vertical:
-                                            DesktopDimensions.spacingStandard),
+                                            DesktopDimensions.spacingSmall),
                                     child: Row(
                                       children: [
                                         SizedBox(
-                                            width: 60,
-                                            child: Text('${index + 1}',
-                                                style: TextStyle(
-                                                    color: colorScheme
-                                                        .onSurface))),
+                                          width: DesktopDimensions.aboutIconSize,
+                                          child: Text(
+                                            '${index + 1}',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium,
+                                          ),
+                                        ),
                                         Expanded(
                                           flex: 2,
                                           child: Row(
                                             children: [
                                               Container(
-                                                width: 32,
-                                                height: 32,
+                                                width: DesktopDimensions
+                                                    .iconSizeXLarge,
+                                                height: DesktopDimensions
+                                                    .iconSizeXLarge,
                                                 margin: const EdgeInsets.only(
                                                     right: DesktopDimensions
                                                         .spacingStandard),
@@ -167,7 +192,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                     unit.isSystem
                                                         ? Icons.lock_outline
                                                         : Icons.square_foot,
-                                                    size: 18,
+                                                    size: DesktopDimensions
+                                                        .headingSize,
                                                     color: unit.isSystem
                                                         ? colorScheme
                                                             .onSurfaceVariant
@@ -175,11 +201,9 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                             .onPrimaryContainer),
                                               ),
                                               Text(unit.name,
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: colorScheme
-                                                          .onSurface)),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyLarge),
                                               if (unit.isSystem)
                                                 Container(
                                                   margin: const EdgeInsets.only(
@@ -202,11 +226,15 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                             .outline
                                                             .withOpacity(0.3)),
                                                   ),
-                                                  child: Text('System',
-                                                      style: TextStyle(
-                                                          fontSize: 10,
-                                                          color: colorScheme
-                                                              .onSurfaceVariant)),
+                                                  child: Text(
+                                                    'System',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                            color: colorScheme
+                                                                .onSurfaceVariant),
+                                                  ),
                                                 ),
                                             ],
                                           ),
@@ -230,13 +258,17 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                         AppDimensions
                                                             .borderRadiusSmall),
                                               ),
-                                              child: Text(unit.code,
-                                                  style: TextStyle(
-                                                      color: colorScheme
-                                                          .onSecondaryContainer,
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.bold)),
+                                              child: Text(
+                                                unit.code,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelMedium
+                                                    ?.copyWith(
+                                                        color: colorScheme
+                                                            .onSecondaryContainer,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -248,7 +280,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                             children: [
                                               IconButton(
                                                 icon: const Icon(Icons.edit,
-                                                    size: 20),
+                                                    size: DesktopDimensions
+                                                        .iconSizeMedium),
                                                 color: unit.isSystem
                                                     ? colorScheme.outline
                                                         .withOpacity(0.5)
@@ -260,11 +293,13 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                 tooltip: unit.isSystem
                                                     ? 'System Unit'
                                                     : loc.editItem,
-                                                splashRadius: 20,
+                                                splashRadius: DesktopDimensions
+                                                    .iconSizeMedium,
                                               ),
                                               IconButton(
                                                 icon: const Icon(Icons.delete,
-                                                    size: 20),
+                                                    size: DesktopDimensions
+                                                        .iconSizeMedium),
                                                 color: unit.isSystem
                                                     ? colorScheme.outline
                                                         .withOpacity(0.5)
@@ -276,7 +311,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                 tooltip: unit.isSystem
                                                     ? 'System Unit'
                                                     : 'Delete',
-                                                splashRadius: 20,
+                                                splashRadius: DesktopDimensions
+                                                    .iconSizeMedium,
                                               ),
                                             ],
                                           ),
@@ -325,18 +361,17 @@ class _UnitsScreenState extends State<UnitsScreen> {
   void _deleteUnit(BuildContext context, Unit unit) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title:
-            Text(loc.confirm, style: TextStyle(color: colorScheme.onSurface)),
-        content: Text(loc.confirmDeleteItem,
-            style: TextStyle(color: colorScheme.onSurface)),
+        title: Text(loc.confirm, style: textTheme.titleLarge),
+        content: Text(loc.confirmDeleteItem, style: textTheme.bodyMedium),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(loc.no, style: TextStyle(color: colorScheme.onSurface)),
+            child: Text(loc.no),
           ),
           ElevatedButton(
             onPressed: () {
@@ -383,15 +418,17 @@ class _UnitDialogState extends State<UnitDialog> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final isEdit = widget.unit != null;
 
     return AlertDialog(
       backgroundColor: colorScheme.surface,
-      title: Text(isEdit ? loc.editItem : loc.addItem,
-          style: TextStyle(
-              color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
+      title: Text(
+        isEdit ? loc.editItem : loc.addItem,
+        style: textTheme.titleLarge,
+      ),
       content: SizedBox(
-        width: 400,
+        width: DesktopDimensions.dialogWidth,
         child: Form(
           key: _formKey,
           child: Column(
@@ -399,28 +436,28 @@ class _UnitDialogState extends State<UnitDialog> {
             children: [
               TextFormField(
                 controller: _nameCtrl,
-                style: TextStyle(color: colorScheme.onSurface),
+                style: textTheme.bodyMedium,
                 decoration: InputDecoration(
                     labelText: loc.name,
                     filled: true,
                     fillColor: colorScheme.surfaceVariant,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius / 2))),
+                            DesktopDimensions.smallBorderRadius))),
                 validator: (value) =>
                     value == null || value.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: DesktopDimensions.spacingLarge),
               TextFormField(
                 controller: _codeCtrl,
-                style: TextStyle(color: colorScheme.onSurface),
+                style: textTheme.bodyMedium,
                 decoration: InputDecoration(
                     labelText: 'Code (e.g. KG)',
                     filled: true,
                     fillColor: colorScheme.surfaceVariant,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius / 2))),
+                            DesktopDimensions.smallBorderRadius))),
                 validator: (value) =>
                     value == null || value.isEmpty ? 'Required' : null,
               ),
@@ -431,8 +468,7 @@ class _UnitDialogState extends State<UnitDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child:
-              Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface)),
+          child: Text(loc.cancel),
         ),
         ElevatedButton(
           onPressed: () {
