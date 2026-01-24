@@ -631,4 +631,54 @@
   "yesDelete": "Yes, Delete",
   "home": "Home",
   "categories": "Categories"
+,
+  "printOrPdf": "Print / PDF",
+  "exportToExcelCsv": "Export to Excel (CSV)",
+  "savedToPath": "Saved to: {path}",
+  "@savedToPath": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "viewLedgerTooltip": "View Ledger",
+  "editAction": "Edit",
+  "archiveAction": "Archive",
+  "deleteAction": "Delete",
+  "noTransactionsFound": "No transactions found",
+  "currentBalanceLabel": "Current Balance",
+  "creditLimitLabel": "Limit: {amount}",
+  "@creditLimitLabel": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "receivePaymentButton": "Receive Payment",
+  "exportTooltip": "Export",
+  "closeTooltip": "Close",
+  "dateRangeButton": "Date Range",
+  "filterReceipts": "Receipts",
+  "searchDocOrDescPlaceholder": "Search Doc # or Desc...",
+  "docNoHeader": "Doc No",
+  "typeHeader": "Type",
+  "debitHeader": "Debit",
+  "creditHeader": "Credit",
+  "balanceHeader": "Balance",
+  "receivePaymentTitle": "Receive Payment",
+  "notesOptionalLabel": "Notes (Optional)",
+  "failedToLoadDetails": "Failed to load details",
+  "confirmCancellationTitle": "Confirm Cancellation",
+  "confirmCancelInvoiceMessage": "Are you sure you want to cancel this invoice? This action cannot be undone.",
+  "yesCancelButton": "Yes, Cancel",
+  "invoiceCancelledSuccess": "Invoice cancelled successfully",
+  "errorMessage": "Error: {error}",
+  "@errorMessage": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "saleType": "SALE",
+  "receiptType": "RECEIPT",
+  "cancelInvoiceTooltip": "Cancel Invoice",
+  "rateHeader": "Rate",
+  "totalHeader": "Total"
 }
