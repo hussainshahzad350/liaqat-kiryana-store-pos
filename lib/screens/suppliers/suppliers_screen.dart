@@ -10,6 +10,8 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart'; // Keep for PdfColor
 import '../../services/ledger_export_service.dart';
 import '../../core/constants/desktop_dimensions.dart';
+import '../../widgets/main_layout.dart';
+import '../../core/routes/app_routes.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -372,10 +374,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: colorScheme.surface,
-          title: Text(loc.warning, style: TextStyle(color: colorScheme.onSurface)),
-          content: Text(loc.cannotDeleteBal, style: TextStyle(color: colorScheme.onSurface)),
+          title: Text(loc.warning, style: Theme.of(context).textTheme.titleLarge),
+          content: Text(loc.cannotDeleteBal, style: Theme.of(context).textTheme.bodyMedium),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.ok, style: TextStyle(color: colorScheme.onSurface))),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.ok)),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
               onPressed: () {
@@ -394,10 +396,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text(loc.confirm, style: TextStyle(color: colorScheme.onSurface)),
-        content: Text(loc.confirmDeleteSupplier, style: TextStyle(color: colorScheme.onSurface)),
+        title: Text(loc.confirm, style: Theme.of(context).textTheme.titleLarge),
+        content: Text(loc.confirmDeleteSupplier, style: Theme.of(context).textTheme.bodyMedium),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(loc.cancel)),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(loc.yesDelete),
@@ -441,53 +443,50 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text(isEdit ? loc.editSupplier : loc.addSupplier, style: TextStyle(color: colorScheme.onSurface, fontWeight: FontWeight.bold)),
-        content: SingleChildScrollView(
+        title: Text(isEdit ? loc.editSupplier : loc.addSupplier, style: Theme.of(context).textTheme.titleLarge),
+        contentPadding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+        content: SizedBox(
+          width: DesktopDimensions.dialogWidth,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: nameEngCtrl,
-                style: TextStyle(color: colorScheme.onSurface),
                 decoration: _inputDecoration(loc.nameEnglish, Icons.person, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: nameUrduCtrl,
-                style: TextStyle(color: colorScheme.onSurface, fontFamily: 'NooriNastaleeq'),
+                style: const TextStyle(fontFamily: 'NooriNastaleeq'),
                 decoration: _inputDecoration(loc.nameUrdu, Icons.translate, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: phoneCtrl,
                 keyboardType: TextInputType.phone,
-                style: TextStyle(color: colorScheme.onSurface),
                 decoration: _inputDecoration(loc.phoneNum, Icons.phone, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: addressCtrl,
-                style: TextStyle(color: colorScheme.onSurface),
                 decoration: _inputDecoration(loc.address, Icons.location_on, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: typeCtrl,
-                style: TextStyle(color: colorScheme.onSurface),
                 decoration: _inputDecoration("Supplier Type", Icons.category, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: balanceCtrl,
                 keyboardType: TextInputType.number,
-                style: TextStyle(color: colorScheme.onSurface),
                 decoration: _inputDecoration(loc.balance, Icons.account_balance_wallet, colorScheme),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel, style: TextStyle(color: colorScheme.onSurface))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
           ElevatedButton(
             onPressed: () {
               final balance = Money.fromRupeesString(balanceCtrl.text).paisas;
@@ -522,13 +521,12 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   InputDecoration _inputDecoration(String label, IconData icon, ColorScheme colorScheme) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
       prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
       filled: true,
       fillColor: colorScheme.surfaceVariant,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.outline)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: colorScheme.primary, width: 2)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(DesktopDimensions.formFieldBorderRadius), borderSide: BorderSide(color: colorScheme.outline)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(DesktopDimensions.formFieldBorderRadius), borderSide: BorderSide(color: colorScheme.outline)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(DesktopDimensions.formFieldBorderRadius), borderSide: BorderSide(color: colorScheme.primary, width: 2)),
     );
   }
 
@@ -537,11 +535,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
-            child: Column(
+    return MainLayout(
+      currentRoute: AppRoutes.suppliers,
+      child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+              child: Column(
               children: [
               // Local Toolbar
               Container(
@@ -574,22 +574,18 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   child: TextField(
                     controller: searchController,
                     onChanged: (val) => _firstLoad(),
-                    style: TextStyle(
-                        color: colorScheme.onSurface,
-                        fontSize: DesktopDimensions.bodySize),
                     decoration: InputDecoration(
                       hintText: loc.search,
-                      hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                      prefixIcon: Icon(Icons.search,
-                          size: 20, color: colorScheme.onSurfaceVariant),
+                      prefixIcon: const Icon(Icons.search,
+                          size: DesktopDimensions.iconSizeMedium, color: colorScheme.onSurfaceVariant),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius / 2),
+                              DesktopDimensions.smallBorderRadius),
                           borderSide: BorderSide(color: colorScheme.outline)),
                       filled: true,
                       fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
                       contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingSmall, vertical: DesktopDimensions.spacingSmall),
                       isDense: true,
                     ),
                   ),
@@ -604,7 +600,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     : suppliers.isEmpty
                         ? Center(
                             child: Text(loc.noSuppliersFound,
-                                style: TextStyle(color: colorScheme.onSurface)))
+                                style: Theme.of(context).textTheme.bodyMedium))
                         : ListView.builder(
                             controller: _scrollController,
                             padding: EdgeInsets.zero,
@@ -634,13 +630,15 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         if (_showArchiveOverlay) _buildArchiveOverlay(loc),
           if (_selectedSupplierForLedger != null) _buildLedgerOverlay(loc),
         ],
-      );
+      ),
+    );
   }
 
   Widget _buildDashboard(AppLocalizations loc) {
     return SizedBox(
-      height: 120,
+      height: DesktopDimensions.kpiHeight,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(child: _buildKpiCard("Total", countTotal, balTotal, null)),
           const SizedBox(width: DesktopDimensions.spacingMedium),
@@ -669,124 +667,88 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         : colorScheme.onPrimaryContainer;
     final borderColor = isOrange ? colorScheme.tertiary : colorScheme.primary;
 
-    return Card(
-      elevation: DesktopDimensions.cardElevation,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-        side: BorderSide(color: borderColor, width: 1.2),
-      ),
-      color: containerColor,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
-        child: Padding(
-          padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return _HoverableCard(
+      onTap: onTap,
+      color: borderColor,
+      child: Container(
+        padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+        decoration: BoxDecoration(
+          color: containerColor,
+          borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        ),
+        child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(title,
-                  style: TextStyle(
-                      color: contentColor, fontWeight: FontWeight.bold)),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: contentColor, fontWeight: FontWeight.bold)),
               Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Icon(Icons.business, color: contentColor),
                     Text("$count",
-                        style: TextStyle(
-                            color: contentColor,
-                            fontSize: DesktopDimensions.headingSize,
-                            fontWeight: FontWeight.bold))
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: contentColor, fontWeight: FontWeight.bold))
                   ]),
               Text(Money(amount).formattedNoDecimal,
-                  style: TextStyle(
-                      color: contentColor,
-                      fontSize: DesktopDimensions.bodySize,
-                      fontWeight: FontWeight.bold)),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: contentColor, fontWeight: FontWeight.bold)),
             ],
           ),
-        ),
       ),
     );
   }
 
   Widget _buildSupplierRow(
       Supplier supplier, ColorScheme colorScheme, AppLocalizations loc, bool isSelected) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isSelected ? colorScheme.primaryContainer.withOpacity(0.2) : null,
-        border: Border(
-            bottom:
-                BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5))),
+    return ListTile(
+      selected: isSelected,
+      selectedTileColor: colorScheme.primaryContainer.withOpacity(0.2),
+      contentPadding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingStandard),
+      leading: CircleAvatar(
+        radius: DesktopDimensions.iconSizeSmall,
+        backgroundColor: colorScheme.primaryContainer,
+        child: Icon(Icons.business,
+            size: DesktopDimensions.iconSizeSmall, color: colorScheme.onPrimaryContainer),
       ),
-      padding: const EdgeInsets.symmetric(
-          horizontal: DesktopDimensions.spacingStandard,
-          vertical: DesktopDimensions.spacingMedium),
-      child: Row(
+      title: Text(
+        supplier.nameUrdu ?? supplier.nameEnglish,
+        style: Theme.of(context).textTheme.titleMedium,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Row(
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: colorScheme.primaryContainer,
-            child: Icon(Icons.business,
-                size: 16, color: colorScheme.onPrimaryContainer),
-          ),
-          const SizedBox(width: DesktopDimensions.spacingStandard),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  supplier.nameUrdu ?? supplier.nameEnglish,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: DesktopDimensions.bodySize,
-                      color: colorScheme.onSurface),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Row(
-                  children: [
-                    Text(supplier.contactPrimary ?? '-',
-                        style: TextStyle(
-                            fontSize: DesktopDimensions.captionSize,
-                            color: colorScheme.onSurfaceVariant)),
-                    if (supplier.supplierType != null &&
-                        supplier.supplierType!.isNotEmpty) ...[
-                      const SizedBox(width: DesktopDimensions.spacingMedium),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: DesktopDimensions.spacingSmall,
-                            vertical: DesktopDimensions.spacingSmall),
-                        decoration: BoxDecoration(
-                          color: colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(
-                              DesktopDimensions.spacingSmall),
-                        ),
-                        child: Text(supplier.supplierType!,
-                            style: TextStyle(
-                                fontSize: DesktopDimensions.captionSize,
-                                color: colorScheme.onSecondaryContainer)),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+          Text(supplier.contactPrimary ?? '-',
+              style: Theme.of(context).textTheme.bodySmall),
+          if (supplier.supplierType != null &&
+              supplier.supplierType!.isNotEmpty) ...[
+            const SizedBox(width: DesktopDimensions.spacingMedium),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: DesktopDimensions.spacingSmall,
+                  vertical: DesktopDimensions.spacingSmall),
+              decoration: BoxDecoration(
+                color: colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(
+                    DesktopDimensions.spacingSmall),
+              ),
+              child: Text(supplier.supplierType!,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: colorScheme.onSecondaryContainer)),
             ),
-          ),
+          ],
+        ],
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 Money(supplier.outstandingBalance).formattedNoDecimal,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: DesktopDimensions.bodySize,
-                    color: colorScheme.primary),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: colorScheme.primary),
               ),
               Text(loc.balance,
-                  style: TextStyle(
-                      fontSize: DesktopDimensions.captionSize,
-                      color: colorScheme.onSurfaceVariant)),
+                  style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
           const SizedBox(width: DesktopDimensions.spacingMedium),
@@ -797,7 +759,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert,
-                size: 18, color: colorScheme.onSurfaceVariant),
+                size: DesktopDimensions.iconSizeSmallMedium, color: colorScheme.onSurfaceVariant),
             padding: EdgeInsets.zero,
             onSelected: (value) {
               if (value == 'edit') _showSupplierDialog(supplier: supplier);
@@ -810,23 +772,23 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               PopupMenuItem(
                   value: 'edit',
                   child: Row(children: [
-                    Icon(Icons.edit, size: 16, color: colorScheme.secondary),
+                    Icon(Icons.edit, size: DesktopDimensions.iconSizeSmall, color: colorScheme.secondary),
                     const SizedBox(width: DesktopDimensions.spacingSmall),
                     Text(loc.editSupplier)
                   ])),
               PopupMenuItem(
                   value: 'archive',
                   child: Row(children: [
-                    Icon(Icons.archive, size: 16, color: colorScheme.onSurface),
+                    Icon(Icons.archive, size: DesktopDimensions.iconSizeSmall, color: colorScheme.onSurface),
                     const SizedBox(width: DesktopDimensions.spacingSmall),
                     Text(loc.archiveAction)
                   ])),
               PopupMenuItem(
                   value: 'delete',
                   child: Row(children: [
-                    Icon(Icons.delete, size: 16, color: colorScheme.error),
-                    const SizedBox(width: 8),
-                    Text(loc.delete, style: TextStyle(color: colorScheme.error))
+                    Icon(Icons.delete, size: DesktopDimensions.iconSizeSmall, color: colorScheme.error),
+                    const SizedBox(width: DesktopDimensions.spacingSmall),
+                    Text(loc.delete, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.error))
                   ])),
             ],
           ),
@@ -850,18 +812,18 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         GestureDetector(onTap: () => setState(() => _selectedSupplierForLedger = null), child: Container(color: colorScheme.shadow.withOpacity(0.5))),
         Center(
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.95,
-            height: MediaQuery.of(context).size.height * 0.95,
+            width: DesktopDimensions.dialogWidth,
+            height: DesktopDimensions.dialogHeight,
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
               boxShadow: [BoxShadow(blurRadius: 20, color: colorScheme.shadow.withOpacity(0.25))],
             ),
             child: Column(
               children: [
         // Header
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingLarge, vertical: DesktopDimensions.spacingMedium),
           decoration: BoxDecoration(
             color: colorScheme.surface,
             border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
@@ -872,8 +834,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
-                  Text(supplier.contactPrimary ?? '', style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant)),
+                  Text(name, style: Theme.of(context).textTheme.headlineSmall),
+                  Text(supplier.contactPrimary ?? '', style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
               Row(
@@ -882,7 +844,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   const SizedBox(width: DesktopDimensions.spacingStandard),
                   ElevatedButton.icon(
                     onPressed: _showPaymentDialog,
-                    icon: const Icon(Icons.payment, size: 18),
+                    icon: const Icon(Icons.payment, size: DesktopDimensions.iconSizeSmallMedium),
                     label: const Text("Pay Supplier"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
@@ -901,7 +863,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
         // Filter Bar
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium, vertical: DesktopDimensions.spacingSmall),
           color: colorScheme.surfaceVariant.withOpacity(0.3),
           child: Row(
             children: [
@@ -923,11 +885,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     _getSupplierLedger(supplier.id!);
                   }
                 },
-                icon: const Icon(Icons.calendar_today, size: 14),
-                label: Text(_ledgerStartDate == null ? "Date Range" : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}", style: const TextStyle(fontSize: 12)),
-                style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+                icon: const Icon(Icons.calendar_today, size: DesktopDimensions.bodySize),
+                label: Text(_ledgerStartDate == null ? "Date Range" : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}"),
+                style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact, textStyle: Theme.of(context).textTheme.bodySmall),
               ),
-              if (_ledgerStartDate != null) IconButton(icon: const Icon(Icons.clear, size: 14), onPressed: () { setState(() { _ledgerStartDate = null; _ledgerEndDate = null; }); _getSupplierLedger(supplier.id!); }),
+              if (_ledgerStartDate != null) IconButton(icon: const Icon(Icons.clear, size: DesktopDimensions.bodySize), onPressed: () { setState(() { _ledgerStartDate = null; _ledgerEndDate = null; }); _getSupplierLedger(supplier.id!); }),
               const SizedBox(width: DesktopDimensions.spacingStandard),
               SegmentedButton<String>(
                 segments: const [ButtonSegment(value: 'ALL', label: Text('All')), ButtonSegment(value: 'BILL', label: Text('Bills')), ButtonSegment(value: 'PAYMENT', label: Text('Payments'))],
@@ -937,15 +899,15 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               ),
               const Spacer(),
               SizedBox(
-                width: 200,
+                width: DesktopDimensions.labelWidthStandard,
                 child: TextField(
                   controller: _ledgerSearchCtrl,
                   decoration: InputDecoration(
                     hintText: "Search...",
-                    prefixIcon: const Icon(Icons.search, size: 16),
+                    prefixIcon: const Icon(Icons.search, size: DesktopDimensions.iconSizeSmall),
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    contentPadding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingSmall, horizontal: DesktopDimensions.spacingSmall),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(DesktopDimensions.smallBorderRadius)),
                   ),
                   onChanged: (val) => setState(() => _ledgerSearchQuery = val),
                 ),
@@ -956,16 +918,16 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
         // Table Header
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingStandard, horizontal: DesktopDimensions.spacingMedium),
           color: colorScheme.surfaceVariant.withOpacity(0.5),
           child: Row(
             children: [
-              const SizedBox(width: 40), // Space for expand icon
-              Expanded(flex: 2, child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
-              Expanded(flex: 3, child: Text("Description", style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
-              Expanded(flex: 2, child: Text("Purchase Bill", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
-              Expanded(flex: 2, child: Text("Payment Sent", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
-              Expanded(flex: 2, child: Text("Payable Balance", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
+              const SizedBox(width: DesktopDimensions.buttonHeight), // Space for expand icon
+              Expanded(flex: 2, child: Text("Date", style: Theme.of(context).textTheme.titleSmall)),
+              Expanded(flex: 3, child: Text("Description", style: Theme.of(context).textTheme.titleSmall)),
+              Expanded(flex: 2, child: Text("Purchase Bill", textAlign: TextAlign.right, style: Theme.of(context).textTheme.titleSmall)),
+              Expanded(flex: 2, child: Text("Payment Sent", textAlign: TextAlign.right, style: Theme.of(context).textTheme.titleSmall)),
+              Expanded(flex: 2, child: Text("Payable Balance", textAlign: TextAlign.right, style: Theme.of(context).textTheme.titleSmall)),
             ],
           ),
         ),
@@ -975,7 +937,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           child: _isLedgerLoading
               ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
               : _filteredLedgerRows.isEmpty
-                  ? Center(child: Text("No transactions found", style: TextStyle(color: colorScheme.onSurfaceVariant)))
+                  ? Center(child: Text("No transactions found", style: Theme.of(context).textTheme.bodyMedium))
                   : ListView.builder(
                       itemCount: _filteredLedgerRows.length,
                       itemBuilder: (context, index) {
@@ -993,17 +955,17 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
   Widget _buildSummaryChip(String label, int amount, Color color, ColorScheme scheme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingStandard, vertical: DesktopDimensions.spacingSmall),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(DesktopDimensions.smallBorderRadius),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(label, style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
-          Text(Money(amount).formattedNoDecimal, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          Text(Money(amount).formattedNoDecimal, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: color)),
         ],
       ),
     );
@@ -1034,23 +996,23 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           } : null,
           hoverColor: colorScheme.surfaceVariant.withOpacity(0.3),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingStandard, horizontal: DesktopDimensions.spacingMedium),
             decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5))),
             ),
             child: Row(
               children: [
                 SizedBox(
-                  width: 40,
+                  width: DesktopDimensions.buttonHeight,
                   child: isBill 
-                    ? Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, size: 20, color: colorScheme.onSurfaceVariant)
+                    ? Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, size: DesktopDimensions.iconSizeMedium, color: colorScheme.onSurfaceVariant)
                     : null,
                 ),
-                Expanded(flex: 2, child: Text(dateStr, style: TextStyle(fontSize: 13, color: colorScheme.onSurface))),
-                Expanded(flex: 3, child: Text(row['desc'] ?? '', style: TextStyle(fontSize: 13, color: colorScheme.onSurface))),
-                Expanded(flex: 2, child: Text(cr > Money.zero ? cr.formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.error))),
-                Expanded(flex: 2, child: Text(dr > Money.zero ? dr.formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.primary))),
-                Expanded(flex: 2, child: Text(balance.formattedNoDecimal, textAlign: TextAlign.right, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: colorScheme.onSurface))),
+                Expanded(flex: 2, child: Text(dateStr, style: Theme.of(context).textTheme.bodyLarge)),
+                Expanded(flex: 3, child: Text(row['desc'] ?? '', style: Theme.of(context).textTheme.bodyLarge)),
+                Expanded(flex: 2, child: Text(cr > Money.zero ? cr.formattedNoDecimal : '-', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.error))),
+                Expanded(flex: 2, child: Text(dr > Money.zero ? dr.formattedNoDecimal : '-', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary))),
+                Expanded(flex: 2, child: Text(balance.formattedNoDecimal, textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold))),
               ],
             ),
           ),
@@ -1061,7 +1023,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           child: isExpanded
             ? Container(
                 color: colorScheme.surfaceVariant.withOpacity(0.1),
-                padding: const EdgeInsets.fromLTRB(60, 8, 16, 16),
+                padding: const EdgeInsets.fromLTRB(DesktopDimensions.spacingXLarge, DesktopDimensions.spacingSmall, DesktopDimensions.spacingMedium, DesktopDimensions.spacingMedium),
                 child: _buildExpandedDetails(row['ref_id'], colorScheme),
               )
             : const SizedBox.shrink(),
@@ -1074,13 +1036,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final items = _billItemsCache[billId];
     
     if (items == null) {
-      return const Center(child: Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator(strokeWidth: 2)));
+      return const Center(child: Padding(padding: EdgeInsets.all(DesktopDimensions.spacingSmall), child: CircularProgressIndicator(strokeWidth: 2)));
     }
     
     if (items.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text("No items details available.", style: TextStyle(fontStyle: FontStyle.italic, color: colorScheme.onSurfaceVariant)),
+        padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
+        child: Text("No items details available.", style: Theme.of(context).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
       );
     }
 
@@ -1090,20 +1052,20 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         TableRow(
           decoration: BoxDecoration(border: Border(bottom: BorderSide(color: colorScheme.outlineVariant))),
           children: [
-            Padding(padding: const EdgeInsets.only(bottom: 4), child: Text("Item", style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant))),
-            Padding(padding: const EdgeInsets.only(bottom: 4), child: Text("Qty", textAlign: TextAlign.right, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant))),
-            Padding(padding: const EdgeInsets.only(bottom: 4), child: Text("Unit", textAlign: TextAlign.center, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant))),
-            Padding(padding: const EdgeInsets.only(bottom: 4), child: Text("Rate", textAlign: TextAlign.right, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant))),
-            Padding(padding: const EdgeInsets.only(bottom: 4), child: Text("Total", textAlign: TextAlign.right, style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant))),
+            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Item", style: Theme.of(context).textTheme.bodySmall)),
+            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Qty", textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall)),
+            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Unit", textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall)),
+            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Rate", textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall)),
+            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Total", textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall)),
           ],
         ),
         ...items.map((item) => TableRow(
           children: [
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['name_english'] ?? item['name_urdu'] ?? 'Unknown', style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['quantity'].toString(), textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['unit_type'] ?? '-', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['cost_price'] != null ? Money((item['cost_price'] as num).toInt()).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
-            Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text(item['total_amount'] != null ? Money((item['total_amount'] as num).toInt()).formattedNoDecimal : '-', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: colorScheme.onSurface))),
+            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['name_english'] ?? item['name_urdu'] ?? 'Unknown', style: Theme.of(context).textTheme.bodyLarge)),
+            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['quantity'].toString(), textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge)),
+            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['unit_type'] ?? '-', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge)),
+            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['cost_price'] != null ? Money((item['cost_price'] as num).toInt()).formattedNoDecimal : '-', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge)),
+            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['total_amount'] != null ? Money((item['total_amount'] as num).toInt()).formattedNoDecimal : '-', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge)),
           ],
         )),
       ],
@@ -1117,13 +1079,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         GestureDetector(onTap: () => setState(() => _showArchiveOverlay = false), child: Container(color: colorScheme.shadow.withOpacity(0.5))),
         Center(
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.8,
-            height: MediaQuery.of(context).size.height * 0.7,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: colorScheme.surface, borderRadius: BorderRadius.circular(16)),
+            width: DesktopDimensions.dialogWidth,
+            height: DesktopDimensions.dialogHeight,
+            padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+            decoration: BoxDecoration(color: colorScheme.surface, borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
             child: Column(
               children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(loc.archivedCustomers, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface)), IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _showArchiveOverlay = false))]),
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(loc.archivedCustomers, style: Theme.of(context).textTheme.headlineSmall), IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _showArchiveOverlay = false))]),
                 const Divider(),
                 Expanded(
                   child: archivedSuppliers.isEmpty
@@ -1163,26 +1125,24 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text("Pay Supplier", style: TextStyle(color: colorScheme.onSurface)),
+        title: Text("Pay Supplier", style: Theme.of(context).textTheme.headlineSmall),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: amountCtrl,
               keyboardType: TextInputType.number,
-              style: TextStyle(color: colorScheme.onSurface),
               decoration: _inputDecoration("Amount", Icons.money, colorScheme),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: DesktopDimensions.spacingStandard),
             TextField(
               controller: notesCtrl,
-              style: TextStyle(color: colorScheme.onSurface),
               decoration: _inputDecoration("Notes", Icons.note, colorScheme),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel", style: TextStyle(color: colorScheme.onSurface))),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
             onPressed: () {
               if (amountCtrl.text.isNotEmpty) {
@@ -1196,6 +1156,66 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             child: const Text("Save"),
           )
         ],
+      ),
+    );
+  }
+}
+
+class _HoverableCard extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final Color color;
+
+  const _HoverableCard({
+    required this.child,
+    this.onTap,
+    required this.color,
+  });
+
+  @override
+  State<_HoverableCard> createState() => _HoverableCardState();
+}
+
+class _HoverableCardState extends State<_HoverableCard> {
+  bool _isHovered = false;
+  bool _isFocused = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isHoveredOrFocused = _isHovered || _isFocused;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withOpacity(isHoveredOrFocused ? 0.15 : 0.05),
+              blurRadius: isHoveredOrFocused ? 8 : 2,
+              offset: Offset(0, isHoveredOrFocused ? 4 : 2),
+            ),
+          ],
+          border: Border.all(
+            color: isHoveredOrFocused ? widget.color.withOpacity(0.5) : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onTap,
+            onFocusChange: (value) => setState(() => _isFocused = value),
+            borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+            hoverColor: widget.color.withOpacity(0.05),
+            child: widget.child,
+          ),
+        ),
       ),
     );
   }
