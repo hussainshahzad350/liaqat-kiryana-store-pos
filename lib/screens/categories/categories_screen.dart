@@ -176,27 +176,30 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   // --- CRUD Dialogs ---
 
   void _showErrorDialog(String message) {
+    final loc = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Error'),
+        title: Text(loc.error),
         content: Text(message),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context), child: const Text('OK')),
+              onPressed: () => Navigator.pop(context), child: Text(loc.ok)),
         ],
       ),
     );
   }
 
   void _showDepartmentDialog({Department? department}) {
+    final loc = AppLocalizations.of(context)!;
     final nameEnController = TextEditingController(text: department?.nameEn);
     final nameUrController = TextEditingController(text: department?.nameUr);
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(department == null ? 'Add Department' : 'Edit Department'),
+        title: Text(
+            department == null ? loc.addDepartment : loc.editDepartment),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -205,19 +208,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   bottom: DesktopDimensions.spacingMedium),
               child: TextField(
                 controller: nameEnController,
-                decoration: const InputDecoration(labelText: 'Name (English)'),
+                decoration: InputDecoration(labelText: loc.nameEnglishLabel),
               ),
             ),
             TextField(
               controller: nameUrController,
-              decoration: const InputDecoration(labelText: 'Name (Urdu)'),
+              decoration: InputDecoration(labelText: loc.nameUrduLabel),
             ),
           ],
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+              child: Text(loc.cancel)),
           ElevatedButton(
             onPressed: () async {
               if (nameEnController.text.isEmpty) return;
@@ -227,7 +230,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   excludeId: department?.id);
               if (exists) {
                 if (context.mounted) {
-                  _showErrorDialog('Department with this name already exists.');
+                  _showErrorDialog(loc.departmentExistsError);
                 }
                 return;
               }
@@ -247,7 +250,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               _loadData();
               if (context.mounted) Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text(loc.save),
           ),
         ],
       ),
@@ -255,6 +258,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _showCategoryDialog({Category? category, int? parentDeptId}) {
+    final loc = AppLocalizations.of(context)!;
     final nameEnController = TextEditingController(text: category?.nameEn);
     final nameUrController = TextEditingController(text: category?.nameUr);
     int? selectedDeptId = category?.departmentId ?? parentDeptId;
@@ -263,13 +267,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(category == null ? 'Add Category' : 'Edit Category'),
+          title: Text(category == null ? loc.addCategory : loc.editCategory),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<int>(
                 value: selectedDeptId,
-                decoration: const InputDecoration(labelText: 'Department'),
+                decoration: InputDecoration(labelText: loc.departmentLabel),
                 items: _departments
                     .map((d) =>
                         DropdownMenuItem(value: d.id, child: Text(d.nameEn)))
@@ -279,16 +283,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               TextField(
                   controller: nameEnController,
                   decoration:
-                      const InputDecoration(labelText: 'Name (English)')),
+                      InputDecoration(labelText: loc.nameEnglishLabel)),
               TextField(
                   controller: nameUrController,
-                  decoration: const InputDecoration(labelText: 'Name (Urdu)')),
+                  decoration: InputDecoration(labelText: loc.nameUrduLabel)),
             ],
           ),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel')),
+                child: Text(loc.cancel)),
             ElevatedButton(
               onPressed: () async {
                 if (nameEnController.text.isEmpty || selectedDeptId == null) {
@@ -300,8 +304,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     excludeId: category?.id);
                 if (exists) {
                   if (context.mounted) {
-                    _showErrorDialog(
-                        'Category with this name already exists in the selected department.');
+                    _showErrorDialog(loc.categoryExistsError);
                   }
                   return;
                 }
@@ -322,7 +325,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 _loadData();
                 if (context.mounted) Navigator.pop(context);
               },
-              child: const Text('Save'),
+              child: Text(loc.save),
             ),
           ],
         ),
@@ -331,6 +334,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _showSubCategoryDialog({SubCategory? subCategory, int? parentCatId}) {
+    final loc = AppLocalizations.of(context)!;
     final nameEnController = TextEditingController(text: subCategory?.nameEn);
     final nameUrController = TextEditingController(text: subCategory?.nameUr);
     int? selectedCatId = subCategory?.categoryId ?? parentCatId;
@@ -340,15 +344,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(
-              subCategory == null ? 'Add Subcategory' : 'Edit Subcategory'),
+              subCategory == null ? loc.addSubcategory : loc.editSubcategory),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Filter categories if department is selected, otherwise show all?
-              // For simplicity showing all categories or filtered by current department context
               DropdownButtonFormField<int>(
                 value: selectedCatId,
-                decoration: const InputDecoration(labelText: 'Category'),
+                decoration: InputDecoration(labelText: loc.category),
                 items: _categories
                     .map((c) =>
                         DropdownMenuItem(value: c.id, child: Text(c.nameEn)))
@@ -358,16 +360,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               TextField(
                   controller: nameEnController,
                   decoration:
-                      const InputDecoration(labelText: 'Name (English)')),
+                      InputDecoration(labelText: loc.nameEnglishLabel)),
               TextField(
                   controller: nameUrController,
-                  decoration: const InputDecoration(labelText: 'Name (Urdu)')),
+                  decoration: InputDecoration(labelText: loc.nameUrduLabel)),
             ],
           ),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel')),
+                child: Text(loc.cancel)),
             ElevatedButton(
               onPressed: () async {
                 if (nameEnController.text.isEmpty || selectedCatId == null) {
@@ -379,8 +381,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     excludeId: subCategory?.id);
                 if (exists) {
                   if (context.mounted) {
-                    _showErrorDialog(
-                        'Subcategory with this name already exists in the selected category.');
+                    _showErrorDialog(loc.subcategoryExistsError);
                   }
                   return;
                 }
@@ -401,7 +402,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 _loadData();
                 if (context.mounted) Navigator.pop(context);
               },
-              child: const Text('Save'),
+              child: Text(loc.save),
             ),
           ],
         ),
@@ -411,21 +412,22 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   Future<void> _deleteItem() async {
     if (_selectionLevel == 0) return;
+    final loc = AppLocalizations.of(context)!;
 
     final bool confirm = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Confirm Delete'),
-            content: const Text('Are you sure you want to delete this item?'),
+            title: Text(loc.confirmDeleteTitle),
+            content: Text(loc.confirmDeleteMessage),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('No')),
+                  child: Text(loc.no)),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.error),
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Yes, Delete',
+                child: Text(loc.yesDelete,
                     style: TextStyle(color: Colors.white)),
               ),
             ],
@@ -473,7 +475,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 controller: _searchController,
                 onChanged: _onSearchChanged,
                 decoration: InputDecoration(
-                  hintText: 'Search departments, categories...',
+                  hintText: loc.searchDepartmentsCategoriesHint,
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
@@ -572,7 +574,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'DEPARTMENTS',
+                loc.departmentsHeader,
                 style: TextStyle(
                   fontSize: DesktopDimensions.captionSize,
                   fontWeight: FontWeight.bold,
@@ -586,7 +588,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 onPressed: () {
                   _showDepartmentDialog();
                 },
-                tooltip: 'Add Department',
+                tooltip: loc.addDepartment,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -651,7 +653,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget _buildTaxonomyPane(AppLocalizations loc, ColorScheme colorScheme) {
     if (_selectedDepartment == null) {
       return Center(
-          child: Text('Select a Department',
+          child: Text(loc.selectDepartmentInstruction,
               style: TextStyle(color: colorScheme.outline)));
     }
 
@@ -671,7 +673,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'CATEGORIES & SUBCATEGORIES',
+                loc.categoriesSubcategoriesHeader,
                 style: TextStyle(
                   fontSize: DesktopDimensions.captionSize,
                   fontWeight: FontWeight.bold,
@@ -685,7 +687,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 onPressed: () {
                   _showCategoryDialog(parentDeptId: _selectedDepartment!.id);
                 },
-                tooltip: 'Add Category to ${_selectedDepartment!.nameEn}',
+                tooltip: loc.addCategoryToTooltip(
+                    _selectedDepartment!.nameEn),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -772,7 +775,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         onPressed: () {
                           _showSubCategoryDialog(parentCatId: cat.id);
                         },
-                        tooltip: 'Add Subcategory',
+                        tooltip: loc.addSubcategoryTooltip,
                       ),
                       children: [
                         if (!isLoaded)
@@ -791,7 +794,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             padding: const EdgeInsets.all(
                                 DesktopDimensions.spacingLarge),
                             child: Text(
-                              'No subcategories.',
+                              loc.noSubcategories,
                               style: TextStyle(
                                   fontSize: DesktopDimensions.captionSize,
                                   color: colorScheme.outline),
@@ -854,7 +857,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           children: [
             Icon(Icons.touch_app, size: 48, color: colorScheme.outlineVariant),
             const SizedBox(height: DesktopDimensions.spacingLarge),
-            Text('Select an item to manage',
+            Text(loc.selectItemToManageInstruction,
                 style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ],
         ),
@@ -866,31 +869,28 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     String typeLabel = '';
     bool isActive = true;
     bool isVisibleInPOS = true;
-    // ignore: unused_local_variable
     int id = 0;
 
     if (_selectionLevel == 1 && _selectedDepartment != null) {
       titleEn = _selectedDepartment!.nameEn;
       titleUr = _selectedDepartment!.nameUr;
-      typeLabel = 'Department';
+      typeLabel = loc.typeDepartment;
       isActive = _selectedDepartment!.isActive;
       isVisibleInPOS = _selectedDepartment!.isVisibleInPOS;
       id = _selectedDepartment!.id!;
     } else if (_selectionLevel == 2 && _selectedCategory != null) {
       titleEn = _selectedCategory!.nameEn;
       titleUr = _selectedCategory!.nameUr;
-      typeLabel = 'Category';
+      typeLabel = loc.typeCategory;
       isActive = _selectedCategory!.isActive;
       isVisibleInPOS = _selectedCategory!.isVisibleInPOS;
-      // ignore: unused_local_variable
       id = _selectedCategory!.id!;
     } else if (_selectionLevel == 3 && _selectedSubCategory != null) {
       titleEn = _selectedSubCategory!.nameEn;
       titleUr = _selectedSubCategory!.nameUr;
-      typeLabel = 'Subcategory';
+      typeLabel = loc.typeSubcategory;
       isActive = _selectedSubCategory!.isActive;
       isVisibleInPOS = _selectedSubCategory!.isVisibleInPOS;
-      // ignore: unused_local_variable
       id = _selectedSubCategory!.id!;
     }
 
@@ -956,7 +956,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
                 const SizedBox(height: DesktopDimensions.spacingMedium),
                 // Breadcrumbs
-                _buildBreadcrumbs(colorScheme),
+                _buildBreadcrumbs(loc, colorScheme),
 
                 const SizedBox(height: DesktopDimensions.spacingXXLarge),
                 Row(
@@ -977,7 +977,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           }
                         },
                         icon: const Icon(Icons.edit, size: 18),
-                        label: const Text('Edit Details'),
+                        label: Text(loc.editDetails),
                       ),
                     ),
                     const SizedBox(width: DesktopDimensions.spacingStandard),
@@ -985,7 +985,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       child: OutlinedButton.icon(
                         onPressed: _deleteItem,
                         icon: const Icon(Icons.delete, size: 18),
-                        label: const Text('Delete'),
+                        label: Text(loc.delete),
                         style: OutlinedButton.styleFrom(
                             foregroundColor: colorScheme.error),
                       ),
@@ -1005,7 +1005,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 children: [
                   // Status Section
                   Text(
-                    'STATUS & VISIBILITY',
+                    loc.statusVisibilityHeader,
                     style: TextStyle(
                       fontSize: DesktopDimensions.captionSize,
                       fontWeight: FontWeight.bold,
@@ -1015,9 +1015,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   ),
                   const SizedBox(height: DesktopDimensions.spacingMedium),
                   SwitchListTile(
-                    title: const Text('Active'),
-                    subtitle:
-                        const Text('Enable or disable this entity globally'),
+                    title: Text(loc.active),
+                    subtitle: Text(loc.activeSubtitle),
                     value: isActive,
                     onChanged: (val) async {
                       await _updateStatus(
@@ -1028,9 +1027,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         vertical: DesktopDimensions.spacingSmall),
                   ),
                   SwitchListTile(
-                    title: const Text('Visible in POS'),
-                    subtitle: const Text(
-                        'Show this entity in the Point of Sale screen'),
+                    title: Text(loc.visibleInPOS),
+                    subtitle: Text(loc.visibleInPOSSubtitle),
                     value: isVisibleInPOS,
                     onChanged: (val) async {
                       await _updateStatus(isActive: isActive, isVisible: val);
@@ -1042,7 +1040,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   const Divider(height: DesktopDimensions.spacingXXLarge),
 
                   // Stats for all levels
-                  _buildStats(colorScheme, typeLabel),
+                  _buildStats(loc, colorScheme, typeLabel),
                 ],
               ),
             ),
@@ -1052,8 +1050,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _buildBreadcrumbs(ColorScheme colorScheme) {
-    List<String> parts = ['Home'];
+  Widget _buildBreadcrumbs(AppLocalizations loc, ColorScheme colorScheme) {
+    List<String> parts = [loc.home];
     if (_selectedDepartment != null) parts.add(_selectedDepartment!.nameEn);
     if (_selectionLevel >= 2 && _selectedCategory != null) {
       parts.add(_selectedCategory!.nameEn);
@@ -1080,12 +1078,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _buildStats(ColorScheme colorScheme, String type) {
+  Widget _buildStats(
+      AppLocalizations loc, ColorScheme colorScheme, String type) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'STATISTICS',
+          loc.statisticsHeader,
           style: TextStyle(
             fontSize: DesktopDimensions.captionSize,
             fontWeight: FontWeight.bold,
@@ -1095,15 +1094,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ),
         const SizedBox(height: DesktopDimensions.spacingMedium),
         if (_selectionLevel == 1)
-          _buildStatRow('Categories', _detailsSubCount.toString(), Icons.folder,
+          _buildStatRow(
+              loc.categories, _detailsSubCount.toString(), Icons.folder,
               colorScheme),
         if (_selectionLevel == 2)
-          _buildStatRow('Subcategories', _detailsSubCount.toString(),
+          _buildStatRow(loc.subcategories, _detailsSubCount.toString(),
               Icons.subdirectory_arrow_right, colorScheme),
 
         // Items count (Products)
-        _buildStatRow('Total Items', _detailsItemCount.toString(),
-            Icons.inventory_2, colorScheme),
+        _buildStatRow(
+            loc.totalItems, _detailsItemCount.toString(), Icons.inventory_2,
+            colorScheme),
       ],
     );
   }
