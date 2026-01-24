@@ -581,5 +581,54 @@
     "placeholders": {
       "amount": {}
     }
-  }
+  },
+  "addDepartment": "Add Department",
+  "editDepartment": "Edit Department",
+  "addCategory": "Add Category",
+  "editCategory": "Edit Category",
+  "addSubcategory": "Add Subcategory",
+  "editSubcategory": "Edit Subcategory",
+  "confirmDeleteTitle": "Confirm Delete",
+  "confirmDeleteMessage": "Are you sure you want to delete this item?",
+  "departmentExistsError": "Department with this name already exists.",
+  "categoryExistsError": "Category with this name already exists in the selected department.",
+  "subcategoryExistsError": "Subcategory with this name already exists in the selected category.",
+  "editDetails": "Edit Details",
+  "nameEnglishLabel": "Name (English)",
+  "nameUrduLabel": "Name (Urdu)",
+  "departmentLabel": "Department",
+  "searchDepartmentsCategoriesHint": "Search departments, categories...",
+  "departmentsHeader": "DEPARTMENTS",
+  "categoriesSubcategoriesHeader": "CATEGORIES & SUBCATEGORIES",
+  "statusVisibilityHeader": "STATUS & VISIBILITY",
+  "statisticsHeader": "STATISTICS",
+  "addCategoryToTooltip": "Add Category to {departmentName}",
+  "@addCategoryToTooltip": {
+    "placeholders": {
+      "departmentName": {}
+    }
+  },
+  "addSubcategoryTooltip": "Add Subcategory",
+  "visibleInPOS": "Visible in POS",
+  "activeSubtitle": "Enable or disable this entity globally",
+  "visibleInPOSSubtitle": "Show this entity in the Point of Sale screen",
+  "selectDepartmentInstruction": "Select a Department",
+  "noSubcategories": "No subcategories.",
+  "selectItemToManageInstruction": "Select an item to manage",
+  "typeDepartment": "Department",
+  "typeCategory": "Category",
+  "typeSubcategory": "Subcategory",
+  "subcategories": "Subcategories",
+  "category": "Category",
+  "delete": "Delete",
+  "active": "Active",
+  "totalItems": "Total Items",
+  "error": "Error",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "save": "Save",
+  "no": "No",
+  "yesDelete": "Yes, Delete",
+  "home": "Home",
+  "categories": "Categories"
 }

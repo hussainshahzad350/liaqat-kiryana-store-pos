@@ -588,5 +588,54 @@
     "placeholders": {
       "amount": {}
     }
-  }
+  },
+  "addDepartment": "نیا ڈپارٹمنٹ شامل کریں",
+  "editDepartment": "ڈپارٹمنٹ میں ترمیم کریں",
+  "addCategory": "نئی کیٹیگری شامل کریں",
+  "editCategory": "کیٹیگری میں ترمیم کریں",
+  "addSubcategory": "ذیلی کیٹیگری شامل کریں",
+  "editSubcategory": "ذیلی کیٹیگری میں ترمیم کریں",
+  "confirmDeleteTitle": "حذف کی تصدیق کریں",
+  "confirmDeleteMessage": "کیا آپ واقعی اس آئٹم کو حذف کرنا چاہتے ہیں؟",
+  "departmentExistsError": "اس نام کا ڈپارٹمنٹ پہلے سے موجود ہے۔",
+  "categoryExistsError": "اس نام کی کیٹیگری منتخب ڈپارٹمنٹ میں پہلے سے موجود ہے۔",
+  "subcategoryExistsError": "اس نام کی ذیلی کیٹیگری منتخب کیٹیگری میں پہلے سے موجود ہے۔",
+  "editDetails": "تفصیلات میں ترمیم کریں",
+  "nameEnglishLabel": "نام (انگریزی)",
+  "nameUrduLabel": "نام (اردو)",
+  "departmentLabel": "ڈپارٹمنٹ",
+  "searchDepartmentsCategoriesHint": "ڈپارٹمنٹس، کیٹیگریز تلاش کریں...",
+  "departmentsHeader": "ڈپارٹمنٹس",
+  "categoriesSubcategoriesHeader": "کیٹیگریز اور ذیلی کیٹیگریز",
+  "statusVisibilityHeader": "اسٹیٹس اور مرئیت",
+  "statisticsHeader": "شماریات",
+  "addCategoryToTooltip": "{departmentName} میں کیٹیگری شامل کریں",
+  "@addCategoryToTooltip": {
+    "placeholders": {
+      "departmentName": {}
+    }
+  },
+  "addSubcategoryTooltip": "ذیلی کیٹیگری شامل کریں",
+  "visibleInPOS": "POS میں نظر آئے",
+  "activeSubtitle": "اس اینٹٹی کو عالمی طور پر فعال یا غیر فعال کریں",
+  "visibleInPOSSubtitle": "اس اینٹٹی کو پوائنٹ آف سیل اسکرین میں دکھائیں",
+  "selectDepartmentInstruction": "ایک ڈپارٹمنٹ منتخب کریں",
+  "noSubcategories": "کوئی ذیلی کیٹیگریز نہیں ہیں۔",
+  "selectItemToManageInstruction": "منظم کرنے کے لیے ایک آئٹم منتخب کریں",
+  "typeDepartment": "ڈپارٹمنٹ",
+  "typeCategory": "کیٹیگری",
+  "typeSubcategory": "ذیلی کیٹیگری",
+  "subcategories": "ذیلی کیٹیگریز",
+  "category": "کیٹیگری",
+  "delete": "حذف کریں",
+  "active": "فعال",
+  "totalItems": "کل آئٹمز",
+  "error": "خرابی",
+  "ok": "ٹھیک ہے",
+  "cancel": "منسوخ",
+  "save": "محفوظ کریں",
+  "no": "نہیں",
+  "yesDelete": "ہاں، حذف کریں",
+  "home": "ہوم",
+  "categories": "کیٹیگریز"
 }
