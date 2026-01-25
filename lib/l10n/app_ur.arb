@@ -683,9 +683,42 @@
       "error": {}
     }
   },
+  "failedToLoadDashboardData": "ڈیش بورڈ ڈیٹا لوڈ کرنے میں ناکام: {error}",
+  "@failedToLoadDashboardData": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "saleType": "فروخت",
   "receiptType": "رسید",
   "cancelInvoiceTooltip": "انوائس منسوخ کریں",
   "rateHeader": "شرح",
-  "totalHeader": "کل"
+  "totalHeader": "کل",
+  "retry": "دوبارہ کوشش کریں",
+  "keyboardShortcuts": "کی بورڈ شارٹ کٹس",
+  "refreshDashboard": "ڈیش بورڈ ریفریش کریں",
+  "close": "بند کریں",
+  "generateBillWithShortcut": "بل بنائیں (Ctrl+N)",
+  "searchFeatureComingSoon": "تلاش کی سہولت جلد آرہی ہے!",
+  "unknownItem": "نامعلوم آئٹم",
+  "lastBackupAt": "آخری بیک اپ: {time}",
+  "@lastBackupAt": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "appVersion": "v{version}",
+  "@appVersion": {
+    "placeholders": {
+      "version": {}
+    }
+  },
+  "trendTooltip": "رجحان: {trend}",
+  "@trendTooltip": {
+    "placeholders": {
+      "trend": {}
+    }
+  },
+  "shortcutCtrlN": "Ctrl + N",
+  "shortcutF5": "F5"
 }
