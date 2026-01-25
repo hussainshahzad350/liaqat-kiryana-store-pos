@@ -95,13 +95,13 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
                 const SizedBox(width: 12),
-                Expanded(child: Text('Failed to load dashboard data: $e')),
+                Expanded(child: Text(AppLocalizations.of(context)!.failedToLoadDashboardData(e.toString()))),
               ],
             ),
             backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 5),
             action: SnackBarAction(
-              label: 'Retry',
+              label: AppLocalizations.of(context)!.retry,
               textColor: Colors.white,
               onPressed: _loadData,
             ),
@@ -298,28 +298,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showKeyboardShortcutsDialog() {
+    final localizations = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.keyboard),
-            SizedBox(width: DesktopDimensions.spacingSmall),
-            Text('Keyboard Shortcuts'),
+            const Icon(Icons.keyboard),
+            const SizedBox(width: DesktopDimensions.spacingSmall),
+            Text(localizations.keyboardShortcuts),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildShortcutItem('New Sale', 'Ctrl + N', colorScheme),
-            _buildShortcutItem('Refresh Dashboard', 'F5', colorScheme),
+            _buildShortcutItem(localizations.newSale, localizations.shortcutCtrlN, colorScheme),
+            _buildShortcutItem(localizations.refreshDashboard, localizations.shortcutF5, colorScheme),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(localizations.close),
           ),
         ],
       ),
@@ -401,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               icon: Icon(Icons.add_shopping_cart, size: 22, color: colorScheme.primary),
               label: Text(
-                '${localizations.generateBill} (Ctrl+N)',
+                localizations.generateBillWithShortcut,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -462,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
             
             // Keyboard Shortcuts Button
             Tooltip(
-              message: 'Keyboard Shortcuts',
+              message: localizations.keyboardShortcuts,
               child: _HoverableActionIcon(
                 icon: Icon(Icons.keyboard, size: 20, color: colorScheme.primary),
                 color: colorScheme.primary,
@@ -478,7 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: colorScheme.primary,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Search feature coming soon!'), duration: Duration(seconds: 2)),
+                  SnackBar(content: Text(localizations.searchFeatureComingSoon), duration: const Duration(seconds: 2)),
                 );
               },
             ),
@@ -695,11 +696,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // ========================================================================
   
   String _buildOnlyLeftText(AppLocalizations localizations, dynamic stock, String unit) {
-    try {
-      return localizations.onlyLeft(stock, unit);
-    } catch (e) {
-      return 'Only $stock $unit left';
-    }
+    return localizations.onlyLeft(stock, unit);
   }
 
   // ========================================================================
@@ -742,10 +739,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const Spacer(),
                 if (trend != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: trendUp
+                  Tooltip(
+                    message: localizations.trendTooltip(trend),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: trendUp
                           ? colorScheme.primary.withOpacity(0.1)
                           : colorScheme.error.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -974,9 +973,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ...lowStockItems.take(5).map((item) {
                 final name = item['name_english']?.toString() ?? 
                             item['name_urdu']?.toString() ?? 
-                            'Unknown Item';
+                            localizations.unknownItem;
                 final stock = item['current_stock'] ?? 0;
-                final unit = item['unit_type']?.toString() ?? 'units';
+                final unit = item['unit_type']?.toString() ?? localizations.units;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
@@ -1022,7 +1021,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icon(Icons.check_circle_outline, size: 48, color: colorScheme.primary),
                       const SizedBox(height: 8),
                       Text(
-                        'All items in stock',
+                        localizations.allStockAvailable,
                         style: TextStyle(color: colorScheme.onSurfaceVariant),
                       ),
                     ],
@@ -1398,7 +1397,7 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations, ColorSc
       case 'STOCK':
         return localizations.stockUpdated;
       default:
-        return 'Activity';
+        return localizations.activity;
     }
   }
 
@@ -1414,7 +1413,7 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations, ColorSc
         return Money(amount).formattedNoDecimal;
       case 'ALERT':
         final stock = activity['stock_level'];
-        final unit = activity['unit_name']?.toString() ?? 'units';
+        final unit = activity['unit_name']?.toString() ?? localizations.units;
         return _buildOnlyLeftText(localizations, stock, unit);
       default:
         return '';
@@ -1475,13 +1474,15 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations, ColorSc
           const SizedBox(width: DesktopDimensions.spacingLarge),
           Icon(Icons.backup, size: 14, color: colorScheme.tertiary),
           const SizedBox(width: 6),
+          // TODO: Fetch and display the actual last backup time
           Text(
-            '${localizations.lastBackup}: 2 hrs ago',
+            localizations.lastBackupAt('...'),
             style: TextStyle(fontSize: DesktopDimensions.captionSize, color: colorScheme.onSurfaceVariant),
           ),
           const Spacer(),
+          // TODO: Fetch and display the actual app version
           Text(
-            'v1.0.0',
+            localizations.appVersion('...'),
             style: TextStyle(fontSize: DesktopDimensions.captionSize, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: DesktopDimensions.spacingStandard),
