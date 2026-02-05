@@ -676,9 +676,42 @@
       "error": {}
     }
   },
+  "failedToLoadDashboardData": "Failed to load dashboard data: {error}",
+  "@failedToLoadDashboardData": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "saleType": "SALE",
   "receiptType": "RECEIPT",
   "cancelInvoiceTooltip": "Cancel Invoice",
   "rateHeader": "Rate",
-  "totalHeader": "Total"
+  "totalHeader": "Total",
+  "retry": "Retry",
+  "keyboardShortcuts": "Keyboard Shortcuts",
+  "refreshDashboard": "Refresh Dashboard",
+  "close": "Close",
+  "generateBillWithShortcut": "Generate Bill (Ctrl+N)",
+  "searchFeatureComingSoon": "Search feature coming soon!",
+  "unknownItem": "Unknown Item",
+  "lastBackupAt": "Last Backup: {time}",
+  "@lastBackupAt": {
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "appVersion": "v{version}",
+  "@appVersion": {
+    "placeholders": {
+      "version": {}
+    }
+  },
+  "trendTooltip": "Trend: {trend}",
+  "@trendTooltip": {
+    "placeholders": {
+      "trend": {}
+    }
+  },
+  "shortcutCtrlN": "Ctrl + N",
+  "shortcutF5": "F5"
 }
