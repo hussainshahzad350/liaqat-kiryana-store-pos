@@ -303,7 +303,7 @@
   "deleteWarningReason": "انہیں حذف کرنے سے آپ کی مالی رپورٹس خراب ہو جائیں گی",
   "deleteWarningArchive": "براہ کرم انہیں 'آرکائیو' کر دیں۔",
   "deleteCustomerTitle": "گاہک حذف کریں؟",
-  "deleteCustomerWarning": "کیا آپ واقعی '{name}' کو مستقل طور پر حذف کرنا چاہتے ہیں؟",
+  "deleteCustomerWarning": "کیا آپ واقعی {name} کو مستقل طور پر حذف کرنا چاہتے ہیں؟",
   "deleteAction": "حذف",
   "ok": "ٹھیک ہے",
   "archiveAction": "آرکائیو کریں",
