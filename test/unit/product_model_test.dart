@@ -58,6 +58,26 @@ void main() {
       expect(product.createdAt, testDate);
     });
 
+
+    test('should parse numeric fields when SQLite returns doubles', () {
+      final map = {
+        'id': 2,
+        'item_code': 'CODE456',
+        'name_english': 'Numeric Product',
+        'min_stock_alert': 10.0,
+        'current_stock': 25.5,
+        'avg_cost_price': 50.0,
+        'sale_price': 100.0,
+      };
+
+      final product = Product.fromMap(map);
+
+      expect(product.minStockAlert, 10);
+      expect(product.currentStock, 25.5);
+      expect(product.avgCostPrice, const Money(50));
+      expect(product.salePrice, const Money(100));
+    });
+
     test('should convert Product to map correctly', () {
       final map = testProduct.toMap();
 
