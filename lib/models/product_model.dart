@@ -53,10 +53,10 @@ class Product {
       unitType: map['unit_type'] as String?,
       packingType: map['packing_type'] as String?,
       searchTags: map['search_tags'] as String?,
-      minStockAlert: (map['min_stock_alert'] ?? 10) as int,
+      minStockAlert: (map['min_stock_alert'] as num?)?.toInt() ?? 10,
       currentStock: (map['current_stock'] as num? ?? 0.0).toDouble(),
-      avgCostPrice: Money((map['avg_cost_price'] ?? 0) as int),
-      salePrice: Money((map['sale_price'] ?? 0) as int),
+      avgCostPrice: Money((map['avg_cost_price'] as num?)?.toInt() ?? 0),
+      salePrice: Money((map['sale_price'] as num?)?.toInt() ?? 0),
       expiryDate: map['expiry_date'] != null ? DateTime.tryParse(map['expiry_date'] as String) : null,
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'] as String) ?? DateTime.now()

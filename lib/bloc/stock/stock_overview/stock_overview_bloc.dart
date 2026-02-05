@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/repositories/stock_repository.dart';
-import '../../../../bloc/stock/stock_overveiw/stock_overview_event.dart';
-import '../../../../bloc/stock/stock_overveiw/stock_overview_state.dart';
+import '../../../../bloc/stock/stock_overview/stock_overview_event.dart';
+import '../../../../bloc/stock/stock_overview/stock_overview_state.dart';
 
 class StockOverviewBloc extends Bloc<StockOverviewEvent, StockOverviewState> {
   final StockRepository _stockRepository;

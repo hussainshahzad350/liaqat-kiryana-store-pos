@@ -14,8 +14,18 @@ import '../../domain/entities/money.dart';
 import '../../models/invoice_model.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    super.key,
+    this.todaySalesLoader,
+    this.todayCustomersLoader,
+    this.lowStockItemsLoader,
+    this.recentSalesLoader,
+  });
 
+  final Future<int> Function()? todaySalesLoader;
+  final Future<List<Map<String, dynamic>>> Function()? todayCustomersLoader;
+  final Future<List<Map<String, dynamic>>> Function()? lowStockItemsLoader;
+  final Future<List<Map<String, dynamic>>> Function()? recentSalesLoader;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -60,10 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final results = await Future.wait([
-        _invoiceRepository.getTodaySalesTotal(),
-        _customersRepository.getTodayCustomers(),
-        _itemsRepository.getLowStockItems(),
-        _invoiceRepository.getRecentInvoicesWithCustomer(limit: 10),
+        (widget.todaySalesLoader ?? _invoiceRepository.getTodaySalesTotal)(),
+        (widget.todayCustomersLoader ?? _customersRepository.getTodayCustomers)(),
+        (widget.lowStockItemsLoader ?? _itemsRepository.getLowStockItems)(),
+        (widget.recentSalesLoader ?? _loadRecentSales)(),
       ]);
 
       if (!mounted) return;
@@ -72,18 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
         todaySales = results[0] as int;
         todayCustomers = results[1] as List<Map<String, dynamic>>;
         lowStockItems = results[2] as List<Map<String, dynamic>>;
-        
-        // Convert List<Invoice> to List<Map<String, dynamic>> for consistent UI handling
-        final invoices = results[3] as List<Invoice>;
-        recentSales = invoices.map((invoice) => {
-          'activity_type': 'SALE',
-          'title': invoice.invoiceNumber,
-          'customer_name': invoice.customerName,
-          'amount': invoice.totalAmount,
-          'timestamp': invoice.date.toIso8601String(),
-          'status': invoice.status,
-        }).toList();
-        
+        recentSales = results[3] as List<Map<String, dynamic>>;
         _isRefreshing = false;
       });
     } catch (e) {
@@ -114,6 +113,23 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
+
+  Future<List<Map<String, dynamic>>> _loadRecentSales() async {
+    final invoices = await _invoiceRepository.getRecentInvoicesWithCustomer(limit: 10);
+    return invoices
+        .map(
+          (Invoice invoice) => {
+            'activity_type': 'SALE',
+            'title': invoice.invoiceNumber,
+            'customer_name': invoice.customerName,
+            'amount': invoice.totalAmount,
+            'timestamp': invoice.date.toIso8601String(),
+            'status': invoice.status,
+          },
+        )
+        .toList();
+  }
+
 
   int _calculatePendingCredits() {
     int total = 0;
