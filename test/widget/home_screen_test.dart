@@ -42,7 +42,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Rs 12,345'), findsOneWidget);
+    expect(find.text('Rs 12,34500'), findsOneWidget);
     expect(find.text('Ali'), findsWidgets);
     expect(find.text('Sugar'), findsOneWidget);
     expect(find.text('INV-001'), findsOneWidget);
