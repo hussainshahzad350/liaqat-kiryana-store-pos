@@ -318,6 +318,12 @@
   "adminAccess": "ایڈمن رسائی",
   "sale": "فروخت",
   "itemsNeedReordering": "{count} آئٹمز ختم ہونے والے ہیں۔",
+  "@itemsNeedReordering": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "quickActions": "فوری کارروائیاں",
   "quickActions": "فوری کارروائیاں",
   "newSale": "نئی فروخت",
   "viewReports": "رپورٹس دیکھیں",
