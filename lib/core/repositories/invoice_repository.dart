@@ -131,7 +131,7 @@ class InvoiceRepository {
         [customerId],
       );
       int prevBalance =
-          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
+          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as num?)?.toInt() ?? 0 : 0;
       int newBalance = prevBalance + grandTotal;
 
       await txn.insert('customer_ledger', {
@@ -284,7 +284,7 @@ class InvoiceRepository {
         [customerId],
       );
       int prevBalance =
-          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
+          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as num?)?.toInt() ?? 0 : 0;
       int newBalance = prevBalance - grandTotal;
       if (newBalance < 0) newBalance = 0;
 

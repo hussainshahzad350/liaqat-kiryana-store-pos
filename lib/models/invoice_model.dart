@@ -82,12 +82,17 @@ class Invoice {
   }
 
   factory Invoice.fromMap(Map<String, dynamic> map) {
+    final invoiceDateRaw = map['invoice_date']?.toString();
+    final parsedDate = invoiceDateRaw != null
+        ? DateTime.tryParse(invoiceDateRaw)
+        : null;
+
     return Invoice(
       id: map['id'] as int?,
-      invoiceNumber: map['invoice_number'] as String,
-      customerId: map['customer_id'] as int,
-      date: DateTime.tryParse(map['invoice_date'] as String) ?? DateTime.now(),
-      totalAmount: (map['grand_total'] as num).toInt(),
+      invoiceNumber: map['invoice_number']?.toString() ?? '',
+      customerId: (map['customer_id'] as num?)?.toInt() ?? 0,
+      date: parsedDate ?? DateTime.now(),
+      totalAmount: (map['grand_total'] as num?)?.toInt() ?? 0,
       discount: (map['discount_total'] as num?)?.toInt() ?? 0,
       status: map['status'] as String? ?? 'POSTED',
       notes: map['notes'] as String?,

@@ -159,13 +159,17 @@ class PurchaseRepository {
         final productId = item['product_id'] as int;
         final quantity = (item['quantity'] as num).toDouble();
         final batchNumber = item['batch_number'] as String;
-        final expiryDate = DateTime.tryParse(item['expiry_date'] as String)!;
+        final expiryRaw = item['expiry_date']?.toString();
+        final expiryDate = expiryRaw != null ? DateTime.tryParse(expiryRaw) : null;
 
-        // Reduce total stock
-        await txn.rawUpdate(
-          'UPDATE products SET current_stock = current_stock - ? WHERE id = ?',
-          [quantity, productId],
+        // Reduce total stock with underflow protection
+        final updated = await txn.rawUpdate(
+          'UPDATE products SET current_stock = current_stock - ? WHERE id = ? AND current_stock >= ?',
+          [quantity, productId, quantity],
         );
+        if (updated == 0) {
+          throw Exception('Cannot cancel purchase: stock underflow for product $productId');
+        }
 
         // Log stock activity
         await txn.insert('stock_activities', {
@@ -175,7 +179,7 @@ class PurchaseRepository {
           'reference_type': 'PURCHASE',
           'reference_id': purchaseId,
           'batch_number': batchNumber,
-          'expiry_date': expiryDate.toIso8601String(),
+          'expiry_date': expiryDate?.toIso8601String(),
           'user': cancelledBy,
           'created_at': DateTime.now().toIso8601String(),
         });

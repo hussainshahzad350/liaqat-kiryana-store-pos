@@ -23,6 +23,7 @@ class SalesState extends Equatable {
   final String? successMessage;
   final bool showCustomerList;
   final Invoice? completedInvoice;
+  final Customer? quickAddedCustomer;
 
   const SalesState({
     this.status = SalesStatus.initial,
@@ -40,6 +41,7 @@ class SalesState extends Equatable {
     this.successMessage,
     this.showCustomerList = false,
     this.completedInvoice,
+    this.quickAddedCustomer,
   });
 
   SalesState copyWith({
@@ -60,6 +62,8 @@ class SalesState extends Equatable {
     bool? showCustomerList,
     Invoice? completedInvoice,
     bool clearCompletedInvoice = false,
+    Customer? quickAddedCustomer,
+    bool clearQuickAddedCustomer = false,
   }) {
     return SalesState(
       status: status ?? this.status,
@@ -77,6 +81,9 @@ class SalesState extends Equatable {
       successMessage: successMessage,
       showCustomerList: showCustomerList ?? this.showCustomerList,
       completedInvoice: clearCompletedInvoice ? null : (completedInvoice ?? this.completedInvoice),
+      quickAddedCustomer: clearQuickAddedCustomer
+          ? null
+          : (quickAddedCustomer ?? this.quickAddedCustomer),
     );
   }
 
@@ -97,5 +104,6 @@ class SalesState extends Equatable {
         successMessage,
         showCustomerList,
         completedInvoice,
+        quickAddedCustomer,
       ];
 }

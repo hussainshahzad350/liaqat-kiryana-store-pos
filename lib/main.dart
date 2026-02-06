@@ -23,6 +23,7 @@ import 'core/repositories/customers_repository.dart';
 import 'core/repositories/invoice_repository.dart';
 import 'core/repositories/items_repository.dart';
 import 'core/repositories/purchase_repository.dart';
+import 'core/repositories/receipt_repository.dart';
 import 'core/repositories/settings_repository.dart';
 import 'core/repositories/stock_activity_repository.dart';
 import 'core/repositories/stock_repository.dart';
@@ -85,6 +86,7 @@ void main() async {
         RepositoryProvider(create: (context) => ItemsRepository()),
         RepositoryProvider(create: (context) => CustomersRepository()),
         RepositoryProvider(create: (context) => InvoiceRepository()),
+        RepositoryProvider(create: (context) => ReceiptRepository()),
         RepositoryProvider(create: (context) => UnitsRepository()),
         RepositoryProvider(create: (context) => StockRepository()),
         RepositoryProvider(create: (context) => StockActivityRepository()),
@@ -178,6 +180,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                       itemsRepository: context.read<ItemsRepository>(),
                       customersRepository: context.read<CustomersRepository>(),
                       settingsRepository: context.read<SettingsRepository>(),
+                      receiptRepository: context.read<ReceiptRepository>(),
                       stockBloc: context.read<StockBloc>(), // Injected here
                     ),
                     child: const SalesScreen(),

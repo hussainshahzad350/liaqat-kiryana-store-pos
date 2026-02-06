@@ -9,6 +9,7 @@ class StockFilterState {
   final List<Map<String, dynamic>> availableSuppliers;
   final List<Map<String, dynamic>> availableCategories;
   final bool isLoading;
+  final String? errorMessage;
 
   const StockFilterState({
     this.searchQuery = '',
@@ -18,6 +19,7 @@ class StockFilterState {
     this.availableSuppliers = const [],
     this.availableCategories = const [],
     this.isLoading = false,
+    this.errorMessage,
   });
 
   StockFilterState copyWith({
@@ -28,6 +30,7 @@ class StockFilterState {
     List<Map<String, dynamic>>? availableSuppliers,
     List<Map<String, dynamic>>? availableCategories,
     bool? isLoading,
+    String? errorMessage,
   }) {
     return StockFilterState(
       searchQuery: searchQuery ?? this.searchQuery,
@@ -37,6 +40,7 @@ class StockFilterState {
       availableSuppliers: availableSuppliers ?? this.availableSuppliers,
       availableCategories: availableCategories ?? this.availableCategories,
       isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage,
     );
   }
   
@@ -50,6 +54,7 @@ class StockFilterState {
       availableSuppliers: availableSuppliers,
       availableCategories: availableCategories,
       isLoading: isLoading,
+      errorMessage: errorMessage,
     );
   }
 
@@ -62,6 +67,7 @@ class StockFilterState {
       availableSuppliers: availableSuppliers,
       availableCategories: availableCategories,
       isLoading: isLoading,
+      errorMessage: errorMessage,
     );
   }
 }
