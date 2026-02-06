@@ -130,6 +130,22 @@ class CustomersRepository {
     return result.isEmpty;
   }
 
+  /// Returns true if a customer with the exact phone number exists.
+  Future<bool> customerExistsByPhone(String phone) async {
+    final db = await _dbHelper.database;
+    final normalizedPhone = phone.trim();
+    if (normalizedPhone.isEmpty) return false;
+
+    final result = await db.query(
+      'customers',
+      columns: ['id'],
+      where: 'contact_primary = ?',
+      whereArgs: [normalizedPhone],
+      limit: 1,
+    );
+    return result.isNotEmpty;
+  }
+
   // ========================================
   // CREDIT LIMIT MANAGEMENT
   // ========================================

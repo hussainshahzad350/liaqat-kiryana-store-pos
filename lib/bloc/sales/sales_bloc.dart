@@ -50,6 +50,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     on<InvoiceProcessed>(_onInvoiceProcessed);
     on<InvoiceCancelled>(_onInvoiceCancelled);
     on<ProductsUpdated>(_onProductsUpdated);
+    on<CustomerCreditLimitUpdateRequested>(_onCreditLimitUpdateRequested);
     on<QuickCustomerAddRequested>(_onQuickCustomerAddRequested);
     on<CustomerCreditLimitUpdateRequested>(_onCustomerCreditLimitUpdateRequested);
     on<ReceiptPrintRequested>(_onReceiptPrintRequested);
@@ -354,6 +355,33 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
           status: SalesStatus.error,
           errorMessage: e.toString(),
           clearCompletedInvoice: true));
+    }
+  }
+
+
+
+  Future<void> _onCreditLimitUpdateRequested(
+      CustomerCreditLimitUpdateRequested event, Emitter<SalesState> emit) async {
+    emit(state.copyWith(
+      creditLimitUpdateStatus: CreditLimitUpdateStatus.loading,
+      creditLimitUpdateCustomerId: event.customerId,
+      creditLimitUpdateError: null,
+    ));
+
+    try {
+      await _customersRepository.updateCustomerCreditLimit(
+          event.customerId, event.newLimitPaisas);
+      emit(state.copyWith(
+        creditLimitUpdateStatus: CreditLimitUpdateStatus.success,
+        creditLimitUpdateCustomerId: event.customerId,
+        creditLimitUpdateError: null,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        creditLimitUpdateStatus: CreditLimitUpdateStatus.error,
+        creditLimitUpdateCustomerId: event.customerId,
+        creditLimitUpdateError: e.toString(),
+      ));
     }
   }
 

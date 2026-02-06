@@ -327,6 +327,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       if (!mounted) return;
       Navigator.pop(context);
       await _refreshList(); // Reload list to show new item
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierAdded), backgroundColor: Theme.of(context).colorScheme.primary));
     } catch (e) {
       if (!mounted) return;
@@ -358,6 +359,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       if (!mounted) return;
       Navigator.pop(context);
       await _refreshList(); // Reload list
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierUpdated), backgroundColor: Theme.of(context).colorScheme.primary));
     } catch (e) {
       if (!mounted) return;
@@ -414,6 +416,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         
         if (!mounted) return;
         await _refreshList(); // Reload list
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierDeleted), backgroundColor: colorScheme.error));
       } catch (e) {
         if (!mounted) return;

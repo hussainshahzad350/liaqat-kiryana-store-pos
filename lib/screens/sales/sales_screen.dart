@@ -291,6 +291,43 @@ class _SalesScreenState extends State<SalesScreen> {
 
                       final Money creditLimit;
                       try {
+                        // Check if phone exists using exact-match query
+                        final phoneExists = await customersRepo
+                            .customerExistsByPhone(phoneNumber);
+
+                        if (phoneExists) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content:
+                                  Text('${loc.phoneExists}: "$phoneNumber"'),
+                              backgroundColor: colorScheme.error));
+                          return;
+                        }
+
+                        final newCustomer = Customer(
+                          nameEnglish: nameEngCtrl.text.trim(),
+                          nameUrdu: nameUrduCtrl.text.trim(),
+                          contactPrimary: phoneNumber,
+                          address: addressCtrl.text.trim(),
+                          creditLimit:
+                              Money.fromRupeesString(creditLimitCtrl.text)
+                                  .paisas,
+                        );
+
+                        final int id =
+                            await customersRepo.addCustomer(newCustomer);
+                        final Customer savedCustomer =
+                            newCustomer.copyWith(id: id);
+
+                        if (mounted) {
+                          _selectCustomer(savedCustomer);
+                          Navigator.of(context).pop();
+
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(
+                                  "${loc.customerAdded}: '${nameEngCtrl.text}'"),
+                              backgroundColor: colorScheme.primary));
+                        }
+                      } catch (e) {
                         creditLimit =
                             Money.fromRupeesString(creditLimitCtrl.text);
                       } catch (_) {
@@ -685,6 +722,32 @@ class _SalesScreenState extends State<SalesScreen> {
                           return;
                         }
 
+                        salesBloc.add(
+                          CustomerCreditLimitUpdateRequested(
+                            customerId: selectedCustomerId!,
+                            newLimitPaisas: newLimit.paisas,
+                          ),
+                        );
+
+                        final updateResult = await salesBloc.stream.firstWhere(
+                          (state) =>
+                              state.creditLimitUpdateCustomerId ==
+                                  selectedCustomerId &&
+                              (state.creditLimitUpdateStatus ==
+                                      CreditLimitUpdateStatus.success ||
+                                  state.creditLimitUpdateStatus ==
+                                      CreditLimitUpdateStatus.error),
+                        );
+
+                        if (!mounted) return;
+
+                        if (updateResult.creditLimitUpdateStatus ==
+                            CreditLimitUpdateStatus.success) {
+                          salesBloc.add(CustomerSelected(selectedCustomerMap!
+                              .copyWith(creditLimit: newLimit.paisas)));
+
+                          if (Navigator.of(dialogContext).canPop()) {
+                            Navigator.pop(dialogContext);
                         try {
                           salesBloc.add(CustomerCreditLimitUpdateRequested(
                             customerId: selectedCustomerId!,
@@ -701,6 +764,24 @@ class _SalesScreenState extends State<SalesScreen> {
                                   backgroundColor: colorScheme.error),
                             );
                           }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  '${loc.creditLimitUpdated}: ${newLimit.toString()}'),
+                              backgroundColor: colorScheme.primary,
+                            ),
+                          );
+                          onLimitUpdated();
+                        } else {
+                          final error = updateResult.creditLimitUpdateError;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(error == null
+                                  ? loc.error
+                                  : '${loc.error}: $error'),
+                              backgroundColor: colorScheme.error,
+                            ),
+                          );
                         }
                       },
                       child: Text(loc.updateLimit),
@@ -735,6 +816,18 @@ class _SalesScreenState extends State<SalesScreen> {
         barrierDismissible: false,
         builder: (context) {
           return StatefulBuilder(builder: (context, setDialogState) {
+            final parsedCash = _tryParseMoney(cashCtrl.text);
+            final parsedBank = _tryParseMoney(bankCtrl.text);
+            final parsedCredit = _tryParseMoney(creditCtrl.text);
+            final cashError = parsedCash == null ? loc.invalidAmount : null;
+            final bankError = parsedBank == null ? loc.invalidAmount : null;
+            final creditError = parsedCredit == null ? loc.invalidAmount : null;
+            final hasParseError =
+                cashError != null || bankError != null || (isRegistered && creditError != null);
+
+            final Money cash = parsedCash ?? Money.zero;
+            final Money bank = parsedBank ?? Money.zero;
+            final Money credit = parsedCredit ?? Money.zero;
             Money _safeMoney(String text) {
               try {
                 return Money.fromRupeesString(text);
@@ -750,7 +843,9 @@ class _SalesScreenState extends State<SalesScreen> {
             Money change = const Money(0);
             bool isValid = false;
 
-            if (isRegistered) {
+            if (hasParseError) {
+              isValid = false;
+            } else if (isRegistered) {
               isValid = totalPayment == billTotal;
             } else {
               isValid = (cash + bank) >= billTotal;
@@ -765,6 +860,16 @@ class _SalesScreenState extends State<SalesScreen> {
             }
 
             void checkCreditLimitAndProcess() {
+              if (hasParseError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(loc.invalidAmount),
+                    backgroundColor: colorScheme.error,
+                  ),
+                );
+                return;
+              }
+
               if (ignoreCreditLimit) {
                 processSaleAction();
                 return;
@@ -906,7 +1011,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                       : '0';
                                 }
                               });
-                            }),
+                            }, errorText: cashError),
                             _input(loc.bankInput, bankCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
@@ -918,11 +1023,11 @@ class _SalesScreenState extends State<SalesScreen> {
                                       : '0';
                                 }
                               });
-                            }),
+                            }, errorText: bankError),
                             if (isRegistered)
                               _input(loc.creditInput, creditCtrl, (v) {
                                 setDialogState(() {});
-                              }),
+                              }, errorText: creditError),
                             const SizedBox(
                                 height: DesktopDimensions.spacingStandard),
                             if (!isRegistered)
@@ -1018,9 +1123,20 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
+
+  Money? _tryParseMoney(String text) {
+    final normalized = text.replaceAll(',', '').trim();
+    if (normalized.isEmpty) return Money.zero;
+    final validPattern = RegExp(r'^\d+(\.\d{1,2})?$');
+    if (!validPattern.hasMatch(normalized)) {
+      return null;
+    }
+    return Money.fromRupeesString(normalized);
+  }
+
   Widget _input(
       String label, TextEditingController ctrl, Function(String) onChanged,
-      {bool enabled = true}) {
+      {bool enabled = true, String? errorText}) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Padding(
@@ -1046,6 +1162,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 prefixText: 'Rs ',
                 filled: !enabled,
                 fillColor: enabled ? null : colorScheme.surfaceVariant,
+                errorText: errorText,
               ),
               style: textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -1125,6 +1242,38 @@ class _SalesScreenState extends State<SalesScreen> {
                   width: double.infinity,
                   height: DesktopDimensions.buttonHeight,
                   child: OutlinedButton.icon(
+                    onPressed: () async {
+                      if (invoice.status == 'CANCELLED') {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('Cannot save cancelled invoice as PDF'),
+                              backgroundColor: colorScheme.error,
+                            ),
+                          );
+                        }
+                        return;
+                      }
+
+                      try {
+                        final path =
+                            await _receiptRepository.saveReceiptAsPDF(invoice);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Receipt saved to: $path')),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Error saving PDF: $e'),
+                                backgroundColor: colorScheme.error),
+                          );
+                        }
+                      }
+                    },
                     onPressed: () => context
                         .read<SalesBloc>()
                         .add(ReceiptPdfSaveRequested(invoice)),
@@ -1165,6 +1314,38 @@ class _SalesScreenState extends State<SalesScreen> {
   // ========================================
 
   Future<void> _handlePrintReceipt(Invoice invoice) async {
+    final loc = AppLocalizations.of(context)!;
+    if (invoice.status == 'CANCELLED') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.cannotPrintCancelled)),
+      );
+      return;
+    }
+
+    try {
+      final receiptData = await _receiptRepository.generateReceiptData(invoice);
+      await _receiptRepository.printReceipt(receiptData);
+      final invoiceId = invoice.id;
+      if (invoiceId != null) {
+        await _receiptRepository.trackPrint(invoiceId);
+      }
+      _loadRecentInvoices();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  '${loc.receiptSentToPrinter} #${invoice.invoiceNumber}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('${loc.printError}: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error),
+        );
+      }
+    }
     context.read<SalesBloc>().add(ReceiptPrintRequested(invoice));
   }
 

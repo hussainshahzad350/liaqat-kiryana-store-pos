@@ -6,6 +6,7 @@ import '../../../../../domain/entities/money.dart';
 import '../../../../../models/cart_item_model.dart';
 
 enum SalesStatus { initial, loading, ready, success, error }
+enum CreditLimitUpdateStatus { idle, loading, success, error }
 
 class SalesState extends Equatable {
   final SalesStatus status;
@@ -23,6 +24,9 @@ class SalesState extends Equatable {
   final String? successMessage;
   final bool showCustomerList;
   final Invoice? completedInvoice;
+  final CreditLimitUpdateStatus creditLimitUpdateStatus;
+  final int? creditLimitUpdateCustomerId;
+  final String? creditLimitUpdateError;
   final Customer? quickAddedCustomer;
 
   const SalesState({
@@ -41,6 +45,9 @@ class SalesState extends Equatable {
     this.successMessage,
     this.showCustomerList = false,
     this.completedInvoice,
+    this.creditLimitUpdateStatus = CreditLimitUpdateStatus.idle,
+    this.creditLimitUpdateCustomerId,
+    this.creditLimitUpdateError,
     this.quickAddedCustomer,
   });
 
@@ -62,6 +69,9 @@ class SalesState extends Equatable {
     bool? showCustomerList,
     Invoice? completedInvoice,
     bool clearCompletedInvoice = false,
+    CreditLimitUpdateStatus? creditLimitUpdateStatus,
+    int? creditLimitUpdateCustomerId,
+    String? creditLimitUpdateError,
     Customer? quickAddedCustomer,
     bool clearQuickAddedCustomer = false,
   }) {
@@ -81,6 +91,11 @@ class SalesState extends Equatable {
       successMessage: successMessage,
       showCustomerList: showCustomerList ?? this.showCustomerList,
       completedInvoice: clearCompletedInvoice ? null : (completedInvoice ?? this.completedInvoice),
+      creditLimitUpdateStatus:
+          creditLimitUpdateStatus ?? this.creditLimitUpdateStatus,
+      creditLimitUpdateCustomerId:
+          creditLimitUpdateCustomerId ?? this.creditLimitUpdateCustomerId,
+      creditLimitUpdateError: creditLimitUpdateError,
       quickAddedCustomer: clearQuickAddedCustomer
           ? null
           : (quickAddedCustomer ?? this.quickAddedCustomer),
@@ -104,6 +119,9 @@ class SalesState extends Equatable {
         successMessage,
         showCustomerList,
         completedInvoice,
+        creditLimitUpdateStatus,
+        creditLimitUpdateCustomerId,
+        creditLimitUpdateError,
         quickAddedCustomer,
       ];
 }

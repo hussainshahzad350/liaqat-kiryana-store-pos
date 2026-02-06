@@ -711,6 +711,7 @@ class _StockScreenState extends State<StockScreen> {
                   columns: [
                     DataColumn(label: Text(loc.item), onSort: onSort),
                     DataColumn(label: Text(loc.category), onSort: onSort),
+                    DataColumn(label: Text(loc.cost), onSort: onSort, numeric: true),
                     DataColumn(label: const Text('Cost'), onSort: onSort, numeric: true),
                     DataColumn(label: Text(loc.price), onSort: onSort, numeric: true),
                     DataColumn(label: Text(loc.quantity), onSort: onSort, numeric: true),
