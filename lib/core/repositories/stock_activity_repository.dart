@@ -21,9 +21,10 @@ class StockActivityRepository {
         invoice_number as ref_no,
         invoice_date as date,
         grand_total as amount,
-        'Sale to Customer' as description
+        'Sale to Customer' as description,
+        status
       FROM invoices
-      WHERE status = 'COMPLETED'
+      WHERE status IN ('COMPLETED', 'CANCELLED')
 
       UNION ALL
 
@@ -33,7 +34,8 @@ class StockActivityRepository {
         invoice_number as ref_no,
         purchase_date as date,
         total_amount as amount,
-        'Purchase from Supplier' as description
+        'Purchase from Supplier' as description,
+        status
       FROM purchases
 
       ORDER BY date DESC
@@ -61,7 +63,7 @@ class StockActivityRepository {
     // Handle date parsing safely
     DateTime timestamp;
     try {
-      timestamp = DateTime.parse(row['date'] as String);
+      timestamp = DateTime.parse(row['date']?.toString() ?? '');
     } catch (_) {
       timestamp = DateTime.now();
     }
@@ -71,12 +73,12 @@ class StockActivityRepository {
       timestamp: timestamp,
       type: type,
       referenceNumber: row['ref_no'] as String? ?? '-',
-      referenceId: row['id'] as int,
-      description: row['description'] as String,
+      referenceId: (row['id'] as num?)?.toInt(),
+      description: row['description']?.toString() ?? '-',
       quantityChange: qtyChange,
       financialImpact: Money((row['amount'] as num?)?.toInt() ?? 0),
       user: 'Admin', // Placeholder until Auth system is linked
-      status: 'COMPLETED',
+      status: (row['status'] as String?) ?? 'COMPLETED',
     );
   }
 }

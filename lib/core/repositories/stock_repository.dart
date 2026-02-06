@@ -74,8 +74,8 @@ class StockRepository {
       WHERE current_stock > 0
     ''');
     
-    final totalCost = valueRes.first['total_cost'] as int;
-    final totalSale = valueRes.first['total_sale'] as int;
+    final totalCost = (valueRes.first['total_cost'] as num?)?.toInt() ?? 0;
+    final totalSale = (valueRes.first['total_sale'] as num?)?.toInt() ?? 0;
 
     // 3. Risk Metrics
     final lowStockRes = await db.rawQuery(
@@ -137,7 +137,9 @@ class StockRepository {
       salePrice: Money((row['sale_price'] as num?)?.toInt() ?? 0),
       categoryName: row['category_name'] as String?,
       lastUpdated: DateTime.now(), // DB doesn't have update_at on products yet
-      expiryDate: row['expiry_date'] != null ? DateTime.tryParse(row['expiry_date'] as String) : null,
+      expiryDate: row['expiry_date'] != null
+          ? DateTime.tryParse(row['expiry_date']?.toString() ?? '')
+          : null,
     );
   }
 }

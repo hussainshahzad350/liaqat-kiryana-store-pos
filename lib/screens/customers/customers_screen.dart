@@ -1,6 +1,4 @@
 // lib/screens/master_data/customers_screen.dart
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/repositories/customers_repository.dart';
@@ -123,8 +121,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
   }
 
   Future<void> _loadArchivedCustomers() async {
-    final result = await _customersRepository.getArchivedCustomers();
-    setState(() => archivedCustomers = result);
+    try {
+      final result = await _customersRepository.getArchivedCustomers();
+      if (mounted) {
+        setState(() => archivedCustomers = result);
+      }
+    } catch (e) {
+      debugPrint("Error loading archived customers: $e");
+    }
   }
 
   Future<bool> _isPhoneUnique(String phone, {int? excludeId}) async {
@@ -269,12 +273,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
     if (id == null) {
       await _customersRepository.addCustomer(customer);
+      if (!mounted) return;
       _showSnack(loc.customerAddedSuccess, colorScheme.primary);
     } else {
       await _customersRepository.updateCustomer(id, customer);
+      if (!mounted) return;
       _showSnack(loc.customerUpdatedSuccess, colorScheme.primary);
     }
-    _refreshData();
+    await _refreshData();
   }
 
   Future<void> _toggleArchiveStatus(int id, bool currentStatus) async {
@@ -410,12 +416,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
     if (confirmed == true) {
       await _customersRepository.deleteCustomer(id);
-      _refreshData();
+      if (!mounted) return;
+      await _refreshData();
       _showSnack(loc.itemDeleted, colorScheme.onSurfaceVariant);
     }
   }
 
   void _showSnack(String msg, Color color) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
@@ -1292,7 +1300,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         minimumSize:
                             const Size(0, DesktopDimensions.buttonHeight),
                       ),
-                      onPressed: () {
+                      onPressed: () async {
                         if (amountCtrl.text.isNotEmpty) {
                           Money? amount;
                           try {
@@ -1309,7 +1317,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           }
                           if (amount > const Money(0)) {
                             Navigator.pop(context);
-                            _addPayment(amount, notesCtrl.text);
+                            try {
+                              await _addPayment(amount, notesCtrl.text);
+                            } catch (e) {
+                              if (!mounted) return;
+                              _showSnack(
+                                loc.errorMessage(e.toString()),
+                                colorScheme.error,
+                              );
+                            }
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -1329,7 +1345,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
         ),
       ),
-    );
+    ).whenComplete(() {
+      amountCtrl.dispose();
+      notesCtrl.dispose();
+    });
   }
 
   // --- ARCHIVE OVERLAY ---
@@ -1575,6 +1594,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                         Navigator.pop(context);
                                       }
                                     } catch (e) {
+                                      if (!context.mounted) return;
                                       setStateDialog(() => isSaving = false);
                                       _showSnack(
                                           e
@@ -1602,7 +1622,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      nameEnController.dispose();
+      nameUrController.dispose();
+      phoneController.dispose();
+      addressController.dispose();
+      limitController.dispose();
+    });
   }
 
   InputDecoration _cleanInput(
@@ -1668,7 +1694,13 @@ class _LedgerRowState extends State<_LedgerRow> {
       setState(() => _isLoadingItems = true);
       setState(() => _error = null);
       try {
-        final invoiceId = widget.row['ref_no'] as int;
+        final invoiceId = _tryParseInt(widget.row['ref_no']);
+        if (invoiceId == null) {
+          if (mounted) {
+            setState(() => _error = AppLocalizations.of(context)!.failedToLoadDetails);
+          }
+          return;
+        }
         final invoice =
             await widget.invoiceRepository.getInvoiceWithItems(invoiceId);
         if (mounted) setState(() => _items = invoice?.items);
@@ -1747,7 +1779,10 @@ class _LedgerRowState extends State<_LedgerRow> {
 
     if (confirmed == true) {
       try {
-        final invoiceId = widget.row['ref_no'] as int;
+        final invoiceId = _tryParseInt(widget.row['ref_no']);
+        if (invoiceId == null) {
+          throw StateError('Invalid invoice id for cancellation');
+        }
         await widget.invoiceRepository.cancelInvoice(
           invoiceId: invoiceId,
           cancelledBy: 'User',
@@ -1784,9 +1819,9 @@ class _LedgerRowState extends State<_LedgerRow> {
     final textTheme = Theme.of(context).textTheme;
     final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
     final dateStr = DateFormat('dd-MM-yyyy').format(date);
-    final Money debit = Money((row['debit'] as num).toInt());
-    final Money credit = Money((row['credit'] as num).toInt());
-    final Money balance = Money((row['balance'] as num).toInt());
+    final Money debit = Money(_tryParseInt(row['debit']) ?? 0);
+    final Money credit = Money(_tryParseInt(row['credit']) ?? 0);
+    final Money balance = Money(_tryParseInt(row['balance']) ?? 0);
     final isSale = row['type'] == 'SALE';
     final isReceipt = row['type'] == 'PAYMENT' || row['type'] == 'RECEIPT';
 
@@ -2051,5 +2086,11 @@ class _LedgerRowState extends State<_LedgerRow> {
           ),
       ],
     );
+  }
+
+  int? _tryParseInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
   }
 }

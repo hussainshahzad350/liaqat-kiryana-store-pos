@@ -34,6 +34,8 @@ class _StockScreenState extends State<StockScreen> {
   final FocusNode _tableFocusNode = FocusNode();
   int _focusedIndex = 0;
   List<StockItemEntity> _currentDisplayedItems = [];
+  List<StockActivityEntity> _lastLoadedActivities = const [];
+  bool _lastActivitiesReachedMax = true;
 
   final PdfExportService _pdfExportService = PdfExportService();
   // Side Panel State
@@ -52,6 +54,7 @@ class _StockScreenState extends State<StockScreen> {
   }
 
   void _closeSidePanel() {
+    if (!mounted) return;
     setState(() => _showSidePanel = false);
   }
 
@@ -63,8 +66,9 @@ class _StockScreenState extends State<StockScreen> {
   }
 
   void _openAdjustStockPanel(StockItemEntity item) {
+    final loc = AppLocalizations.of(context)!;
     _openSidePanel(
-      'Adjust Stock: ${item.nameEnglish}',
+      '${loc.adjustStock}: ${item.nameEnglish}',
       _StockAdjustmentForm(
         item: item,
         onSave: (adjustment, reason) {
@@ -72,20 +76,9 @@ class _StockScreenState extends State<StockScreen> {
             productId: item.id,
             quantityChange: adjustment,
             reason: reason,
-            reference: 'Manual Adjustment',
+            reference: loc.adjustStock,
           ));
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Stock adjustment submitted for "${item.nameEnglish}"')));
           _closeSidePanel();
-          
-          // Refresh data
-          final filterState = context.read<StockFilterBloc>().state;
-          context.read<StockOverviewBloc>().add(LoadStockOverview(
-            query: filterState.searchQuery,
-            status: filterState.statusFilter,
-            supplierId: filterState.selectedSupplierId,
-            categoryId: filterState.selectedCategoryId,
-          ));
-          context.read<StockActivityBloc>().add(LoadStockActivities());
         },
         onCancel: _closeSidePanel,
       ),
@@ -98,15 +91,16 @@ class _StockScreenState extends State<StockScreen> {
   }
 
   void _openCancelConfirmationPanel(StockActivityEntity activity) {
+    final loc = AppLocalizations.of(context)!;
     _openSidePanel(
-      'Confirm Cancellation',
+      loc.confirmation,
       Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Are you sure you want to cancel ${activity.referenceNumber}? This will reverse stock changes.',
+              loc.confirmCancelInvoiceMessage,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
@@ -118,11 +112,11 @@ class _StockScreenState extends State<StockScreen> {
                   child: OutlinedButton(
                     onPressed: () {
                       _openSidePanel(
-                        'Activity: ${activity.referenceNumber}',
+                        '${loc.activityType}: ${activity.referenceNumber}',
                         _buildActivityDetailPanel(context, activity),
                       );
                     },
-                    child: const Text('No, Keep it'),
+                    child: Text(loc.no),
                   ),
                 ),
                 const SizedBox(width: DesktopDimensions.spacingMedium),
@@ -135,11 +129,11 @@ class _StockScreenState extends State<StockScreen> {
                     onPressed: () {
                       context.read<StockActivityBloc>().add(CancelStockActivity(
                         activity: activity,
-                        reason: 'Manual Cancellation from Stock Screen',
+                        reason: loc.cancel,
                       ));
                       _closeSidePanel();
                     },
-                    child: const Text('Yes, Cancel'),
+                    child: Text(loc.cancel),
                   ),
                 ),
               ],
@@ -151,6 +145,7 @@ class _StockScreenState extends State<StockScreen> {
   }
 
   Widget _buildActivityDetailPanel(BuildContext context, StockActivityEntity activity) {
+    final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final isCancelled = activity.status == 'CANCELLED';
 
@@ -206,15 +201,15 @@ class _StockScreenState extends State<StockScreen> {
           child: ListView(
             padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             children: [
-              _buildDetailRow('Date', DateFormat('yyyy-MM-dd').format(activity.timestamp)),
-              _buildDetailRow('Time', DateFormat('hh:mm a').format(activity.timestamp)),
-              _buildDetailRow('User', activity.user),
+              _buildDetailRow(loc.date, DateFormat('yyyy-MM-dd').format(activity.timestamp)),
+              _buildDetailRow(loc.time, DateFormat('hh:mm a').format(activity.timestamp)),
+              _buildDetailRow(loc.customer, activity.user),
               const Divider(),
-              _buildDetailRow('Description', activity.description),
+              _buildDetailRow(loc.description, activity.description),
               if (activity.quantityChange != 0)
-                _buildDetailRow('Quantity Change', '${activity.quantityChange > 0 ? '+' : ''}${activity.quantityChange}'),
+                _buildDetailRow(loc.quantity, '${activity.quantityChange > 0 ? '+' : ''}${activity.quantityChange}'),
                 if (activity.financialImpact != null)
-                _buildDetailRow('Financial Impact', activity.financialImpact!.formatted),
+                _buildDetailRow(loc.amount, activity.financialImpact!.formatted),
             ],
           ),
         ),
@@ -233,7 +228,7 @@ class _StockScreenState extends State<StockScreen> {
                 OutlinedButton.icon(
                   onPressed: () => _openCancelConfirmationPanel(activity),
                   icon: const Icon(Icons.cancel),
-                  label: const Text('Cancel Transaction'),
+                  label: Text(loc.cancel),
                   style: OutlinedButton.styleFrom(foregroundColor: colorScheme.error),
                 ),
               const SizedBox(height: DesktopDimensions.spacingSmall),
@@ -244,17 +239,17 @@ class _StockScreenState extends State<StockScreen> {
                     await _pdfExportService.exportActivityPdf(activity, languageCode: locale.languageCode);
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('PDF export completed.')),
+                      SnackBar(content: Text(loc.saveAsPdf)),
                     );
                   } catch (e) {
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('PDF export failed: $e'), backgroundColor: colorScheme.error),
+                      SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error),
                     );
                   }
                 },
                 icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('Export PDF'),
+                label: Text(loc.saveAsPdf),
               ),
             ],
           ),
@@ -286,6 +281,17 @@ class _StockScreenState extends State<StockScreen> {
       case ActivityType.adjustment: return Icons.tune;
       case ActivityType.returnIn: return Icons.keyboard_return;
       case ActivityType.returnOut: return Icons.outbound;
+    }
+  }
+
+  String _localizedActionMessage(AppLocalizations loc, String message) {
+    switch (message) {
+      case 'Stock adjustment submitted':
+        return loc.stockUpdated;
+      case 'Transaction cancelled successfully':
+        return loc.invoiceCancelledSuccess;
+      default:
+        return message;
     }
   }
 
@@ -338,15 +344,44 @@ class _StockScreenState extends State<StockScreen> {
             return null;
           }),
         },
-        child: BlocListener<StockFilterBloc, StockFilterState>(
-            listener: (context, filterState) {
-              context.read<StockOverviewBloc>().add(LoadStockOverview(
-                    query: filterState.searchQuery,
-                    status: filterState.statusFilter,
-                    supplierId: filterState.selectedSupplierId,
-                    categoryId: filterState.selectedCategoryId,
-                  ));
-            },
+        child: MultiBlocListener(
+            listeners: [
+              BlocListener<StockFilterBloc, StockFilterState>(
+                listener: (context, filterState) {
+                  context.read<StockOverviewBloc>().add(LoadStockOverview(
+                        query: filterState.searchQuery,
+                        status: filterState.statusFilter,
+                        supplierId: filterState.selectedSupplierId,
+                        categoryId: filterState.selectedCategoryId,
+                      ));
+                },
+              ),
+              BlocListener<StockActivityBloc, StockActivityState>(
+                listener: (context, state) {
+                  if (!mounted) return;
+                  if (state is StockActivityActionSuccess) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(_localizedActionMessage(loc, state.message))),
+                    );
+
+                    final filterState = context.read<StockFilterBloc>().state;
+                    context.read<StockOverviewBloc>().add(LoadStockOverview(
+                          query: filterState.searchQuery,
+                          status: filterState.statusFilter,
+                          supplierId: filterState.selectedSupplierId,
+                          categoryId: filterState.selectedCategoryId,
+                        ));
+                  } else if (state is StockActivityActionError) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(_localizedActionMessage(loc, state.message)),
+                        backgroundColor: colorScheme.error,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
             child: Column(
               children: [
                 // 1. Actions Toolbar
@@ -374,9 +409,8 @@ class _StockScreenState extends State<StockScreen> {
                       ElevatedButton.icon(
                         onPressed: () {
                           _tableFocusNode.requestFocus();
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content: Text(
-                                  'Select an item from the table and press Enter to adjust')));
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(loc.adjustStock)));
                         },
                         icon: const Icon(Icons.tune),
                         label: Text(loc.adjustStock),
@@ -425,12 +459,12 @@ class _StockScreenState extends State<StockScreen> {
             loc.totalItems, '${summary.totalItemsCount}', colorScheme.primary),
         _buildKPICard(loc.stockValue,
             summary.totalStockSalesValue.formattedNoDecimal, colorScheme.secondary),
-        _buildKPICard('Total Cost', summary.totalStockCost.formattedNoDecimal,
+        _buildKPICard(loc.totalCost, summary.totalStockCost.formattedNoDecimal,
             colorScheme.onSurfaceVariant),
         _buildKPICard(
-            'Low Stock', '${summary.lowStockItemsCount}', colorScheme.tertiary),
+            loc.lowStock, '${summary.lowStockItemsCount}', colorScheme.tertiary),
         _buildKPICard(
-            'Out of Stock', '${summary.outOfStockItemsCount}', colorScheme.error),
+            loc.outOfStock, '${summary.outOfStockItemsCount}', colorScheme.error),
         _buildKPICard(
             'Expired', '${summary.expiredOrNearExpiryCount}', colorScheme.onErrorContainer),
       ],
@@ -540,14 +574,14 @@ class _StockScreenState extends State<StockScreen> {
                     spacing: DesktopDimensions.spacingMedium,
                     children: [
                       FilterChip(
-                        label: const Text('All Items'),
+                        label: Text(loc.all),
                         selected: state.statusFilter == 'ALL',
                         onSelected: (v) => context
                             .read<StockFilterBloc>()
                             .add(SetStatusFilter('ALL')),
                       ),
                       FilterChip(
-                        label: const Text('Low Stock'),
+                        label: Text(loc.lowStock),
                         selected: state.statusFilter == 'LOW',
                         onSelected: (v) => context
                             .read<StockFilterBloc>()
@@ -557,7 +591,7 @@ class _StockScreenState extends State<StockScreen> {
                         shape: StadiumBorder(side: BorderSide(color: state.statusFilter == 'LOW' ? colorScheme.tertiary : Colors.transparent)),
                       ),
                       FilterChip(
-                        label: const Text('Out of Stock'),
+                        label: Text(loc.outOfStock),
                         selected: state.statusFilter == 'OUT',
                         onSelected: (v) => context
                             .read<StockFilterBloc>()
@@ -634,6 +668,9 @@ class _StockScreenState extends State<StockScreen> {
       return _isAscending ? result : -result;
     });
 
+    if (_focusedIndex >= sortedItems.length) {
+      _focusedIndex = sortedItems.isEmpty ? 0 : sortedItems.length - 1;
+    }
     _currentDisplayedItems = sortedItems;
 
     return Card(
@@ -650,7 +687,7 @@ class _StockScreenState extends State<StockScreen> {
           Padding(
             padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             child: Text(
-              'Current Inventory State',
+              loc.stockDetails,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
@@ -674,12 +711,12 @@ class _StockScreenState extends State<StockScreen> {
                   columns: [
                     DataColumn(label: Text(loc.item), onSort: onSort),
                     DataColumn(label: Text(loc.category), onSort: onSort),
-                    DataColumn(label: Text('Cost'), onSort: onSort, numeric: true),
+                    DataColumn(label: const Text('Cost'), onSort: onSort, numeric: true),
                     DataColumn(label: Text(loc.price), onSort: onSort, numeric: true),
                     DataColumn(label: Text(loc.quantity), onSort: onSort, numeric: true),
-                    DataColumn(label: Text('Value'), onSort: onSort, numeric: true),
-                    DataColumn(label: Text('Status')),
-                    DataColumn(label: Text('Actions')),
+                    DataColumn(label: Text(loc.stockValue), onSort: onSort, numeric: true),
+                    DataColumn(label: Text(loc.status)),
+                    DataColumn(label: Text(loc.actions)),
                   ],
                   showCheckboxColumn: false,
                   rows: sortedItems.asMap().entries.map((entry) {
@@ -730,7 +767,7 @@ class _StockScreenState extends State<StockScreen> {
                                   DesktopDimensions.extraSmallBorderRadius),
                             ),
                             child: Text(
-                              isOut ? 'OUT' : (isLow ? 'LOW' : 'OK'),
+                              isOut ? loc.outOfStock : (isLow ? loc.lowStock : loc.ok),
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall
@@ -755,10 +792,8 @@ class _StockScreenState extends State<StockScreen> {
                                 _showQuickPurchaseDialog(context, item);
                               } else if (value == 'history') {
                                 _openSidePanel(
-                                  'Item History: ${item.nameEnglish}',
-                                  const Center(
-                                      child:
-                                          Text('History feature coming soon.')),
+                                  '${loc.recentActivities}: ${item.nameEnglish}',
+                                  Center(child: Text(loc.noDataAvailable)),
                                 );
                               }
                             },
@@ -775,11 +810,11 @@ class _StockScreenState extends State<StockScreen> {
                                       leading:
                                           const Icon(Icons.add_shopping_cart),
                                       title: Text(loc.newPurchase))),
-                              const PopupMenuItem<String>(
+                              PopupMenuItem<String>(
                                   value: 'history',
                                   child: ListTile(
                                       leading: Icon(Icons.history),
-                                      title: Text('View History'))),
+                                      title: Text(loc.recentActivities))),
                             ],
                           ),
                         ),
@@ -897,7 +932,7 @@ class _StockScreenState extends State<StockScreen> {
                 const Icon(Icons.history, size: DesktopDimensions.iconSizeSmallMedium),
                 const SizedBox(width: DesktopDimensions.spacingSmall),
                 Text(
-                  'Recent Inventory Activities (Audit Log)',
+                  loc.recentActivities,
                   style: textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                 ),
@@ -909,14 +944,14 @@ class _StockScreenState extends State<StockScreen> {
               child: DataTable(
                 headingRowHeight: DesktopDimensions.tableHeaderHeight,
                 dataRowHeight: DesktopDimensions.tableDataRowHeight,
-                columns: const [
-                  DataColumn(label: Text('Date & Time')),
-                  DataColumn(label: Text('Type')),
-                  DataColumn(label: Text('Reference')),
-                  DataColumn(label: Text('Qty Impact')),
-                  DataColumn(label: Text('User')),
-                  DataColumn(label: Text('Status')),
-                  DataColumn(label: Text('Action')),
+                columns: [
+                  DataColumn(label: Text('${loc.date} & ${loc.time}')),
+                  DataColumn(label: Text(loc.activityType)),
+                  DataColumn(label: Text(loc.description)),
+                  DataColumn(label: Text(loc.quantity)),
+                  DataColumn(label: Text(loc.customer)),
+                  DataColumn(label: Text(loc.status)),
+                  DataColumn(label: Text(loc.action)),
                 ],
                 rows: activities.map((act) {
                   Color typeColor = colorScheme.onSurfaceVariant;
@@ -963,7 +998,7 @@ class _StockScreenState extends State<StockScreen> {
                           icon: const Icon(Icons.visibility, size: DesktopDimensions.iconSizeSmallMedium),
                           onPressed: () {
                             _openSidePanel(
-                              'Activity: ${act.referenceNumber}',
+                              '${loc.activityType}: ${act.referenceNumber}',
                               _buildActivityDetailPanel(context, act),
                             );
                           },
@@ -1019,10 +1054,7 @@ class _StockScreenState extends State<StockScreen> {
                                   style: TextStyle(color: colorScheme.error)));
                         }
                         if (state is StockOverviewLoaded) {
-                          bool hasReachedMax = false;
-                          try {
-                            hasReachedMax = (state as dynamic).hasReachedMax ?? false;
-                          } catch (_) {}
+                          final hasReachedMax = state.hasReachedMax;
                           return _buildStockTable(
                               context, loc, colorScheme, state.items, hasReachedMax);
                         }
@@ -1051,8 +1083,20 @@ class _StockScreenState extends State<StockScreen> {
                           return Center(child: Text(state.message));
                         }
                         if (state is StockActivityLoaded) {
+                          _lastLoadedActivities = state.activities;
+                          _lastActivitiesReachedMax = state.hasReachedMax;
                           return _buildRecentActivities(context, loc, colorScheme,
                               state.activities, state.hasReachedMax);
+                        }
+                        if (state is StockActivityActionSuccess ||
+                            state is StockActivityActionError) {
+                          return _buildRecentActivities(
+                            context,
+                            loc,
+                            colorScheme,
+                            _lastLoadedActivities,
+                            _lastActivitiesReachedMax,
+                          );
                         }
                         return const SizedBox.shrink();
                       },
@@ -1107,7 +1151,7 @@ class _StockScreenState extends State<StockScreen> {
                     // Panel Content
                     Expanded(
                       child: _sidePanelContent ??
-                          const Center(child: Text('No details')),
+                          Center(child: Text(loc.noDataAvailable)),
                     ),
                   ],
                 ),
@@ -1169,6 +1213,7 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
       child: Form(
@@ -1176,30 +1221,30 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Current Stock: ${widget.item.currentStock} ${widget.item.unit}'),
+            Text('${loc.stock}: ${widget.item.currentStock} ${widget.item.unit}'),
             const SizedBox(height: DesktopDimensions.spacingMedium),
             TextFormField(
               controller: _quantityCtrl,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'New Quantity',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: loc.quantity,
+                border: const OutlineInputBorder(),
               ),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Required';
-                if (double.tryParse(value) == null) return 'Invalid number';
+                if (value == null || value.isEmpty) return loc.required;
+                if (double.tryParse(value) == null) return loc.invalidAmount;
                 return null;
               },
             ),
             const SizedBox(height: DesktopDimensions.spacingMedium),
             TextFormField(
               controller: _reasonCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Reason',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: loc.description,
+                border: const OutlineInputBorder(),
               ),
-              validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+              validator: (value) => value == null || value.isEmpty ? loc.required : null,
               onFieldSubmitted: (_) => _submit(),
             ),
             const SizedBox(height: DesktopDimensions.spacingLarge),
@@ -1208,14 +1253,14 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: widget.onCancel,
-                    child: const Text('Cancel'),
+                    child: Text(loc.cancel),
                   ),
                 ),
                 const SizedBox(width: DesktopDimensions.spacingMedium),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _submit,
-                    child: const Text('Save Adjustment'),
+                    child: Text(loc.save),
                   ),
                 ),
               ],

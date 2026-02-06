@@ -22,3 +22,13 @@ class StockActivityError extends StockActivityState {
   final String message;
   StockActivityError(this.message);
 }
+
+class StockActivityActionSuccess extends StockActivityState {
+  final String message;
+  StockActivityActionSuccess(this.message);
+}
+
+class StockActivityActionError extends StockActivityState {
+  final String message;
+  StockActivityActionError(this.message);
+}

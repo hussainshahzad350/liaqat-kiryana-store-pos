@@ -8,8 +8,10 @@ import 'sales_state.dart';
 import '../../../../../core/repositories/invoice_repository.dart';
 import '../../../../../core/repositories/items_repository.dart';
 import '../../../../../core/repositories/customers_repository.dart';
+import '../../../../../core/repositories/receipt_repository.dart';
 import '../../../../../domain/entities/money.dart';
 import '../../../../../models/cart_item_model.dart';
+import '../../../../../models/customer_model.dart';
 
 const int _walkInCustomerId = 1;
 
@@ -18,6 +20,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   final ItemsRepository _itemsRepository;
   final CustomersRepository _customersRepository;
   final SettingsRepository _settingsRepository;
+  final ReceiptRepository _receiptRepository;
   final StockBloc? _stockBloc;
   StreamSubscription? _stockSubscription;
 
@@ -26,11 +29,13 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     required ItemsRepository itemsRepository,
     required CustomersRepository customersRepository,
     required SettingsRepository settingsRepository,
+    required ReceiptRepository receiptRepository,
     StockBloc? stockBloc,
   })  : _invoiceRepository = invoiceRepository,
         _itemsRepository = itemsRepository,
         _customersRepository = customersRepository,
         _settingsRepository = settingsRepository,
+        _receiptRepository = receiptRepository,
         _stockBloc = stockBloc,
         super(const SalesState()) {
     on<SalesStarted>(_onStarted);
@@ -45,6 +50,10 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     on<InvoiceProcessed>(_onInvoiceProcessed);
     on<InvoiceCancelled>(_onInvoiceCancelled);
     on<ProductsUpdated>(_onProductsUpdated);
+    on<QuickCustomerAddRequested>(_onQuickCustomerAddRequested);
+    on<CustomerCreditLimitUpdateRequested>(_onCustomerCreditLimitUpdateRequested);
+    on<ReceiptPrintRequested>(_onReceiptPrintRequested);
+    on<ReceiptPdfSaveRequested>(_onReceiptPdfSaveRequested);
 
     
     if (_stockBloc != null) {
@@ -56,7 +65,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
            }
         });
     }
-    
+  }
+
   @override
   Future<void> close() {
     _stockSubscription?.cancel();
@@ -242,7 +252,12 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   }
 
   void _onDiscountChanged(DiscountChanged event, Emitter<SalesState> emit) {
-    final money = Money.fromRupeesString(event.discountText);
+    Money money;
+    try {
+      money = Money.fromRupeesString(event.discountText);
+    } catch (_) {
+      money = Money.zero;
+    }
     _calculateTotals(emit, proposedDiscount: money);
   }
 
@@ -282,10 +297,10 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         .toList();
 
     final validation = await _invoiceRepository.validateStock(cartItemsAsMaps);
-    if (!validation['valid']) {
+    if (validation['valid'] != true) {
       emit(state.copyWith(
           status: SalesStatus.error,
-          errorMessage: validation['error'],
+          errorMessage: validation['error']?.toString() ?? 'Stock validation failed',
           clearCompletedInvoice: true));
       return;
     }
@@ -362,6 +377,173 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
           status: SalesStatus.error,
           errorMessage: e.toString(),
           clearCompletedInvoice: true));
+    }
+  }
+
+  Future<void> _onQuickCustomerAddRequested(
+      QuickCustomerAddRequested event, Emitter<SalesState> emit) async {
+    try {
+      if (event.nameEnglish.trim().isEmpty) {
+        emit(state.copyWith(
+          status: SalesStatus.error,
+          errorMessage: 'Name is required',
+          clearCompletedInvoice: true,
+        ));
+        return;
+      }
+
+      final phoneNumber = event.phone.trim();
+      if (phoneNumber.isEmpty) {
+        emit(state.copyWith(
+          status: SalesStatus.error,
+          errorMessage: 'Phone number is required',
+          clearCompletedInvoice: true,
+        ));
+        return;
+      }
+
+      final existingCustomers = await _customersRepository.searchCustomers(
+        phoneNumber,
+      );
+      final phoneExists =
+          existingCustomers.any((c) => c.contactPrimary == phoneNumber);
+
+      if (phoneExists) {
+        emit(state.copyWith(
+          status: SalesStatus.error,
+          errorMessage: 'Phone already exists',
+          clearCompletedInvoice: true,
+        ));
+        return;
+      }
+
+      final newCustomer = Customer(
+        nameEnglish: event.nameEnglish.trim(),
+        nameUrdu: event.nameUrdu.trim(),
+        contactPrimary: phoneNumber,
+        address: event.address.trim(),
+        creditLimit: event.creditLimitPaisas,
+      );
+
+      final id = await _customersRepository.addCustomer(newCustomer);
+      final savedCustomer = newCustomer.copyWith(id: id);
+
+      emit(state.copyWith(
+        status: SalesStatus.success,
+        selectedCustomer: savedCustomer,
+        quickAddedCustomer: savedCustomer,
+        showCustomerList: false,
+        successMessage: null,
+        clearCompletedInvoice: true,
+      ));
+      _calculateTotals(emit);
+    } catch (e) {
+      emit(state.copyWith(
+        status: SalesStatus.error,
+        errorMessage: e.toString(),
+        clearCompletedInvoice: true,
+      ));
+    }
+  }
+
+  Future<void> _onCustomerCreditLimitUpdateRequested(
+      CustomerCreditLimitUpdateRequested event,
+      Emitter<SalesState> emit) async {
+    try {
+      await _customersRepository.updateCustomerCreditLimit(
+        event.customerId,
+        event.newLimitPaisas,
+      );
+
+      final selectedCustomer = state.selectedCustomer;
+      if (selectedCustomer != null && selectedCustomer.id == event.customerId) {
+        emit(state.copyWith(
+          selectedCustomer:
+              selectedCustomer.copyWith(creditLimit: event.newLimitPaisas),
+          status: SalesStatus.success,
+          successMessage: 'Credit limit updated',
+          clearCompletedInvoice: true,
+        ));
+        _calculateTotals(emit);
+        return;
+      }
+
+      emit(state.copyWith(
+        status: SalesStatus.success,
+        successMessage: 'Credit limit updated',
+        clearCompletedInvoice: true,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: SalesStatus.error,
+        errorMessage: e.toString(),
+        clearCompletedInvoice: true,
+      ));
+    }
+  }
+
+  Future<void> _onReceiptPrintRequested(
+      ReceiptPrintRequested event, Emitter<SalesState> emit) async {
+    if (event.invoice.status == 'CANCELLED') {
+      emit(state.copyWith(
+        status: SalesStatus.error,
+        errorMessage: 'Cannot print cancelled invoice',
+        clearCompletedInvoice: true,
+      ));
+      return;
+    }
+
+    try {
+      final receiptData = await _receiptRepository.generateReceiptData(
+        event.invoice,
+      );
+      await _receiptRepository.printReceipt(receiptData);
+      final invoiceId = event.invoice.id;
+      if (invoiceId != null) {
+        await _receiptRepository.trackPrint(invoiceId);
+      }
+
+      final recentInvoices =
+          await _invoiceRepository.getRecentInvoicesWithCustomer();
+      emit(state.copyWith(
+        status: SalesStatus.success,
+        successMessage: 'Receipt sent to printer',
+        recentInvoices: recentInvoices,
+        clearCompletedInvoice: true,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: SalesStatus.error,
+        errorMessage: e.toString(),
+        clearCompletedInvoice: true,
+      ));
+    }
+  }
+
+  Future<void> _onReceiptPdfSaveRequested(
+      ReceiptPdfSaveRequested event, Emitter<SalesState> emit) async {
+    if (event.invoice.status == 'CANCELLED') {
+      emit(state.copyWith(
+        status: SalesStatus.error,
+        errorMessage: 'Cannot print cancelled invoice',
+        clearCompletedInvoice: true,
+      ));
+      return;
+    }
+
+    try {
+      final path = await _receiptRepository.saveReceiptAsPDF(event.invoice);
+      emit(state.copyWith(
+        status: SalesStatus.success,
+        successMessage: 'Receipt saved to: $path',
+        clearCompletedInvoice: true,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: SalesStatus.error,
+        errorMessage: 'Error saving PDF: $e',
+        clearCompletedInvoice: true,
+      ));
     }
   }
 }

@@ -1,6 +1,4 @@
 // lib/screens/master_data/suppliers_screen.dart
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import '../../core/repositories/suppliers_repository.dart';
 import '../../domain/entities/money.dart';
@@ -328,9 +326,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
       if (!mounted) return;
       Navigator.pop(context);
-      _refreshList(); // Reload list to show new item
+      await _refreshList(); // Reload list to show new item
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierAdded), backgroundColor: Theme.of(context).colorScheme.primary));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
     }
   }
@@ -358,9 +357,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
       if (!mounted) return;
       Navigator.pop(context);
-      _refreshList(); // Reload list
+      await _refreshList(); // Reload list
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierUpdated), backgroundColor: Theme.of(context).colorScheme.primary));
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
     }
   }
@@ -413,9 +413,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         await _repository.deleteSupplier(id);
         
         if (!mounted) return;
-        _refreshList(); // Reload list
+        await _refreshList(); // Reload list
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierDeleted), backgroundColor: colorScheme.error));
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
       }
     }
@@ -423,8 +424,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
   Future<void> _toggleArchiveStatus(int id, bool archive) async {
     await _repository.toggleSupplierStatus(id);
-    _refreshList();
-    if (_showArchiveOverlay) _loadArchivedSuppliers();
+    await _refreshList();
+    if (_showArchiveOverlay) await _loadArchivedSuppliers();
   }
 
   void _showSupplierDialog({Supplier? supplier}) {
@@ -489,7 +490,20 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
           ElevatedButton(
             onPressed: () {
-              final balance = Money.fromRupeesString(balanceCtrl.text).paisas;
+              Money? parsedBalance;
+              try {
+                parsedBalance = Money.fromRupeesString(balanceCtrl.text);
+              } catch (_) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(loc.invalidAmount),
+                    backgroundColor: colorScheme.error,
+                  ),
+                );
+                return;
+              }
+              final balance = parsedBalance.paisas;
               if (isEdit) {
                 _updateSupplier(
                   supplier.id!, 
@@ -515,7 +529,14 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           ),
         ],
       ),
-    );
+    ).whenComplete(() {
+      nameEngCtrl.dispose();
+      nameUrduCtrl.dispose();
+      phoneCtrl.dispose();
+      addressCtrl.dispose();
+      typeCtrl.dispose();
+      balanceCtrl.dispose();
+    });
   }
 
   InputDecoration _inputDecoration(String label, IconData icon, ColorScheme colorScheme) {
@@ -1144,12 +1165,27 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (amountCtrl.text.isNotEmpty) {
-                final amount = Money.fromRupeesString(amountCtrl.text).paisas;
+                Money? amountMoney;
+                try {
+                  amountMoney = Money.fromRupeesString(amountCtrl.text);
+                } catch (_) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.invalidAmount),
+                      backgroundColor: colorScheme.error,
+                    ),
+                  );
+                  return;
+                }
+                final amount = amountMoney.paisas;
                 if (amount > 0) {
                   Navigator.pop(context);
-                  _addPayment(_selectedSupplierForLedger!.id!, amount, notesCtrl.text);
+                  final supplierId = _selectedSupplierForLedger?.id;
+                  if (supplierId == null) return;
+                  await _addPayment(supplierId, amount, notesCtrl.text);
                 }
               }
             },
@@ -1157,7 +1193,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           )
         ],
       ),
-    );
+    ).whenComplete(() {
+      amountCtrl.dispose();
+      notesCtrl.dispose();
+    });
   }
 }
 
