@@ -27,6 +27,7 @@ class SalesState extends Equatable {
   final CreditLimitUpdateStatus creditLimitUpdateStatus;
   final int? creditLimitUpdateCustomerId;
   final String? creditLimitUpdateError;
+  final Customer? quickAddedCustomer;
 
   const SalesState({
     this.status = SalesStatus.initial,
@@ -47,6 +48,7 @@ class SalesState extends Equatable {
     this.creditLimitUpdateStatus = CreditLimitUpdateStatus.idle,
     this.creditLimitUpdateCustomerId,
     this.creditLimitUpdateError,
+    this.quickAddedCustomer,
   });
 
   SalesState copyWith({
@@ -70,6 +72,8 @@ class SalesState extends Equatable {
     CreditLimitUpdateStatus? creditLimitUpdateStatus,
     int? creditLimitUpdateCustomerId,
     String? creditLimitUpdateError,
+    Customer? quickAddedCustomer,
+    bool clearQuickAddedCustomer = false,
   }) {
     return SalesState(
       status: status ?? this.status,
@@ -92,6 +96,9 @@ class SalesState extends Equatable {
       creditLimitUpdateCustomerId:
           creditLimitUpdateCustomerId ?? this.creditLimitUpdateCustomerId,
       creditLimitUpdateError: creditLimitUpdateError,
+      quickAddedCustomer: clearQuickAddedCustomer
+          ? null
+          : (quickAddedCustomer ?? this.quickAddedCustomer),
     );
   }
 
@@ -115,5 +122,6 @@ class SalesState extends Equatable {
         creditLimitUpdateStatus,
         creditLimitUpdateCustomerId,
         creditLimitUpdateError,
+        quickAddedCustomer,
       ];
 }

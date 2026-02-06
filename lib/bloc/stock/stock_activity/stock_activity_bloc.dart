@@ -12,6 +12,7 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
   final ItemsRepository _itemsRepository;
   final PurchaseRepository _purchaseRepository;
   final InvoiceRepository _invoiceRepository;
+  final Map<String, DateTime> _recentActionByKey = <String, DateTime>{};
 
   StockActivityBloc(
     this._repository,
@@ -55,7 +56,7 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
           hasReachedMax: moreActivities.length < 20,
         ));
       } catch (e) {
-        // Fail silently or emit error, keeping existing data
+        emit(StockActivityActionError(e.toString()));
       }
     }
   }
@@ -64,8 +65,12 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
     AdjustStock event,
     Emitter<StockActivityState> emit,
   ) async {
-    // We don't emit loading here to avoid replacing the list with a spinner.
-    // Instead, we perform the action and then reload.
+    final dedupeKey = 'ADJUST:${event.productId}:${event.quantityChange}:${event.reason}';
+    if (_isRapidDuplicate(dedupeKey)) {
+      emit(StockActivityActionError('Duplicate stock adjustment request blocked'));
+      return;
+    }
+
     try {
       await _itemsRepository.adjustStock(
         event.productId,
@@ -73,9 +78,10 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
         reason: event.reason,
         reference: event.reference,
       );
+      emit(StockActivityActionSuccess('Stock adjustment submitted'));
       add(LoadStockActivities());
     } catch (e) {
-      emit(StockActivityError(e.toString()));
+      emit(StockActivityActionError(e.toString()));
     }
   }
 
@@ -83,30 +89,54 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
     CancelStockActivity event,
     Emitter<StockActivityState> emit,
   ) async {
+    if (event.activity.status != 'COMPLETED') {
+      emit(StockActivityActionError('Only completed activities can be cancelled'));
+      return;
+    }
+
+    if (event.activity.type != ActivityType.purchase && event.activity.type != ActivityType.sale) {
+      emit(StockActivityActionError('Only sale and purchase activities are cancellable'));
+      return;
+    }
+
+    if (event.activity.referenceId == null) {
+      emit(StockActivityActionError('Invalid reference ID'));
+      return;
+    }
+
+    final dedupeKey = 'CANCEL:${event.activity.id}';
+    if (_isRapidDuplicate(dedupeKey)) {
+      emit(StockActivityActionError('Duplicate cancellation request blocked'));
+      return;
+    }
+
     try {
       if (event.activity.type == ActivityType.purchase) {
-        if (event.activity.referenceId != null) {
-          await _purchaseRepository.cancelPurchase(
-            event.activity.referenceId!,
-            reason: event.reason,
-          );
-        } else {
-          throw Exception('Invalid reference ID for purchase');
-        }
+        await _purchaseRepository.cancelPurchase(
+          purchaseId: event.activity.referenceId!,
+          cancelledBy: event.activity.user,
+          reason: event.reason,
+        );
       } else if (event.activity.type == ActivityType.sale) {
-        if (event.activity.referenceId != null) {
-          await _invoiceRepository.cancelInvoice(
-            invoiceId: event.activity.referenceId!,
-            cancelledBy: event.activity.user,
-            reason: event.reason,
-          );
-        } else {
-          throw Exception('Invalid reference ID for sale');
-        }
+        await _invoiceRepository.cancelInvoice(
+          invoiceId: event.activity.referenceId!,
+          cancelledBy: event.activity.user,
+          reason: event.reason,
+        );
       }
+      emit(StockActivityActionSuccess('Transaction cancelled successfully'));
       add(LoadStockActivities());
     } catch (e) {
-      emit(StockActivityError(e.toString()));
+      emit(StockActivityActionError(e.toString()));
     }
   }
+
+  bool _isRapidDuplicate(String key) {
+    final now = DateTime.now();
+    final previous = _recentActionByKey[key];
+    _recentActionByKey[key] = now;
+    if (previous == null) return false;
+    return now.difference(previous) < const Duration(seconds: 2);
+  }
+
 }

@@ -8,6 +8,7 @@ import 'stock_filter_state.dart';
 class StockFilterBloc extends Bloc<StockFilterEvent, StockFilterState> {
   final SuppliersRepository _suppliersRepository;
   final CategoriesRepository _categoriesRepository;
+  int _searchSequence = 0;
 
   StockFilterBloc(this._suppliersRepository, this._categoriesRepository) : super(const StockFilterState()) {
     on<LoadFilters>(_onLoadFilters);
@@ -20,6 +21,7 @@ class StockFilterBloc extends Bloc<StockFilterEvent, StockFilterState> {
       },
       transformer: restartable(),
     );
+    on<SetSearchQuery>(_onSetSearchQuery);
     on<SetStatusFilter>((event, emit) {
       emit(state.copyWith(statusFilter: event.status));
     });
@@ -42,6 +44,18 @@ class StockFilterBloc extends Bloc<StockFilterEvent, StockFilterState> {
     });
   }
 
+  Future<void> _onSetSearchQuery(
+    SetSearchQuery event,
+    Emitter<StockFilterState> emit,
+  ) async {
+    _searchSequence++;
+    final currentSequence = _searchSequence;
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (currentSequence != _searchSequence) return;
+    if (isClosed) return;
+    emit(state.copyWith(searchQuery: event.query));
+  }
+
   Future<void> _onLoadFilters(
     LoadFilters event,
     Emitter<StockFilterState> emit,
@@ -54,10 +68,10 @@ class StockFilterBloc extends Bloc<StockFilterEvent, StockFilterState> {
         availableSuppliers: suppliers,
         availableCategories: categories.map((c) => c.toMap()).toList(),
         isLoading: false,
+        errorMessage: null,
       ));
     } catch (e) {
-      // Fail silently for filters, just stop loading
-      emit(state.copyWith(isLoading: false));
+      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
     }
   }
 }

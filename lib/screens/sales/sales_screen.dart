@@ -1,5 +1,5 @@
 // lib/screens/sales/sales_screen.dart
-// ignore_for_file: use_build_context_synchronously, unnecessary_to_list_in_spreads, deprecated_member_use, avoid_print
+// ignore_for_file: unnecessary_to_list_in_spreads, deprecated_member_use, avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,8 +11,6 @@ import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
-import '../../core/repositories/customers_repository.dart';
-import '../../core/repositories/receipt_repository.dart';
 import '../../models/invoice_model.dart';
 import '../../models/product_model.dart';
 import '../../models/customer_model.dart';
@@ -27,8 +25,7 @@ class SalesScreen extends StatefulWidget {
 }
 
 class _SalesScreenState extends State<SalesScreen> {
-  final ReceiptRepository _receiptRepository = ReceiptRepository();
-  final CustomersRepository _customersRepository = CustomersRepository();
+  int? _lastHandledQuickCustomerId;
 
   // --- Search & Filter ---
   final TextEditingController productSearchController = TextEditingController();
@@ -68,8 +65,6 @@ class _SalesScreenState extends State<SalesScreen> {
     discountController.clear();
   }
 
-  Future<void> _loadRecentInvoices() async =>
-      context.read<SalesBloc>().add(SalesStarted());
   void _calculateTotals() =>
       context.read<SalesBloc>().add(DiscountChanged(discountController.text));
   void _updateCartItem(int index, double quantity, Money price) {
@@ -198,7 +193,6 @@ class _SalesScreenState extends State<SalesScreen> {
   void _showAddCustomerDialog() {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final customersRepo = CustomersRepository(); // Use repo directly for add
 
     final nameEngCtrl = TextEditingController();
     final nameUrduCtrl = TextEditingController();
@@ -295,6 +289,7 @@ class _SalesScreenState extends State<SalesScreen> {
                         return;
                       }
 
+                      final Money creditLimit;
                       try {
                         // Check if phone exists using exact-match query
                         final phoneExists = await customersRepo
@@ -333,10 +328,26 @@ class _SalesScreenState extends State<SalesScreen> {
                               backgroundColor: colorScheme.primary));
                         }
                       } catch (e) {
+                        creditLimit =
+                            Money.fromRupeesString(creditLimitCtrl.text);
+                      } catch (_) {
+                        if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('${loc.error}: $e'),
+                            content: Text(loc.invalidAmount),
                             backgroundColor: colorScheme.error));
+                        return;
                       }
+
+                      context.read<SalesBloc>().add(
+                            QuickCustomerAddRequested(
+                              nameEnglish: nameEngCtrl.text.trim(),
+                              nameUrdu: nameUrduCtrl.text.trim(),
+                              phone: phoneNumber,
+                              address: addressCtrl.text.trim(),
+                              creditLimitPaisas: creditLimit.paisas,
+                            ),
+                          );
+                      Navigator.of(context).pop();
                     },
                     child: Text(loc.saveSelect),
                   ),
@@ -694,7 +705,16 @@ class _SalesScreenState extends State<SalesScreen> {
                     const SizedBox(width: DesktopDimensions.spacingMedium),
                     ElevatedButton(
                       onPressed: () async {
-                        Money newLimit = Money.fromRupeesString(limitCtrl.text);
+                        Money newLimit;
+                        try {
+                          newLimit = Money.fromRupeesString(limitCtrl.text);
+                        } catch (_) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(loc.invalidLimit)),
+                          );
+                          return;
+                        }
                         if (selectedCustomerId == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(loc.invalidLimit)),
@@ -728,6 +748,21 @@ class _SalesScreenState extends State<SalesScreen> {
 
                           if (Navigator.of(dialogContext).canPop()) {
                             Navigator.pop(dialogContext);
+                        try {
+                          salesBloc.add(CustomerCreditLimitUpdateRequested(
+                            customerId: selectedCustomerId!,
+                            newLimitPaisas: newLimit.paisas,
+                          ));
+
+                          if (mounted) Navigator.pop(dialogContext);
+                          onLimitUpdated();
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('${loc.error}: $e'),
+                                  backgroundColor: colorScheme.error),
+                            );
                           }
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -758,7 +793,7 @@ class _SalesScreenState extends State<SalesScreen> {
           ),
         );
       },
-    );
+    ).whenComplete(limitCtrl.dispose);
   }
 
   void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
@@ -793,6 +828,17 @@ class _SalesScreenState extends State<SalesScreen> {
             final Money cash = parsedCash ?? Money.zero;
             final Money bank = parsedBank ?? Money.zero;
             final Money credit = parsedCredit ?? Money.zero;
+            Money _safeMoney(String text) {
+              try {
+                return Money.fromRupeesString(text);
+              } catch (_) {
+                return Money.zero;
+              }
+            }
+
+            Money cash = _safeMoney(cashCtrl.text);
+            Money bank = _safeMoney(bankCtrl.text);
+            Money credit = _safeMoney(creditCtrl.text);
             Money totalPayment = cash + bank + credit;
             Money change = const Money(0);
             bool isValid = false;
@@ -834,7 +880,12 @@ class _SalesScreenState extends State<SalesScreen> {
                 return;
               }
 
-              final Money creditLimit = Money(selectedCustomerMap!.creditLimit);
+              final selectedCustomer = selectedCustomerMap;
+              if (selectedCustomer == null) {
+                processSaleAction();
+                return;
+              }
+              final Money creditLimit = Money(selectedCustomer.creditLimit);
               final Money potentialBalance = oldBalance + credit;
 
               if (potentialBalance > creditLimit) {
@@ -952,10 +1003,8 @@ class _SalesScreenState extends State<SalesScreen> {
                             _input(loc.cashInput, cashCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  Money cash =
-                                      Money.fromRupeesString(cashCtrl.text);
-                                  Money bank =
-                                      Money.fromRupeesString(bankCtrl.text);
+                                  Money cash = _safeMoney(cashCtrl.text);
+                                  Money bank = _safeMoney(bankCtrl.text);
                                   Money remaining = billTotal - cash - bank;
                                   creditCtrl.text = remaining > const Money(0)
                                       ? remaining.toRupeesString()
@@ -966,10 +1015,8 @@ class _SalesScreenState extends State<SalesScreen> {
                             _input(loc.bankInput, bankCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  Money cash =
-                                      Money.fromRupeesString(cashCtrl.text);
-                                  Money bank =
-                                      Money.fromRupeesString(bankCtrl.text);
+                                  Money cash = _safeMoney(cashCtrl.text);
+                                  Money bank = _safeMoney(bankCtrl.text);
                                   Money remaining = billTotal - cash - bank;
                                   creditCtrl.text = remaining > const Money(0)
                                       ? remaining.toRupeesString()
@@ -1034,7 +1081,11 @@ class _SalesScreenState extends State<SalesScreen> {
               ),
             );
           });
-        });
+        }).whenComplete(() {
+      cashCtrl.dispose();
+      bankCtrl.dispose();
+      creditCtrl.dispose();
+    });
   }
 
   Widget _infoRow(String label, String value,
@@ -1223,6 +1274,9 @@ class _SalesScreenState extends State<SalesScreen> {
                         }
                       }
                     },
+                    onPressed: () => context
+                        .read<SalesBloc>()
+                        .add(ReceiptPdfSaveRequested(invoice)),
                     icon: const Icon(Icons.picture_as_pdf),
                     label: Text(loc.saveAsPdf),
                   ),
@@ -1292,6 +1346,7 @@ class _SalesScreenState extends State<SalesScreen> {
         );
       }
     }
+    context.read<SalesBloc>().add(ReceiptPrintRequested(invoice));
   }
 
   void _handleEditInvoice(Invoice invoice) {
@@ -1379,13 +1434,16 @@ class _SalesScreenState extends State<SalesScreen> {
       ),
     );
 
+    final reason = reasonCtrl.text.trim();
+    reasonCtrl.dispose();
+
     if (confirm != true) {
       return;
     }
 
     context.read<SalesBloc>().add(InvoiceCancelled(
           invoiceId: id,
-          reason: reasonCtrl.text.trim(),
+          reason: reason,
         ));
   }
 
@@ -1433,22 +1491,49 @@ class _SalesScreenState extends State<SalesScreen> {
             onWillPop: _onWillPop,
             child: BlocConsumer<SalesBloc, SalesState>(
               listener: (context, state) {
+                final quickAdded = state.quickAddedCustomer;
+                if (quickAdded != null && quickAdded.id != _lastHandledQuickCustomerId) {
+                  _lastHandledQuickCustomerId = quickAdded.id;
+                  customerSearchController.text =
+                      "${quickAdded.nameEnglish} (${quickAdded.contactPrimary ?? ''})";
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("${loc.customerAdded}: '${quickAdded.nameEnglish}'"),
+                      backgroundColor: colorScheme.primary,
+                    ),
+                  );
+                }
+
                 if (state.status == SalesStatus.success) {
                   if (state.completedInvoice != null) {
                     _showPostSaleDialog(state.completedInvoice!);
                   } else if (state.successMessage != null) {
+                    final success = state.successMessage!;
+                    final message = success == 'Receipt sent to printer'
+                        ? loc.receiptSentToPrinter
+                        : success == 'Credit limit updated'
+                            ? loc.creditLimitUpdated
+                            : success;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(state.successMessage!),
+                        content: Text(message),
                         backgroundColor: colorScheme.primary,
                       ),
                     );
                   }
                 } else if (state.status == SalesStatus.error) {
+                  final err = state.errorMessage == 'Cannot print cancelled invoice'
+                      ? loc.cannotPrintCancelled
+                      : state.errorMessage == 'Phone already exists'
+                          ? loc.phoneExistsError
+                          : state.errorMessage == 'Phone number is required'
+                              ? loc.phoneRequired
+                              : state.errorMessage == 'Name is required'
+                                  ? loc.nameRequired
+                                  : state.errorMessage ?? 'An unknown error occurred';
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                          state.errorMessage ?? 'An unknown error occurred'),
+                      content: Text(err),
                       backgroundColor: colorScheme.error,
                     ),
                   );
@@ -2400,7 +2485,13 @@ class _CartItemRowState extends State<_CartItemRow> {
       }
     }
     if (widget.item.unitPrice != oldWidget.item.unitPrice) {
-      if (Money.fromRupeesString(_priceCtrl.text) != widget.item.unitPrice) {
+      Money currentPrice;
+      try {
+        currentPrice = Money.fromRupeesString(_priceCtrl.text);
+      } catch (_) {
+        currentPrice = Money.zero;
+      }
+      if (currentPrice != widget.item.unitPrice) {
         _priceCtrl.text = widget.item.unitPrice.toRupeesString();
       }
     }
@@ -2418,7 +2509,12 @@ class _CartItemRowState extends State<_CartItemRow> {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       final double qty = double.tryParse(_qtyCtrl.text) ?? 1.0;
-      final Money price = Money.fromRupeesString(_priceCtrl.text);
+      Money price;
+      try {
+        price = Money.fromRupeesString(_priceCtrl.text);
+      } catch (_) {
+        price = Money.zero;
+      }
       widget.onUpdate(widget.index, qty, price);
     });
   }

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../../../../models/product_model.dart';
 import '../../../../../models/customer_model.dart';
+import '../../../../../models/invoice_model.dart';
 import '../../../../../domain/entities/money.dart';
 
 abstract class SalesEvent extends Equatable {
@@ -98,10 +99,30 @@ class ProductsUpdated extends SalesEvent {
   List<Object?> get props => [products];
 }
 
+class QuickCustomerAddRequested extends SalesEvent {
+  final String nameEnglish;
+  final String nameUrdu;
+  final String phone;
+  final String address;
+  final int creditLimitPaisas;
+
+  const QuickCustomerAddRequested({
+    required this.nameEnglish,
+    required this.nameUrdu,
+    required this.phone,
+    required this.address,
+    required this.creditLimitPaisas,
+  });
+
+  @override
+  List<Object?> get props =>
+      [nameEnglish, nameUrdu, phone, address, creditLimitPaisas];
+}
 
 class CustomerCreditLimitUpdateRequested extends SalesEvent {
   final int customerId;
   final int newLimitPaisas;
+
   const CustomerCreditLimitUpdateRequested({
     required this.customerId,
     required this.newLimitPaisas,
@@ -109,4 +130,22 @@ class CustomerCreditLimitUpdateRequested extends SalesEvent {
 
   @override
   List<Object?> get props => [customerId, newLimitPaisas];
+}
+
+class ReceiptPrintRequested extends SalesEvent {
+  final Invoice invoice;
+
+  const ReceiptPrintRequested(this.invoice);
+
+  @override
+  List<Object?> get props => [invoice];
+}
+
+class ReceiptPdfSaveRequested extends SalesEvent {
+  final Invoice invoice;
+
+  const ReceiptPdfSaveRequested(this.invoice);
+
+  @override
+  List<Object?> get props => [invoice];
 }
