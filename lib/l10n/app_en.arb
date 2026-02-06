@@ -43,6 +43,7 @@
   "initialStock": "Initial Stock",
   "stock": "Stock",
   "price": "Price",
+  "cost": "Cost",
   "save": "Save",
   "cancel": "Cancel",
   "editItem": "Edit Item",

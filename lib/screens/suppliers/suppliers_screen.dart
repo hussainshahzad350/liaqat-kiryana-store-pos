@@ -328,7 +328,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
       if (!mounted) return;
       Navigator.pop(context);
-      _refreshList(); // Reload list to show new item
+      await _refreshList(); // Reload list to show new item
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierAdded), backgroundColor: Theme.of(context).colorScheme.primary));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
@@ -358,7 +359,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
       if (!mounted) return;
       Navigator.pop(context);
-      _refreshList(); // Reload list
+      await _refreshList(); // Reload list
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierUpdated), backgroundColor: Theme.of(context).colorScheme.primary));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
@@ -413,7 +415,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         await _repository.deleteSupplier(id);
         
         if (!mounted) return;
-        _refreshList(); // Reload list
+        await _refreshList(); // Reload list
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierDeleted), backgroundColor: colorScheme.error));
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));

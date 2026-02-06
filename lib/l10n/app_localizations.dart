@@ -356,6 +356,12 @@ abstract class AppLocalizations {
   /// **'Price'**
   String get price;
 
+  /// No description provided for @cost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get cost;
+
   /// No description provided for @save.
   ///
   /// In en, this message translates to:

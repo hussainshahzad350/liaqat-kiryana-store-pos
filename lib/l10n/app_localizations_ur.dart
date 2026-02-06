@@ -138,6 +138,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get price => 'قیمت';
 
   @override
+  String get cost => 'لاگت';
+
+  @override
   String get save => 'محفوظ کریں';
 
   @override

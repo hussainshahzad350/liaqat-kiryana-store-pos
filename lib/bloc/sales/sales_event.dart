@@ -97,3 +97,16 @@ class ProductsUpdated extends SalesEvent {
   @override
   List<Object?> get props => [products];
 }
+
+
+class CustomerCreditLimitUpdateRequested extends SalesEvent {
+  final int customerId;
+  final int newLimitPaisas;
+  const CustomerCreditLimitUpdateRequested({
+    required this.customerId,
+    required this.newLimitPaisas,
+  });
+
+  @override
+  List<Object?> get props => [customerId, newLimitPaisas];
+}

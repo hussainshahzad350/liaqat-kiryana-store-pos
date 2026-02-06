@@ -1,3 +1,4 @@
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/repositories/suppliers_repository.dart';
 import '../../../core/repositories/categories_repository.dart';
@@ -10,12 +11,15 @@ class StockFilterBloc extends Bloc<StockFilterEvent, StockFilterState> {
 
   StockFilterBloc(this._suppliersRepository, this._categoriesRepository) : super(const StockFilterState()) {
     on<LoadFilters>(_onLoadFilters);
-    on<SetSearchQuery>((event, emit) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      if (!isClosed) {
-        emit(state.copyWith(searchQuery: event.query));
-      }
-    });
+    on<SetSearchQuery>(
+      (event, emit) async {
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (!isClosed) {
+          emit(state.copyWith(searchQuery: event.query));
+        }
+      },
+      transformer: restartable(),
+    );
     on<SetStatusFilter>((event, emit) {
       emit(state.copyWith(statusFilter: event.status));
     });
