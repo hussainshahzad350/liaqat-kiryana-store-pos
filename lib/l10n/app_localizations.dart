@@ -305,7 +305,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchItem.
   ///
   /// In en, this message translates to:
-  /// **'Search Item'**
+  /// **'Search Items'**
   String get searchItem;
 
   /// No description provided for @noItemsFound.
@@ -419,7 +419,7 @@ abstract class AppLocalizations {
   /// No description provided for @itemDeleted.
   ///
   /// In en, this message translates to:
-  /// **'Item deleted'**
+  /// **'Item deleted successfully'**
   String get itemDeleted;
 
   /// No description provided for @error.
@@ -515,7 +515,7 @@ abstract class AppLocalizations {
   /// No description provided for @allSalesVisibleHere.
   ///
   /// In en, this message translates to:
-  /// **'All sales will be visible here'**
+  /// **'All sales are shown here'**
   String get allSalesVisibleHere;
 
   /// No description provided for @makeNewSale.
@@ -617,7 +617,7 @@ abstract class AppLocalizations {
   /// No description provided for @thisMonthVsLast.
   ///
   /// In en, this message translates to:
-  /// **'This Month vs Last Month'**
+  /// **'This Month vs. Last Month'**
   String get thisMonthVsLast;
 
   /// No description provided for @totalSales.
@@ -701,7 +701,7 @@ abstract class AppLocalizations {
   /// No description provided for @avgProfitPerBill.
   ///
   /// In en, this message translates to:
-  /// **'Avg Profit/Bill'**
+  /// **'Average Profit per Bill'**
   String get avgProfitPerBill;
 
   /// No description provided for @expensesBreakdown.
@@ -761,7 +761,7 @@ abstract class AppLocalizations {
   /// No description provided for @avgBalance.
   ///
   /// In en, this message translates to:
-  /// **'Avg Balance'**
+  /// **'Average Balance'**
   String get avgBalance;
 
   /// No description provided for @balanceAging.
@@ -797,7 +797,7 @@ abstract class AppLocalizations {
   /// No description provided for @avgPrice.
   ///
   /// In en, this message translates to:
-  /// **'Avg Price'**
+  /// **'Average Price'**
   String get avgPrice;
 
   /// No description provided for @categoryStock.
@@ -809,7 +809,7 @@ abstract class AppLocalizations {
   /// No description provided for @lowStockItems.
   ///
   /// In en, this message translates to:
-  /// **'Low Stock Items'**
+  /// **'Low-stock Items'**
   String get lowStockItems;
 
   /// No description provided for @fullReport.
@@ -857,7 +857,7 @@ abstract class AppLocalizations {
   /// No description provided for @techInfo.
   ///
   /// In en, this message translates to:
-  /// **'Technical Info'**
+  /// **'Technical Information'**
   String get techInfo;
 
   /// No description provided for @framework.
@@ -893,8 +893,8 @@ abstract class AppLocalizations {
   /// No description provided for @lastUpdated.
   ///
   /// In en, this message translates to:
-  /// **'Last Updated'**
-  String get lastUpdated;
+  /// **'Last Updated: {date}'**
+  String lastUpdated(Object date);
 
   /// No description provided for @features.
   ///
@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockAfter5Min.
   ///
   /// In en, this message translates to:
-  /// **'Lock after 5 min inactivity'**
+  /// **'Lock after 5 minutes of inactivity'**
   String get lockAfter5Min;
 
   /// No description provided for @autoBackup.
@@ -1283,7 +1283,7 @@ abstract class AppLocalizations {
   /// No description provided for @developedBy.
   ///
   /// In en, this message translates to:
-  /// **'Developed By'**
+  /// **'Developed by'**
   String get developedBy;
 
   /// No description provided for @systemInfo.
@@ -1307,7 +1307,7 @@ abstract class AppLocalizations {
   /// No description provided for @appUptime.
   ///
   /// In en, this message translates to:
-  /// **'App Uptime'**
+  /// **'App uptime'**
   String get appUptime;
 
   /// No description provided for @lastLogin.
@@ -1385,7 +1385,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchItemHint.
   ///
   /// In en, this message translates to:
-  /// **'Search Item / Scan Barcode'**
+  /// **'Search items or scan barcode'**
   String get searchItemHint;
 
   /// No description provided for @searchCustomerHint.
@@ -1397,13 +1397,13 @@ abstract class AppLocalizations {
   /// No description provided for @walkInCustomer.
   ///
   /// In en, this message translates to:
-  /// **'Walk-in'**
+  /// **'Walk-in Customer'**
   String get walkInCustomer;
 
   /// No description provided for @cartEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Cart Empty'**
+  /// **'Your cart is empty'**
   String get cartEmpty;
 
   /// No description provided for @subtotal.
@@ -1415,7 +1415,7 @@ abstract class AppLocalizations {
   /// No description provided for @prevBalance.
   ///
   /// In en, this message translates to:
-  /// **'Prev Balance'**
+  /// **'Previous Balance'**
   String get prevBalance;
 
   /// No description provided for @grandTotal.
@@ -1427,7 +1427,7 @@ abstract class AppLocalizations {
   /// No description provided for @checkoutButton.
   ///
   /// In en, this message translates to:
-  /// **'CHECKOUT'**
+  /// **'Checkout'**
   String get checkoutButton;
 
   /// No description provided for @billTotal.
@@ -1463,7 +1463,7 @@ abstract class AppLocalizations {
   /// No description provided for @confirmSale.
   ///
   /// In en, this message translates to:
-  /// **'CONFIRM SALE'**
+  /// **'Confirm Sale'**
   String get confirmSale;
 
   /// No description provided for @clearCartTitle.
@@ -2771,8 +2771,8 @@ abstract class AppLocalizations {
   /// No description provided for @balanceShort.
   ///
   /// In en, this message translates to:
-  /// **'Bal'**
-  String get balanceShort;
+  /// **'Bal: {amount}'**
+  String balanceShort(Object amount);
 
   /// No description provided for @searchPlaceholder.
   ///
@@ -3223,6 +3223,486 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Yes'**
   String get yes;
+
+  /// No description provided for @ledgerAmountIn.
+  ///
+  /// In en, this message translates to:
+  /// **'+ {amount}'**
+  String ledgerAmountIn(Object amount);
+
+  /// No description provided for @ledgerAmountOut.
+  ///
+  /// In en, this message translates to:
+  /// **'- {amount}'**
+  String ledgerAmountOut(Object amount);
+
+  /// No description provided for @addDepartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Department'**
+  String get addDepartment;
+
+  /// No description provided for @editDepartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Department'**
+  String get editDepartment;
+
+  /// No description provided for @addCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Category'**
+  String get addCategory;
+
+  /// No description provided for @editCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Category'**
+  String get editCategory;
+
+  /// No description provided for @addSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Subcategory'**
+  String get addSubcategory;
+
+  /// No description provided for @editSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Subcategory'**
+  String get editSubcategory;
+
+  /// No description provided for @confirmDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Delete'**
+  String get confirmDeleteTitle;
+
+  /// No description provided for @confirmDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this item?'**
+  String get confirmDeleteMessage;
+
+  /// No description provided for @departmentExistsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Department with this name already exists.'**
+  String get departmentExistsError;
+
+  /// No description provided for @categoryExistsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Category with this name already exists in the selected department.'**
+  String get categoryExistsError;
+
+  /// No description provided for @subcategoryExistsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategory with this name already exists in the selected category.'**
+  String get subcategoryExistsError;
+
+  /// No description provided for @editDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Details'**
+  String get editDetails;
+
+  /// No description provided for @nameEnglishLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (English)'**
+  String get nameEnglishLabel;
+
+  /// No description provided for @nameUrduLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name (Urdu)'**
+  String get nameUrduLabel;
+
+  /// No description provided for @departmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Department'**
+  String get departmentLabel;
+
+  /// No description provided for @searchDepartmentsCategoriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search departments, categories...'**
+  String get searchDepartmentsCategoriesHint;
+
+  /// No description provided for @departmentsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'DEPARTMENTS'**
+  String get departmentsHeader;
+
+  /// No description provided for @categoriesSubcategoriesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'CATEGORIES & SUBCATEGORIES'**
+  String get categoriesSubcategoriesHeader;
+
+  /// No description provided for @statusVisibilityHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'STATUS & VISIBILITY'**
+  String get statusVisibilityHeader;
+
+  /// No description provided for @statisticsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'STATISTICS'**
+  String get statisticsHeader;
+
+  /// No description provided for @addCategoryToTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Category to {departmentName}'**
+  String addCategoryToTooltip(Object departmentName);
+
+  /// No description provided for @addSubcategoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Subcategory'**
+  String get addSubcategoryTooltip;
+
+  /// No description provided for @visibleInPOS.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible in POS'**
+  String get visibleInPOS;
+
+  /// No description provided for @activeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable or disable this entity globally'**
+  String get activeSubtitle;
+
+  /// No description provided for @visibleInPOSSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show this entity in the Point of Sale screen'**
+  String get visibleInPOSSubtitle;
+
+  /// No description provided for @selectDepartmentInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a Department'**
+  String get selectDepartmentInstruction;
+
+  /// No description provided for @noSubcategories.
+  ///
+  /// In en, this message translates to:
+  /// **'No subcategories.'**
+  String get noSubcategories;
+
+  /// No description provided for @selectItemToManageInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an item to manage'**
+  String get selectItemToManageInstruction;
+
+  /// No description provided for @typeDepartment.
+  ///
+  /// In en, this message translates to:
+  /// **'Department'**
+  String get typeDepartment;
+
+  /// No description provided for @typeCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get typeCategory;
+
+  /// No description provided for @typeSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategory'**
+  String get typeSubcategory;
+
+  /// No description provided for @subcategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategories'**
+  String get subcategories;
+
+  /// No description provided for @printOrPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Print / PDF'**
+  String get printOrPdf;
+
+  /// No description provided for @exportToExcelCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to Excel (CSV)'**
+  String get exportToExcelCsv;
+
+  /// No description provided for @savedToPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to: {path}'**
+  String savedToPath(Object path);
+
+  /// No description provided for @viewLedgerTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'View ledger'**
+  String get viewLedgerTooltip;
+
+  /// No description provided for @editAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editAction;
+
+  /// No description provided for @noTransactionsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions found'**
+  String get noTransactionsFound;
+
+  /// No description provided for @currentBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current balance'**
+  String get currentBalanceLabel;
+
+  /// No description provided for @creditLimitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit: {amount}'**
+  String creditLimitLabel(Object amount);
+
+  /// No description provided for @receivePaymentButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive Payment'**
+  String get receivePaymentButton;
+
+  /// No description provided for @exportTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportTooltip;
+
+  /// No description provided for @closeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeTooltip;
+
+  /// No description provided for @dateRangeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Range'**
+  String get dateRangeButton;
+
+  /// No description provided for @filterReceipts.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipts'**
+  String get filterReceipts;
+
+  /// No description provided for @searchDocOrDescPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search document # or description...'**
+  String get searchDocOrDescPlaceholder;
+
+  /// No description provided for @docNoHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Document #'**
+  String get docNoHeader;
+
+  /// No description provided for @typeHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get typeHeader;
+
+  /// No description provided for @debitHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit'**
+  String get debitHeader;
+
+  /// No description provided for @creditHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get creditHeader;
+
+  /// No description provided for @balanceHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get balanceHeader;
+
+  /// No description provided for @receivePaymentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive Payment'**
+  String get receivePaymentTitle;
+
+  /// No description provided for @notesOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get notesOptionalLabel;
+
+  /// No description provided for @failedToLoadDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load details'**
+  String get failedToLoadDetails;
+
+  /// No description provided for @confirmCancellationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Cancellation'**
+  String get confirmCancellationTitle;
+
+  /// No description provided for @confirmCancelInvoiceMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this invoice? This action cannot be undone.'**
+  String get confirmCancelInvoiceMessage;
+
+  /// No description provided for @yesCancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Cancel'**
+  String get yesCancelButton;
+
+  /// No description provided for @invoiceCancelledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice cancelled successfully'**
+  String get invoiceCancelledSuccess;
+
+  /// No description provided for @errorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorMessage(Object error);
+
+  /// No description provided for @failedToLoadDashboardData.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load dashboard data: {error}'**
+  String failedToLoadDashboardData(Object error);
+
+  /// No description provided for @saleType.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale'**
+  String get saleType;
+
+  /// No description provided for @receiptType.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get receiptType;
+
+  /// No description provided for @cancelInvoiceTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Invoice'**
+  String get cancelInvoiceTooltip;
+
+  /// No description provided for @rateHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate'**
+  String get rateHeader;
+
+  /// No description provided for @totalHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get totalHeader;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @keyboardShortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard Shortcuts'**
+  String get keyboardShortcuts;
+
+  /// No description provided for @refreshDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh dashboard'**
+  String get refreshDashboard;
+
+  /// No description provided for @generateBillWithShortcut.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Bill (Ctrl+N)'**
+  String get generateBillWithShortcut;
+
+  /// No description provided for @searchFeatureComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Search will be available soon!'**
+  String get searchFeatureComingSoon;
+
+  /// No description provided for @unknownItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Item'**
+  String get unknownItem;
+
+  /// No description provided for @lastBackupAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Backup: {time}'**
+  String lastBackupAt(Object time);
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'v{version}'**
+  String appVersion(Object version);
+
+  /// No description provided for @trendTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend: {trend}'**
+  String trendTooltip(Object trend);
+
+  /// No description provided for @descriptionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Description is required'**
+  String get descriptionRequired;
+
+  /// No description provided for @activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get activity;
+
+  /// No description provided for @shortcutCtrlN.
+  ///
+  /// In en, this message translates to:
+  /// **'Ctrl + N'**
+  String get shortcutCtrlN;
+
+  /// No description provided for @shortcutF5.
+  ///
+  /// In en, this message translates to:
+  /// **'F5'**
+  String get shortcutF5;
 }
 
 class _AppLocalizationsDelegate

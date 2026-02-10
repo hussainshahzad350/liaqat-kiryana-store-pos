@@ -30,13 +30,13 @@ class AppLocalizationsUr extends AppLocalizations {
   String get home => 'ہوم';
 
   @override
-  String get salesPos => 'فروخت / POS';
+  String get salesPos => 'فروخت / پوائنٹ آف سیل';
 
   @override
-  String get stockManagement => 'اسٹاک مینیجمنٹ';
+  String get stockManagement => 'اسٹاک کا انتظام';
 
   @override
-  String get masterData => 'ماسٹر ڈیٹا';
+  String get masterData => 'بنیادی ڈیٹا';
 
   @override
   String get reports => 'رپورٹس';
@@ -45,7 +45,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get cashLedger => 'کیش لیجر';
 
   @override
-  String get settings => 'سیٹنگز';
+  String get settings => 'ترتیبات';
 
   @override
   String get aboutApp => 'ایپ کے بارے میں';
@@ -72,7 +72,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get allStockAvailable => 'سب آئٹمز اسٹاک میں ہیں';
 
   @override
-  String get recentSales => 'حالیہ سیلز';
+  String get recentSales => 'حالیہ فروخت';
 
   @override
   String get noSalesYet => 'ابھی تک کوئی فروخت نہیں ہوئی';
@@ -96,7 +96,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get items => 'آئٹمز';
 
   @override
-  String get customers => 'کسٹمرز';
+  String get customers => 'گاہک';
 
   @override
   String get suppliers => 'سپلائرز';
@@ -108,10 +108,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get units => 'یونٹس';
 
   @override
-  String get itemsManagement => 'آئٹمز مینیجمنٹ';
+  String get itemsManagement => 'اشیا کا انتظام';
 
   @override
-  String get searchItem => 'آئٹم تلاش کریں';
+  String get searchItem => 'اشیا تلاش کریں';
 
   @override
   String get noItemsFound => 'کوئی آئٹم نہیں ملا';
@@ -126,7 +126,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get urduName => 'اردو نام';
 
   @override
-  String get salePrice => 'قیمت فروخت';
+  String get salePrice => 'فروخت کی قیمت';
 
   @override
   String get initialStock => 'ابتدائی اسٹاک';
@@ -144,16 +144,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get save => 'محفوظ کریں';
 
   @override
-  String get cancel => 'منسوخ کریں';
+  String get cancel => 'منسوخ';
 
   @override
   String get editItem => 'آئٹم میں ترمیم کریں';
 
   @override
-  String get stockUpdate => 'اسٹاک اپڈیٹ';
+  String get stockUpdate => 'اسٹاک اپ ڈیٹ';
 
   @override
-  String get update => 'اپڈیٹ کریں';
+  String get update => 'اپ ڈیٹ کریں';
 
   @override
   String get confirmation => 'تصدیق';
@@ -168,7 +168,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get no => 'نہیں';
 
   @override
-  String get itemDeleted => 'آئٹم حذف ہو گیا';
+  String get itemDeleted => 'آئٹم کامیابی سے حذف ہو گیا';
 
   @override
   String get error => 'خرابی';
@@ -180,7 +180,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get sales => 'فروخت';
 
   @override
-  String get stockView => 'اسٹاک ویو';
+  String get stockView => 'اسٹاک کا منظر';
 
   @override
   String get newPurchase => 'نئی خریداری';
@@ -216,7 +216,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get salesRecord => 'فروخت کا ریکارڈ';
 
   @override
-  String get allSalesVisibleHere => 'یہاں آپ کی تمام فروخت نظر آئے گی';
+  String get allSalesVisibleHere => 'تمام فروخت یہاں دکھائی جائیں گی';
 
   @override
   String get makeNewSale => 'نئی فروخت کریں';
@@ -228,7 +228,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get totalItems => 'کل آئٹمز';
 
   @override
-  String get stockValue => 'اسٹاک ویلیو';
+  String get stockValue => 'اسٹاک کی مالیت';
 
   @override
   String get stockDetails => 'اسٹاک کی تفصیل';
@@ -237,7 +237,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get unit => 'یونٹ';
 
   @override
-  String get action => 'عمل';
+  String get action => 'کارروائی';
 
   @override
   String get adjustStock => 'اسٹاک ایڈجسٹ کریں';
@@ -249,16 +249,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get profit => 'منافع';
 
   @override
-  String get customerBalance => 'کسٹمر بیلنس';
+  String get customerBalance => 'گاہک کا بیلنس';
 
   @override
   String get dateSelection => 'تاریخ کا انتخاب';
 
   @override
-  String get startDate => 'شروع تاریخ';
+  String get startDate => 'شروع کی تاریخ';
 
   @override
-  String get endDate => 'اختتام تاریخ';
+  String get endDate => 'اختتامی تاریخ';
 
   @override
   String get to => 'سے';
@@ -267,13 +267,13 @@ class AppLocalizationsUr extends AppLocalizations {
   String get comparison => 'مقابلہ';
 
   @override
-  String get thisMonthVsLast => 'اس مہینہ بمقابلہ پچھلے مہینہ';
+  String get thisMonthVsLast => 'اس ماہ بمقابلہ پچھلا ماہ';
 
   @override
   String get totalSales => 'کل فروخت';
 
   @override
-  String get dailyAverage => 'اوسط روزانہ';
+  String get dailyAverage => 'روزانہ اوسط';
 
   @override
   String get totalBills => 'کل بل';
@@ -309,13 +309,13 @@ class AppLocalizationsUr extends AppLocalizations {
   String get profitPercentage => 'منافع فیصد';
 
   @override
-  String get avgProfitPerBill => 'اوسط منافع فی بل';
+  String get avgProfitPerBill => 'فی بل اوسط منافع';
 
   @override
   String get expensesBreakdown => 'اخراجات کی تفصیل';
 
   @override
-  String get purchaseCost => 'خریداری لاگت';
+  String get purchaseCost => 'خریداری کی لاگت';
 
   @override
   String get otherExpenses => 'دیگر اخراجات';
@@ -333,7 +333,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get allPurchasesVisibleHere => 'یہاں آپ کی تمام خریداری نظر آئے گی';
 
   @override
-  String get customerBalanceSummary => 'کسٹمر بیلنس کا خلاصہ';
+  String get customerBalanceSummary => 'گاہک کے بیلنس کا خلاصہ';
 
   @override
   String get totalBalance => 'کل بیلنس';
@@ -342,7 +342,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get avgBalance => 'اوسط بیلنس';
 
   @override
-  String get balanceAging => 'بیلنس ایجنگ';
+  String get balanceAging => 'بیلنس کی مدت';
 
   @override
   String get days => 'دن';
@@ -351,25 +351,25 @@ class AppLocalizationsUr extends AppLocalizations {
   String get old => 'پرانا';
 
   @override
-  String get topBalanceCustomers => 'سب سے زیادہ بیلنس والے کسٹمرز';
+  String get topBalanceCustomers => 'سب سے زیادہ بیلنس والے گاہک';
 
   @override
-  String get stockValueSummary => 'اسٹاک ویلیو کا خلاصہ';
+  String get stockValueSummary => 'اسٹاک کی مالیت کا خلاصہ';
 
   @override
   String get avgPrice => 'اوسط قیمت';
 
   @override
-  String get categoryStock => 'کیٹیگری کے لحاظ سے اسٹاک';
+  String get categoryStock => 'زمرہ وار اسٹاک';
 
   @override
-  String get lowStockItems => 'کم اسٹاک آئٹمز';
+  String get lowStockItems => 'کم اسٹاک والی اشیا';
 
   @override
   String get fullReport => 'مکمل رپورٹ';
 
   @override
-  String get shopProfile => 'شاپ پروفائل';
+  String get shopProfile => 'دکان کا پروفائل';
 
   @override
   String get backup => 'بیک اپ';
@@ -381,7 +381,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get preferences => 'ترجیحات';
 
   @override
-  String get about => 'اینڈرول';
+  String get about => 'تعارف';
 
   @override
   String get appDescription => 'خوردہ کاروبار کے لیے پوائنٹ آف سیل کا مکمل حل۔';
@@ -399,13 +399,15 @@ class AppLocalizationsUr extends AppLocalizations {
   String get database => 'ڈیٹا بیس';
 
   @override
-  String get stateManagement => 'اسٹیٹ مینیجمنٹ';
+  String get stateManagement => 'اسٹیٹ مینجمنٹ';
 
   @override
   String get uiFramework => 'UI فریم ورک';
 
   @override
-  String get lastUpdated => 'آخری اپ ڈیٹ';
+  String lastUpdated(Object date) {
+    return 'آخری اپ ڈیٹ: $date';
+  }
 
   @override
   String get features => 'اہم خصوصیات';
@@ -417,10 +419,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get featureStockManagement => 'اسمارٹ اسٹاک مینیجمنٹ';
 
   @override
-  String get featureCustomerManagement => 'کسٹمر لیجر اور ٹریکنگ';
+  String get featureCustomerManagement => 'گاہک لیجر اور ٹریکنگ';
 
   @override
-  String get featureReporting => 'ایڈوانسڈ رپورٹنگ';
+  String get featureReporting => 'جامع رپورٹنگ';
 
   @override
   String get featureBackup => 'خودکار بیک اپ';
@@ -450,10 +452,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get address => 'پتہ';
 
   @override
-  String get primaryPhone => 'پرائمری فون';
+  String get primaryPhone => 'بنیادی فون';
 
   @override
-  String get secondaryPhone => 'سیکنڈری فون';
+  String get secondaryPhone => 'متبادل فون';
 
   @override
   String get saveChanges => 'تبدیلیاں محفوظ کریں';
@@ -480,7 +482,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get importFromUsb => 'USB سے امپورٹ کریں';
 
   @override
-  String get recentBackups => 'حالیہ بیک اپس';
+  String get recentBackups => 'حالیہ بیک اپ';
 
   @override
   String get openFolder => 'فولڈر کھولیں';
@@ -507,10 +509,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get showDateTime => 'تاریخ اور وقت دکھائیں';
 
   @override
-  String get showCustomerDetails => 'کسٹمر کی تفصیل دکھائیں';
+  String get showCustomerDetails => 'گاہک کی تفصیل دکھائیں';
 
   @override
-  String get showPaymentDetails => 'پیمنٹ کی تفصیل دکھائیں';
+  String get showPaymentDetails => 'ادائیگی کی تفصیل دکھائیں';
 
   @override
   String get fontSize => 'فونٹ سائز';
@@ -519,7 +521,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get paperWidth => 'کاغذ کی چوڑائی';
 
   @override
-  String get printerSettings => 'پرنٹر سیٹنگز';
+  String get printerSettings => 'پرنٹر کی ترتیبات';
 
   @override
   String get selectPrinter => 'پرنٹر کا انتخاب';
@@ -549,13 +551,13 @@ class AppLocalizationsUr extends AppLocalizations {
   String get after => 'بعد میں';
 
   @override
-  String get security => 'سیکورٹی';
+  String get security => 'سیکیورٹی';
 
   @override
   String get requirePasswordStartup => 'شروع میں پاسورڈ ضروری ہے';
 
   @override
-  String get lockAfter5Min => '5 منٹ کی غیر فعالیت کے بعد لاک کریں';
+  String get lockAfter5Min => '5 منٹ غیر فعالیت کے بعد لاک کریں';
 
   @override
   String get autoBackup => 'آٹو بیک اپ';
@@ -600,7 +602,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get checkForUpdates => 'اپ ڈیٹس چیک کریں';
 
   @override
-  String get developedBy => 'توسیع کی گئی';
+  String get developedBy => 'تیار کردہ از';
 
   @override
   String get systemInfo => 'سسٹم کی معلومات';
@@ -651,28 +653,28 @@ class AppLocalizationsUr extends AppLocalizations {
   String get posTitle => 'پوائنٹ آف سیل';
 
   @override
-  String get searchItemHint => 'آئٹم تلاش کریں / بارکوڈ اسکین کریں';
+  String get searchItemHint => 'اشیا تلاش کریں یا بارکوڈ اسکین کریں';
 
   @override
   String get searchCustomerHint => 'گاہک تلاش کریں';
 
   @override
-  String get walkInCustomer => 'واک ان (عام گاہک)';
+  String get walkInCustomer => 'بغیر رجسٹریشن گاہک';
 
   @override
-  String get cartEmpty => 'کارٹ خالی ہے';
+  String get cartEmpty => 'آپ کی ٹوکری خالی ہے';
 
   @override
-  String get subtotal => 'سب ٹوٹل';
+  String get subtotal => 'ذیلی کل';
 
   @override
-  String get prevBalance => 'سابقہ بیلنس';
+  String get prevBalance => 'پچھلا بیلنس';
 
   @override
   String get grandTotal => 'کل رقم';
 
   @override
-  String get checkoutButton => 'چیک آؤٹ';
+  String get checkoutButton => 'چیک آؤٹ کریں';
 
   @override
   String get billTotal => 'بل کی کل رقم';
@@ -681,16 +683,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get paymentLabel => 'ادائیگی:';
 
   @override
-  String get cashInput => 'نقد (Cash)';
+  String get cashInput => 'نقد';
 
   @override
   String get bankInput => 'بینک ٹرانسفر';
 
   @override
-  String get creditInput => 'ادھار (Credit)';
+  String get creditInput => 'ادھار';
 
   @override
-  String get confirmSale => 'سیل مکمل کریں';
+  String get confirmSale => 'فروخت کی تصدیق کریں';
 
   @override
   String get clearCartTitle => 'کارٹ خالی کریں؟';
@@ -755,7 +757,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get saleCompleted => 'سیل مکمل! بل نمبر:';
 
   @override
-  String get totalCustomers => 'کل کسٹمرز';
+  String get totalCustomers => 'کل گاہک';
 
   @override
   String get nameRequired => 'انگریزی نام لکھنا ضروری ہے';
@@ -770,7 +772,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get customerAdded => 'گاہک کامیابی سے شامل ہو گیا';
 
   @override
-  String get customersManagement => 'کسٹمر مینیجمنٹ';
+  String get customersManagement => 'گاہکوں کا انتظام';
 
   @override
   String get receivableTotal => 'قابل وصول (کل)';
@@ -782,7 +784,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get receivableArchived => 'قابل وصول (محفوظ شدہ)';
 
   @override
-  String get archived => 'محفوظ شدہ (Archived)';
+  String get archived => 'آرکائیو شدہ';
 
   @override
   String get active => 'فعال';
@@ -791,34 +793,34 @@ class AppLocalizationsUr extends AppLocalizations {
   String get history => 'تاریخچہ';
 
   @override
-  String get editCustomer => 'کسٹمر کو ایڈٹ کریں';
+  String get editCustomer => 'گاہک میں ترمیم کریں';
 
   @override
-  String get archiveCustomer => 'کسٹمر کو آرکائیو کریں';
+  String get archiveCustomer => 'گاہک کو آرکائیو کریں';
 
   @override
-  String get restoreCustomer => 'کسٹمر کو بحال کریں';
+  String get restoreCustomer => 'گاہک کو بحال کریں';
 
   @override
-  String get deleteConfirmMsg => 'کیا آپ واقعی اس کسٹمر کو حذف کرنا چاہتے ہیں؟';
+  String get deleteConfirmMsg => 'کیا آپ واقعی اس گاہک کو حذف کرنا چاہتے ہیں؟';
 
   @override
-  String get archiveConfirmMsg => 'یہ کسٹمر کو فعال فہرست سے چھپا دے گا۔';
+  String get archiveConfirmMsg => 'اس سے گاہک فعال فہرست سے چھپ جائے گا۔';
 
   @override
-  String get customerUpdated => 'کسٹمر کامیابی سے اپ ڈیٹ ہو گیا';
+  String get customerUpdated => 'گاہک کامیابی سے اپ ڈیٹ ہو گیا';
 
   @override
-  String get customerDeleted => 'کسٹمر حذف ہو گیا';
+  String get customerDeleted => 'گاہک حذف ہو گیا';
 
   @override
-  String get customerArchived => 'کسٹمر آرکائیو ہو گیا';
+  String get customerArchived => 'گاہک آرکائیو ہو گیا';
 
   @override
-  String get customerRestored => 'کسٹمر بحال ہو گیا';
+  String get customerRestored => 'گاہک بحال ہو گیا';
 
   @override
-  String get actions => 'عمل';
+  String get actions => 'کارروائیاں';
 
   @override
   String get restoreConfirmMsg =>
@@ -863,15 +865,15 @@ class AppLocalizationsUr extends AppLocalizations {
   String get deleteWarningArchive => 'براہ کرم انہیں \'آرکائیو\' کر دیں۔';
 
   @override
-  String get deleteCustomerTitle => 'کسٹمر حذف کریں؟';
+  String get deleteCustomerTitle => 'گاہک حذف کریں؟';
 
   @override
   String deleteCustomerWarning(Object name) {
-    return 'کیا آپ واقعی \'$name\'کو مستقل طور پر حذف کرنا چاہتے ہیں؟';
+    return 'کیا آپ واقعی $name کو مستقل طور پر حذف کرنا چاہتے ہیں؟';
   }
 
   @override
-  String get deleteAction => 'حذف';
+  String get deleteAction => 'حذف کریں';
 
   @override
   String get ok => 'ٹھیک ہے';
@@ -886,7 +888,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get willBeArchived => 'آرکائیو ہو جائے گا';
 
   @override
-  String get archiveAction => 'آرکائیو';
+  String get archiveAction => 'آرکائیو کریں';
 
   @override
   String get customerCard => 'گاہک کارڈ آئی ڈی';
@@ -895,7 +897,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get generateCard => 'آئی ڈی بنائیں';
 
   @override
-  String get viewBarcode => 'بارکوڈ دیکھیں/پرنٹ کریں';
+  String get viewBarcode => 'بارکوڈ دیکھیں / پرنٹ کریں';
 
   @override
   String get cannotDeleteReason =>
@@ -953,10 +955,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get gallery => 'گیلری';
 
   @override
-  String get adminAccess => 'ایڈمن ایکسس';
+  String get adminAccess => 'ایڈمن رسائی';
 
   @override
-  String get sale => 'سیلز (فروخت)';
+  String get sale => 'فروخت';
 
   @override
   String itemsNeedReordering(Object count) {
@@ -964,16 +966,16 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get quickActions => 'فوری ایکشن';
+  String get quickActions => 'فوری کارروائیاں';
 
   @override
-  String get newSale => 'نئی سیل';
+  String get newSale => 'نئی فروخت';
 
   @override
   String get viewReports => 'رپورٹس دیکھیں';
 
   @override
-  String get manageStock => 'اسٹاک مینیج کریں';
+  String get manageStock => 'اسٹاک سنبھالیں';
 
   @override
   String get viewAll => 'سب دیکھیں';
@@ -985,7 +987,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get copyright => '© 2024 لیاقت کریانہ سٹور';
 
   @override
-  String get tapToSeeDetails => 'تفصیلات دیکھنے کے لیے کلک کریں';
+  String get tapToSeeDetails => 'تفصیلات دیکھنے کے لیے دبائیں';
 
   @override
   String get loading => 'لوڈ ہو رہا ہے';
@@ -1087,7 +1089,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get supplierAdded => 'سپلائر کامیابی سے شامل ہو گیا';
 
   @override
-  String get supplierUpdated => 'سپلائر کامیابی سے اپڈیٹ ہو گیا';
+  String get supplierUpdated => 'سپلائر کامیابی سے اپ ڈیٹ ہو گیا';
 
   @override
   String get supplierDeleted => 'سپلائر کامیابی سے حذف ہو گیا';
@@ -1103,7 +1105,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get selectDate => 'تاریخ کا انتخاب';
 
   @override
-  String get thisWeekVsLast => 'اس ہفتہ بمقابلہ پچھلے ہفتہ';
+  String get thisWeekVsLast => 'یہ ہفتہ بمقابلہ پچھلا ہفتہ';
 
   @override
   String get thisYearVsLast => 'اس سال بمقابلہ پچھلے سال';
@@ -1136,7 +1138,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get daysOld => 'دن پرانا';
 
   @override
-  String get totalStockValue => 'کل اسٹاک ویلیو';
+  String get totalStockValue => 'کل اسٹاک مالیت';
 
   @override
   String get stockByCategory => 'کیٹیگری کے لحاظ سے اسٹاک';
@@ -1365,7 +1367,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get dashboardArchived => 'آرکائیو';
 
   @override
-  String get balanceShort => 'بیلنس';
+  String balanceShort(Object amount) {
+    return 'بیلنس: $amount';
+  }
 
   @override
   String get searchPlaceholder => 'گاہک تلاش کریں...';
@@ -1520,7 +1524,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get fieldRequired => 'فیلڈ ضروری ہے';
 
   @override
-  String get noDataAvailable => 'کوئی ڈیتا موجود نہں';
+  String get noDataAvailable => 'کوئی ڈیٹا موجود نہیں';
 
   @override
   String get refreshingData => 'ڈیٹا ریفریش ہو رہا ہے...';
@@ -1529,7 +1533,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get dbSize => 'ڈیٹا بیس سائز';
 
   @override
-  String get selectPaymentMethod => 'ادائیگی کا طریقہ کار';
+  String get selectPaymentMethod => 'ادائیگی کا طریقہ';
 
   @override
   String get confirmPayment => 'ادائیگی کنفرم؟';
@@ -1538,7 +1542,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get paymentMustEqual => 'ادائیگی برابر ہونی چاہیے';
 
   @override
-  String get category => 'Category';
+  String get category => 'کیٹیگری';
 
   @override
   String get baseUnit => 'Base Unit';
@@ -1565,7 +1569,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get greaterThanOneError => 'Must be > 1';
 
   @override
-  String get close => 'Close';
+  String get close => 'بند کریں';
 
   @override
   String get systemUnit => 'System Unit';
@@ -1593,4 +1597,272 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get yes => 'ہاں';
+
+  @override
+  String ledgerAmountIn(Object amount) {
+    return '+ $amount';
+  }
+
+  @override
+  String ledgerAmountOut(Object amount) {
+    return '- $amount';
+  }
+
+  @override
+  String get addDepartment => 'نیا ڈپارٹمنٹ شامل کریں';
+
+  @override
+  String get editDepartment => 'ڈپارٹمنٹ میں ترمیم کریں';
+
+  @override
+  String get addCategory => 'نئی کیٹیگری شامل کریں';
+
+  @override
+  String get editCategory => 'کیٹیگری میں ترمیم کریں';
+
+  @override
+  String get addSubcategory => 'ذیلی کیٹیگری شامل کریں';
+
+  @override
+  String get editSubcategory => 'ذیلی کیٹیگری میں ترمیم کریں';
+
+  @override
+  String get confirmDeleteTitle => 'حذف کی تصدیق کریں';
+
+  @override
+  String get confirmDeleteMessage =>
+      'کیا آپ واقعی اس آئٹم کو حذف کرنا چاہتے ہیں؟';
+
+  @override
+  String get departmentExistsError => 'اس نام کا ڈپارٹمنٹ پہلے سے موجود ہے۔';
+
+  @override
+  String get categoryExistsError =>
+      'اس نام کی کیٹیگری منتخب ڈپارٹمنٹ میں پہلے سے موجود ہے۔';
+
+  @override
+  String get subcategoryExistsError =>
+      'اس نام کی ذیلی کیٹیگری منتخب کیٹیگری میں پہلے سے موجود ہے۔';
+
+  @override
+  String get editDetails => 'تفصیلات میں ترمیم کریں';
+
+  @override
+  String get nameEnglishLabel => 'نام (انگریزی)';
+
+  @override
+  String get nameUrduLabel => 'نام (اردو)';
+
+  @override
+  String get departmentLabel => 'ڈپارٹمنٹ';
+
+  @override
+  String get searchDepartmentsCategoriesHint =>
+      'ڈپارٹمنٹس، کیٹیگریز تلاش کریں...';
+
+  @override
+  String get departmentsHeader => 'ڈپارٹمنٹس';
+
+  @override
+  String get categoriesSubcategoriesHeader => 'کیٹیگریز اور ذیلی کیٹیگریز';
+
+  @override
+  String get statusVisibilityHeader => 'اسٹیٹس اور مرئیت';
+
+  @override
+  String get statisticsHeader => 'شماریات';
+
+  @override
+  String addCategoryToTooltip(Object departmentName) {
+    return '$departmentName میں کیٹیگری شامل کریں';
+  }
+
+  @override
+  String get addSubcategoryTooltip => 'ذیلی کیٹیگری شامل کریں';
+
+  @override
+  String get visibleInPOS => 'POS میں نظر آئے';
+
+  @override
+  String get activeSubtitle =>
+      'اس اینٹٹی کو عالمی طور پر فعال یا غیر فعال کریں';
+
+  @override
+  String get visibleInPOSSubtitle =>
+      'اس اینٹٹی کو پوائنٹ آف سیل اسکرین میں دکھائیں';
+
+  @override
+  String get selectDepartmentInstruction => 'ایک ڈپارٹمنٹ منتخب کریں';
+
+  @override
+  String get noSubcategories => 'کوئی ذیلی کیٹیگریز نہیں ہیں۔';
+
+  @override
+  String get selectItemToManageInstruction =>
+      'منظم کرنے کے لیے ایک آئٹم منتخب کریں';
+
+  @override
+  String get typeDepartment => 'ڈپارٹمنٹ';
+
+  @override
+  String get typeCategory => 'کیٹیگری';
+
+  @override
+  String get typeSubcategory => 'ذیلی کیٹیگری';
+
+  @override
+  String get subcategories => 'ذیلی کیٹیگریز';
+
+  @override
+  String get printOrPdf => 'پرنٹ / پی ڈی ایف';
+
+  @override
+  String get exportToExcelCsv => 'ایکسل (CSV) میں ایکسپورٹ کریں';
+
+  @override
+  String savedToPath(Object path) {
+    return 'یہاں محفوظ ہوا: $path';
+  }
+
+  @override
+  String get viewLedgerTooltip => 'لیجر دیکھیں';
+
+  @override
+  String get editAction => 'ترمیم';
+
+  @override
+  String get noTransactionsFound => 'کوئی لین دین نہیں ملا';
+
+  @override
+  String get currentBalanceLabel => 'موجودہ بیلنس';
+
+  @override
+  String creditLimitLabel(Object amount) {
+    return 'حد: $amount';
+  }
+
+  @override
+  String get receivePaymentButton => 'ادائیگی وصول کریں';
+
+  @override
+  String get exportTooltip => 'ایکسپورٹ';
+
+  @override
+  String get closeTooltip => 'بند کریں';
+
+  @override
+  String get dateRangeButton => 'تاریخ کی حد';
+
+  @override
+  String get filterReceipts => 'رسیدیں';
+
+  @override
+  String get searchDocOrDescPlaceholder => 'دستاویز نمبر یا تفصیل تلاش کریں...';
+
+  @override
+  String get docNoHeader => 'دستاویز نمبر';
+
+  @override
+  String get typeHeader => 'قسم';
+
+  @override
+  String get debitHeader => 'ڈیبٹ';
+
+  @override
+  String get creditHeader => 'کریڈٹ';
+
+  @override
+  String get balanceHeader => 'بیلنس';
+
+  @override
+  String get receivePaymentTitle => 'ادائیگی وصول کریں';
+
+  @override
+  String get notesOptionalLabel => 'نوٹس (اختیاری)';
+
+  @override
+  String get failedToLoadDetails => 'تفصیلات لوڈ کرنے میں ناکام';
+
+  @override
+  String get confirmCancellationTitle => 'منسوخی کی تصدیق کریں';
+
+  @override
+  String get confirmCancelInvoiceMessage =>
+      'کیا آپ واقعی اس انوائس کو منسوخ کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔';
+
+  @override
+  String get yesCancelButton => 'ہاں، منسوخ کریں';
+
+  @override
+  String get invoiceCancelledSuccess => 'انوائس کامیابی سے منسوخ ہو گئی';
+
+  @override
+  String errorMessage(Object error) {
+    return 'خرابی: $error';
+  }
+
+  @override
+  String failedToLoadDashboardData(Object error) {
+    return 'ڈیش بورڈ ڈیٹا لوڈ کرنے میں ناکام: $error';
+  }
+
+  @override
+  String get saleType => 'فروخت';
+
+  @override
+  String get receiptType => 'رسید';
+
+  @override
+  String get cancelInvoiceTooltip => 'انوائس منسوخ کریں';
+
+  @override
+  String get rateHeader => 'ریٹ';
+
+  @override
+  String get totalHeader => 'کل';
+
+  @override
+  String get retry => 'دوبارہ کوشش کریں';
+
+  @override
+  String get keyboardShortcuts => 'کی بورڈ شارٹ کٹس';
+
+  @override
+  String get refreshDashboard => 'ڈیش بورڈ ریفریش کریں';
+
+  @override
+  String get generateBillWithShortcut => 'بل بنائیں (Ctrl+N)';
+
+  @override
+  String get searchFeatureComingSoon => 'تلاش کی سہولت جلد دستیاب ہوگی!';
+
+  @override
+  String get unknownItem => 'نامعلوم آئٹم';
+
+  @override
+  String lastBackupAt(Object time) {
+    return 'آخری بیک اپ: $time';
+  }
+
+  @override
+  String appVersion(Object version) {
+    return 'v$version';
+  }
+
+  @override
+  String trendTooltip(Object trend) {
+    return 'رجحان: $trend';
+  }
+
+  @override
+  String get descriptionRequired => 'Description is required';
+
+  @override
+  String get activity => 'Activity';
+
+  @override
+  String get shortcutCtrlN => 'Ctrl + N';
+
+  @override
+  String get shortcutF5 => 'F5';
 }

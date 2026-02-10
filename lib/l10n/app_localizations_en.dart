@@ -111,7 +111,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemsManagement => 'Items Management';
 
   @override
-  String get searchItem => 'Search Item';
+  String get searchItem => 'Search Items';
 
   @override
   String get noItemsFound => 'No items found';
@@ -168,7 +168,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get no => 'No';
 
   @override
-  String get itemDeleted => 'Item deleted';
+  String get itemDeleted => 'Item deleted successfully';
 
   @override
   String get error => 'Error';
@@ -216,7 +216,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salesRecord => 'Sales Record';
 
   @override
-  String get allSalesVisibleHere => 'All sales will be visible here';
+  String get allSalesVisibleHere => 'All sales are shown here';
 
   @override
   String get makeNewSale => 'Make New Sale';
@@ -267,7 +267,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get comparison => 'Comparison';
 
   @override
-  String get thisMonthVsLast => 'This Month vs Last Month';
+  String get thisMonthVsLast => 'This Month vs. Last Month';
 
   @override
   String get totalSales => 'Total Sales';
@@ -309,7 +309,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profitPercentage => 'Profit %';
 
   @override
-  String get avgProfitPerBill => 'Avg Profit/Bill';
+  String get avgProfitPerBill => 'Average Profit per Bill';
 
   @override
   String get expensesBreakdown => 'Expenses Breakdown';
@@ -339,7 +339,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalBalance => 'Total Balance';
 
   @override
-  String get avgBalance => 'Avg Balance';
+  String get avgBalance => 'Average Balance';
 
   @override
   String get balanceAging => 'Balance Aging';
@@ -357,13 +357,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stockValueSummary => 'Stock Value Summary';
 
   @override
-  String get avgPrice => 'Avg Price';
+  String get avgPrice => 'Average Price';
 
   @override
   String get categoryStock => 'Category-wise Stock';
 
   @override
-  String get lowStockItems => 'Low Stock Items';
+  String get lowStockItems => 'Low-stock Items';
 
   @override
   String get fullReport => 'Full Report';
@@ -388,7 +388,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'A complete Point of Sale solution for retail businesses.';
 
   @override
-  String get techInfo => 'Technical Info';
+  String get techInfo => 'Technical Information';
 
   @override
   String get framework => 'Framework';
@@ -406,7 +406,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uiFramework => 'UI Framework';
 
   @override
-  String get lastUpdated => 'Last Updated';
+  String lastUpdated(Object date) {
+    return 'Last Updated: $date';
+  }
 
   @override
   String get features => 'Key Features';
@@ -556,7 +558,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get requirePasswordStartup => 'Require Password on Startup';
 
   @override
-  String get lockAfter5Min => 'Lock after 5 min inactivity';
+  String get lockAfter5Min => 'Lock after 5 minutes of inactivity';
 
   @override
   String get autoBackup => 'Auto Backup';
@@ -601,7 +603,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkForUpdates => 'Check for Updates';
 
   @override
-  String get developedBy => 'Developed By';
+  String get developedBy => 'Developed by';
 
   @override
   String get systemInfo => 'System Information';
@@ -613,7 +615,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalSuppliers => 'Total Suppliers';
 
   @override
-  String get appUptime => 'App Uptime';
+  String get appUptime => 'App uptime';
 
   @override
   String get lastLogin => 'Last Login';
@@ -652,28 +654,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get posTitle => 'POS Terminal';
 
   @override
-  String get searchItemHint => 'Search Item / Scan Barcode';
+  String get searchItemHint => 'Search items or scan barcode';
 
   @override
   String get searchCustomerHint => 'Search Customer';
 
   @override
-  String get walkInCustomer => 'Walk-in';
+  String get walkInCustomer => 'Walk-in Customer';
 
   @override
-  String get cartEmpty => 'Cart Empty';
+  String get cartEmpty => 'Your cart is empty';
 
   @override
   String get subtotal => 'Subtotal';
 
   @override
-  String get prevBalance => 'Prev Balance';
+  String get prevBalance => 'Previous Balance';
 
   @override
   String get grandTotal => 'Grand Total';
 
   @override
-  String get checkoutButton => 'CHECKOUT';
+  String get checkoutButton => 'Checkout';
 
   @override
   String get billTotal => 'Bill Total';
@@ -691,7 +693,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creditInput => 'Credit (Udhar)';
 
   @override
-  String get confirmSale => 'CONFIRM SALE';
+  String get confirmSale => 'Confirm Sale';
 
   @override
   String get clearCartTitle => 'Clear Cart?';
@@ -1368,7 +1370,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardArchived => 'Archived';
 
   @override
-  String get balanceShort => 'Bal';
+  String balanceShort(Object amount) {
+    return 'Bal: $amount';
+  }
 
   @override
   String get searchPlaceholder => 'Search...';
@@ -1597,4 +1601,272 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yes => 'Yes';
+
+  @override
+  String ledgerAmountIn(Object amount) {
+    return '+ $amount';
+  }
+
+  @override
+  String ledgerAmountOut(Object amount) {
+    return '- $amount';
+  }
+
+  @override
+  String get addDepartment => 'Add Department';
+
+  @override
+  String get editDepartment => 'Edit Department';
+
+  @override
+  String get addCategory => 'Add Category';
+
+  @override
+  String get editCategory => 'Edit Category';
+
+  @override
+  String get addSubcategory => 'Add Subcategory';
+
+  @override
+  String get editSubcategory => 'Edit Subcategory';
+
+  @override
+  String get confirmDeleteTitle => 'Confirm Delete';
+
+  @override
+  String get confirmDeleteMessage =>
+      'Are you sure you want to delete this item?';
+
+  @override
+  String get departmentExistsError =>
+      'Department with this name already exists.';
+
+  @override
+  String get categoryExistsError =>
+      'Category with this name already exists in the selected department.';
+
+  @override
+  String get subcategoryExistsError =>
+      'Subcategory with this name already exists in the selected category.';
+
+  @override
+  String get editDetails => 'Edit Details';
+
+  @override
+  String get nameEnglishLabel => 'Name (English)';
+
+  @override
+  String get nameUrduLabel => 'Name (Urdu)';
+
+  @override
+  String get departmentLabel => 'Department';
+
+  @override
+  String get searchDepartmentsCategoriesHint =>
+      'Search departments, categories...';
+
+  @override
+  String get departmentsHeader => 'DEPARTMENTS';
+
+  @override
+  String get categoriesSubcategoriesHeader => 'CATEGORIES & SUBCATEGORIES';
+
+  @override
+  String get statusVisibilityHeader => 'STATUS & VISIBILITY';
+
+  @override
+  String get statisticsHeader => 'STATISTICS';
+
+  @override
+  String addCategoryToTooltip(Object departmentName) {
+    return 'Add Category to $departmentName';
+  }
+
+  @override
+  String get addSubcategoryTooltip => 'Add Subcategory';
+
+  @override
+  String get visibleInPOS => 'Visible in POS';
+
+  @override
+  String get activeSubtitle => 'Enable or disable this entity globally';
+
+  @override
+  String get visibleInPOSSubtitle =>
+      'Show this entity in the Point of Sale screen';
+
+  @override
+  String get selectDepartmentInstruction => 'Select a Department';
+
+  @override
+  String get noSubcategories => 'No subcategories.';
+
+  @override
+  String get selectItemToManageInstruction => 'Select an item to manage';
+
+  @override
+  String get typeDepartment => 'Department';
+
+  @override
+  String get typeCategory => 'Category';
+
+  @override
+  String get typeSubcategory => 'Subcategory';
+
+  @override
+  String get subcategories => 'Subcategories';
+
+  @override
+  String get printOrPdf => 'Print / PDF';
+
+  @override
+  String get exportToExcelCsv => 'Export to Excel (CSV)';
+
+  @override
+  String savedToPath(Object path) {
+    return 'Saved to: $path';
+  }
+
+  @override
+  String get viewLedgerTooltip => 'View ledger';
+
+  @override
+  String get editAction => 'Edit';
+
+  @override
+  String get noTransactionsFound => 'No transactions found';
+
+  @override
+  String get currentBalanceLabel => 'Current balance';
+
+  @override
+  String creditLimitLabel(Object amount) {
+    return 'Limit: $amount';
+  }
+
+  @override
+  String get receivePaymentButton => 'Receive Payment';
+
+  @override
+  String get exportTooltip => 'Export';
+
+  @override
+  String get closeTooltip => 'Close';
+
+  @override
+  String get dateRangeButton => 'Date Range';
+
+  @override
+  String get filterReceipts => 'Receipts';
+
+  @override
+  String get searchDocOrDescPlaceholder =>
+      'Search document # or description...';
+
+  @override
+  String get docNoHeader => 'Document #';
+
+  @override
+  String get typeHeader => 'Type';
+
+  @override
+  String get debitHeader => 'Debit';
+
+  @override
+  String get creditHeader => 'Credit';
+
+  @override
+  String get balanceHeader => 'Balance';
+
+  @override
+  String get receivePaymentTitle => 'Receive Payment';
+
+  @override
+  String get notesOptionalLabel => 'Notes (optional)';
+
+  @override
+  String get failedToLoadDetails => 'Failed to load details';
+
+  @override
+  String get confirmCancellationTitle => 'Confirm Cancellation';
+
+  @override
+  String get confirmCancelInvoiceMessage =>
+      'Are you sure you want to cancel this invoice? This action cannot be undone.';
+
+  @override
+  String get yesCancelButton => 'Yes, Cancel';
+
+  @override
+  String get invoiceCancelledSuccess => 'Invoice cancelled successfully';
+
+  @override
+  String errorMessage(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String failedToLoadDashboardData(Object error) {
+    return 'Failed to load dashboard data: $error';
+  }
+
+  @override
+  String get saleType => 'Sale';
+
+  @override
+  String get receiptType => 'Receipt';
+
+  @override
+  String get cancelInvoiceTooltip => 'Cancel Invoice';
+
+  @override
+  String get rateHeader => 'Rate';
+
+  @override
+  String get totalHeader => 'Total';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get keyboardShortcuts => 'Keyboard Shortcuts';
+
+  @override
+  String get refreshDashboard => 'Refresh dashboard';
+
+  @override
+  String get generateBillWithShortcut => 'Generate Bill (Ctrl+N)';
+
+  @override
+  String get searchFeatureComingSoon => 'Search will be available soon!';
+
+  @override
+  String get unknownItem => 'Unknown Item';
+
+  @override
+  String lastBackupAt(Object time) {
+    return 'Last Backup: $time';
+  }
+
+  @override
+  String appVersion(Object version) {
+    return 'v$version';
+  }
+
+  @override
+  String trendTooltip(Object trend) {
+    return 'Trend: $trend';
+  }
+
+  @override
+  String get descriptionRequired => 'Description is required';
+
+  @override
+  String get activity => 'Activity';
+
+  @override
+  String get shortcutCtrlN => 'Ctrl + N';
+
+  @override
+  String get shortcutF5 => 'F5';
 }

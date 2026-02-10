@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import '../../bloc/stock/stock_bloc.dart';
 import '../../bloc/stock/stock_event.dart';
 import '../database/database_helper.dart';
-import '../../models/purchase_model.dart';
+import '../../models/purchase_models.dart';
 import '../utils/logger.dart';
 
 class SupplierPurchaseRepository {
@@ -59,7 +59,8 @@ class SupplierPurchaseRepository {
 
       // 3. Insert Items & Update Stock
       for (var item in items) {
-        await txn.insert('purchase_items', item.toMap()..['purchase_id'] = purchaseId);
+        await txn.insert(
+            'purchase_items', item.toMap()..['purchase_id'] = purchaseId);
 
         // Update stock
         if (item.productId != null) {
@@ -143,7 +144,8 @@ class SupplierPurchaseRepository {
         );
       }
 
-      AppLogger.info('Purchase created: (ID: $purchaseId)', tag: 'PurchaseRepo');
+      AppLogger.info('Purchase created: (ID: $purchaseId)',
+          tag: 'PurchaseRepo');
       return purchaseId;
     });
 
@@ -237,7 +239,8 @@ class SupplierPurchaseRepository {
         'balance': newBalance,
       });
 
-      AppLogger.info('Purchase cancelled: #$purchaseNumber', tag: 'PurchaseRepo');
+      AppLogger.info('Purchase cancelled: #$purchaseNumber',
+          tag: 'PurchaseRepo');
     });
 
     stockBloc?.add(LoadStock());
@@ -256,16 +259,10 @@ class SupplierPurchaseRepository {
     );
     if (purchaseMap.isEmpty) return null;
 
-    final itemsMap = await db.query(
-      'purchase_items',
-      where: 'purchase_id = ?',
-      whereArgs: [purchaseId],
-    );
-
-    final items = itemsMap.map((e) => PurchaseItem.fromMap(e)).toList();
     final purchase = Purchase.fromMap(purchaseMap.first);
 
-    return purchase.copyWith(); // You can add items property if your model supports it
+    return purchase
+        .copyWith(); // You can add items property if your model supports it
   }
 
   Future<List<Purchase>> getPurchasesBySupplier(int supplierId) async {
@@ -304,7 +301,8 @@ class SupplierPurchaseRepository {
   Future<void> deletePurchase(int purchaseId) async {
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
-      await txn.delete('purchase_items', where: 'purchase_id = ?', whereArgs: [purchaseId]);
+      await txn.delete('purchase_items',
+          where: 'purchase_id = ?', whereArgs: [purchaseId]);
       await txn.delete('purchases', where: 'id = ?', whereArgs: [purchaseId]);
     });
   }

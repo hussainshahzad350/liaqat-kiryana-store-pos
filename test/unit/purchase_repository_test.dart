@@ -23,13 +23,12 @@ void main() {
   group('PurchaseRepository.cancelPurchase', () {
     test('should cancel purchase when sufficient stock exists', () async {
       // Create a purchase first
-      final purchaseId = await purchaseRepo.createPurchase({
-        'supplier_id': 1,
-        'invoice_number': 'TEST-001',
-        'purchase_date': DateTime.now().toIso8601String(),
-        'total_amount': 100000,
-        'notes': 'Test purchase',
-        'items': [
+      final purchaseId = await purchaseRepo.createPurchase(
+        supplierId: 1,
+        invoiceNumber: 'TEST-001',
+        totalAmount: 100000,
+        notes: 'Test purchase',
+        items: [
           {
             'product_id': 1,
             'quantity': 10,
@@ -39,7 +38,7 @@ void main() {
             'expiry_date': null,
           }
         ],
-      });
+      );
 
       expect(purchaseId, greaterThan(0));
 
@@ -48,23 +47,23 @@ void main() {
       expect(stockAfterPurchase, greaterThanOrEqualTo(10));
 
       // Cancel the purchase - should succeed
-      await purchaseRepo.cancelPurchase(purchaseId, reason: 'Test cancellation');
+      await purchaseRepo.cancelPurchase(
+          purchaseId: purchaseId, cancelledBy: 'test_user', reason: 'Test cancellation');
 
       // Verify stock decreased
       final stockAfterCancel = await itemsRepo.getProductStock(1);
       expect(stockAfterCancel, equals(stockAfterPurchase - 10));
     });
 
-    test('should throw exception when cancellation would cause negative stock', () async {
-
+    test('should throw exception when cancellation would cause negative stock',
+        () async {
       // Create a purchase that adds stock
-      final purchaseId = await purchaseRepo.createPurchase({
-        'supplier_id': 1,
-        'invoice_number': 'TEST-002',
-        'purchase_date': DateTime.now().toIso8601String(),
-        'total_amount': 200000,
-        'notes': 'Test purchase',
-        'items': [
+      final purchaseId = await purchaseRepo.createPurchase(
+        supplierId: 1,
+        invoiceNumber: 'TEST-002',
+        totalAmount: 200000,
+        notes: 'Test purchase',
+        items: [
           {
             'product_id': 1,
             'quantity': 20,
@@ -74,7 +73,7 @@ void main() {
             'expiry_date': null,
           }
         ],
-      });
+      );
 
       // Simulate selling more than the initial stock (but less than total)
       // by manually reducing stock
@@ -86,7 +85,8 @@ void main() {
 
       // Try to cancel - should fail because we'd need to subtract 20 from 5
       expect(
-        () => purchaseRepo.cancelPurchase(purchaseId, reason: 'Should fail'),
+        () => purchaseRepo.cancelPurchase(
+            purchaseId: purchaseId, reason: 'Should fail', cancelledBy: 'test_user'),
         throwsA(
           isA<Exception>().having(
             (e) => e.toString(),
@@ -103,13 +103,12 @@ void main() {
 
     test('should throw exception for already cancelled purchase', () async {
       // Create and cancel a purchase
-      final purchaseId = await purchaseRepo.createPurchase({
-        'supplier_id': 1,
-        'invoice_number': 'TEST-003',
-        'purchase_date': DateTime.now().toIso8601String(),
-        'total_amount': 50000,
-        'notes': 'Test purchase',
-        'items': [
+      final purchaseId = await purchaseRepo.createPurchase(
+        supplierId: 1,
+        invoiceNumber: 'TEST-003',
+        totalAmount: 50000,
+        notes: 'Test purchase',
+        items: [
           {
             'product_id': 1,
             'quantity': 5,
@@ -119,13 +118,13 @@ void main() {
             'expiry_date': null,
           }
         ],
-      });
+      );
 
-      await purchaseRepo.cancelPurchase(purchaseId);
+      await purchaseRepo.cancelPurchase(purchaseId: purchaseId, cancelledBy: 'test_user');
 
       // Try to cancel again
       expect(
-        () => purchaseRepo.cancelPurchase(purchaseId),
+        () => purchaseRepo.cancelPurchase(purchaseId: purchaseId, cancelledBy: 'test_user'),
         throwsA(
           isA<Exception>().having(
             (e) => e.toString(),
@@ -138,7 +137,7 @@ void main() {
 
     test('should throw exception for non-existent purchase', () async {
       expect(
-        () => purchaseRepo.cancelPurchase(99999),
+        () => purchaseRepo.cancelPurchase(purchaseId: 99999, cancelledBy: 'test_user'),
         throwsA(
           isA<Exception>().having(
             (e) => e.toString(),
@@ -151,13 +150,12 @@ void main() {
 
     test('should provide helpful error message with product name', () async {
       // Create a purchase
-      final purchaseId = await purchaseRepo.createPurchase({
-        'supplier_id': 1,
-        'invoice_number': 'TEST-004',
-        'purchase_date': DateTime.now().toIso8601String(),
-        'total_amount': 100000,
-        'notes': 'Test purchase',
-        'items': [
+      final purchaseId = await purchaseRepo.createPurchase(
+        supplierId: 1,
+        invoiceNumber: 'TEST-004',
+        totalAmount: 100000,
+        notes: 'Test purchase',
+        items: [
           {
             'product_id': 1,
             'quantity': 100,
@@ -167,7 +165,7 @@ void main() {
             'expiry_date': null,
           }
         ],
-      });
+      );
 
       // Reduce stock to simulate sales
       final db = await DatabaseHelper.instance.database;
@@ -178,7 +176,7 @@ void main() {
 
       // Try to cancel - error should include product name
       try {
-        await purchaseRepo.cancelPurchase(purchaseId);
+        await purchaseRepo.cancelPurchase(purchaseId: purchaseId, cancelledBy: 'test_user');
         fail('Expected exception was not thrown');
       } catch (e) {
         final errorMessage = e.toString();
@@ -191,7 +189,7 @@ void main() {
     test('should validate all items before making any changes', () async {
       // Get a second product ID or use product 1
       final db = await DatabaseHelper.instance.database;
-      
+
       // Insert a second product for this test
       await db.insert('products', {
         'item_code': 'TEST-PROD-2',
@@ -201,7 +199,7 @@ void main() {
         'avg_cost_price': 5000,
         'sale_price': 7000,
       });
-      
+
       final product2Result = await db.query(
         'products',
         where: 'item_code = ?',
@@ -210,13 +208,12 @@ void main() {
       final product2Id = product2Result.first['id'] as int;
 
       // Create a purchase with two items
-      final purchaseId = await purchaseRepo.createPurchase({
-        'supplier_id': 1,
-        'invoice_number': 'TEST-005',
-        'purchase_date': DateTime.now().toIso8601String(),
-        'total_amount': 150000,
-        'notes': 'Multi-item purchase',
-        'items': [
+      final purchaseId = await purchaseRepo.createPurchase(
+        supplierId: 1,
+        invoiceNumber: 'TEST-005',
+        totalAmount: 150000,
+        notes: 'Multi-item purchase',
+        items: [
           {
             'product_id': 1,
             'quantity': 10,
@@ -234,7 +231,7 @@ void main() {
             'expiry_date': null,
           }
         ],
-      });
+      );
 
       // Get stock after purchase for product 1 (used to verify rollback)
       final stock1After = await itemsRepo.getProductStock(1);
@@ -248,7 +245,7 @@ void main() {
 
       // Try to cancel - should fail on product 2
       expect(
-        () => purchaseRepo.cancelPurchase(purchaseId),
+        () => purchaseRepo.cancelPurchase(purchaseId: purchaseId, cancelledBy: 'test_user'),
         throwsA(isA<Exception>()),
       );
 
@@ -265,13 +262,12 @@ void main() {
     test('should create purchase and update stock', () async {
       final initialStock = await itemsRepo.getProductStock(1);
 
-      final purchaseId = await purchaseRepo.createPurchase({
-        'supplier_id': 1,
-        'invoice_number': 'CREATE-001',
-        'purchase_date': DateTime.now().toIso8601String(),
-        'total_amount': 50000,
-        'notes': 'Test',
-        'items': [
+      final purchaseId = await purchaseRepo.createPurchase(
+        supplierId: 1,
+        invoiceNumber: 'CREATE-001',
+        totalAmount: 50000,
+        notes: 'Test',
+        items: [
           {
             'product_id': 1,
             'quantity': 5,
@@ -281,7 +277,7 @@ void main() {
             'expiry_date': null,
           }
         ],
-      });
+      );
 
       expect(purchaseId, greaterThan(0));
 

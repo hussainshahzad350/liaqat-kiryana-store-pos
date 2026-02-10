@@ -231,10 +231,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 Navigator.pop(context);
                 final path = await _ledgerExportService.exportToCsv(
                     _currentLedger, _selectedCustomerForLedger!);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(loc.savedToPath(path))));
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(loc.savedToPath(path))));
               },
             ),
           ],
@@ -299,6 +298,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     if (!(await _canDelete(id, balance))) {
+      if (!mounted) return;
       showDialog(
         context: context,
         builder: (context) => Dialog(
@@ -359,6 +359,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       return;
     }
 
+    if (!mounted) return;
     final bool? confirmed = await showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -899,7 +900,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 _buildLedgerFilterBar(loc, colorScheme, textTheme),
 
                 // Table Header
-                _buildLedgerTableHeader(colorScheme, textTheme),
+                _buildLedgerTableHeader(loc, colorScheme, textTheme),
 
                 // Table Body
                 Expanded(
@@ -1177,7 +1178,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildLedgerTableHeader(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildLedgerTableHeader(AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: DesktopDimensions.spacingSmall,

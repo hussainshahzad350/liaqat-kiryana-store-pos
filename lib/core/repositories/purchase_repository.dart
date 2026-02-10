@@ -1,10 +1,9 @@
 import '../../bloc/stock/stock_bloc.dart';
 import '../../bloc/stock/stock_event.dart';
 import '../database/database_helper.dart';
-import '../../models/purchase_model.dart';
+import '../../models/purchase_models.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
-import 'dart:convert';
 
 class PurchaseRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -46,8 +45,11 @@ class PurchaseRepository {
         final quantity = (item['quantity'] as num).toDouble();
         final costPrice = (item['cost_price'] as num).toInt();
         final total = (item['total_amount'] as num).toInt();
-        final batchNumber = item['batch_number'] as String;
-        final expiryDate = item['expiry_date'] as DateTime;
+        final batchNumber = item['batch_number'] as String?;
+        final expiryDate = item['expiry_date'];
+        final DateTime? parsedExpiry = expiryDate is String
+            ? DateTime.tryParse(expiryDate)
+            : (expiryDate is DateTime ? expiryDate : null);
 
         await txn.insert('purchase_items', {
           'purchase_id': id,
@@ -56,7 +58,7 @@ class PurchaseRepository {
           'cost_price': costPrice,
           'total_amount': total,
           'batch_number': batchNumber,
-          'expiry_date': expiryDate.toIso8601String(),
+          'expiry_date': parsedExpiry?.toIso8601String(),
         });
 
         // Batch-level stock activity
@@ -67,7 +69,7 @@ class PurchaseRepository {
           'reference_type': 'PURCHASE',
           'reference_id': id,
           'batch_number': batchNumber,
-          'expiry_date': expiryDate.toIso8601String(),
+          'expiry_date': parsedExpiry?.toIso8601String(),
           'user': 'SYSTEM',
           'created_at': DateTime.now().toIso8601String(),
         });
@@ -108,6 +110,25 @@ class PurchaseRepository {
     stockBloc?.add(LoadStock());
 
     return purchaseId;
+  }
+
+  // Alias for backward compatibility
+  Future<int> createPurchase({
+    required int supplierId,
+    required List<Map<String, dynamic>> items,
+    int totalAmount = 0,
+    String? invoiceNumber,
+    String? notes,
+    StockBloc? stockBloc,
+  }) {
+    return createPurchaseWithTransaction(
+      supplierId: supplierId,
+      items: items,
+      totalAmount: totalAmount,
+      invoiceNumber: invoiceNumber,
+      notes: notes,
+      stockBloc: stockBloc,
+    );
   }
 
   // ========================================
@@ -160,7 +181,8 @@ class PurchaseRepository {
         final quantity = (item['quantity'] as num).toDouble();
         final batchNumber = item['batch_number'] as String;
         final expiryRaw = item['expiry_date']?.toString();
-        final expiryDate = expiryRaw != null ? DateTime.tryParse(expiryRaw) : null;
+        final expiryDate =
+            expiryRaw != null ? DateTime.tryParse(expiryRaw) : null;
 
         // Reduce total stock with underflow protection
         final updated = await txn.rawUpdate(
@@ -168,7 +190,8 @@ class PurchaseRepository {
           [quantity, productId, quantity],
         );
         if (updated == 0) {
-          throw Exception('Cannot cancel purchase: stock underflow for product $productId');
+          throw Exception(
+              'Cannot cancel purchase: stock underflow for product $productId');
         }
 
         // Log stock activity
@@ -227,13 +250,6 @@ class PurchaseRepository {
 
     if (purchaseMap.isEmpty) return null;
 
-    final itemsMap = await db.query(
-      'purchase_items',
-      where: 'purchase_id = ?',
-      whereArgs: [purchaseId],
-    );
-
-    final items = itemsMap.map((e) => PurchaseItem.fromMap(e)).toList();
     final purchase = Purchase.fromMap(purchaseMap.first);
 
     return Purchase(

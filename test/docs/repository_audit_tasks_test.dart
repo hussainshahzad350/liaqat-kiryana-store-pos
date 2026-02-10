@@ -408,7 +408,6 @@ void main() {
       test('line endings are consistent', () {
         // Check that file doesn't mix line endings
         final hasUnixEndings = auditTasksContent.contains('\n');
-        final hasWindowsEndings = auditTasksContent.contains('\r\n');
 
         // File should use one style consistently (preferably Unix)
         expect(hasUnixEndings, true,

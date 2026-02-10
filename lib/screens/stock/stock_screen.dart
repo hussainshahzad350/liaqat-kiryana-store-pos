@@ -73,11 +73,11 @@ class _StockScreenState extends State<StockScreen> {
         item: item,
         onSave: (adjustment, reason) {
           context.read<StockActivityBloc>().add(AdjustStock(
-            productId: item.id,
-            quantityChange: adjustment,
-            reason: reason,
-            reference: loc.adjustStock,
-          ));
+                productId: item.id,
+                quantityChange: adjustment,
+                reason: reason,
+                reference: loc.adjustStock,
+              ));
           _closeSidePanel();
         },
         onCancel: _closeSidePanel,
@@ -128,9 +128,9 @@ class _StockScreenState extends State<StockScreen> {
                     ),
                     onPressed: () {
                       context.read<StockActivityBloc>().add(CancelStockActivity(
-                        activity: activity,
-                        reason: loc.cancel,
-                      ));
+                            activity: activity,
+                            reason: loc.cancel,
+                          ));
                       _closeSidePanel();
                     },
                     child: Text(loc.cancel),
@@ -144,7 +144,8 @@ class _StockScreenState extends State<StockScreen> {
     );
   }
 
-  Widget _buildActivityDetailPanel(BuildContext context, StockActivityEntity activity) {
+  Widget _buildActivityDetailPanel(
+      BuildContext context, StockActivityEntity activity) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final isCancelled = activity.status == 'CANCELLED';
@@ -160,7 +161,9 @@ class _StockScreenState extends State<StockScreen> {
               Icon(
                 _getActivityIcon(activity.type),
                 size: DesktopDimensions.iconSizeXXLarge,
-                color: isCancelled ? colorScheme.onSurface.withOpacity(0.5) : colorScheme.primary,
+                color: isCancelled
+                    ? colorScheme.onSurface.withOpacity(0.5)
+                    : colorScheme.primary,
               ),
               const SizedBox(height: DesktopDimensions.spacingSmall),
               Text(
@@ -178,15 +181,22 @@ class _StockScreenState extends State<StockScreen> {
               ),
               const SizedBox(height: DesktopDimensions.spacingSmall),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingSmall, vertical: DesktopDimensions.spacingXSmall),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesktopDimensions.spacingSmall,
+                    vertical: DesktopDimensions.spacingXSmall),
                 decoration: BoxDecoration(
-                  color: isCancelled ? colorScheme.errorContainer : colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(DesktopDimensions.extraSmallBorderRadius),
+                  color: isCancelled
+                      ? colorScheme.errorContainer
+                      : colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.extraSmallBorderRadius),
                 ),
                 child: Text(
                   activity.status,
                   style: TextStyle(
-                    color: isCancelled ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
+                    color: isCancelled
+                        ? colorScheme.onErrorContainer
+                        : colorScheme.onPrimaryContainer,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -195,21 +205,25 @@ class _StockScreenState extends State<StockScreen> {
           ),
         ),
         const Divider(height: 1),
-        
+
         // Details List
         Expanded(
           child: ListView(
             padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             children: [
-              _buildDetailRow(loc.date, DateFormat('yyyy-MM-dd').format(activity.timestamp)),
-              _buildDetailRow(loc.time, DateFormat('hh:mm a').format(activity.timestamp)),
+              _buildDetailRow(loc.date,
+                  DateFormat('yyyy-MM-dd').format(activity.timestamp)),
+              _buildDetailRow(
+                  loc.time, DateFormat('hh:mm a').format(activity.timestamp)),
               _buildDetailRow(loc.customer, activity.user),
               const Divider(),
               _buildDetailRow(loc.description, activity.description),
               if (activity.quantityChange != 0)
-                _buildDetailRow(loc.quantity, '${activity.quantityChange > 0 ? '+' : ''}${activity.quantityChange}'),
-                if (activity.financialImpact != null)
-                _buildDetailRow(loc.amount, activity.financialImpact!.formatted),
+                _buildDetailRow(loc.quantity,
+                    '${activity.quantityChange > 0 ? '+' : ''}${activity.quantityChange}'),
+              if (activity.financialImpact != null)
+                _buildDetailRow(
+                    loc.amount, activity.financialImpact!.formatted),
             ],
           ),
         ),
@@ -224,19 +238,23 @@ class _StockScreenState extends State<StockScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (!isCancelled && (activity.type == ActivityType.purchase || activity.type == ActivityType.sale))
+              if (!isCancelled &&
+                  (activity.type == ActivityType.purchase ||
+                      activity.type == ActivityType.sale))
                 OutlinedButton.icon(
                   onPressed: () => _openCancelConfirmationPanel(activity),
                   icon: const Icon(Icons.cancel),
                   label: Text(loc.cancel),
-                  style: OutlinedButton.styleFrom(foregroundColor: colorScheme.error),
+                  style: OutlinedButton.styleFrom(
+                      foregroundColor: colorScheme.error),
                 ),
               const SizedBox(height: DesktopDimensions.spacingSmall),
               ElevatedButton.icon(
                 onPressed: () async {
                   final locale = Localizations.localeOf(context);
                   try {
-                    await _pdfExportService.exportActivityPdf(activity, languageCode: locale.languageCode);
+                    await _pdfExportService.exportActivityPdf(activity,
+                        languageCode: locale.languageCode);
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(loc.saveAsPdf)),
@@ -244,7 +262,9 @@ class _StockScreenState extends State<StockScreen> {
                   } catch (e) {
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${loc.error}: $e'), backgroundColor: colorScheme.error),
+                      SnackBar(
+                          content: Text('${loc.error}: $e'),
+                          backgroundColor: colorScheme.error),
                     );
                   }
                 },
@@ -263,12 +283,19 @@ class _StockScreenState extends State<StockScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall),
+      padding:
+          const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
-          Flexible(child: Text(value, textAlign: TextAlign.right, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500))),
+          Text(label,
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: colorScheme.onSurfaceVariant)),
+          Flexible(
+              child: Text(value,
+                  textAlign: TextAlign.right,
+                  style: textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w500))),
         ],
       ),
     );
@@ -276,11 +303,16 @@ class _StockScreenState extends State<StockScreen> {
 
   IconData _getActivityIcon(ActivityType type) {
     switch (type) {
-      case ActivityType.purchase: return Icons.shopping_cart;
-      case ActivityType.sale: return Icons.sell;
-      case ActivityType.adjustment: return Icons.tune;
-      case ActivityType.returnIn: return Icons.keyboard_return;
-      case ActivityType.returnOut: return Icons.outbound;
+      case ActivityType.purchase:
+        return Icons.shopping_cart;
+      case ActivityType.sale:
+        return Icons.sell;
+      case ActivityType.adjustment:
+        return Icons.tune;
+      case ActivityType.returnIn:
+        return Icons.keyboard_return;
+      case ActivityType.returnOut:
+        return Icons.outbound;
     }
   }
 
@@ -303,12 +335,15 @@ class _StockScreenState extends State<StockScreen> {
     return Shortcuts(
       shortcuts: const <ShortcutActivator, Intent>{
         SingleActivator(LogicalKeyboardKey.f5): RefreshIntent(),
-        SingleActivator(LogicalKeyboardKey.keyF, control: true): ActivateSearchIntent(),
+        SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            ActivateSearchIntent(),
         SingleActivator(LogicalKeyboardKey.escape): ClosePanelIntent(),
         SingleActivator(LogicalKeyboardKey.arrowUp): MoveSelectionUpIntent(),
-        SingleActivator(LogicalKeyboardKey.arrowDown): MoveSelectionDownIntent(),
+        SingleActivator(LogicalKeyboardKey.arrowDown):
+            MoveSelectionDownIntent(),
         SingleActivator(LogicalKeyboardKey.enter): ActivateSelectionIntent(),
-        SingleActivator(LogicalKeyboardKey.keyN, control: true): NewPurchaseIntent(),
+        SingleActivator(LogicalKeyboardKey.keyN, control: true):
+            NewPurchaseIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
@@ -317,7 +352,8 @@ class _StockScreenState extends State<StockScreen> {
             context.read<StockActivityBloc>().add(LoadStockActivities());
             return null;
           }),
-          ActivateSearchIntent: CallbackAction<ActivateSearchIntent>(onInvoke: (_) {
+          ActivateSearchIntent:
+              CallbackAction<ActivateSearchIntent>(onInvoke: (_) {
             _searchFocusNode.requestFocus();
             return null;
           }),
@@ -325,16 +361,23 @@ class _StockScreenState extends State<StockScreen> {
             if (_showSidePanel) _closeSidePanel();
             return null;
           }),
-          MoveSelectionUpIntent: CallbackAction<MoveSelectionUpIntent>(onInvoke: (_) {
+          MoveSelectionUpIntent:
+              CallbackAction<MoveSelectionUpIntent>(onInvoke: (_) {
             if (_focusedIndex > 0) setState(() => _focusedIndex--);
             return null;
           }),
-          MoveSelectionDownIntent: CallbackAction<MoveSelectionDownIntent>(onInvoke: (_) {
-            if (_focusedIndex < _currentDisplayedItems.length - 1) setState(() => _focusedIndex++);
+          MoveSelectionDownIntent:
+              CallbackAction<MoveSelectionDownIntent>(onInvoke: (_) {
+            if (_focusedIndex < _currentDisplayedItems.length - 1) {
+              setState(() => _focusedIndex++);
+            }
             return null;
           }),
-          ActivateSelectionIntent: CallbackAction<ActivateSelectionIntent>(onInvoke: (_) {
-            if (_currentDisplayedItems.isNotEmpty && _focusedIndex >= 0 && _focusedIndex < _currentDisplayedItems.length) {
+          ActivateSelectionIntent:
+              CallbackAction<ActivateSelectionIntent>(onInvoke: (_) {
+            if (_currentDisplayedItems.isNotEmpty &&
+                _focusedIndex >= 0 &&
+                _focusedIndex < _currentDisplayedItems.length) {
               _openAdjustStockPanel(_currentDisplayedItems[_focusedIndex]);
             }
             return null;
@@ -345,109 +388,113 @@ class _StockScreenState extends State<StockScreen> {
           }),
         },
         child: MultiBlocListener(
-            listeners: [
-              BlocListener<StockFilterBloc, StockFilterState>(
-                listener: (context, filterState) {
+          listeners: [
+            BlocListener<StockFilterBloc, StockFilterState>(
+              listener: (context, filterState) {
+                context.read<StockOverviewBloc>().add(LoadStockOverview(
+                      query: filterState.searchQuery,
+                      status: filterState.statusFilter,
+                      supplierId: filterState.selectedSupplierId,
+                      categoryId: filterState.selectedCategoryId,
+                    ));
+              },
+            ),
+            BlocListener<StockActivityBloc, StockActivityState>(
+              listener: (context, state) {
+                if (!mounted) return;
+                if (state is StockActivityActionSuccess) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content:
+                            Text(_localizedActionMessage(loc, state.message))),
+                  );
+
+                  final filterState = context.read<StockFilterBloc>().state;
                   context.read<StockOverviewBloc>().add(LoadStockOverview(
                         query: filterState.searchQuery,
                         status: filterState.statusFilter,
                         supplierId: filterState.selectedSupplierId,
                         categoryId: filterState.selectedCategoryId,
                       ));
-                },
+                } else if (state is StockActivityActionError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content:
+                          Text(_localizedActionMessage(loc, state.message)),
+                      backgroundColor: colorScheme.error,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+          child: Column(
+            children: [
+              // 1. Actions Toolbar
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: DesktopDimensions.spacingMedium,
+                    vertical: DesktopDimensions.spacingStandard),
+                color: colorScheme.surface,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.purchase);
+                      },
+                      icon: const Icon(Icons.add_shopping_cart),
+                      label: Text(loc.newPurchase),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.tertiaryContainer,
+                        foregroundColor: colorScheme.onTertiaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: DesktopDimensions.spacingStandard),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        _tableFocusNode.requestFocus();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(loc.adjustStock)));
+                      },
+                      icon: const Icon(Icons.tune),
+                      label: Text(loc.adjustStock),
+                    ),
+                  ],
+                ),
               ),
-              BlocListener<StockActivityBloc, StockActivityState>(
-                listener: (context, state) {
-                  if (!mounted) return;
-                  if (state is StockActivityActionSuccess) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(_localizedActionMessage(loc, state.message))),
-                    );
 
-                    final filterState = context.read<StockFilterBloc>().state;
-                    context.read<StockOverviewBloc>().add(LoadStockOverview(
-                          query: filterState.searchQuery,
-                          status: filterState.statusFilter,
-                          supplierId: filterState.selectedSupplierId,
-                          categoryId: filterState.selectedCategoryId,
-                        ));
-                  } else if (state is StockActivityActionError) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(_localizedActionMessage(loc, state.message)),
-                        backgroundColor: colorScheme.error,
-                      ),
-                    );
-                  }
-                },
-              ),
-            ],
-            child: Column(
-              children: [
-                // 1. Actions Toolbar
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingMedium, 
-                    vertical: DesktopDimensions.spacingStandard
-                  ),
-                  color: colorScheme.surface,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+                  child: Column(
                     children: [
-                       ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pushNamed(context, AppRoutes.purchase);
+                      // 2. KPI Strip
+                      BlocBuilder<StockOverviewBloc, StockOverviewState>(
+                        builder: (context, state) {
+                          if (state is StockOverviewLoaded) {
+                            return _buildKPIStrip(
+                                context, loc, colorScheme, state.summary);
+                          }
+                          return _buildKPISkeleton(colorScheme);
                         },
-                        icon: const Icon(Icons.add_shopping_cart),
-                        label: Text(loc.newPurchase),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.tertiaryContainer,
-                          foregroundColor: colorScheme.onTertiaryContainer,
-                        ),
                       ),
-                      const SizedBox(width: DesktopDimensions.spacingStandard),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          _tableFocusNode.requestFocus();
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(loc.adjustStock)));
-                        },
-                        icon: const Icon(Icons.tune),
-                        label: Text(loc.adjustStock),
-                      ),
+                      const SizedBox(height: DesktopDimensions.spacingLarge),
+                      // 3. Filters
+                      _buildFilters(context, loc, colorScheme),
+                      const SizedBox(height: DesktopDimensions.spacingLarge),
+                      // 4. Main Content Area
+                      Expanded(
+                          child:
+                              _buildMainContentArea(context, loc, colorScheme)),
                     ],
                   ),
                 ),
-
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
-                    child: Column(
-                      children: [
-                        // 2. KPI Strip
-                        BlocBuilder<StockOverviewBloc, StockOverviewState>(
-                          builder: (context, state) {
-                            if (state is StockOverviewLoaded) {
-                              return _buildKPIStrip(
-                                  context, loc, colorScheme, state.summary);
-                            }
-                            return _buildKPISkeleton(colorScheme);
-                          },
-                        ),
-                        const SizedBox(height: DesktopDimensions.spacingLarge),
-                        // 3. Filters
-                        _buildFilters(context, loc, colorScheme),
-                        const SizedBox(height: DesktopDimensions.spacingLarge),
-                        // 4. Main Content Area
-                        Expanded(child: _buildMainContentArea(context, loc, colorScheme)),
-                      ],
-                    ),
-                  ),
-                ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
@@ -457,16 +504,18 @@ class _StockScreenState extends State<StockScreen> {
       children: [
         _buildKPICard(
             loc.totalItems, '${summary.totalItemsCount}', colorScheme.primary),
-        _buildKPICard(loc.stockValue,
-            summary.totalStockSalesValue.formattedNoDecimal, colorScheme.secondary),
+        _buildKPICard(
+            loc.stockValue,
+            summary.totalStockSalesValue.formattedNoDecimal,
+            colorScheme.secondary),
         _buildKPICard(loc.totalCost, summary.totalStockCost.formattedNoDecimal,
             colorScheme.onSurfaceVariant),
-        _buildKPICard(
-            loc.lowStock, '${summary.lowStockItemsCount}', colorScheme.tertiary),
-        _buildKPICard(
-            loc.outOfStock, '${summary.outOfStockItemsCount}', colorScheme.error),
-        _buildKPICard(
-            'Expired', '${summary.expiredOrNearExpiryCount}', colorScheme.onErrorContainer),
+        _buildKPICard(loc.lowStock, '${summary.lowStockItemsCount}',
+            colorScheme.tertiary),
+        _buildKPICard(loc.outOfStock, '${summary.outOfStockItemsCount}',
+            colorScheme.error),
+        _buildKPICard('Expired', '${summary.expiredOrNearExpiryCount}',
+            colorScheme.onErrorContainer),
       ],
     );
   }
@@ -478,7 +527,8 @@ class _StockScreenState extends State<StockScreen> {
         margin: const EdgeInsets.symmetric(
             horizontal: DesktopDimensions.spacingSmall),
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+            borderRadius:
+                BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
         child: Padding(
           padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
           child: Column(
@@ -508,132 +558,160 @@ class _StockScreenState extends State<StockScreen> {
     return Card(
       elevation: DesktopDimensions.cardElevation,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
       child: Padding(
         padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
         child: BlocBuilder<StockFilterBloc, StockFilterState>(
-        builder: (context, state) {
-          return Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      focusNode: _searchFocusNode,
-                      autofocus: true,
-                      onChanged: (val) =>
-                          context.read<StockFilterBloc>().add(SetSearchQuery(val)),
-                      decoration: InputDecoration(
-                        hintText: loc.searchStock,
-                        prefixIcon: const Icon(Icons.search),
+          builder: (context, state) {
+            return Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        focusNode: _searchFocusNode,
+                        autofocus: true,
+                        onChanged: (val) => context
+                            .read<StockFilterBloc>()
+                            .add(SetSearchQuery(val)),
+                        decoration: InputDecoration(
+                          hintText: loc.searchStock,
+                          prefixIcon: const Icon(Icons.search),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: DesktopDimensions.spacingMedium),
-                  Expanded(
-                    child: DropdownButton<int>(
-                      value: state.selectedCategoryId,
-                      hint: Text(loc.categories),
-                      isExpanded: true,
-                      items: [
-                        DropdownMenuItem(value: null, child: Text(loc.all)),
-                        ...state.availableCategories
-                            .map((c) => DropdownMenuItem(
-                                  value: c['id'] as int,
-                                  child: Text(c['name_english']),
-                                )),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    Expanded(
+                      child: DropdownButton<int>(
+                        value: state.selectedCategoryId,
+                        hint: Text(loc.categories),
+                        isExpanded: true,
+                        items: [
+                          DropdownMenuItem(value: null, child: Text(loc.all)),
+                          ...state.availableCategories
+                              .map((c) => DropdownMenuItem(
+                                    value: c['id'] as int,
+                                    child: Text(c['name_english']),
+                                  )),
+                        ],
+                        onChanged: (v) => context
+                            .read<StockFilterBloc>()
+                            .add(SetCategoryFilter(v)),
+                      ),
+                    ),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    Expanded(
+                      child: DropdownButton<int>(
+                        value: state.selectedSupplierId,
+                        hint: Text(loc.selectSupplier),
+                        isExpanded: true,
+                        items: [
+                          DropdownMenuItem(value: null, child: Text(loc.all)),
+                          ...state.availableSuppliers
+                              .map((s) => DropdownMenuItem(
+                                    value: s['id'] as int,
+                                    child: Text(s['name_english']),
+                                  )),
+                        ],
+                        onChanged: (v) => context
+                            .read<StockFilterBloc>()
+                            .add(SetSupplierFilter(v)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
+                Row(
+                  children: [
+                    Wrap(
+                      spacing: DesktopDimensions.spacingMedium,
+                      children: [
+                        FilterChip(
+                          label: Text(loc.all),
+                          selected: state.statusFilter == 'ALL',
+                          onSelected: (v) => context
+                              .read<StockFilterBloc>()
+                              .add(SetStatusFilter('ALL')),
+                        ),
+                        FilterChip(
+                          label: Text(loc.lowStock),
+                          selected: state.statusFilter == 'LOW',
+                          onSelected: (v) => context
+                              .read<StockFilterBloc>()
+                              .add(SetStatusFilter('LOW')),
+                          backgroundColor:
+                              colorScheme.tertiaryContainer.withOpacity(0.3),
+                          selectedColor: colorScheme.tertiaryContainer,
+                          shape: StadiumBorder(
+                              side: BorderSide(
+                                  color: state.statusFilter == 'LOW'
+                                      ? colorScheme.tertiary
+                                      : Colors.transparent)),
+                        ),
+                        FilterChip(
+                          label: Text(loc.outOfStock),
+                          selected: state.statusFilter == 'OUT',
+                          onSelected: (v) => context
+                              .read<StockFilterBloc>()
+                              .add(SetStatusFilter('OUT')),
+                          backgroundColor:
+                              colorScheme.errorContainer.withOpacity(0.3),
+                          selectedColor: colorScheme.errorContainer,
+                          shape: StadiumBorder(
+                              side: BorderSide(
+                                  color: state.statusFilter == 'OUT'
+                                      ? colorScheme.error
+                                      : Colors.transparent)),
+                        ),
+                        FilterChip(
+                          label: const Text('Expired'),
+                          selected: state.statusFilter == 'EXPIRED',
+                          onSelected: (v) => context
+                              .read<StockFilterBloc>()
+                              .add(SetStatusFilter('EXPIRED')),
+                          backgroundColor:
+                              colorScheme.onErrorContainer.withOpacity(0.3),
+                          selectedColor: colorScheme.onErrorContainer,
+                          shape: StadiumBorder(
+                              side: BorderSide(
+                                  color: state.statusFilter == 'EXPIRED'
+                                      ? colorScheme.onError
+                                      : Colors.transparent)),
+                        ),
+                        FilterChip(
+                          label: const Text('Old Stock'),
+                          selected: state.statusFilter == 'OLD',
+                          onSelected: (v) => context
+                              .read<StockFilterBloc>()
+                              .add(SetStatusFilter('OLD')),
+                          backgroundColor:
+                              colorScheme.secondaryContainer.withOpacity(0.3),
+                          selectedColor: colorScheme.secondaryContainer,
+                          shape: StadiumBorder(
+                              side: BorderSide(
+                                  color: state.statusFilter == 'OLD'
+                                      ? colorScheme.secondary
+                                      : Colors.transparent)),
+                        ),
                       ],
-                      onChanged: (v) =>
-                          context.read<StockFilterBloc>().add(SetCategoryFilter(v)),
                     ),
-                  ),
-                  const SizedBox(width: DesktopDimensions.spacingMedium),
-                  Expanded(
-                    child: DropdownButton<int>(
-                      value: state.selectedSupplierId,
-                      hint: Text(loc.selectSupplier),
-                      isExpanded: true,
-                      items: [
-                        DropdownMenuItem(value: null, child: Text(loc.all)),
-                        ...state.availableSuppliers
-                            .map((s) => DropdownMenuItem(
-                                  value: s['id'] as int,
-                                  child: Text(s['name_english']),
-                                )),
-                      ],
-                      onChanged: (v) =>
-                          context.read<StockFilterBloc>().add(SetSupplierFilter(v)),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: DesktopDimensions.spacingMedium),
-              Row(
-                children: [
-                  Wrap(
-                    spacing: DesktopDimensions.spacingMedium,
-                    children: [
-                      FilterChip(
-                        label: Text(loc.all),
-                        selected: state.statusFilter == 'ALL',
-                        onSelected: (v) => context
-                            .read<StockFilterBloc>()
-                            .add(SetStatusFilter('ALL')),
-                      ),
-                      FilterChip(
-                        label: Text(loc.lowStock),
-                        selected: state.statusFilter == 'LOW',
-                        onSelected: (v) => context
-                            .read<StockFilterBloc>()
-                            .add(SetStatusFilter('LOW')),
-                        backgroundColor: colorScheme.tertiaryContainer.withOpacity(0.3),
-                        selectedColor: colorScheme.tertiaryContainer,
-                        shape: StadiumBorder(side: BorderSide(color: state.statusFilter == 'LOW' ? colorScheme.tertiary : Colors.transparent)),
-                      ),
-                      FilterChip(
-                        label: Text(loc.outOfStock),
-                        selected: state.statusFilter == 'OUT',
-                        onSelected: (v) => context
-                            .read<StockFilterBloc>()
-                            .add(SetStatusFilter('OUT')),
-                        backgroundColor: colorScheme.errorContainer.withOpacity(0.3),
-                        selectedColor: colorScheme.errorContainer,
-                        shape: StadiumBorder(side: BorderSide(color: state.statusFilter == 'OUT' ? colorScheme.error : Colors.transparent)),
-                      ),
-                      FilterChip(
-                        label: const Text('Expired'),
-                        selected: state.statusFilter == 'EXPIRED',
-                        onSelected: (v) => context
-                            .read<StockFilterBloc>()
-                            .add(SetStatusFilter('EXPIRED')),
-                        backgroundColor: colorScheme.onErrorContainer.withOpacity(0.3),
-                        selectedColor: colorScheme.onErrorContainer,
-                        shape: StadiumBorder(side: BorderSide(color: state.statusFilter == 'EXPIRED' ? colorScheme.onError : Colors.transparent)),
-                      ),
-                      FilterChip(
-                        label: const Text('Old Stock'),
-                        selected: state.statusFilter == 'OLD',
-                        onSelected: (v) => context
-                            .read<StockFilterBloc>()
-                            .add(SetStatusFilter('OLD')),
-                        backgroundColor: colorScheme.secondaryContainer.withOpacity(0.3),
-                        selectedColor: colorScheme.secondaryContainer,
-                        shape: StadiumBorder(side: BorderSide(color: state.statusFilter == 'OLD' ? colorScheme.secondary : Colors.transparent)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
-        },
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  Widget _buildStockTable(BuildContext context, AppLocalizations loc,
-      ColorScheme colorScheme, List<StockItemEntity> items, bool hasReachedMax) {
+  Widget _buildStockTable(
+      BuildContext context,
+      AppLocalizations loc,
+      ColorScheme colorScheme,
+      List<StockItemEntity> items,
+      bool hasReachedMax) {
     void onSort(int columnIndex, bool ascending) {
       setState(() {
         _sortColumnIndex = columnIndex;
@@ -661,8 +739,7 @@ class _StockScreenState extends State<StockScreen> {
           result = a.currentStock.compareTo(b.currentStock);
           break;
         case 5:
-          result =
-              a.totalSalesValue.paisas.compareTo(b.totalSalesValue.paisas);
+          result = a.totalSalesValue.paisas.compareTo(b.totalSalesValue.paisas);
           break;
       }
       return _isAscending ? result : -result;
@@ -704,18 +781,26 @@ class _StockScreenState extends State<StockScreen> {
                   dataRowMaxHeight: DesktopDimensions.tableDataRowHeight,
                   headingRowColor:
                       MaterialStateProperty.all(colorScheme.primaryContainer),
-                  headingTextStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onPrimaryContainer,
-                  ),
+                  headingTextStyle:
+                      Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onPrimaryContainer,
+                          ),
                   columns: [
                     DataColumn(label: Text(loc.item), onSort: onSort),
                     DataColumn(label: Text(loc.category), onSort: onSort),
-                    DataColumn(label: Text(loc.cost), onSort: onSort, numeric: true),
-                    DataColumn(label: const Text('Cost'), onSort: onSort, numeric: true),
-                    DataColumn(label: Text(loc.price), onSort: onSort, numeric: true),
-                    DataColumn(label: Text(loc.quantity), onSort: onSort, numeric: true),
-                    DataColumn(label: Text(loc.stockValue), onSort: onSort, numeric: true),
+                    DataColumn(
+                        label: Text(loc.cost), onSort: onSort, numeric: true),
+                    DataColumn(
+                        label: Text(loc.price), onSort: onSort, numeric: true),
+                    DataColumn(
+                        label: Text(loc.quantity),
+                        onSort: onSort,
+                        numeric: true),
+                    DataColumn(
+                        label: Text(loc.stockValue),
+                        onSort: onSort,
+                        numeric: true),
                     DataColumn(label: Text(loc.status)),
                     DataColumn(label: Text(loc.actions)),
                   ],
@@ -735,8 +820,8 @@ class _StockScreenState extends State<StockScreen> {
                           _openAdjustStockPanel(item);
                         }
                       },
-                      color: MaterialStateProperty.resolveWith<Color?>(
-                          (states) {
+                      color:
+                          MaterialStateProperty.resolveWith<Color?>((states) {
                         if (isSelected) {
                           return colorScheme.primaryContainer.withOpacity(0.3);
                         }
@@ -768,7 +853,9 @@ class _StockScreenState extends State<StockScreen> {
                                   DesktopDimensions.extraSmallBorderRadius),
                             ),
                             child: Text(
-                              isOut ? loc.outOfStock : (isLow ? loc.lowStock : loc.ok),
+                              isOut
+                                  ? loc.outOfStock
+                                  : (isLow ? loc.lowStock : loc.ok),
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall
@@ -814,7 +901,7 @@ class _StockScreenState extends State<StockScreen> {
                               PopupMenuItem<String>(
                                   value: 'history',
                                   child: ListTile(
-                                      leading: Icon(Icons.history),
+                                      leading: const Icon(Icons.history),
                                       title: Text(loc.recentActivities))),
                             ],
                           ),
@@ -830,8 +917,9 @@ class _StockScreenState extends State<StockScreen> {
             Padding(
               padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
               child: TextButton(
-                onPressed: () =>
-                    context.read<StockOverviewBloc>().add(LoadMoreStockOverview()),
+                onPressed: () => context
+                    .read<StockOverviewBloc>()
+                    .add(LoadMoreStockOverview()),
                 child: const Text('Load More Items'),
               ),
             ),
@@ -846,28 +934,43 @@ class _StockScreenState extends State<StockScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(DesktopDimensions.cardBorderRadius)),
+        borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(DesktopDimensions.cardBorderRadius)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SkeletonLoader(width: 200, height: DesktopDimensions.headingSize),
+            const SkeletonLoader(
+                width: 200, height: DesktopDimensions.headingSize),
             const SizedBox(height: DesktopDimensions.spacingLarge),
             Expanded(
               child: ListView.separated(
                 itemCount: 10,
-                separatorBuilder: (_, __) => const SizedBox(height: DesktopDimensions.spacingMedium),
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: DesktopDimensions.spacingMedium),
                 itemBuilder: (_, __) => const Row(
                   children: [
-                    Expanded(flex: 2, child: SkeletonLoader(height: DesktopDimensions.bodySize)),
+                    Expanded(
+                        flex: 2,
+                        child:
+                            SkeletonLoader(height: DesktopDimensions.bodySize)),
                     SizedBox(width: DesktopDimensions.spacingMedium),
-                    Expanded(flex: 1, child: SkeletonLoader(height: DesktopDimensions.bodySize)),
+                    Expanded(
+                        flex: 1,
+                        child:
+                            SkeletonLoader(height: DesktopDimensions.bodySize)),
                     SizedBox(width: DesktopDimensions.spacingMedium),
-                    Expanded(flex: 1, child: SkeletonLoader(height: DesktopDimensions.bodySize)),
+                    Expanded(
+                        flex: 1,
+                        child:
+                            SkeletonLoader(height: DesktopDimensions.bodySize)),
                     SizedBox(width: DesktopDimensions.spacingMedium),
-                    Expanded(flex: 1, child: SkeletonLoader(height: DesktopDimensions.bodySize)),
+                    Expanded(
+                        flex: 1,
+                        child:
+                            SkeletonLoader(height: DesktopDimensions.bodySize)),
                   ],
                 ),
               ),
@@ -884,20 +987,24 @@ class _StockScreenState extends State<StockScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(DesktopDimensions.cardBorderRadius)),
+        borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(DesktopDimensions.cardBorderRadius)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SkeletonLoader(width: 150, height: DesktopDimensions.headingSize),
+            const SkeletonLoader(
+                width: 150, height: DesktopDimensions.headingSize),
             const SizedBox(height: DesktopDimensions.spacingLarge),
             Expanded(
               child: ListView.separated(
                 itemCount: 5,
-                separatorBuilder: (_, __) => const SizedBox(height: DesktopDimensions.spacingStandard),
-                itemBuilder: (_, __) => const SkeletonLoader(height: DesktopDimensions.bodySize * 2),
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: DesktopDimensions.spacingStandard),
+                itemBuilder: (_, __) => const SkeletonLoader(
+                    height: DesktopDimensions.bodySize * 2),
               ),
             ),
           ],
@@ -908,20 +1015,30 @@ class _StockScreenState extends State<StockScreen> {
 
   Widget _buildKPISkeleton(ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium, vertical: DesktopDimensions.spacingStandard),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingMedium,
+          vertical: DesktopDimensions.spacingStandard),
       color: colorScheme.surfaceVariant.withOpacity(0.3),
-      child: const Row(children: [Expanded(child: SkeletonLoader(height: DesktopDimensions.kpiHeight))]),
+      child: const Row(children: [
+        Expanded(child: SkeletonLoader(height: DesktopDimensions.kpiHeight))
+      ]),
     );
   }
 
-  Widget _buildRecentActivities(BuildContext context, AppLocalizations loc, ColorScheme colorScheme, List<StockActivityEntity> activities, bool hasReachedMax) {
+  Widget _buildRecentActivities(
+      BuildContext context,
+      AppLocalizations loc,
+      ColorScheme colorScheme,
+      List<StockActivityEntity> activities,
+      bool hasReachedMax) {
     final textTheme = Theme.of(context).textTheme;
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(DesktopDimensions.cardBorderRadius)),
+        borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(DesktopDimensions.cardBorderRadius)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -930,12 +1047,14 @@ class _StockScreenState extends State<StockScreen> {
             padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
             child: Row(
               children: [
-                const Icon(Icons.history, size: DesktopDimensions.iconSizeSmallMedium),
+                const Icon(Icons.history,
+                    size: DesktopDimensions.iconSizeSmallMedium),
                 const SizedBox(width: DesktopDimensions.spacingSmall),
                 Text(
                   loc.recentActivities,
-                  style: textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                  style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface),
                 ),
               ],
             ),
@@ -956,47 +1075,71 @@ class _StockScreenState extends State<StockScreen> {
                 ],
                 rows: activities.map((act) {
                   Color typeColor = colorScheme.onSurfaceVariant;
-                  if (act.type == ActivityType.sale) typeColor = colorScheme.primary;
-                  if (act.type == ActivityType.adjustment) typeColor = colorScheme.tertiary;
-                  if (act.type == ActivityType.purchase) typeColor = colorScheme.secondary;
+                  if (act.type == ActivityType.sale) {
+                    typeColor = colorScheme.primary;
+                  }
+                  if (act.type == ActivityType.adjustment) {
+                    typeColor = colorScheme.tertiary;
+                  }
+                  if (act.type == ActivityType.purchase) {
+                    typeColor = colorScheme.secondary;
+                  }
 
                   final qty = act.quantityChange;
-                  final qtyColor = qty > 0 ? colorScheme.secondary : (qty < 0 ? colorScheme.error : colorScheme.onSurface);
-                  final dateStr = act.timestamp.toString().substring(0, 16).replaceFirst('T', ' ');
+                  final qtyColor = qty > 0
+                      ? colorScheme.secondary
+                      : (qty < 0 ? colorScheme.error : colorScheme.onSurface);
+                  final dateStr = act.timestamp
+                      .toString()
+                      .substring(0, 16)
+                      .replaceFirst('T', ' ');
 
                   return DataRow(
                     cells: [
                       DataCell(Text(dateStr, style: textTheme.bodySmall)),
                       DataCell(Row(
                         children: [
-                          Icon(Icons.circle, size: DesktopDimensions.iconSizeXXXSmall, color: typeColor),
+                          Icon(Icons.circle,
+                              size: DesktopDimensions.iconSizeXXXSmall,
+                              color: typeColor),
                           const SizedBox(width: DesktopDimensions.spacingSmall),
-                          Text(act.type.name.toUpperCase(), style: textTheme.bodySmall),
+                          Text(act.type.name.toUpperCase(),
+                              style: textTheme.bodySmall),
                         ],
                       )),
-                      DataCell(Text(act.referenceNumber, style: textTheme.bodySmall)),
+                      DataCell(Text(act.referenceNumber,
+                          style: textTheme.bodySmall)),
                       DataCell(Text(
                         qty > 0 ? '+$qty' : '$qty',
-                        style: textTheme.bodySmall?.copyWith(color: qtyColor, fontWeight: FontWeight.bold),
+                        style: textTheme.bodySmall?.copyWith(
+                            color: qtyColor, fontWeight: FontWeight.bold),
                       )),
                       DataCell(Text(act.user, style: textTheme.bodySmall)),
                       DataCell(Container(
-                        padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingSmall, vertical: DesktopDimensions.spacingXSmall),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: DesktopDimensions.spacingSmall,
+                            vertical: DesktopDimensions.spacingXSmall),
                         decoration: BoxDecoration(
-                          color: act.status == 'CANCELLED' ? colorScheme.errorContainer.withOpacity(0.5) : colorScheme.primaryContainer.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(DesktopDimensions.extraSmallBorderRadius),
+                          color: act.status == 'CANCELLED'
+                              ? colorScheme.errorContainer.withOpacity(0.5)
+                              : colorScheme.primaryContainer.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.extraSmallBorderRadius),
                         ),
                         child: Text(
                           act.status,
                           style: textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: act.status == 'CANCELLED' ? colorScheme.onErrorContainer : colorScheme.onPrimaryContainer,
+                            color: act.status == 'CANCELLED'
+                                ? colorScheme.onErrorContainer
+                                : colorScheme.onPrimaryContainer,
                           ),
                         ),
                       )),
                       DataCell(
                         IconButton(
-                          icon: const Icon(Icons.visibility, size: DesktopDimensions.iconSizeSmallMedium),
+                          icon: const Icon(Icons.visibility,
+                              size: DesktopDimensions.iconSizeSmallMedium),
                           onPressed: () {
                             _openSidePanel(
                               '${loc.activityType}: ${act.referenceNumber}',
@@ -1016,7 +1159,9 @@ class _StockScreenState extends State<StockScreen> {
               padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
               child: TextButton(
                 onPressed: () {
-                  context.read<StockActivityBloc>().add(LoadMoreStockActivities());
+                  context
+                      .read<StockActivityBloc>()
+                      .add(LoadMoreStockActivities());
                 },
                 child: const Text('Load More'),
               ),
@@ -1026,7 +1171,8 @@ class _StockScreenState extends State<StockScreen> {
     );
   }
 
-  Widget _buildMainContentArea(BuildContext context, AppLocalizations loc, ColorScheme colorScheme) {
+  Widget _buildMainContentArea(
+      BuildContext context, AppLocalizations loc, ColorScheme colorScheme) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1041,9 +1187,11 @@ class _StockScreenState extends State<StockScreen> {
                 child: Card(
                   elevation: DesktopDimensions.cardElevation,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                      borderRadius: BorderRadius.circular(
+                          DesktopDimensions.cardBorderRadius)),
                   child: Padding(
-                    padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                    padding:
+                        const EdgeInsets.all(DesktopDimensions.cardPadding),
                     child: BlocBuilder<StockOverviewBloc, StockOverviewState>(
                       builder: (context, state) {
                         if (state is StockOverviewLoading) {
@@ -1056,8 +1204,8 @@ class _StockScreenState extends State<StockScreen> {
                         }
                         if (state is StockOverviewLoaded) {
                           final hasReachedMax = state.hasReachedMax;
-                          return _buildStockTable(
-                              context, loc, colorScheme, state.items, hasReachedMax);
+                          return _buildStockTable(context, loc, colorScheme,
+                              state.items, hasReachedMax);
                         }
                         return const SizedBox.shrink();
                       },
@@ -1072,9 +1220,11 @@ class _StockScreenState extends State<StockScreen> {
                 child: Card(
                   elevation: DesktopDimensions.cardElevation,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                      borderRadius: BorderRadius.circular(
+                          DesktopDimensions.cardBorderRadius)),
                   child: Padding(
-                    padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                    padding:
+                        const EdgeInsets.all(DesktopDimensions.cardPadding),
                     child: BlocBuilder<StockActivityBloc, StockActivityState>(
                       builder: (context, state) {
                         if (state is StockActivityLoading) {
@@ -1086,8 +1236,12 @@ class _StockScreenState extends State<StockScreen> {
                         if (state is StockActivityLoaded) {
                           _lastLoadedActivities = state.activities;
                           _lastActivitiesReachedMax = state.hasReachedMax;
-                          return _buildRecentActivities(context, loc, colorScheme,
-                              state.activities, state.hasReachedMax);
+                          return _buildRecentActivities(
+                              context,
+                              loc,
+                              colorScheme,
+                              state.activities,
+                              state.hasReachedMax);
                         }
                         if (state is StockActivityActionSuccess ||
                             state is StockActivityActionError) {
@@ -1117,24 +1271,30 @@ class _StockScreenState extends State<StockScreen> {
             child: Card(
               elevation: DesktopDimensions.cardElevation,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.cardBorderRadius)),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.cardBorderRadius),
                 child: Column(
                   children: [
                     // Panel Header
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium, vertical: DesktopDimensions.spacingStandard),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: DesktopDimensions.spacingMedium,
+                          vertical: DesktopDimensions.spacingStandard),
                       color: colorScheme.surfaceVariant.withOpacity(0.3),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
                               _sidePanelTitle,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -1168,14 +1328,30 @@ class _StockScreenState extends State<StockScreen> {
 class RefreshIntent extends Intent {
   const RefreshIntent();
 }
+
 class ActivateSearchIntent extends Intent {
   const ActivateSearchIntent();
 }
-class ClosePanelIntent extends Intent { const ClosePanelIntent(); }
-class MoveSelectionUpIntent extends Intent { const MoveSelectionUpIntent(); }
-class MoveSelectionDownIntent extends Intent { const MoveSelectionDownIntent(); }
-class ActivateSelectionIntent extends Intent { const ActivateSelectionIntent(); }
-class NewPurchaseIntent extends Intent { const NewPurchaseIntent(); }
+
+class ClosePanelIntent extends Intent {
+  const ClosePanelIntent();
+}
+
+class MoveSelectionUpIntent extends Intent {
+  const MoveSelectionUpIntent();
+}
+
+class MoveSelectionDownIntent extends Intent {
+  const MoveSelectionDownIntent();
+}
+
+class ActivateSelectionIntent extends Intent {
+  const ActivateSelectionIntent();
+}
+
+class NewPurchaseIntent extends Intent {
+  const NewPurchaseIntent();
+}
 
 class _StockAdjustmentForm extends StatefulWidget {
   final StockItemEntity item;
@@ -1201,7 +1377,9 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
   void initState() {
     super.initState();
     _quantityCtrl = TextEditingController(
-      text: widget.item.currentStock.toStringAsFixed(2).replaceAll(RegExp(r'\.00$'), ''),
+      text: widget.item.currentStock
+          .toStringAsFixed(2)
+          .replaceAll(RegExp(r'\.00$'), ''),
     );
   }
 
@@ -1222,7 +1400,8 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('${loc.stock}: ${widget.item.currentStock} ${widget.item.unit}'),
+            Text(
+                '${loc.stock}: ${widget.item.currentStock} ${widget.item.unit}'),
             const SizedBox(height: DesktopDimensions.spacingMedium),
             TextFormField(
               controller: _quantityCtrl,
@@ -1231,7 +1410,8 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
                 labelText: loc.quantity,
                 border: const OutlineInputBorder(),
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
                 if (value == null || value.isEmpty) return loc.required;
                 if (double.tryParse(value) == null) return loc.invalidAmount;
@@ -1245,7 +1425,8 @@ class _StockAdjustmentFormState extends State<_StockAdjustmentForm> {
                 labelText: loc.description,
                 border: const OutlineInputBorder(),
               ),
-              validator: (value) => value == null || value.isEmpty ? loc.required : null,
+              validator: (value) =>
+                  value == null || value.isEmpty ? loc.required : null,
               onFieldSubmitted: (_) => _submit(),
             ),
             const SizedBox(height: DesktopDimensions.spacingLarge),

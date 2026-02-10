@@ -351,7 +351,27 @@ class DatabaseHelper {
         FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
       )
     ''');
-    
+
+    // 22. Stock Activities
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS stock_activities (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        product_id INTEGER NOT NULL,
+        quantity_change INTEGER NOT NULL,
+        transaction_type TEXT NOT NULL,
+        reference_type TEXT NOT NULL,
+        reference_id INTEGER NOT NULL,
+        user TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE INDEX IF NOT EXISTS idx_stock_activities_product
+      ON stock_activities(product_id)
+    ''');
+
     // Performance Indexes (Ensure these exist on fresh install)
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_products_name_english ON products(name_english)');

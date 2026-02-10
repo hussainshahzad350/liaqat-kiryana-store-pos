@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/sales/sales_bloc.dart';
 import '../../bloc/sales/sales_event.dart';
 import '../../bloc/sales/sales_state.dart';
+import '../../core/repositories/receipt_repository.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
 import '../../l10n/app_localizations.dart';
@@ -73,6 +74,8 @@ class _SalesScreenState extends State<SalesScreen> {
         .add(CartItemUpdated(index: index, quantity: quantity, price: price));
   }
 
+  final ReceiptRepository _receiptRepository = ReceiptRepository();
+
   @override
   void initState() {
     super.initState();
@@ -90,6 +93,10 @@ class _SalesScreenState extends State<SalesScreen> {
     _productSearchDebounce?.cancel();
     _customerSearchDebounce?.cancel();
     super.dispose();
+  }
+
+  void _loadRecentInvoices() {
+    _refreshAllData();
   }
 
   Future<bool> _onWillPop() async {
@@ -289,47 +296,20 @@ class _SalesScreenState extends State<SalesScreen> {
                         return;
                       }
 
-                      final Money creditLimit;
                       try {
-                        // Check if phone exists using exact-match query
-                        final phoneExists = await customersRepo
-                            .customerExistsByPhone(phoneNumber);
-
-                        if (phoneExists) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content:
-                                  Text('${loc.phoneExists}: "$phoneNumber"'),
-                              backgroundColor: colorScheme.error));
-                          return;
-                        }
-
-                        final newCustomer = Customer(
-                          nameEnglish: nameEngCtrl.text.trim(),
-                          nameUrdu: nameUrduCtrl.text.trim(),
-                          contactPrimary: phoneNumber,
-                          address: addressCtrl.text.trim(),
-                          creditLimit:
-                              Money.fromRupeesString(creditLimitCtrl.text)
-                                  .paisas,
-                        );
-
-                        final int id =
-                            await customersRepo.addCustomer(newCustomer);
-                        final Customer savedCustomer =
-                            newCustomer.copyWith(id: id);
-
-                        if (mounted) {
-                          _selectCustomer(savedCustomer);
-                          Navigator.of(context).pop();
-
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text(
-                                  "${loc.customerAdded}: '${nameEngCtrl.text}'"),
-                              backgroundColor: colorScheme.primary));
-                        }
-                      } catch (e) {
-                        creditLimit =
+                        final creditLimit =
                             Money.fromRupeesString(creditLimitCtrl.text);
+
+                        context.read<SalesBloc>().add(
+                              QuickCustomerAddRequested(
+                                nameEnglish: nameEngCtrl.text.trim(),
+                                nameUrdu: nameUrduCtrl.text.trim(),
+                                phone: phoneNumber,
+                                address: addressCtrl.text.trim(),
+                                creditLimitPaisas: creditLimit.paisas,
+                              ),
+                            );
+                        Navigator.of(context).pop();
                       } catch (_) {
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -337,17 +317,6 @@ class _SalesScreenState extends State<SalesScreen> {
                             backgroundColor: colorScheme.error));
                         return;
                       }
-
-                      context.read<SalesBloc>().add(
-                            QuickCustomerAddRequested(
-                              nameEnglish: nameEngCtrl.text.trim(),
-                              nameUrdu: nameUrduCtrl.text.trim(),
-                              phone: phoneNumber,
-                              address: addressCtrl.text.trim(),
-                              creditLimitPaisas: creditLimit.paisas,
-                            ),
-                          );
-                      Navigator.of(context).pop();
                     },
                     child: Text(loc.saveSelect),
                   ),
@@ -706,6 +675,10 @@ class _SalesScreenState extends State<SalesScreen> {
                     ElevatedButton(
                       onPressed: () async {
                         Money newLimit;
+                        // Check if dialog is still mounted before async operations
+                        final dialogMounted =
+                            dialogContext.findRenderObject() != null;
+                        if (!dialogMounted) return;
                         try {
                           newLimit = Money.fromRupeesString(limitCtrl.text);
                         } catch (_) {
@@ -722,66 +695,76 @@ class _SalesScreenState extends State<SalesScreen> {
                           return;
                         }
 
-                        salesBloc.add(
-                          CustomerCreditLimitUpdateRequested(
-                            customerId: selectedCustomerId!,
-                            newLimitPaisas: newLimit.paisas,
-                          ),
-                        );
+                        // Capture localized strings before async call
+                        final successLabel = loc.creditLimitUpdated;
+                        final errorLabel = loc.error;
+                        final newLimitStr = newLimit.toString();
 
-                        final updateResult = await salesBloc.stream.firstWhere(
-                          (state) =>
-                              state.creditLimitUpdateCustomerId ==
-                                  selectedCustomerId &&
-                              (state.creditLimitUpdateStatus ==
-                                      CreditLimitUpdateStatus.success ||
-                                  state.creditLimitUpdateStatus ==
-                                      CreditLimitUpdateStatus.error),
-                        );
-
-                        if (!mounted) return;
-
-                        if (updateResult.creditLimitUpdateStatus ==
-                            CreditLimitUpdateStatus.success) {
-                          salesBloc.add(CustomerSelected(selectedCustomerMap!
-                              .copyWith(creditLimit: newLimit.paisas)));
-
-                          if (Navigator.of(dialogContext).canPop()) {
-                            Navigator.pop(dialogContext);
                         try {
-                          salesBloc.add(CustomerCreditLimitUpdateRequested(
-                            customerId: selectedCustomerId!,
-                            newLimitPaisas: newLimit.paisas,
-                          ));
+                          salesBloc.add(
+                            CustomerCreditLimitUpdateRequested(
+                              customerId: selectedCustomerId!,
+                              newLimitPaisas: newLimit.paisas,
+                            ),
+                          );
 
-                          if (mounted) Navigator.pop(dialogContext);
-                          onLimitUpdated();
+                          final updateResult =
+                              await salesBloc.stream.firstWhere(
+                            (state) =>
+                                state.creditLimitUpdateCustomerId ==
+                                    selectedCustomerId &&
+                                (state.creditLimitUpdateStatus ==
+                                        CreditLimitUpdateStatus.success ||
+                                    state.creditLimitUpdateStatus ==
+                                        CreditLimitUpdateStatus.error),
+                          );
+
+                          if (!mounted) return;
+
+                          final successMsg = '$successLabel: $newLimitStr';
+                          final errorMsg = updateResult
+                                      .creditLimitUpdateError ==
+                                  null
+                              ? errorLabel
+                              : '$errorLabel: ${updateResult.creditLimitUpdateError}';
+
+                          if (updateResult.creditLimitUpdateStatus ==
+                              CreditLimitUpdateStatus.success) {
+                            salesBloc.add(CustomerSelected(selectedCustomerMap!
+                                .copyWith(creditLimit: newLimit.paisas)));
+
+                            if (dialogContext.mounted &&
+                                Navigator.of(dialogContext).canPop()) {
+                              Navigator.pop(dialogContext);
+                            }
+
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(successMsg),
+                                  backgroundColor: colorScheme.primary,
+                                ),
+                              );
+                            }
+                            onLimitUpdated();
+                          } else {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(errorMsg),
+                                  backgroundColor: colorScheme.error,
+                                ),
+                              );
+                            }
+                          }
                         } catch (e) {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                  content: Text('${loc.error}: $e'),
+                                  content: Text('$errorLabel: $e'),
                                   backgroundColor: colorScheme.error),
                             );
                           }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  '${loc.creditLimitUpdated}: ${newLimit.toString()}'),
-                              backgroundColor: colorScheme.primary,
-                            ),
-                          );
-                          onLimitUpdated();
-                        } else {
-                          final error = updateResult.creditLimitUpdateError;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(error == null
-                                  ? loc.error
-                                  : '${loc.error}: $error'),
-                              backgroundColor: colorScheme.error,
-                            ),
-                          );
                         }
                       },
                       child: Text(loc.updateLimit),
@@ -822,23 +805,13 @@ class _SalesScreenState extends State<SalesScreen> {
             final cashError = parsedCash == null ? loc.invalidAmount : null;
             final bankError = parsedBank == null ? loc.invalidAmount : null;
             final creditError = parsedCredit == null ? loc.invalidAmount : null;
-            final hasParseError =
-                cashError != null || bankError != null || (isRegistered && creditError != null);
+            final hasParseError = cashError != null ||
+                bankError != null ||
+                (isRegistered && creditError != null);
 
             final Money cash = parsedCash ?? Money.zero;
             final Money bank = parsedBank ?? Money.zero;
             final Money credit = parsedCredit ?? Money.zero;
-            Money _safeMoney(String text) {
-              try {
-                return Money.fromRupeesString(text);
-              } catch (_) {
-                return Money.zero;
-              }
-            }
-
-            Money cash = _safeMoney(cashCtrl.text);
-            Money bank = _safeMoney(bankCtrl.text);
-            Money credit = _safeMoney(creditCtrl.text);
             Money totalPayment = cash + bank + credit;
             Money change = const Money(0);
             bool isValid = false;
@@ -908,8 +881,8 @@ class _SalesScreenState extends State<SalesScreen> {
 
             return Dialog(
               shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.cardBorderRadius)),
               child: Container(
                 constraints: BoxConstraints(
                   minWidth: DesktopDimensions.dialogWidth * 1.5,
@@ -1003,8 +976,8 @@ class _SalesScreenState extends State<SalesScreen> {
                             _input(loc.cashInput, cashCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  Money cash = _safeMoney(cashCtrl.text);
-                                  Money bank = _safeMoney(bankCtrl.text);
+                                  Money cash = safeMoney(cashCtrl.text);
+                                  Money bank = safeMoney(bankCtrl.text);
                                   Money remaining = billTotal - cash - bank;
                                   creditCtrl.text = remaining > const Money(0)
                                       ? remaining.toRupeesString()
@@ -1015,8 +988,8 @@ class _SalesScreenState extends State<SalesScreen> {
                             _input(loc.bankInput, bankCtrl, (v) {
                               setDialogState(() {
                                 if (isRegistered) {
-                                  Money cash = _safeMoney(cashCtrl.text);
-                                  Money bank = _safeMoney(bankCtrl.text);
+                                  Money cash = safeMoney(cashCtrl.text);
+                                  Money bank = safeMoney(bankCtrl.text);
                                   Money remaining = billTotal - cash - bank;
                                   creditCtrl.text = remaining > const Money(0)
                                       ? remaining.toRupeesString()
@@ -1123,7 +1096,6 @@ class _SalesScreenState extends State<SalesScreen> {
     );
   }
 
-
   Money? _tryParseMoney(String text) {
     final normalized = text.replaceAll(',', '').trim();
     if (normalized.isEmpty) return Money.zero;
@@ -1132,6 +1104,11 @@ class _SalesScreenState extends State<SalesScreen> {
       return null;
     }
     return Money.fromRupeesString(normalized);
+  }
+
+  /// Safe money parser that returns Money(0) for invalid input
+  Money safeMoney(String text) {
+    return _tryParseMoney(text) ?? Money.zero;
   }
 
   Widget _input(
@@ -1243,40 +1220,42 @@ class _SalesScreenState extends State<SalesScreen> {
                   height: DesktopDimensions.buttonHeight,
                   child: OutlinedButton.icon(
                     onPressed: () async {
+                      // Capture theme values before async call
+                      final errorColor = colorScheme.error;
+
                       if (invoice.status == 'CANCELLED') {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content:
-                                  Text('Cannot save cancelled invoice as PDF'),
-                              backgroundColor: colorScheme.error,
+                              content: const Text(
+                                  'Cannot save cancelled invoice as PDF'),
+                              backgroundColor: errorColor,
                             ),
                           );
                         }
                         return;
                       }
 
+                      final scaffoldMessenger = ScaffoldMessenger.of(context);
                       try {
                         final path =
                             await _receiptRepository.saveReceiptAsPDF(invoice);
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          scaffoldMessenger.showSnackBar(
                             SnackBar(content: Text('Receipt saved to: $path')),
                           );
                         }
                       } catch (e) {
+                        final errorMsg = 'Error saving PDF: $e';
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          scaffoldMessenger.showSnackBar(
                             SnackBar(
-                                content: Text('Error saving PDF: $e'),
-                                backgroundColor: colorScheme.error),
+                                content: Text(errorMsg),
+                                backgroundColor: errorColor),
                           );
                         }
                       }
                     },
-                    onPressed: () => context
-                        .read<SalesBloc>()
-                        .add(ReceiptPdfSaveRequested(invoice)),
                     icon: const Icon(Icons.picture_as_pdf),
                     label: Text(loc.saveAsPdf),
                   ),
@@ -1315,6 +1294,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
   Future<void> _handlePrintReceipt(Invoice invoice) async {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     if (invoice.status == 'CANCELLED') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.cannotPrintCancelled)),
@@ -1342,11 +1322,13 @@ class _SalesScreenState extends State<SalesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('${loc.printError}: $e'),
-              backgroundColor: Theme.of(context).colorScheme.error),
+              backgroundColor: colorScheme.error),
         );
       }
     }
-    context.read<SalesBloc>().add(ReceiptPrintRequested(invoice));
+    if (mounted) {
+      context.read<SalesBloc>().add(ReceiptPrintRequested(invoice));
+    }
   }
 
   void _handleEditInvoice(Invoice invoice) {
@@ -1441,10 +1423,12 @@ class _SalesScreenState extends State<SalesScreen> {
       return;
     }
 
-    context.read<SalesBloc>().add(InvoiceCancelled(
-          invoiceId: id,
-          reason: reason,
-        ));
+    if (mounted) {
+      context.read<SalesBloc>().add(InvoiceCancelled(
+            invoiceId: id,
+            reason: reason,
+          ));
+    }
   }
 
   // ========================================
@@ -1492,13 +1476,15 @@ class _SalesScreenState extends State<SalesScreen> {
             child: BlocConsumer<SalesBloc, SalesState>(
               listener: (context, state) {
                 final quickAdded = state.quickAddedCustomer;
-                if (quickAdded != null && quickAdded.id != _lastHandledQuickCustomerId) {
+                if (quickAdded != null &&
+                    quickAdded.id != _lastHandledQuickCustomerId) {
                   _lastHandledQuickCustomerId = quickAdded.id;
                   customerSearchController.text =
                       "${quickAdded.nameEnglish} (${quickAdded.contactPrimary ?? ''})";
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("${loc.customerAdded}: '${quickAdded.nameEnglish}'"),
+                      content: Text(
+                          "${loc.customerAdded}: '${quickAdded.nameEnglish}'"),
                       backgroundColor: colorScheme.primary,
                     ),
                   );
@@ -1522,15 +1508,17 @@ class _SalesScreenState extends State<SalesScreen> {
                     );
                   }
                 } else if (state.status == SalesStatus.error) {
-                  final err = state.errorMessage == 'Cannot print cancelled invoice'
-                      ? loc.cannotPrintCancelled
-                      : state.errorMessage == 'Phone already exists'
-                          ? loc.phoneExistsError
-                          : state.errorMessage == 'Phone number is required'
-                              ? loc.phoneRequired
-                              : state.errorMessage == 'Name is required'
-                                  ? loc.nameRequired
-                                  : state.errorMessage ?? 'An unknown error occurred';
+                  final err =
+                      state.errorMessage == 'Cannot print cancelled invoice'
+                          ? loc.cannotPrintCancelled
+                          : state.errorMessage == 'Phone already exists'
+                              ? loc.phoneExistsError
+                              : state.errorMessage == 'Phone number is required'
+                                  ? loc.phoneRequired
+                                  : state.errorMessage == 'Name is required'
+                                      ? loc.nameRequired
+                                      : state.errorMessage ??
+                                          'An unknown error occurred';
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(err),
@@ -1541,38 +1529,42 @@ class _SalesScreenState extends State<SalesScreen> {
               },
               builder: (context, state) {
                 return Stack(
-                    children: [
-                      Column(
-                        children: [
-                          // Actions Toolbar
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: DesktopDimensions.spacingMedium,
-                                vertical: DesktopDimensions.spacingStandard),
-                            color: colorScheme.surface,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.refresh, size: DesktopDimensions.kpiIconSize),
-                                  color: colorScheme.primary,
-                                  onPressed: _refreshAllData,
-                                  tooltip: 'Refresh',
-                                ),
-                                const SizedBox(width: DesktopDimensions.spacingMedium),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_sweep, size: DesktopDimensions.kpiIconSize),
-                                  color: colorScheme.error,
-                                  onPressed: _clearCart,
-                                  tooltip: loc.clearCartTitle,
-                                ),
-                              ],
-                            ),
+                  children: [
+                    Column(
+                      children: [
+                        // Actions Toolbar
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: DesktopDimensions.spacingMedium,
+                              vertical: DesktopDimensions.spacingStandard),
+                          color: colorScheme.surface,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.refresh,
+                                    size: DesktopDimensions.kpiIconSize),
+                                color: colorScheme.primary,
+                                onPressed: _refreshAllData,
+                                tooltip: 'Refresh',
+                              ),
+                              const SizedBox(
+                                  width: DesktopDimensions.spacingMedium),
+                              IconButton(
+                                icon: const Icon(Icons.delete_sweep,
+                                    size: DesktopDimensions.kpiIconSize),
+                                color: colorScheme.error,
+                                onPressed: _clearCart,
+                                tooltip: loc.clearCartTitle,
+                              ),
+                            ],
                           ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
-                              child: LayoutBuilder(
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(
+                                DesktopDimensions.spacingMedium),
+                            child: LayoutBuilder(
                               builder: (context, constraints) {
                                 // Responsive Right Panel Width
                                 double rightPanelWidth = 500;
@@ -1596,13 +1588,17 @@ class _SalesScreenState extends State<SalesScreen> {
                                         children: [
                                           // Item Search
                                           Card(
-                                            elevation: DesktopDimensions.cardElevation,
+                                            elevation:
+                                                DesktopDimensions.cardElevation,
                                             shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(
-                                                    DesktopDimensions.cardBorderRadius)),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        DesktopDimensions
+                                                            .cardBorderRadius)),
                                             child: Padding(
                                               padding: const EdgeInsets.all(
-                                                  DesktopDimensions.cardPadding),
+                                                  DesktopDimensions
+                                                      .cardPadding),
                                               child: Focus(
                                                 onFocusChange: (hasFocus) {
                                                   if (hasFocus) {
@@ -1616,9 +1612,11 @@ class _SalesScreenState extends State<SalesScreen> {
                                                   focusNode:
                                                       _productSearchFocusNode,
                                                   decoration: InputDecoration(
-                                                    hintText: loc.searchItemHint,
+                                                    hintText:
+                                                        loc.searchItemHint,
                                                     isDense: true,
-                                                    prefixIcon: Icon(Icons.search,
+                                                    prefixIcon: Icon(
+                                                        Icons.search,
                                                         color: colorScheme
                                                             .onSurfaceVariant),
                                                     border: OutlineInputBorder(
@@ -1649,13 +1647,15 @@ class _SalesScreenState extends State<SalesScreen> {
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(height: DesktopDimensions.spacingMedium),
+                                          const SizedBox(
+                                              height: DesktopDimensions
+                                                  .spacingMedium),
 
                                           // Product Grid
                                           Expanded(
                                             child: LayoutBuilder(
-                                              builder: (context,
-                                                  gridConstraints) {
+                                              builder:
+                                                  (context, gridConstraints) {
                                                 int crossAxisCount =
                                                     (gridConstraints.maxWidth /
                                                             180)
@@ -1664,13 +1664,13 @@ class _SalesScreenState extends State<SalesScreen> {
                                                     crossAxisCount.clamp(4, 8);
 
                                                 return GridView.builder(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                          horizontal:
-                                                              DesktopDimensions
-                                                                  .spacingMedium,
-                                                          vertical: AppDimensions
-                                                              .spacingSmall),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal:
+                                                          DesktopDimensions
+                                                              .spacingMedium,
+                                                      vertical: AppDimensions
+                                                          .spacingSmall),
                                                   gridDelegate:
                                                       SliverGridDelegateWithFixedCrossAxisCount(
                                                     crossAxisCount:
@@ -1883,10 +1883,10 @@ class _SalesScreenState extends State<SalesScreen> {
                         ),
                       ],
                     ),
-                      if (state.status == SalesStatus.loading)
-                        _buildLoadingOverlay(loc, colorScheme),
-                    ],
-                  );
+                    if (state.status == SalesStatus.loading)
+                      _buildLoadingOverlay(loc, colorScheme),
+                  ],
+                );
               },
             ),
           ),
@@ -1941,8 +1941,7 @@ class _SalesScreenState extends State<SalesScreen> {
       clipBehavior: Clip.antiAlias,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
         side: BorderSide(
             color: isFocused
                 ? colorScheme.primary
@@ -2063,8 +2062,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 color: colorScheme.surfaceVariant.withOpacity(0.3),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(DesktopDimensions.cardBorderRadius),
-                  topRight:
-                      Radius.circular(DesktopDimensions.cardBorderRadius),
+                  topRight: Radius.circular(DesktopDimensions.cardBorderRadius),
                 ),
               ),
               width: double.infinity,
@@ -2134,22 +2132,18 @@ class _SalesScreenState extends State<SalesScreen> {
                                   value: 'print',
                                   child: Row(children: [
                                     const Icon(Icons.print,
-                                        size:
-                                            DesktopDimensions.iconSizeSmall),
+                                        size: DesktopDimensions.iconSizeSmall),
                                     const SizedBox(
-                                        width:
-                                            DesktopDimensions.spacingSmall),
+                                        width: DesktopDimensions.spacingSmall),
                                     Text('Print', style: textTheme.bodyMedium)
                                   ])),
                               PopupMenuItem(
                                   value: 'edit',
                                   child: Row(children: [
                                     const Icon(Icons.edit,
-                                        size:
-                                            DesktopDimensions.iconSizeSmall),
+                                        size: DesktopDimensions.iconSizeSmall),
                                     const SizedBox(
-                                        width:
-                                            DesktopDimensions.spacingSmall),
+                                        width: DesktopDimensions.spacingSmall),
                                     Text('Edit', style: textTheme.bodyMedium)
                                   ])),
                               PopupMenuItem(
@@ -2159,12 +2153,10 @@ class _SalesScreenState extends State<SalesScreen> {
                                         size: DesktopDimensions.iconSizeSmall,
                                         color: colorScheme.error),
                                     const SizedBox(
-                                        width:
-                                            DesktopDimensions.spacingSmall),
+                                        width: DesktopDimensions.spacingSmall),
                                     Text('Cancel',
-                                        style: textTheme.bodyMedium
-                                            ?.copyWith(
-                                                color: colorScheme.error))
+                                        style: textTheme.bodyMedium?.copyWith(
+                                            color: colorScheme.error))
                                   ])),
                             ] else ...[
                               PopupMenuItem(
@@ -2188,116 +2180,117 @@ class _SalesScreenState extends State<SalesScreen> {
 
   Widget _buildCustomerSection(AppLocalizations loc, ColorScheme colorScheme) {
     return Card(
-    elevation: DesktopDimensions.cardElevation,
-    shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
-    child: Padding(
-      padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: customerSearchController,
-                  decoration: InputDecoration(
-                    labelText: loc.searchCustomerHint,
-                    isDense: true,
-                    prefixIcon: Icon(Icons.person_search,
-                        color: colorScheme.onSurfaceVariant),
-                    suffixIcon: selectedCustomerId != null
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () => _selectCustomer(null))
-                        : null,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius / 2)),
-                    filled: true,
-                    fillColor: colorScheme.surfaceVariant,
-                  ),
-                  onChanged: _filterCustomers,
-                  onTap: () async {
-                    if (selectedCustomerId == null) {
-                      // Load initial list if empty
-                      if (customerSearchController.text.isEmpty &&
-                          filteredCustomers.isEmpty) {
-                        context
-                            .read<SalesBloc>()
-                            .add(const CustomerSearchChanged(' '));
-                      }
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(width: DesktopDimensions.spacingSmall),
-              SizedBox(
-                height: DesktopDimensions.buttonHeight,
-                width: DesktopDimensions.buttonHeight,
-                child: ElevatedButton(
-                  onPressed: _showAddCustomerDialog,
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    backgroundColor: colorScheme.primaryContainer,
-                    foregroundColor: colorScheme.onPrimaryContainer,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.buttonBorderRadius)),
-                  ),
-                  child: const Icon(Icons.person_add),
-                ),
-              ),
-            ],
-          ),
-          if (showCustomerList)
-            Container(
-              constraints: const BoxConstraints(maxHeight: 200),
-              margin:
-                  const EdgeInsets.only(top: DesktopDimensions.spacingXSmall),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                border: Border.all(color: colorScheme.outline),
-                borderRadius:
-                    BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
-                boxShadow: [
-                  BoxShadow(
-                      color: colorScheme.shadow.withOpacity(0.1),
-                      blurRadius: DesktopDimensions.spacingXSmall)
-                ],
-              ),
-              child: filteredCustomers.isEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(loc.noCustomersFound,
-                          style:
-                              TextStyle(color: colorScheme.onSurfaceVariant)),
-                    )
-                  : ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: filteredCustomers.length,
-                      separatorBuilder: (c, i) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final c = filteredCustomers[index];
-                        return ListTile(
-                          dense: true,
-                          title: Text(c.nameEnglish,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text(c.contactPrimary ?? ''),
-                          trailing: Text(
-                              '${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),
-                          onTap: () => _selectCustomer(c),
-                          hoverColor:
-                              colorScheme.primaryContainer.withOpacity(0.1),
-                        );
-                      },
+      elevation: DesktopDimensions.cardElevation,
+      shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+      child: Padding(
+        padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: customerSearchController,
+                    decoration: InputDecoration(
+                      labelText: loc.searchCustomerHint,
+                      isDense: true,
+                      prefixIcon: Icon(Icons.person_search,
+                          color: colorScheme.onSurfaceVariant),
+                      suffixIcon: selectedCustomerId != null
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () => _selectCustomer(null))
+                          : null,
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.cardBorderRadius / 2)),
+                      filled: true,
+                      fillColor: colorScheme.surfaceVariant,
                     ),
+                    onChanged: _filterCustomers,
+                    onTap: () async {
+                      if (selectedCustomerId == null) {
+                        // Load initial list if empty
+                        if (customerSearchController.text.isEmpty &&
+                            filteredCustomers.isEmpty) {
+                          context
+                              .read<SalesBloc>()
+                              .add(const CustomerSearchChanged(' '));
+                        }
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: DesktopDimensions.spacingSmall),
+                SizedBox(
+                  height: DesktopDimensions.buttonHeight,
+                  width: DesktopDimensions.buttonHeight,
+                  child: ElevatedButton(
+                    onPressed: _showAddCustomerDialog,
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      backgroundColor: colorScheme.primaryContainer,
+                      foregroundColor: colorScheme.onPrimaryContainer,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              DesktopDimensions.buttonBorderRadius)),
+                    ),
+                    child: const Icon(Icons.person_add),
+                  ),
+                ),
+              ],
             ),
-        ],
+            if (showCustomerList)
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                margin:
+                    const EdgeInsets.only(top: DesktopDimensions.spacingXSmall),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  border: Border.all(color: colorScheme.outline),
+                  borderRadius: BorderRadius.circular(
+                      DesktopDimensions.buttonBorderRadius),
+                  boxShadow: [
+                    BoxShadow(
+                        color: colorScheme.shadow.withOpacity(0.1),
+                        blurRadius: DesktopDimensions.spacingXSmall)
+                  ],
+                ),
+                child: filteredCustomers.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(loc.noCustomersFound,
+                            style:
+                                TextStyle(color: colorScheme.onSurfaceVariant)),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: filteredCustomers.length,
+                        separatorBuilder: (c, i) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final c = filteredCustomers[index];
+                          return ListTile(
+                            dense: true,
+                            title: Text(c.nameEnglish,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                            subtitle: Text(c.contactPrimary ?? ''),
+                            trailing: Text(
+                                '${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),
+                            onTap: () => _selectCustomer(c),
+                            hoverColor:
+                                colorScheme.primaryContainer.withOpacity(0.1),
+                          );
+                        },
+                      ),
+              ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildTotalsSection(AppLocalizations loc, ColorScheme colorScheme) {
     final textTheme = Theme.of(context).textTheme;
@@ -2342,8 +2335,8 @@ class _SalesScreenState extends State<SalesScreen> {
                           DesktopDimensions.buttonBorderRadius)),
                   hintText: '0',
                 ),
-                style: textTheme.bodyLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style:
+                    textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                 onChanged: (_) => setState(() => _calculateTotals()),
               ),
             ),
@@ -2547,8 +2540,8 @@ class _CartItemRowState extends State<_CartItemRow> {
                 ),
                 if (widget.item.itemCode != null)
                   Text(widget.item.itemCode!,
-                      style: textTheme.labelSmall
-                          ?.copyWith(color: widget.colorScheme.onSurfaceVariant)),
+                      style: textTheme.labelSmall?.copyWith(
+                          color: widget.colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -2588,8 +2581,8 @@ class _CartItemRowState extends State<_CartItemRow> {
                     borderRadius: BorderRadius.circular(
                         DesktopDimensions.formFieldBorderRadius)),
               ),
-              style: textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style:
+                  textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               onChanged: (_) => _onChanged(),
             ),
           ),
@@ -2599,8 +2592,8 @@ class _CartItemRowState extends State<_CartItemRow> {
             child: Text(
               widget.item.total.toString().replaceAll('Rs ', ''),
               textAlign: TextAlign.end,
-              style: textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style:
+                  textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           SizedBox(

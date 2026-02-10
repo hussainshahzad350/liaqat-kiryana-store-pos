@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Gemini: Review Current File",
+      "type": "shell",
+      "command": "type \"${file}\" | gemini prompt \"Audit this file for clean architecture, performance and security issues\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "Gemini: Explain Current File",
+      "type": "shell",
+      "command": "type \"${file}\" | gemini prompt \"Explain this file in simple structured way\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "Gemini: Flutter Optimization Check",
+      "type": "shell",
+      "command": "type \"${file}\" | gemini prompt \"Check this Flutter code for rebuild issues and state management problems\"",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -8,8 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart'; // Keep for PdfColor
 import '../../services/ledger_export_service.dart';
 import '../../core/constants/desktop_dimensions.dart';
-import '../../widgets/main_layout.dart';
-import '../../core/routes/app_routes.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -28,11 +26,14 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   bool _isLoadMoreRunning = false;
   int _page = 0;
   final int _limit = 20;
-  
+
   // Stats
-  int countTotal = 0; int balTotal = 0;
-  int countActive = 0; int balActive = 0;
-  int countArchived = 0; int balArchived = 0;
+  int countTotal = 0;
+  int balTotal = 0;
+  int countActive = 0;
+  int balActive = 0;
+  int countArchived = 0;
+  int balArchived = 0;
 
   // Ledger State
   bool _showArchiveOverlay = false;
@@ -41,7 +42,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   final Map<int, List<Map<String, dynamic>>> _billItemsCache = {};
   int? _expandedRowIndex;
   bool _isLedgerLoading = false;
-  
+
   // Ledger Filters
   DateTime? _ledgerStartDate;
   DateTime? _ledgerEndDate;
@@ -216,7 +217,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     return _currentLedger.where((row) {
       // 1. Type Filter
       if (_ledgerFilterType == 'BILL' && row['type'] != 'BILL') return false;
-      if (_ledgerFilterType == 'PAYMENT' && row['type'] != 'PAYMENT') return false;
+      if (_ledgerFilterType == 'PAYMENT' && row['type'] != 'PAYMENT') {
+        return false;
+      }
 
       // 2. Search Filter
       if (_ledgerSearchQuery.isNotEmpty) {
@@ -257,10 +260,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
   Future<void> _handleExport(AppLocalizations loc) async {
     if (_selectedSupplierForLedger == null) return;
-    
+
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -275,8 +278,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 Navigator.pop(context);
                 final service = LedgerExportService();
                 await service.exportSupplierLedgerToPdf(
-                  _currentLedger, 
-                  _selectedSupplierForLedger!, 
+                  _currentLedger,
+                  _selectedSupplierForLedger!,
                   isUrdu: isUrdu,
                   headerColor: PdfColor.fromInt(colorScheme.primary.value),
                 );
@@ -286,10 +289,16 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               leading: const Icon(Icons.table_chart, color: Colors.green),
               title: const Text('Export to Excel (CSV)'),
               onTap: () async {
-                Navigator.pop(context);
+                final messenger = ScaffoldMessenger.of(context);
+
+                Navigator.of(context).pop();
                 final service = LedgerExportService();
-                final path = await service.exportSupplierLedgerToCsv(_currentLedger, _selectedSupplierForLedger!);
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Saved to: $path')));
+                final path = await service.exportSupplierLedgerToCsv(
+                    _currentLedger, _selectedSupplierForLedger!);
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  SnackBar(content: Text('Saved to: $path')),
+                );
               },
             ),
           ],
@@ -300,7 +309,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
   // --- CRUD Operations ---
 
-  Future<void> _addSupplier(String nameEng, String nameUrdu, String phone, String address, String type, int balance) async {
+  Future<void> _addSupplier(String nameEng, String nameUrdu, String phone,
+      String address, String type, int balance) async {
     final loc = AppLocalizations.of(context)!;
     if (nameEng.isEmpty) return;
 
@@ -308,8 +318,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       // Check phone uniqueness
       if (phone.isNotEmpty) {
         final exists = await _repository.supplierContactExists(phone);
+
+        if (!mounted) return;
+
         if (exists) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.phoneExistsError), backgroundColor: Theme.of(context).colorScheme.error));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(loc.phoneExistsError),
+              backgroundColor: Theme.of(context).colorScheme.error));
           return;
         }
       }
@@ -328,21 +343,31 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       Navigator.pop(context);
       await _refreshList(); // Reload list to show new item
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierAdded), backgroundColor: Theme.of(context).colorScheme.primary));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(loc.supplierAdded),
+          backgroundColor: Theme.of(context).colorScheme.primary));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
     }
   }
 
-  Future<void> _updateSupplier(int id, String nameEng, String nameUrdu, String phone, String address, String type, int balance) async {
+  Future<void> _updateSupplier(int id, String nameEng, String nameUrdu,
+      String phone, String address, String type, int balance) async {
     final loc = AppLocalizations.of(context)!;
     try {
       // Check phone uniqueness
       if (phone.isNotEmpty) {
-        final exists = await _repository.supplierContactExists(phone, excludeId: id);
+        final exists =
+            await _repository.supplierContactExists(phone, excludeId: id);
+
+        if (!mounted) return;
+
         if (exists) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.phoneExistsError), backgroundColor: Theme.of(context).colorScheme.error));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(loc.phoneExistsError),
+              backgroundColor: Theme.of(context).colorScheme.error));
           return;
         }
       }
@@ -360,34 +385,41 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       Navigator.pop(context);
       await _refreshList(); // Reload list
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierUpdated), backgroundColor: Theme.of(context).colorScheme.primary));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(loc.supplierUpdated),
+          backgroundColor: Theme.of(context).colorScheme.primary));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
     }
   }
 
   Future<void> _deleteSupplier(int id, int balance) async {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     if (balance != 0) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: colorScheme.surface,
-          title: Text(loc.warning, style: Theme.of(context).textTheme.titleLarge),
-          content: Text(loc.cannotDeleteBal, style: Theme.of(context).textTheme.bodyMedium),
+          title:
+              Text(loc.warning, style: Theme.of(context).textTheme.titleLarge),
+          content: Text(loc.cannotDeleteBal,
+              style: Theme.of(context).textTheme.bodyMedium),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.ok)),
+            TextButton(
+                onPressed: () => Navigator.pop(context), child: Text(loc.ok)),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: colorScheme.primary, foregroundColor: colorScheme.onPrimary),
-              onPressed: () {
-                Navigator.pop(context);
-                _toggleArchiveStatus(id, true);
-              }, 
-              child: Text(loc.archiveNow)
-            )
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary),
+                onPressed: () {
+                  Navigator.pop(context);
+                  _toggleArchiveStatus(id, true);
+                },
+                child: Text(loc.archiveNow))
           ],
         ),
       );
@@ -399,9 +431,12 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
         title: Text(loc.confirm, style: Theme.of(context).textTheme.titleLarge),
-        content: Text(loc.confirmDeleteSupplier, style: Theme.of(context).textTheme.bodyMedium),
+        content: Text(loc.confirmDeleteSupplier,
+            style: Theme.of(context).textTheme.bodyMedium),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(loc.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(loc.cancel)),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text(loc.yesDelete),
@@ -413,14 +448,17 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     if (confirm == true) {
       try {
         await _repository.deleteSupplier(id);
-        
+
         if (!mounted) return;
         await _refreshList(); // Reload list
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.supplierDeleted), backgroundColor: colorScheme.error));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(loc.supplierDeleted),
+            backgroundColor: colorScheme.error));
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
       }
     }
   }
@@ -441,13 +479,17 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final phoneCtrl = TextEditingController(text: supplier?.contactPrimary);
     final addressCtrl = TextEditingController(text: supplier?.address);
     final typeCtrl = TextEditingController(text: supplier?.supplierType);
-    final balanceCtrl = TextEditingController(text: supplier != null ? Money(supplier.outstandingBalance).toRupeesString() : '0');
+    final balanceCtrl = TextEditingController(
+        text: supplier != null
+            ? Money(supplier.outstandingBalance).toRupeesString()
+            : '0');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text(isEdit ? loc.editSupplier : loc.addSupplier, style: Theme.of(context).textTheme.titleLarge),
+        title: Text(isEdit ? loc.editSupplier : loc.addSupplier,
+            style: Theme.of(context).textTheme.titleLarge),
         contentPadding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
         content: SizedBox(
           width: DesktopDimensions.dialogWidth,
@@ -456,41 +498,48 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             children: [
               TextField(
                 controller: nameEngCtrl,
-                decoration: _inputDecoration(loc.nameEnglish, Icons.person, colorScheme),
+                decoration: _inputDecoration(
+                    loc.nameEnglish, Icons.person, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: nameUrduCtrl,
                 style: const TextStyle(fontFamily: 'NooriNastaleeq'),
-                decoration: _inputDecoration(loc.nameUrdu, Icons.translate, colorScheme),
+                decoration: _inputDecoration(
+                    loc.nameUrdu, Icons.translate, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: phoneCtrl,
                 keyboardType: TextInputType.phone,
-                decoration: _inputDecoration(loc.phoneNum, Icons.phone, colorScheme),
+                decoration:
+                    _inputDecoration(loc.phoneNum, Icons.phone, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: addressCtrl,
-                decoration: _inputDecoration(loc.address, Icons.location_on, colorScheme),
+                decoration: _inputDecoration(
+                    loc.address, Icons.location_on, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: typeCtrl,
-                decoration: _inputDecoration("Supplier Type", Icons.category, colorScheme),
+                decoration: _inputDecoration(
+                    "Supplier Type", Icons.category, colorScheme),
               ),
               const SizedBox(height: DesktopDimensions.spacingStandard),
               TextField(
                 controller: balanceCtrl,
                 keyboardType: TextInputType.number,
-                decoration: _inputDecoration(loc.balance, Icons.account_balance_wallet, colorScheme),
+                decoration: _inputDecoration(
+                    loc.balance, Icons.account_balance_wallet, colorScheme),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
           ElevatedButton(
             onPressed: () {
               Money? parsedBalance;
@@ -509,23 +558,16 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               final balance = parsedBalance.paisas;
               if (isEdit) {
                 _updateSupplier(
-                  supplier.id!, 
-                  nameEngCtrl.text, 
-                  nameUrduCtrl.text, 
-                  phoneCtrl.text, 
-                  addressCtrl.text,
-                  typeCtrl.text,
-                  balance
-                );
+                    supplier.id!,
+                    nameEngCtrl.text,
+                    nameUrduCtrl.text,
+                    phoneCtrl.text,
+                    addressCtrl.text,
+                    typeCtrl.text,
+                    balance);
               } else {
-                _addSupplier(
-                  nameEngCtrl.text, 
-                  nameUrduCtrl.text, 
-                  phoneCtrl.text, 
-                  addressCtrl.text,
-                  typeCtrl.text,
-                  balance
-                );
+                _addSupplier(nameEngCtrl.text, nameUrduCtrl.text,
+                    phoneCtrl.text, addressCtrl.text, typeCtrl.text, balance);
               }
             },
             child: Text(isEdit ? loc.update : loc.save),
@@ -542,15 +584,25 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     });
   }
 
-  InputDecoration _inputDecoration(String label, IconData icon, ColorScheme colorScheme) {
+  InputDecoration _inputDecoration(
+      String label, IconData icon, ColorScheme colorScheme) {
     return InputDecoration(
       labelText: label,
       prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
       filled: true,
       fillColor: colorScheme.surfaceVariant,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(DesktopDimensions.formFieldBorderRadius), borderSide: BorderSide(color: colorScheme.outline)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(DesktopDimensions.formFieldBorderRadius), borderSide: BorderSide(color: colorScheme.outline)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(DesktopDimensions.formFieldBorderRadius), borderSide: BorderSide(color: colorScheme.primary, width: 2)),
+      border: OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+          borderSide: BorderSide(color: colorScheme.outline)),
+      enabledBorder: OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+          borderSide: BorderSide(color: colorScheme.outline)),
+      focusedBorder: OutlineInputBorder(
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2)),
     );
   }
 
@@ -559,14 +611,12 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return MainLayout(
-      currentRoute: AppRoutes.suppliers,
-      child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
-              child: Column(
-              children: [
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+          child: Column(
+            children: [
               // Local Toolbar
               Container(
                 padding: const EdgeInsets.only(
@@ -592,7 +642,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               Card(
                 elevation: DesktopDimensions.cardElevation,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                    borderRadius: BorderRadius.circular(
+                        DesktopDimensions.cardBorderRadius)),
                 child: Padding(
                   padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
                   child: TextField(
@@ -600,16 +651,18 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     onChanged: (val) => _firstLoad(),
                     decoration: InputDecoration(
                       hintText: loc.search,
-                      prefixIcon: const Icon(Icons.search,
-                          size: DesktopDimensions.iconSizeMedium, color: colorScheme.onSurfaceVariant),
+                      prefixIcon: Icon(Icons.search,
+                          size: DesktopDimensions.iconSizeMedium,
+                          color: colorScheme.onSurfaceVariant),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
                               DesktopDimensions.smallBorderRadius),
                           borderSide: BorderSide(color: colorScheme.outline)),
                       filled: true,
                       fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingSmall, vertical: DesktopDimensions.spacingSmall),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: DesktopDimensions.spacingSmall,
+                          vertical: DesktopDimensions.spacingSmall),
                       isDense: true,
                     ),
                   ),
@@ -619,8 +672,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               Expanded(
                 child: _isFirstLoadRunning
                     ? Center(
-                        child:
-                            CircularProgressIndicator(color: colorScheme.primary))
+                        child: CircularProgressIndicator(
+                            color: colorScheme.primary))
                     : suppliers.isEmpty
                         ? Center(
                             child: Text(loc.noSuppliersFound,
@@ -652,9 +705,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           ),
         ),
         if (_showArchiveOverlay) _buildArchiveOverlay(loc),
-          if (_selectedSupplierForLedger != null) _buildLedgerOverlay(loc),
-        ],
-      ),
+        if (_selectedSupplierForLedger != null) _buildLedgerOverlay(loc),
+      ],
     );
   }
 
@@ -698,39 +750,43 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
         decoration: BoxDecoration(
           color: containerColor,
-          borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.cardBorderRadius),
         ),
         child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: contentColor, fontWeight: FontWeight.bold)),
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Icon(Icons.business, color: contentColor),
-                    Text("$count",
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: contentColor, fontWeight: FontWeight.bold))
-                  ]),
-              Text(Money(amount).formattedNoDecimal,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: contentColor, fontWeight: FontWeight.bold)),
-            ],
-          ),
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: contentColor, fontWeight: FontWeight.bold)),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Icon(Icons.business, color: contentColor),
+              Text("$count",
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: contentColor, fontWeight: FontWeight.bold))
+            ]),
+            Text(Money(amount).formattedNoDecimal,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: contentColor, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSupplierRow(
-      Supplier supplier, ColorScheme colorScheme, AppLocalizations loc, bool isSelected) {
+  Widget _buildSupplierRow(Supplier supplier, ColorScheme colorScheme,
+      AppLocalizations loc, bool isSelected) {
     return ListTile(
       selected: isSelected,
       selectedTileColor: colorScheme.primaryContainer.withOpacity(0.2),
-      contentPadding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingStandard),
+      contentPadding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingStandard),
       leading: CircleAvatar(
         radius: DesktopDimensions.iconSizeSmall,
         backgroundColor: colorScheme.primaryContainer,
         child: Icon(Icons.business,
-            size: DesktopDimensions.iconSizeSmall, color: colorScheme.onPrimaryContainer),
+            size: DesktopDimensions.iconSizeSmall,
+            color: colorScheme.onPrimaryContainer),
       ),
       title: Text(
         supplier.nameUrdu ?? supplier.nameEnglish,
@@ -751,11 +807,14 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   vertical: DesktopDimensions.spacingSmall),
               decoration: BoxDecoration(
                 color: colorScheme.secondaryContainer,
-                borderRadius: BorderRadius.circular(
-                    DesktopDimensions.spacingSmall),
+                borderRadius:
+                    BorderRadius.circular(DesktopDimensions.spacingSmall),
               ),
               child: Text(supplier.supplierType!,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: colorScheme.onSecondaryContainer)),
+                  style: Theme.of(context)
+                      .textTheme
+                      .labelSmall
+                      ?.copyWith(color: colorScheme.onSecondaryContainer)),
             ),
           ],
         ],
@@ -769,10 +828,12 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             children: [
               Text(
                 Money(supplier.outstandingBalance).formattedNoDecimal,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: colorScheme.primary),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(color: colorScheme.primary),
               ),
-              Text(loc.balance,
-                  style: Theme.of(context).textTheme.bodySmall),
+              Text(loc.balance, style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
           const SizedBox(width: DesktopDimensions.spacingMedium),
@@ -783,7 +844,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert,
-                size: DesktopDimensions.iconSizeSmallMedium, color: colorScheme.onSurfaceVariant),
+                size: DesktopDimensions.iconSizeSmallMedium,
+                color: colorScheme.onSurfaceVariant),
             padding: EdgeInsets.zero,
             onSelected: (value) {
               if (value == 'edit') _showSupplierDialog(supplier: supplier);
@@ -796,23 +858,33 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               PopupMenuItem(
                   value: 'edit',
                   child: Row(children: [
-                    Icon(Icons.edit, size: DesktopDimensions.iconSizeSmall, color: colorScheme.secondary),
+                    Icon(Icons.edit,
+                        size: DesktopDimensions.iconSizeSmall,
+                        color: colorScheme.secondary),
                     const SizedBox(width: DesktopDimensions.spacingSmall),
                     Text(loc.editSupplier)
                   ])),
               PopupMenuItem(
                   value: 'archive',
                   child: Row(children: [
-                    Icon(Icons.archive, size: DesktopDimensions.iconSizeSmall, color: colorScheme.onSurface),
+                    Icon(Icons.archive,
+                        size: DesktopDimensions.iconSizeSmall,
+                        color: colorScheme.onSurface),
                     const SizedBox(width: DesktopDimensions.spacingSmall),
                     Text(loc.archiveAction)
                   ])),
               PopupMenuItem(
                   value: 'delete',
                   child: Row(children: [
-                    Icon(Icons.delete, size: DesktopDimensions.iconSizeSmall, color: colorScheme.error),
+                    Icon(Icons.delete,
+                        size: DesktopDimensions.iconSizeSmall,
+                        color: colorScheme.error),
                     const SizedBox(width: DesktopDimensions.spacingSmall),
-                    Text(loc.delete, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.error))
+                    Text(loc.delete,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: colorScheme.error))
                   ])),
             ],
           ),
@@ -833,142 +905,225 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
     return Stack(
       children: [
-        GestureDetector(onTap: () => setState(() => _selectedSupplierForLedger = null), child: Container(color: colorScheme.shadow.withOpacity(0.5))),
+        GestureDetector(
+            onTap: () => setState(() => _selectedSupplierForLedger = null),
+            child: Container(color: colorScheme.shadow.withOpacity(0.5))),
         Center(
           child: Container(
             width: DesktopDimensions.dialogWidth,
             height: DesktopDimensions.dialogHeight,
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
-              boxShadow: [BoxShadow(blurRadius: 20, color: colorScheme.shadow.withOpacity(0.25))],
+              borderRadius:
+                  BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+              boxShadow: [
+                BoxShadow(
+                    blurRadius: 20, color: colorScheme.shadow.withOpacity(0.25))
+              ],
             ),
             child: Column(
               children: [
-        // Header
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingLarge, vertical: DesktopDimensions.spacingMedium),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name, style: Theme.of(context).textTheme.headlineSmall),
-                  Text(supplier.contactPrimary ?? '', style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ),
-              Row(
-                children: [
-                  _buildSummaryChip("Payable Balance", netBalance, colorScheme.primary, colorScheme),
-                  const SizedBox(width: DesktopDimensions.spacingStandard),
-                  ElevatedButton.icon(
-                    onPressed: _showPaymentDialog,
-                    icon: const Icon(Icons.payment, size: DesktopDimensions.iconSizeSmallMedium),
-                    label: const Text("Pay Supplier"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium, vertical: DesktopDimensions.spacingStandard),
-                    ),
+                // Header
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: DesktopDimensions.spacingLarge,
+                      vertical: DesktopDimensions.spacingMedium),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    border: Border(
+                        bottom: BorderSide(color: colorScheme.outlineVariant)),
                   ),
-                  const SizedBox(width: DesktopDimensions.spacingSmall),
-                  IconButton(icon: const Icon(Icons.print), onPressed: () => _handleExport(loc), tooltip: "Export"),
-                  IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _selectedSupplierForLedger = null)),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // Filter Bar
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingMedium, vertical: DesktopDimensions.spacingSmall),
-          color: colorScheme.surfaceVariant.withOpacity(0.3),
-          child: Row(
-            children: [
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final picked = await showDateRangePicker(
-                    context: context,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime.now(),
-                    initialDateRange: _ledgerStartDate != null && _ledgerEndDate != null 
-                      ? DateTimeRange(start: _ledgerStartDate!, end: _ledgerEndDate!) 
-                      : null,
-                  );
-                  if (picked != null) {
-                    setState(() {
-                      _ledgerStartDate = picked.start;
-                      _ledgerEndDate = picked.end;
-                    });
-                    _getSupplierLedger(supplier.id!);
-                  }
-                },
-                icon: const Icon(Icons.calendar_today, size: DesktopDimensions.bodySize),
-                label: Text(_ledgerStartDate == null ? "Date Range" : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}"),
-                style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact, textStyle: Theme.of(context).textTheme.bodySmall),
-              ),
-              if (_ledgerStartDate != null) IconButton(icon: const Icon(Icons.clear, size: DesktopDimensions.bodySize), onPressed: () { setState(() { _ledgerStartDate = null; _ledgerEndDate = null; }); _getSupplierLedger(supplier.id!); }),
-              const SizedBox(width: DesktopDimensions.spacingStandard),
-              SegmentedButton<String>(
-                segments: const [ButtonSegment(value: 'ALL', label: Text('All')), ButtonSegment(value: 'BILL', label: Text('Bills')), ButtonSegment(value: 'PAYMENT', label: Text('Payments'))],
-                selected: {_ledgerFilterType},
-                onSelectionChanged: (val) => setState(() => _ledgerFilterType = val.first),
-                style: const ButtonStyle(visualDensity: VisualDensity.compact, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: DesktopDimensions.labelWidthStandard,
-                child: TextField(
-                  controller: _ledgerSearchCtrl,
-                  decoration: InputDecoration(
-                    hintText: "Search...",
-                    prefixIcon: const Icon(Icons.search, size: DesktopDimensions.iconSizeSmall),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingSmall, horizontal: DesktopDimensions.spacingSmall),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(DesktopDimensions.smallBorderRadius)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name,
+                              style: Theme.of(context).textTheme.headlineSmall),
+                          Text(supplier.contactPrimary ?? '',
+                              style: Theme.of(context).textTheme.bodySmall),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          _buildSummaryChip("Payable Balance", netBalance,
+                              colorScheme.primary, colorScheme),
+                          const SizedBox(
+                              width: DesktopDimensions.spacingStandard),
+                          ElevatedButton.icon(
+                            onPressed: _showPaymentDialog,
+                            icon: const Icon(Icons.payment,
+                                size: DesktopDimensions.iconSizeSmallMedium),
+                            label: const Text("Pay Supplier"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colorScheme.primary,
+                              foregroundColor: colorScheme.onPrimary,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: DesktopDimensions.spacingMedium,
+                                  vertical: DesktopDimensions.spacingStandard),
+                            ),
+                          ),
+                          const SizedBox(width: DesktopDimensions.spacingSmall),
+                          IconButton(
+                              icon: const Icon(Icons.print),
+                              onPressed: () => _handleExport(loc),
+                              tooltip: "Export"),
+                          IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () => setState(
+                                  () => _selectedSupplierForLedger = null)),
+                        ],
+                      ),
+                    ],
                   ),
-                  onChanged: (val) => setState(() => _ledgerSearchQuery = val),
                 ),
-              ),
-            ],
-          ),
-        ),
 
-        // Table Header
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingStandard, horizontal: DesktopDimensions.spacingMedium),
-          color: colorScheme.surfaceVariant.withOpacity(0.5),
-          child: Row(
-            children: [
-              const SizedBox(width: DesktopDimensions.buttonHeight), // Space for expand icon
-              Expanded(flex: 2, child: Text("Date", style: Theme.of(context).textTheme.titleSmall)),
-              Expanded(flex: 3, child: Text("Description", style: Theme.of(context).textTheme.titleSmall)),
-              Expanded(flex: 2, child: Text("Purchase Bill", textAlign: TextAlign.right, style: Theme.of(context).textTheme.titleSmall)),
-              Expanded(flex: 2, child: Text("Payment Sent", textAlign: TextAlign.right, style: Theme.of(context).textTheme.titleSmall)),
-              Expanded(flex: 2, child: Text("Payable Balance", textAlign: TextAlign.right, style: Theme.of(context).textTheme.titleSmall)),
-            ],
-          ),
-        ),
+                // Filter Bar
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: DesktopDimensions.spacingMedium,
+                      vertical: DesktopDimensions.spacingSmall),
+                  color: colorScheme.surfaceVariant.withOpacity(0.3),
+                  child: Row(
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final picked = await showDateRangePicker(
+                            context: context,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                            initialDateRange: _ledgerStartDate != null &&
+                                    _ledgerEndDate != null
+                                ? DateTimeRange(
+                                    start: _ledgerStartDate!,
+                                    end: _ledgerEndDate!)
+                                : null,
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _ledgerStartDate = picked.start;
+                              _ledgerEndDate = picked.end;
+                            });
+                            _getSupplierLedger(supplier.id!);
+                          }
+                        },
+                        icon: const Icon(Icons.calendar_today,
+                            size: DesktopDimensions.bodySize),
+                        label: Text(_ledgerStartDate == null
+                            ? "Date Range"
+                            : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}"),
+                        style: OutlinedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            textStyle: Theme.of(context).textTheme.bodySmall),
+                      ),
+                      if (_ledgerStartDate != null)
+                        IconButton(
+                            icon: const Icon(Icons.clear,
+                                size: DesktopDimensions.bodySize),
+                            onPressed: () {
+                              setState(() {
+                                _ledgerStartDate = null;
+                                _ledgerEndDate = null;
+                              });
+                              _getSupplierLedger(supplier.id!);
+                            }),
+                      const SizedBox(width: DesktopDimensions.spacingStandard),
+                      SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment(value: 'ALL', label: Text('All')),
+                          ButtonSegment(value: 'BILL', label: Text('Bills')),
+                          ButtonSegment(
+                              value: 'PAYMENT', label: Text('Payments'))
+                        ],
+                        selected: {_ledgerFilterType},
+                        onSelectionChanged: (val) =>
+                            setState(() => _ledgerFilterType = val.first),
+                        style: const ButtonStyle(
+                            visualDensity: VisualDensity.compact,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        width: DesktopDimensions.labelWidthStandard,
+                        child: TextField(
+                          controller: _ledgerSearchCtrl,
+                          decoration: InputDecoration(
+                            hintText: "Search...",
+                            prefixIcon: const Icon(Icons.search,
+                                size: DesktopDimensions.iconSizeSmall),
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: DesktopDimensions.spacingSmall,
+                                horizontal: DesktopDimensions.spacingSmall),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    DesktopDimensions.smallBorderRadius)),
+                          ),
+                          onChanged: (val) =>
+                              setState(() => _ledgerSearchQuery = val),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-        // List
-        Expanded(
-          child: _isLedgerLoading
-              ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
-              : _filteredLedgerRows.isEmpty
-                  ? Center(child: Text("No transactions found", style: Theme.of(context).textTheme.bodyMedium))
-                  : ListView.builder(
-                      itemCount: _filteredLedgerRows.length,
-                      itemBuilder: (context, index) {
-                        return _buildLedgerRow(index, colorScheme);
-                      },
-                    ),
-        ),
+                // Table Header
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: DesktopDimensions.spacingStandard,
+                      horizontal: DesktopDimensions.spacingMedium),
+                  color: colorScheme.surfaceVariant.withOpacity(0.5),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                          width: DesktopDimensions
+                              .buttonHeight), // Space for expand icon
+                      Expanded(
+                          flex: 2,
+                          child: Text("Date",
+                              style: Theme.of(context).textTheme.titleSmall)),
+                      Expanded(
+                          flex: 3,
+                          child: Text("Description",
+                              style: Theme.of(context).textTheme.titleSmall)),
+                      Expanded(
+                          flex: 2,
+                          child: Text("Purchase Bill",
+                              textAlign: TextAlign.right,
+                              style: Theme.of(context).textTheme.titleSmall)),
+                      Expanded(
+                          flex: 2,
+                          child: Text("Payment Sent",
+                              textAlign: TextAlign.right,
+                              style: Theme.of(context).textTheme.titleSmall)),
+                      Expanded(
+                          flex: 2,
+                          child: Text("Payable Balance",
+                              textAlign: TextAlign.right,
+                              style: Theme.of(context).textTheme.titleSmall)),
+                    ],
+                  ),
+                ),
+
+                // List
+                Expanded(
+                  child: _isLedgerLoading
+                      ? Center(
+                          child: CircularProgressIndicator(
+                              color: colorScheme.primary))
+                      : _filteredLedgerRows.isEmpty
+                          ? Center(
+                              child: Text("No transactions found",
+                                  style:
+                                      Theme.of(context).textTheme.bodyMedium))
+                          : ListView.builder(
+                              itemCount: _filteredLedgerRows.length,
+                              itemBuilder: (context, index) {
+                                return _buildLedgerRow(index, colorScheme);
+                              },
+                            ),
+                ),
               ],
             ),
           ),
@@ -977,19 +1132,27 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     );
   }
 
-  Widget _buildSummaryChip(String label, int amount, Color color, ColorScheme scheme) {
+  Widget _buildSummaryChip(
+      String label, int amount, Color color, ColorScheme scheme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: DesktopDimensions.spacingStandard, vertical: DesktopDimensions.spacingSmall),
+      padding: const EdgeInsets.symmetric(
+          horizontal: DesktopDimensions.spacingStandard,
+          vertical: DesktopDimensions.spacingSmall),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(DesktopDimensions.smallBorderRadius),
+        borderRadius:
+            BorderRadius.circular(DesktopDimensions.smallBorderRadius),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(label, style: Theme.of(context).textTheme.bodySmall),
-          Text(Money(amount).formattedNoDecimal, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: color)),
+          Text(Money(amount).formattedNoDecimal,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(color: color)),
         ],
       ),
     );
@@ -1008,35 +1171,71 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     return Column(
       children: [
         InkWell(
-          onTap: isBill ? () {
-            setState(() {
-              if (_expandedRowIndex == index) {
-                _expandedRowIndex = null;
-              } else {
-                _expandedRowIndex = index;
-                _fetchBillItems(row['ref_id']);
-              }
-            });
-          } : null,
+          onTap: isBill
+              ? () {
+                  setState(() {
+                    if (_expandedRowIndex == index) {
+                      _expandedRowIndex = null;
+                    } else {
+                      _expandedRowIndex = index;
+                      _fetchBillItems(row['ref_id']);
+                    }
+                  });
+                }
+              : null,
           hoverColor: colorScheme.surfaceVariant.withOpacity(0.3),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingStandard, horizontal: DesktopDimensions.spacingMedium),
+            padding: const EdgeInsets.symmetric(
+                vertical: DesktopDimensions.spacingStandard,
+                horizontal: DesktopDimensions.spacingMedium),
             decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5))),
+              border: Border(
+                  bottom: BorderSide(
+                      color: colorScheme.outlineVariant.withOpacity(0.5))),
             ),
             child: Row(
               children: [
                 SizedBox(
                   width: DesktopDimensions.buttonHeight,
-                  child: isBill 
-                    ? Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, size: DesktopDimensions.iconSizeMedium, color: colorScheme.onSurfaceVariant)
-                    : null,
+                  child: isBill
+                      ? Icon(
+                          isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          size: DesktopDimensions.iconSizeMedium,
+                          color: colorScheme.onSurfaceVariant)
+                      : null,
                 ),
-                Expanded(flex: 2, child: Text(dateStr, style: Theme.of(context).textTheme.bodyLarge)),
-                Expanded(flex: 3, child: Text(row['desc'] ?? '', style: Theme.of(context).textTheme.bodyLarge)),
-                Expanded(flex: 2, child: Text(cr > Money.zero ? cr.formattedNoDecimal : '-', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.error))),
-                Expanded(flex: 2, child: Text(dr > Money.zero ? dr.formattedNoDecimal : '-', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary))),
-                Expanded(flex: 2, child: Text(balance.formattedNoDecimal, textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold))),
+                Expanded(
+                    flex: 2,
+                    child: Text(dateStr,
+                        style: Theme.of(context).textTheme.bodyLarge)),
+                Expanded(
+                    flex: 3,
+                    child: Text(row['desc'] ?? '',
+                        style: Theme.of(context).textTheme.bodyLarge)),
+                Expanded(
+                    flex: 2,
+                    child: Text(cr > Money.zero ? cr.formattedNoDecimal : '-',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.error))),
+                Expanded(
+                    flex: 2,
+                    child: Text(dr > Money.zero ? dr.formattedNoDecimal : '-',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary))),
+                Expanded(
+                    flex: 2,
+                    child: Text(balance.formattedNoDecimal,
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.bold))),
               ],
             ),
           ),
@@ -1045,12 +1244,16 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
           child: isExpanded
-            ? Container(
-                color: colorScheme.surfaceVariant.withOpacity(0.1),
-                padding: const EdgeInsets.fromLTRB(DesktopDimensions.spacingXLarge, DesktopDimensions.spacingSmall, DesktopDimensions.spacingMedium, DesktopDimensions.spacingMedium),
-                child: _buildExpandedDetails(row['ref_id'], colorScheme),
-              )
-            : const SizedBox.shrink(),
+              ? Container(
+                  color: colorScheme.surfaceVariant.withOpacity(0.1),
+                  padding: const EdgeInsets.fromLTRB(
+                      DesktopDimensions.spacingXLarge,
+                      DesktopDimensions.spacingSmall,
+                      DesktopDimensions.spacingMedium,
+                      DesktopDimensions.spacingMedium),
+                  child: _buildExpandedDetails(row['ref_id'], colorScheme),
+                )
+              : const SizedBox.shrink(),
         ),
       ],
     );
@@ -1058,40 +1261,112 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
   Widget _buildExpandedDetails(int billId, ColorScheme colorScheme) {
     final items = _billItemsCache[billId];
-    
+
     if (items == null) {
-      return const Center(child: Padding(padding: EdgeInsets.all(DesktopDimensions.spacingSmall), child: CircularProgressIndicator(strokeWidth: 2)));
+      return const Center(
+          child: Padding(
+              padding: EdgeInsets.all(DesktopDimensions.spacingSmall),
+              child: CircularProgressIndicator(strokeWidth: 2)));
     }
-    
+
     if (items.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
-        child: Text("No items details available.", style: Theme.of(context).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
+        child: Text("No items details available.",
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(fontStyle: FontStyle.italic)),
       );
     }
 
     return Table(
-      columnWidths: const {0: FlexColumnWidth(3), 1: FlexColumnWidth(1), 2: FlexColumnWidth(1), 3: FlexColumnWidth(1), 4: FlexColumnWidth(1)},
+      columnWidths: const {
+        0: FlexColumnWidth(3),
+        1: FlexColumnWidth(1),
+        2: FlexColumnWidth(1),
+        3: FlexColumnWidth(1),
+        4: FlexColumnWidth(1)
+      },
       children: [
         TableRow(
-          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: colorScheme.outlineVariant))),
+          decoration: BoxDecoration(
+              border: Border(
+                  bottom: BorderSide(color: colorScheme.outlineVariant))),
           children: [
-            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Item", style: Theme.of(context).textTheme.bodySmall)),
-            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Qty", textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall)),
-            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Unit", textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall)),
-            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Rate", textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall)),
-            Padding(padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingXSmall), child: Text("Total", textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodySmall)),
+            Padding(
+                padding: const EdgeInsets.only(
+                    bottom: DesktopDimensions.spacingXSmall),
+                child:
+                    Text("Item", style: Theme.of(context).textTheme.bodySmall)),
+            Padding(
+                padding: const EdgeInsets.only(
+                    bottom: DesktopDimensions.spacingXSmall),
+                child: Text("Qty",
+                    textAlign: TextAlign.right,
+                    style: Theme.of(context).textTheme.bodySmall)),
+            Padding(
+                padding: const EdgeInsets.only(
+                    bottom: DesktopDimensions.spacingXSmall),
+                child: Text("Unit",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall)),
+            Padding(
+                padding: const EdgeInsets.only(
+                    bottom: DesktopDimensions.spacingXSmall),
+                child: Text("Rate",
+                    textAlign: TextAlign.right,
+                    style: Theme.of(context).textTheme.bodySmall)),
+            Padding(
+                padding: const EdgeInsets.only(
+                    bottom: DesktopDimensions.spacingXSmall),
+                child: Text("Total",
+                    textAlign: TextAlign.right,
+                    style: Theme.of(context).textTheme.bodySmall)),
           ],
         ),
         ...items.map((item) => TableRow(
-          children: [
-            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['name_english'] ?? item['name_urdu'] ?? 'Unknown', style: Theme.of(context).textTheme.bodyLarge)),
-            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['quantity'].toString(), textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge)),
-            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['unit_type'] ?? '-', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge)),
-            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['cost_price'] != null ? Money((item['cost_price'] as num).toInt()).formattedNoDecimal : '-', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge)),
-            Padding(padding: const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingXSmall), child: Text(item['total_amount'] != null ? Money((item['total_amount'] as num).toInt()).formattedNoDecimal : '-', textAlign: TextAlign.right, style: Theme.of(context).textTheme.bodyLarge)),
-          ],
-        )),
+              children: [
+                Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: DesktopDimensions.spacingXSmall),
+                    child: Text(
+                        item['name_english'] ?? item['name_urdu'] ?? 'Unknown',
+                        style: Theme.of(context).textTheme.bodyLarge)),
+                Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: DesktopDimensions.spacingXSmall),
+                    child: Text(item['quantity'].toString(),
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodyLarge)),
+                Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: DesktopDimensions.spacingXSmall),
+                    child: Text(item['unit_type'] ?? '-',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyLarge)),
+                Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: DesktopDimensions.spacingXSmall),
+                    child: Text(
+                        item['cost_price'] != null
+                            ? Money((item['cost_price'] as num).toInt())
+                                .formattedNoDecimal
+                            : '-',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodyLarge)),
+                Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: DesktopDimensions.spacingXSmall),
+                    child: Text(
+                        item['total_amount'] != null
+                            ? Money((item['total_amount'] as num).toInt())
+                                .formattedNoDecimal
+                            : '-',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodyLarge)),
+              ],
+            )),
       ],
     );
   }
@@ -1100,37 +1375,53 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     return Stack(
       children: [
-        GestureDetector(onTap: () => setState(() => _showArchiveOverlay = false), child: Container(color: colorScheme.shadow.withOpacity(0.5))),
+        GestureDetector(
+            onTap: () => setState(() => _showArchiveOverlay = false),
+            child: Container(color: colorScheme.shadow.withOpacity(0.5))),
         Center(
           child: Container(
             width: DesktopDimensions.dialogWidth,
             height: DesktopDimensions.dialogHeight,
             padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
-            decoration: BoxDecoration(color: colorScheme.surface, borderRadius: BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
+            decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(
+                    DesktopDimensions.dialogBorderRadius)),
             child: Column(
               children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(loc.archivedCustomers, style: Theme.of(context).textTheme.headlineSmall), IconButton(icon: const Icon(Icons.close), onPressed: () => setState(() => _showArchiveOverlay = false))]),
+                Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(loc.archivedCustomers,
+                          style: Theme.of(context).textTheme.headlineSmall),
+                      IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () =>
+                              setState(() => _showArchiveOverlay = false))
+                    ]),
                 const Divider(),
                 Expanded(
                   child: archivedSuppliers.isEmpty
-                    ? Center(child: Text(loc.noSuppliersFound))
-                    : ListView.builder(
-                        itemCount: archivedSuppliers.length,
-                        itemBuilder: (context, index) {
-                          final s = archivedSuppliers[index];
-                          return Card(
-                            child: ListTile(
-                              leading: const Icon(Icons.archive),
-                              title: Text(s.nameEnglish),
-                              subtitle: Text("Bal: ${Money(s.outstandingBalance).formattedNoDecimal}"),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.unarchive),
-                                onPressed: () => _toggleArchiveStatus(s.id!, false),
+                      ? Center(child: Text(loc.noSuppliersFound))
+                      : ListView.builder(
+                          itemCount: archivedSuppliers.length,
+                          itemBuilder: (context, index) {
+                            final s = archivedSuppliers[index];
+                            return Card(
+                              child: ListTile(
+                                leading: const Icon(Icons.archive),
+                                title: Text(s.nameEnglish),
+                                subtitle: Text(
+                                    "Bal: ${Money(s.outstandingBalance).formattedNoDecimal}"),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.unarchive),
+                                  onPressed: () =>
+                                      _toggleArchiveStatus(s.id!, false),
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
@@ -1149,7 +1440,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text("Pay Supplier", style: Theme.of(context).textTheme.headlineSmall),
+        title: Text("Pay Supplier",
+            style: Theme.of(context).textTheme.headlineSmall),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1166,7 +1458,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel")),
           ElevatedButton(
             onPressed: () async {
               if (amountCtrl.text.isNotEmpty) {
@@ -1177,7 +1471,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.invalidAmount),
+                      content:
+                          Text(AppLocalizations.of(context)!.invalidAmount),
                       backgroundColor: colorScheme.error,
                     ),
                   );
@@ -1235,16 +1530,20 @@ class _HoverableCardState extends State<_HoverableCard> {
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+          borderRadius:
+              BorderRadius.circular(DesktopDimensions.cardBorderRadius),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.shadow.withOpacity(isHoveredOrFocused ? 0.15 : 0.05),
+              color: colorScheme.shadow
+                  .withOpacity(isHoveredOrFocused ? 0.15 : 0.05),
               blurRadius: isHoveredOrFocused ? 8 : 2,
               offset: Offset(0, isHoveredOrFocused ? 4 : 2),
             ),
           ],
           border: Border.all(
-            color: isHoveredOrFocused ? widget.color.withOpacity(0.5) : Colors.transparent,
+            color: isHoveredOrFocused
+                ? widget.color.withOpacity(0.5)
+                : Colors.transparent,
             width: 1.5,
           ),
         ),
@@ -1253,7 +1552,8 @@ class _HoverableCardState extends State<_HoverableCard> {
           child: InkWell(
             onTap: widget.onTap,
             onFocusChange: (value) => setState(() => _isFocused = value),
-            borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+            borderRadius:
+                BorderRadius.circular(DesktopDimensions.cardBorderRadius),
             hoverColor: widget.color.withOpacity(0.05),
             child: widget.child,
           ),

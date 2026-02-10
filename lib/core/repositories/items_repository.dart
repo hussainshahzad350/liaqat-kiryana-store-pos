@@ -27,7 +27,7 @@ class ItemsRepository {
       whereArgs: [id],
       limit: 1,
     );
-    
+
     if (result.isEmpty) return null;
     return Product.fromMap(result.first);
   }
@@ -41,7 +41,7 @@ class ItemsRepository {
       whereArgs: [itemCode],
       limit: 1,
     );
-    
+
     if (result.isEmpty) return null;
     return Product.fromMap(result.first);
   }
@@ -106,9 +106,15 @@ class ItemsRepository {
   }
 
   /// Adjust stock (add or subtract)
-  Future<int> adjustStock(int id, num adjustment, {String? reason, String? reference, String? user,}) async {
+  Future<int> adjustStock(
+    int id,
+    num adjustment, {
+    String? reason,
+    String? reference,
+    String? user,
+  }) async {
     final db = await _dbHelper.database;
-    
+
     return await db.transaction((txn) async {
       // Get current stock
       final result = await txn.query(
@@ -123,7 +129,7 @@ class ItemsRepository {
         throw Exception('Product not found');
       }
 
-      final currentStock = (result.first['current_stock'] as num).toDouble() ?? 0.0;
+      final currentStock = (result.first['current_stock'] as num).toDouble();
       final newStock = currentStock + adjustment;
 
       if (newStock < 0) {
@@ -160,7 +166,7 @@ class ItemsRepository {
     num purchaseQuantity,
   ) async {
     final db = await _dbHelper.database;
-    
+
     return await db.transaction((txn) async {
       final result = await txn.query(
         'products',
@@ -174,12 +180,12 @@ class ItemsRepository {
         throw Exception('Product not found');
       }
 
-      final currentStock = (result.first['current_stock'] as num).toDouble() ?? 0.0;
+      final currentStock = (result.first['current_stock'] as num).toDouble();
       final currentAvgPrice = (result.first['avg_cost_price'] as num).toInt();
 
       // Calculate new weighted average
-      final totalValue = (currentStock * currentAvgPrice) + 
-                        (purchaseQuantity * newPurchasePrice);
+      final totalValue = (currentStock * currentAvgPrice) +
+          (purchaseQuantity * newPurchasePrice);
       final totalQuantity = currentStock + purchaseQuantity;
       final newAvgPrice = totalQuantity > 0 ? totalValue / totalQuantity : 0.0;
 
@@ -203,7 +209,7 @@ class ItemsRepository {
   Future<List<Product>> searchProducts(String query) async {
     final db = await _dbHelper.database;
     final q = '%${query.toLowerCase()}%';
-    
+
     final result = await db.rawQuery('''
       SELECT * FROM products 
       WHERE LOWER(name_english) LIKE ? 
@@ -211,14 +217,13 @@ class ItemsRepository {
       OR LOWER(item_code) LIKE ?
       ORDER BY name_english ASC
     ''', [q, q, q]);
-    
+
     return result.map((map) => Product.fromMap(map)).toList();
   }
 
   /// Get products by category
   Future<List<Map<String, dynamic>>> getProductsByCategory(
-    int categoryId
-  ) async {
+      int categoryId) async {
     final db = await _dbHelper.database;
     return await db.query(
       'products',
@@ -263,8 +268,7 @@ class ItemsRepository {
 
   /// Get products with stock above threshold
   Future<List<Map<String, dynamic>>> getProductsAboveStock(
-    double threshold
-  ) async {
+      double threshold) async {
     final db = await _dbHelper.database;
     return await db.query(
       'products',
@@ -291,8 +295,7 @@ class ItemsRepository {
   Future<int> getTotalStockValue() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
-      'SELECT SUM(current_stock * avg_cost_price) as total FROM products'
-    );
+        'SELECT SUM(current_stock * avg_cost_price) as total FROM products');
     return (result.first['total'] as num?)?.round() ?? 0;
   }
 
@@ -300,8 +303,7 @@ class ItemsRepository {
   Future<int> getTotalStockValueAtSalePrice() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
-      'SELECT SUM(current_stock * sale_price) as total FROM products'
-    );
+        'SELECT SUM(current_stock * sale_price) as total FROM products');
     return (result.first['total'] as num?)?.round() ?? 0;
   }
 
@@ -326,15 +328,14 @@ class ItemsRepository {
   Future<int> getOutOfStockCount() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM products WHERE current_stock = 0'
-    );
+        'SELECT COUNT(*) as count FROM products WHERE current_stock = 0');
     return (result.first['count'] as int?) ?? 0;
   }
 
   /// Get product sales statistics
   Future<Map<String, dynamic>> getProductSalesStats(int productId) async {
     final db = await _dbHelper.database;
-    
+
     final result = await db.rawQuery('''
       SELECT 
         COUNT(*) as sale_count,
@@ -371,7 +372,7 @@ class ItemsRepository {
     String? dateTo,
   }) async {
     final db = await _dbHelper.database;
-    
+
     String query = '''
       SELECT 
         p.*,
@@ -414,7 +415,7 @@ class ItemsRepository {
     final db = await _dbHelper.database;
     final date = DateTime.now().subtract(Duration(days: daysBack));
     final dateStr = date.toIso8601String().split('T')[0];
-    
+
     return await db.rawQuery('''
       SELECT 
         p.*,
@@ -442,7 +443,7 @@ class ItemsRepository {
       whereArgs: [barcode],
       limit: 1,
     );
-    
+
     if (result.isEmpty) return null;
     return result.first;
   }
@@ -482,13 +483,13 @@ class ItemsRepository {
     int? salePrice,
   }) async {
     final db = await _dbHelper.database;
-    
+
     Map<String, dynamic> updates = {};
     if (costPrice != null) updates['avg_cost_price'] = costPrice;
     if (salePrice != null) updates['sale_price'] = salePrice;
-    
+
     if (updates.isEmpty) return 0;
-    
+
     return await db.update(
       'products',
       updates,
@@ -499,7 +500,8 @@ class ItemsRepository {
 
   // Stock Adjustments for product
 
-  Future<List<StockAdjustment>> getStockAdjustmentsForProduct(int productId) async {
+  Future<List<StockAdjustment>> getStockAdjustmentsForProduct(
+      int productId) async {
     final db = await _dbHelper.database;
     final result = await db.query(
       'stock_adjustments',
@@ -521,10 +523,11 @@ class ItemsRepository {
     }
 
     final db = await _dbHelper.database;
-    
+
     String updateClause;
     if (percentageIncrease != null) {
-      updateClause = 'sale_price = CAST(ROUND(sale_price * (1 + ?)) AS INTEGER)';
+      updateClause =
+          'sale_price = CAST(ROUND(sale_price * (1 + ?)) AS INTEGER)';
     } else {
       updateClause = 'sale_price = sale_price + ?';
     }

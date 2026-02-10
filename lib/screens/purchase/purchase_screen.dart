@@ -103,12 +103,11 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
             children: [
               TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search Item...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius)
-                  )
-                ),
+                    hintText: 'Search Item...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            DesktopDimensions.cardBorderRadius))),
               ),
               const SizedBox(height: DesktopDimensions.spacingSmall),
               Expanded(
@@ -207,7 +206,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                   onTap: () async {
                     DateTime? picked = await showDatePicker(
                       context: context,
-                      initialDate: DateTime.now().add(const Duration(days: 365)),
+                      initialDate:
+                          DateTime.now().add(const Duration(days: 365)),
                       firstDate: DateTime.now(),
                       lastDate: DateTime(2100),
                     );
@@ -264,19 +264,17 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
       return;
     }
 
-    final purchaseData = {
-      'supplier_id': _selectedSupplier!['id'],
-      'invoice_number': _invoiceCtrl.text.isEmpty
-          ? 'PUR-${DateTime.now().millisecondsSinceEpoch}'
-          : _invoiceCtrl.text,
-      'purchase_date': DateFormat('yyyy-MM-dd HH:mm').format(_purchaseDate),
-      'total_amount': _totalAmount.toInt(),
-      'notes': _notesCtrl.text,
-      'items': _cartItems,
-    };
 
     try {
-      await _purchaseRepo.createPurchase(purchaseData);
+      await _purchaseRepo.createPurchase(
+        supplierId: _selectedSupplier!['id'],
+        items: _cartItems,
+        totalAmount: _totalAmount.toInt(),
+        invoiceNumber: _invoiceCtrl.text.isEmpty
+            ? 'PUR-${DateTime.now().millisecondsSinceEpoch}'
+            : _invoiceCtrl.text,
+        notes: _notesCtrl.text,
+      );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Purchase Saved Successfully')));
@@ -302,7 +300,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
         },
         child: Actions(
           actions: <Type, Action<Intent>>{
-            SavePurchaseIntent: CallbackAction<SavePurchaseIntent>(onInvoke: (_) {
+            SavePurchaseIntent:
+                CallbackAction<SavePurchaseIntent>(onInvoke: (_) {
               _savePurchase();
               return null;
             }),
@@ -335,11 +334,15 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                               child: Text(
                                 _selectedSupplier?['name_english'] ??
                                     'Select Supplier',
-                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                  color: _selectedSupplier == null
-                                      ? colorScheme.onSurface.withOpacity(0.5)
-                                      : colorScheme.onSurface,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      color: _selectedSupplier == null
+                                          ? colorScheme.onSurface
+                                              .withOpacity(0.5)
+                                          : colorScheme.onSurface,
+                                    ),
                               ),
                             ),
                           ),
@@ -375,13 +378,12 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                               }
                             },
                             child: InputDecorator(
-                              decoration:  InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Purchase Date',
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      DesktopDimensions.cardBorderRadius)
-                                ),
-                                prefixIcon: Icon(Icons.calendar_today),
+                                    borderRadius: BorderRadius.circular(
+                                        DesktopDimensions.cardBorderRadius)),
+                                prefixIcon: const Icon(Icons.calendar_today),
                               ),
                               child: Text(DateFormat('yyyy-MM-dd')
                                   .format(_purchaseDate)),
@@ -395,9 +397,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                             decoration: InputDecoration(
                               labelText: 'Notes',
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                      DesktopDimensions.cardBorderRadius)
-                              ),
+                                  borderRadius: BorderRadius.circular(
+                                      DesktopDimensions.cardBorderRadius)),
                             ),
                           ),
                         ),
@@ -421,7 +422,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                         ),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                        padding: const EdgeInsets.all(
+                            DesktopDimensions.spacingMedium),
                         itemCount: _cartItems.length,
                         separatorBuilder: (_, __) =>
                             Divider(color: colorScheme.outlineVariant),
@@ -438,7 +440,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  Money(item['total_amount']).formattedNoDecimal,
+                                  Money(item['total_amount'])
+                                      .formattedNoDecimal,
                                   style: Theme.of(context).textTheme.bodyLarge,
                                 ),
                                 IconButton(
@@ -475,7 +478,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                           size: DesktopDimensions.iconSizeLarge),
                       label: const Text('Add Item'),
                       style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                        minimumSize:
+                            const Size(0, DesktopDimensions.buttonHeight),
                         padding: const EdgeInsets.symmetric(
                             horizontal: DesktopDimensions.spacingMedium),
                         shape: RoundedRectangleBorder(
@@ -493,7 +497,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
-                        minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                        minimumSize:
+                            const Size(0, DesktopDimensions.buttonHeight),
                         padding: const EdgeInsets.symmetric(
                             horizontal: DesktopDimensions.spacingMedium),
                         shape: RoundedRectangleBorder(

@@ -596,6 +596,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       trendUp: true,
                       onTap: () => Navigator.pushNamed(context, AppRoutes.reports),
                       colorScheme: colorScheme,
+                      localizations: localizations,
                     ),
                   ),
                   const SizedBox(width: DesktopDimensions.spacingMedium),
@@ -608,6 +609,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: '${todayCustomers.length} ${localizations.customers}',
                       onTap: () => Navigator.pushNamed(context, AppRoutes.customers),
                       colorScheme: colorScheme,
+                      localizations: localizations,
                     ),
                   ),
                 ],
@@ -625,6 +627,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       isAlert: lowStockItems.length > 5,
                       onTap: () => Navigator.pushNamed(context, AppRoutes.stock),
                       colorScheme: colorScheme,
+                      localizations: localizations,
                     ),
                   ),
                   const SizedBox(width: DesktopDimensions.spacingMedium),
@@ -637,6 +640,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: localizations.activeToday,
                       onTap: () => Navigator.pushNamed(context, AppRoutes.customers),
                       colorScheme: colorScheme,
+                      localizations: localizations,
                     ),
                   ),
                 ],
@@ -661,6 +665,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   trendUp: true,
                   onTap: () => Navigator.pushNamed(context, AppRoutes.reports),
                   colorScheme: colorScheme,
+                  localizations: localizations,
                 ),
               ),
               const SizedBox(width: DesktopDimensions.spacingMedium),
@@ -673,6 +678,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: '${todayCustomers.length} ${localizations.customers}',
                   onTap: () => Navigator.pushNamed(context, AppRoutes.customers),
                   colorScheme: colorScheme,
+                  localizations: localizations,
                 ),
               ),
               const SizedBox(width: DesktopDimensions.spacingMedium),
@@ -686,6 +692,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   isAlert: lowStockItems.length > 5,
                   onTap: () => Navigator.pushNamed(context, AppRoutes.stock),
                   colorScheme: colorScheme,
+                  localizations: localizations,
                 ),
               ),
               const SizedBox(width: DesktopDimensions.spacingMedium),
@@ -698,6 +705,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: localizations.activeToday,
                   onTap: () => Navigator.pushNamed(context, AppRoutes.customers),
                   colorScheme: colorScheme,
+                  localizations: localizations,
                 ),
               ),
             ],
@@ -730,6 +738,7 @@ class _HomeScreenState extends State<HomeScreen> {
     bool isAlert = false,
     required VoidCallback onTap,
     required ColorScheme colorScheme,
+    required AppLocalizations localizations,
   }) {
     return _HoverableCard(
       onTap: onTap,
@@ -785,6 +794,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
+                ),
                 if (isAlert && trend == null)
                   Container(
                     padding: const EdgeInsets.all(6),
@@ -1413,7 +1423,7 @@ Widget _buildStatusBadge(String? status, AppLocalizations localizations, ColorSc
       case 'STOCK':
         return localizations.stockUpdated;
       default:
-        return localizations.activity;
+        return localizations.unknown;
     }
   }
 

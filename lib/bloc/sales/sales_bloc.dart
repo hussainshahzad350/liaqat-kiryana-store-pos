@@ -50,21 +50,18 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     on<InvoiceProcessed>(_onInvoiceProcessed);
     on<InvoiceCancelled>(_onInvoiceCancelled);
     on<ProductsUpdated>(_onProductsUpdated);
-    on<CustomerCreditLimitUpdateRequested>(_onCreditLimitUpdateRequested);
     on<QuickCustomerAddRequested>(_onQuickCustomerAddRequested);
-    on<CustomerCreditLimitUpdateRequested>(_onCustomerCreditLimitUpdateRequested);
+    on<CustomerCreditLimitUpdateRequested>(
+        _onCustomerCreditLimitUpdateRequested);
     on<ReceiptPrintRequested>(_onReceiptPrintRequested);
     on<ReceiptPdfSaveRequested>(_onReceiptPdfSaveRequested);
 
-    
     if (_stockBloc != null) {
-      _stockSubscription = _stockBloc!.stream
-        .distinct()
-        .listen((stockState) {
-          if (stockState.stock.isNotEmpty) {
-            add(ProductsUpdated(stockState.stock));
-           }
-        });
+      _stockSubscription = _stockBloc!.stream.distinct().listen((stockState) {
+        if (stockState.stock.isNotEmpty) {
+          add(ProductsUpdated(stockState.stock));
+        }
+      });
     }
   }
 
@@ -184,6 +181,19 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         return;
       }
 
+      // Validate sale price
+      if (event.product.salePrice.isNegative) {
+        emit(state.copyWith(
+            status: SalesStatus.error,
+            errorMessage: 'Product sale price cannot be negative',
+            clearCompletedInvoice: true));
+        emit(state.copyWith(
+            status: SalesStatus.ready,
+            errorMessage: null,
+            clearCompletedInvoice: true)); // Reset error
+        return;
+      }
+
       updatedCart.add(CartItem(
         id: event.product.id ?? 0,
         nameUrdu: event.product.nameUrdu ?? '',
@@ -219,6 +229,19 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
           status: SalesStatus.ready,
           errorMessage: null,
           clearCompletedInvoice: true));
+    }
+
+    // Validate unit price
+    if (event.price.isNegative) {
+      emit(state.copyWith(
+          status: SalesStatus.error,
+          errorMessage: 'Item price cannot be negative',
+          clearCompletedInvoice: true));
+      emit(state.copyWith(
+          status: SalesStatus.ready,
+          errorMessage: null,
+          clearCompletedInvoice: true)); // Reset error
+      return;
     }
 
     updatedCart[event.index] = item.copyWith(
@@ -271,11 +294,25 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     if (discount > subtotal) discount = subtotal;
 
     Money grandTotal = subtotal - discount;
+
+    // Explicitly prevent negative grandTotal
+    if (grandTotal.isNegative) {
+      emit(state.copyWith(
+          status: SalesStatus.error,
+          errorMessage: 'Calculated grand total cannot be negative',
+          clearCompletedInvoice: true));
+      emit(state.copyWith(
+          status: SalesStatus.ready,
+          errorMessage: null,
+          clearCompletedInvoice: true)); // Reset error
+      return;
+    }
+
     if (grandTotal < const Money(0)) grandTotal = const Money(0);
 
     Money previousBalance = state.selectedCustomer != null
-      ? Money(state.selectedCustomer!.outstandingBalance)
-      : Money.zero;
+        ? Money(state.selectedCustomer!.outstandingBalance)
+        : Money.zero;
 
     emit(state.copyWith(
       subtotal: subtotal,
@@ -301,7 +338,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     if (validation['valid'] != true) {
       emit(state.copyWith(
           status: SalesStatus.error,
-          errorMessage: validation['error']?.toString() ?? 'Stock validation failed',
+          errorMessage:
+              validation['error']?.toString() ?? 'Stock validation failed',
           clearCompletedInvoice: true));
       return;
     }
@@ -355,33 +393,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
           status: SalesStatus.error,
           errorMessage: e.toString(),
           clearCompletedInvoice: true));
-    }
-  }
-
-
-
-  Future<void> _onCreditLimitUpdateRequested(
-      CustomerCreditLimitUpdateRequested event, Emitter<SalesState> emit) async {
-    emit(state.copyWith(
-      creditLimitUpdateStatus: CreditLimitUpdateStatus.loading,
-      creditLimitUpdateCustomerId: event.customerId,
-      creditLimitUpdateError: null,
-    ));
-
-    try {
-      await _customersRepository.updateCustomerCreditLimit(
-          event.customerId, event.newLimitPaisas);
-      emit(state.copyWith(
-        creditLimitUpdateStatus: CreditLimitUpdateStatus.success,
-        creditLimitUpdateCustomerId: event.customerId,
-        creditLimitUpdateError: null,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        creditLimitUpdateStatus: CreditLimitUpdateStatus.error,
-        creditLimitUpdateCustomerId: event.customerId,
-        creditLimitUpdateError: e.toString(),
-      ));
     }
   }
 

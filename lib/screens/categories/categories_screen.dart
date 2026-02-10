@@ -198,8 +198,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-            department == null ? loc.addDepartment : loc.editDepartment),
+        title:
+            Text(department == null ? loc.addDepartment : loc.editDepartment),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -219,8 +219,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(loc.cancel)),
+              onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
           ElevatedButton(
             onPressed: () async {
               if (nameEnController.text.isEmpty) return;
@@ -282,8 +281,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
               TextField(
                   controller: nameEnController,
-                  decoration:
-                      InputDecoration(labelText: loc.nameEnglishLabel)),
+                  decoration: InputDecoration(labelText: loc.nameEnglishLabel)),
               TextField(
                   controller: nameUrController,
                   decoration: InputDecoration(labelText: loc.nameUrduLabel)),
@@ -359,8 +357,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
               TextField(
                   controller: nameEnController,
-                  decoration:
-                      InputDecoration(labelText: loc.nameEnglishLabel)),
+                  decoration: InputDecoration(labelText: loc.nameEnglishLabel)),
               TextField(
                   controller: nameUrController,
                   decoration: InputDecoration(labelText: loc.nameUrduLabel)),
@@ -428,7 +425,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     backgroundColor: Theme.of(context).colorScheme.error),
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(loc.yesDelete,
-                    style: TextStyle(color: Colors.white)),
+                    style: const TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -687,8 +684,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 onPressed: () {
                   _showCategoryDialog(parentDeptId: _selectedDepartment!.id);
                 },
-                tooltip: loc.addCategoryToTooltip(
-                    _selectedDepartment!.nameEn),
+                tooltip: loc.addCategoryToTooltip(_selectedDepartment!.nameEn),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -869,7 +865,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     String typeLabel = '';
     bool isActive = true;
     bool isVisibleInPOS = true;
-    int id = 0;
 
     if (_selectionLevel == 1 && _selectedDepartment != null) {
       titleEn = _selectedDepartment!.nameEn;
@@ -877,21 +872,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       typeLabel = loc.typeDepartment;
       isActive = _selectedDepartment!.isActive;
       isVisibleInPOS = _selectedDepartment!.isVisibleInPOS;
-      id = _selectedDepartment!.id!;
     } else if (_selectionLevel == 2 && _selectedCategory != null) {
       titleEn = _selectedCategory!.nameEn;
       titleUr = _selectedCategory!.nameUr;
       typeLabel = loc.typeCategory;
       isActive = _selectedCategory!.isActive;
       isVisibleInPOS = _selectedCategory!.isVisibleInPOS;
-      id = _selectedCategory!.id!;
     } else if (_selectionLevel == 3 && _selectedSubCategory != null) {
       titleEn = _selectedSubCategory!.nameEn;
       titleUr = _selectedSubCategory!.nameUr;
       typeLabel = loc.typeSubcategory;
       isActive = _selectedSubCategory!.isActive;
       isVisibleInPOS = _selectedSubCategory!.isVisibleInPOS;
-      id = _selectedSubCategory!.id!;
     }
 
     return Container(
@@ -1094,17 +1086,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         ),
         const SizedBox(height: DesktopDimensions.spacingMedium),
         if (_selectionLevel == 1)
-          _buildStatRow(
-              loc.categories, _detailsSubCount.toString(), Icons.folder,
-              colorScheme),
+          _buildStatRow(loc.categories, _detailsSubCount.toString(),
+              Icons.folder, colorScheme),
         if (_selectionLevel == 2)
           _buildStatRow(loc.subcategories, _detailsSubCount.toString(),
               Icons.subdirectory_arrow_right, colorScheme),
 
         // Items count (Products)
-        _buildStatRow(
-            loc.totalItems, _detailsItemCount.toString(), Icons.inventory_2,
-            colorScheme),
+        _buildStatRow(loc.totalItems, _detailsItemCount.toString(),
+            Icons.inventory_2, colorScheme),
       ],
     );
   }

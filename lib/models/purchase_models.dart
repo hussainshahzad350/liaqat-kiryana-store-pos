@@ -1,3 +1,75 @@
+class PurchaseItem {
+  final int? id;
+  final int? purchaseId;
+  final int? productId;
+  final double quantity;
+  final int costPrice;
+  final int totalAmount;
+  final String? batchNumber;
+  final DateTime? expiryDate;
+
+  PurchaseItem({
+    this.id,
+    this.purchaseId,
+    this.productId,
+    required this.quantity,
+    required this.costPrice,
+    required this.totalAmount,
+    this.batchNumber,
+    this.expiryDate,
+  });
+
+  factory PurchaseItem.fromMap(Map<String, dynamic> map) {
+    return PurchaseItem(
+      id: map['id'] as int?,
+      purchaseId: map['purchase_id'] as int?,
+      productId: map['product_id'] as int?,
+      quantity: (map['quantity'] as num).toDouble(),
+      costPrice: (map['cost_price'] as num).toInt(),
+      totalAmount: (map['total_amount'] as num).toInt(),
+      batchNumber: map['batch_number'] as String?,
+      expiryDate: map['expiry_date'] != null
+          ? DateTime.tryParse(map['expiry_date'] as String)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'purchase_id': purchaseId,
+      'product_id': productId,
+      'quantity': quantity,
+      'cost_price': costPrice,
+      'total_amount': totalAmount,
+      'batch_number': batchNumber,
+      'expiry_date': expiryDate?.toIso8601String(),
+    };
+  }
+
+  PurchaseItem copyWith({
+    int? id,
+    int? purchaseId,
+    int? productId,
+    double? quantity,
+    int? costPrice,
+    int? totalAmount,
+    String? batchNumber,
+    DateTime? expiryDate,
+  }) {
+    return PurchaseItem(
+      id: id ?? this.id,
+      purchaseId: purchaseId ?? this.purchaseId,
+      productId: productId ?? this.productId,
+      quantity: quantity ?? this.quantity,
+      costPrice: costPrice ?? this.costPrice,
+      totalAmount: totalAmount ?? this.totalAmount,
+      batchNumber: batchNumber ?? this.batchNumber,
+      expiryDate: expiryDate ?? this.expiryDate,
+    );
+  }
+}
+
 class Purchase {
   final int? id;
   final int supplierId;

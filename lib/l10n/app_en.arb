@@ -662,6 +662,8 @@
       "trend": {}
     }
   },
+  "descriptionRequired": "Description is required",
+  "activity": "Activity",
   "shortcutCtrlN": "Ctrl + N",
   "shortcutF5": "F5"
 }
