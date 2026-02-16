@@ -297,6 +297,9 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
 
     // Explicitly prevent negative grandTotal
     if (grandTotal.isNegative) {
+      // Defensive safeguard: Should never trigger due to discount capping
+      // and upstream negative price validations in _onProductAddedToCart
+      // and _onCartItemUpdated, but protects against Money class bugs.
       emit(state.copyWith(
           status: SalesStatus.error,
           errorMessage: 'Calculated grand total cannot be negative',
@@ -307,8 +310,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
           clearCompletedInvoice: true)); // Reset error
       return;
     }
-
-    if (grandTotal < const Money(0)) grandTotal = const Money(0);
 
     Money previousBalance = state.selectedCustomer != null
         ? Money(state.selectedCustomer!.outstandingBalance)
@@ -326,6 +327,72 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       InvoiceProcessed event, Emitter<SalesState> emit) async {
     emit(state.copyWith(
         status: SalesStatus.loading, clearCompletedInvoice: true));
+
+    // 1. Non-negative payment validation
+    if (event.cash.isNegative ||
+        event.bank.isNegative ||
+        event.credit.isNegative) {
+      emit(state.copyWith(
+          status: SalesStatus.error,
+          errorMessage: 'Payment amounts cannot be negative',
+          clearCompletedInvoice: true));
+      emit(state.copyWith(
+          status: SalesStatus.ready,
+          errorMessage: null,
+          clearCompletedInvoice: true));
+      return;
+    }
+
+    // Corrected walk-in customer check
+    final isWalkInCustomer = state.selectedCustomer == null ||
+        state.selectedCustomer!.id == _walkInCustomerId;
+
+    // 2. Walk-in credit prevention
+    if (isWalkInCustomer && event.credit > const Money(0)) {
+      emit(state.copyWith(
+          status: SalesStatus.error,
+          errorMessage: 'Walk-in customers cannot use credit',
+          clearCompletedInvoice: true));
+      emit(state.copyWith(
+          status: SalesStatus.ready,
+          errorMessage: null,
+          clearCompletedInvoice: true));
+      return;
+    }
+
+    final totalCashAndBank = event.cash + event.bank;
+    final totalPaymentsPlusCreditAllocated =
+        event.cash + event.bank + event.credit;
+
+    // Conditional payment validation
+    if (isWalkInCustomer) {
+      // For walk-in customers: cash + bank must be >= grandTotal (allows overpayment for change)
+      if (totalCashAndBank < state.grandTotal) {
+        emit(state.copyWith(
+            status: SalesStatus.error,
+            errorMessage:
+                'Walk-in payment (cash + bank) must cover the bill total',
+            clearCompletedInvoice: true));
+        emit(state.copyWith(
+            status: SalesStatus.ready,
+            errorMessage: null,
+            clearCompletedInvoice: true));
+        return;
+      }
+    } else {
+      // For registered customers: cash + bank + credit must exactly equal grandTotal
+      if (totalPaymentsPlusCreditAllocated != state.grandTotal) {
+        emit(state.copyWith(
+            status: SalesStatus.error,
+            errorMessage: 'Payment total must exactly match bill total',
+            clearCompletedInvoice: true));
+        emit(state.copyWith(
+            status: SalesStatus.ready,
+            errorMessage: null,
+            clearCompletedInvoice: true));
+        return;
+      }
+    }
 
     final cartItemsAsMaps = state.cartItems
         .map((item) => {

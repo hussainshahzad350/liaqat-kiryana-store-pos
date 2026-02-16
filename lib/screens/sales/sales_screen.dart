@@ -782,15 +782,18 @@ class _SalesScreenState extends State<SalesScreen> {
   void _showCheckoutPaymentDialog({bool ignoreCreditLimit = false}) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    bool isRegistered = selectedCustomerId != null;
+
     Money billTotal = grandTotal;
     Money oldBalance = previousBalance;
+
+    final isWalkInCustomer =
+        selectedCustomerMap == null || selectedCustomerMap!.id == 1;
 
     final cashCtrl = TextEditingController();
     final bankCtrl = TextEditingController();
     final creditCtrl = TextEditingController();
 
-    if (isRegistered) {
+    if (!isWalkInCustomer) {
       creditCtrl.text = '0';
     }
 
@@ -807,7 +810,7 @@ class _SalesScreenState extends State<SalesScreen> {
             final creditError = parsedCredit == null ? loc.invalidAmount : null;
             final hasParseError = cashError != null ||
                 bankError != null ||
-                (isRegistered && creditError != null);
+                (!isWalkInCustomer && creditError != null);
 
             final Money cash = parsedCash ?? Money.zero;
             final Money bank = parsedBank ?? Money.zero;
@@ -818,7 +821,7 @@ class _SalesScreenState extends State<SalesScreen> {
 
             if (hasParseError) {
               isValid = false;
-            } else if (isRegistered) {
+            } else if (!isWalkInCustomer) {
               isValid = totalPayment == billTotal;
             } else {
               isValid = (cash + bank) >= billTotal;
@@ -848,7 +851,7 @@ class _SalesScreenState extends State<SalesScreen> {
                 return;
               }
 
-              if (!isRegistered || credit <= const Money(0)) {
+              if (isWalkInCustomer || credit <= const Money(0)) {
                 processSaleAction();
                 return;
               }
@@ -920,7 +923,7 @@ class _SalesScreenState extends State<SalesScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (isRegistered) ...[
+                            if (!isWalkInCustomer) ...[
                               Text(
                                   '${loc.searchCustomerHint}: ${selectedCustomerMap!.nameEnglish}',
                                   style: Theme.of(context)
@@ -975,7 +978,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                 height: DesktopDimensions.spacingStandard),
                             _input(loc.cashInput, cashCtrl, (v) {
                               setDialogState(() {
-                                if (isRegistered) {
+                                if (!isWalkInCustomer) {
                                   Money cash = safeMoney(cashCtrl.text);
                                   Money bank = safeMoney(bankCtrl.text);
                                   Money remaining = billTotal - cash - bank;
@@ -987,7 +990,7 @@ class _SalesScreenState extends State<SalesScreen> {
                             }, errorText: cashError),
                             _input(loc.bankInput, bankCtrl, (v) {
                               setDialogState(() {
-                                if (isRegistered) {
+                                if (!isWalkInCustomer) {
                                   Money cash = safeMoney(cashCtrl.text);
                                   Money bank = safeMoney(bankCtrl.text);
                                   Money remaining = billTotal - cash - bank;
@@ -997,13 +1000,13 @@ class _SalesScreenState extends State<SalesScreen> {
                                 }
                               });
                             }, errorText: bankError),
-                            if (isRegistered)
+                            if (!isWalkInCustomer)
                               _input(loc.creditInput, creditCtrl, (v) {
                                 setDialogState(() {});
                               }, errorText: creditError),
                             const SizedBox(
                                 height: DesktopDimensions.spacingStandard),
-                            if (!isRegistered)
+                            if (isWalkInCustomer)
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,

@@ -357,10 +357,12 @@ class DatabaseHelper {
       CREATE TABLE IF NOT EXISTS stock_activities (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         product_id INTEGER NOT NULL,
-        quantity_change INTEGER NOT NULL,
+        quantity_change REAL NOT NULL,
         transaction_type TEXT NOT NULL,
         reference_type TEXT NOT NULL,
         reference_id INTEGER NOT NULL,
+        batch_number TEXT,
+        expiry_date TEXT,
         user TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE

@@ -179,20 +179,38 @@ class PurchaseRepository {
       for (var item in items) {
         final productId = item['product_id'] as int;
         final quantity = (item['quantity'] as num).toDouble();
-        final batchNumber = item['batch_number'] as String;
+        final batchNumber = item['batch_number'] as String?;
         final expiryRaw = item['expiry_date']?.toString();
         final expiryDate =
             expiryRaw != null ? DateTime.tryParse(expiryRaw) : null;
 
-        // Reduce total stock with underflow protection
-        final updated = await txn.rawUpdate(
-          'UPDATE products SET current_stock = current_stock - ? WHERE id = ? AND current_stock >= ?',
-          [quantity, productId, quantity],
+        // Fetch product details for better error message
+        final productRes = await txn.query(
+          'products',
+          columns: ['name_english', 'current_stock'],
+          where: 'id = ?',
+          whereArgs: [productId],
+          limit: 1,
         );
-        if (updated == 0) {
-          throw Exception(
-              'Cannot cancel purchase: stock underflow for product $productId');
+
+        if (productRes.isEmpty) {
+          throw Exception('Product $productId not found');
         }
+
+        final productName = productRes.first['name_english'] as String;
+        final currentStock = (productRes.first['current_stock'] as num).toDouble();
+
+        if (currentStock < quantity) {
+          throw Exception(
+              'Cannot cancel purchase: insufficient stock for product $productName. '
+              'Current stock: $currentStock, required to subtract: $quantity');
+        }
+
+        // Reduce total stock
+        await txn.rawUpdate(
+          'UPDATE products SET current_stock = current_stock - ? WHERE id = ?',
+          [quantity, productId],
+        );
 
         // Log stock activity
         await txn.insert('stock_activities', {
