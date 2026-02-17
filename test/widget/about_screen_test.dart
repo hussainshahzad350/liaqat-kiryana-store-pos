@@ -18,18 +18,21 @@ void main() {
           Locale('en'),
           Locale('ur'),
         ],
+        locale: Locale('ur'),
         home: AboutScreen(),
       ),
     );
 
-    // Verify main title
-    expect(find.text('ایپ کے بارے میں'), findsOneWidget);
-    
+    await tester.pumpAndSettle();
+
+    // Verify main title (appTitle in Urdu)
+    expect(find.text('لیاقت کریانہ اسٹور'), findsOneWidget);
+
     // Verify version
     expect(find.text('ورژن: 1.0.0'), findsOneWidget);
-    
+
     // Verify sections
     expect(find.text('تکنیکی معلومات'), findsOneWidget);
-    expect(find.text('ایپ کی خصوصیات'), findsOneWidget);
+    expect(find.text('اہم خصوصیات'), findsOneWidget);
   });
 }

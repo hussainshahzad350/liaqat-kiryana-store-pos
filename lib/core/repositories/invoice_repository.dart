@@ -3,6 +3,7 @@ import '../../bloc/stock/stock_event.dart';
 import '../database/database_helper.dart';
 import '../../models/invoice_model.dart';
 import '../../models/invoice_item_model.dart';
+import '../../domain/entities/money.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
@@ -20,6 +21,9 @@ class InvoiceRepository {
     required List<Map<String, dynamic>> items,
     required int grandTotal,
     int discount = 0,
+    int cashAmount = 0,
+    int bankAmount = 0,
+    int creditAmount = 0,
     String? notes,
     Map<String, dynamic>? shopProfile,
     Map<String, dynamic>? customerData,
@@ -125,33 +129,42 @@ class InvoiceRepository {
         });
       }
 
-      // 6. Update Customer Ledger
-      final lastEntry = await txn.rawQuery(
-        'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
-        [customerId],
-      );
-      int prevBalance =
-          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as num?)?.toInt() ?? 0 : 0;
-      int newBalance = prevBalance + grandTotal;
+      // 6. Update Customer Ledger (Only if there is a credit portion)
+      int newBalance = 0;
+      if (creditAmount > 0) {
+        final lastEntry = await txn.rawQuery(
+          'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+          [customerId],
+        );
+        int prevBalance = lastEntry.isNotEmpty
+            ? (lastEntry.first['balance'] as num?)?.toInt() ?? 0
+            : 0;
+        newBalance = prevBalance + creditAmount;
 
-      await txn.insert('customer_ledger', {
-        'customer_id': customerId,
-        'transaction_date': invoiceDate,
-        'description': 'Invoice #$finalNumber',
-        'ref_type': 'INVOICE',
-        'ref_id': invoiceId,
-        'debit': grandTotal,
-        'credit': 0,
-        'balance': newBalance,
-      });
+        String ledgerDesc = 'Invoice #$finalNumber';
+        if (cashAmount > 0 || bankAmount > 0) {
+          ledgerDesc += ' (Credit: ${Money(creditAmount)})';
+        }
 
-      // 7. Update Customer Balance Cache
-      await txn.update(
-        'customers',
-        {'outstanding_balance': newBalance},
-        where: 'id = ?',
-        whereArgs: [customerId],
-      );
+        await txn.insert('customer_ledger', {
+          'customer_id': customerId,
+          'transaction_date': invoiceDate,
+          'description': ledgerDesc,
+          'ref_type': 'INVOICE',
+          'ref_id': invoiceId,
+          'debit': creditAmount,
+          'credit': 0,
+          'balance': newBalance,
+        });
+
+        // 7. Update Customer Balance Cache
+        await txn.update(
+          'customers',
+          {'outstanding_balance': newBalance},
+          where: 'id = ?',
+          whereArgs: [customerId],
+        );
+      }
 
       // 8. Store Invoice Snapshot (for printing)
       if (shopProfile != null && customerData != null) {

@@ -20,6 +20,9 @@ class HomeScreen extends StatefulWidget {
     this.todayCustomersLoader,
     this.lowStockItemsLoader,
     this.recentSalesLoader,
+    this.invoiceRepository,
+    this.customersRepository,
+    this.itemsRepository,
   });
 
   final Future<int> Function()? todaySalesLoader;
@@ -27,14 +30,20 @@ class HomeScreen extends StatefulWidget {
   final Future<List<Map<String, dynamic>>> Function()? lowStockItemsLoader;
   final Future<List<Map<String, dynamic>>> Function()? recentSalesLoader;
 
+  final InvoiceRepository? invoiceRepository;
+  final CustomersRepository? customersRepository;
+  final ItemsRepository? itemsRepository;
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final InvoiceRepository _invoiceRepository = InvoiceRepository();
-  final CustomersRepository _customersRepository = CustomersRepository();
-  final ItemsRepository _itemsRepository = ItemsRepository();
+  late final InvoiceRepository _invoiceRepository;
+  late final CustomersRepository _customersRepository;
+  late final ItemsRepository _itemsRepository;
+
+  // State variables
   // State variables
   final ScrollController _leftPanelScroller = ScrollController();
   final ScrollController _activitiesScroller = ScrollController();
@@ -51,6 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _invoiceRepository = widget.invoiceRepository ?? InvoiceRepository();
+    _customersRepository = widget.customersRepository ?? CustomersRepository();
+    _itemsRepository = widget.itemsRepository ?? ItemsRepository();
+    
     dataTimer = Timer.periodic(const Duration(minutes: 5), (_) => _loadData());
     _loadData();
   }

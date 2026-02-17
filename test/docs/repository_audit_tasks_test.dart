@@ -415,7 +415,9 @@ void main() {
       });
 
       test('no trailing whitespace on key lines', () {
-        final lines = auditTasksContent.split('\n');
+        // Normalize line endings to handle both Unix (\n) and Windows (\r\n)
+        final normalizedContent = auditTasksContent.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+        final lines = normalizedContent.split('\n');
         final headerLines =
             lines.where((line) => line.startsWith('##')).toList();
 

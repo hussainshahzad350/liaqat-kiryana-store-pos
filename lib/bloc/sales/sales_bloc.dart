@@ -345,7 +345,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
 
     // Corrected walk-in customer check
     final isWalkInCustomer = state.selectedCustomer == null ||
-        state.selectedCustomer!.id == _walkInCustomerId;
+      state.selectedCustomer?.id == _walkInCustomerId;
 
     // 2. Walk-in credit prevention
     if (isWalkInCustomer && event.credit > const Money(0)) {
@@ -440,6 +440,9 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         items: invoiceItems,
         grandTotal: state.grandTotal.paisas,
         discount: state.discount.paisas,
+        cashAmount: event.cash.paisas,
+        bankAmount: event.bank.paisas,
+        creditAmount: event.credit.paisas,
         notes: notes,
         customerData: customer?.toMap(),
         shopProfile: shopProfile,
@@ -452,6 +455,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         status: SalesStatus.success,
         successMessage: 'Invoice Completed',
         completedInvoice: invoice,
+        clearCustomer: true, // Clear customer selection after success
       ));
       add(CartCleared());
       add(SalesStarted()); // Refresh data

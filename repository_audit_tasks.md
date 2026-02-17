@@ -18,10 +18,10 @@
 ## 2) Bug Fix Task
 **Title:** Make `Product.fromMap` resilient to SQLite numeric type variance (`int`/`double`).
 
-**Why:** `Product.fromMap` currently casts several DB numeric fields directly as `int` (`min_stock_alert`, `avg_cost_price`, `sale_price`). SQLite frequently returns `num` values as either `int` or `double` depending on query/driver behavior. Direct `as int` casts can throw runtime `TypeError` when values come back as `double` (e.g., `10.0`).
+**Why:** `Product.fromMap` currently casts several DB numeric fields directly as `int` (`min_stock_alert`, `avg_cost_price`, `sale_price`). SQLite frequently returns `num` values as either `int` or `double` depending on query/driver behavior. Direct `as int` casts can throw runtime `TypeError` when values come back as `double` (e.g., `10.0`). The `fromMap` method needs to handle both integer and floating-point numeric types safely.
 
 **Scope:**
-- Replace unsafe casts with `num` coercion (`(map['field'] as num?)?.toInt() ?? fallback`).
+- Replace unsafe casts with `num` coercion using `toInt()` method: `(map['field'] as num?)?.toInt() ?? fallback`.
 - Add regression tests for maps where these fields are doubles.
 
 **Acceptance criteria:**
