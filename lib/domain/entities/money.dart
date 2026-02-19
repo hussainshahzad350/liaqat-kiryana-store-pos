@@ -33,6 +33,21 @@ class Money {
     }
   }
 
+  /// Parses a string into a Money object, returning null if invalid.
+  static Money? tryParse(String value) {
+    if (value.trim().isEmpty) return Money.zero;
+    try {
+      String normalized = value.replaceAll(',', '').trim();
+      if (normalized.isEmpty) return Money.zero;
+      final validPattern = RegExp(r'^\d+(\.\d{1,2})?$');
+      if (!validPattern.hasMatch(normalized)) return null;
+      final double val = double.parse(normalized);
+      return Money((val * 100).round());
+    } catch (_) {
+      return null;
+    }
+  }
+
   static const Money zero = Money(0);
 
   final int paisas;

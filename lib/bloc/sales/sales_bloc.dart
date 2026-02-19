@@ -315,11 +315,23 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         ? Money(state.selectedCustomer!.outstandingBalance)
         : Money.zero;
 
+    bool shouldShowCreditWarning = false;
+    Money potentialBalance = previousBalance + grandTotal;
+
+    if (state.selectedCustomer != null && !state.selectedCustomer!.isWalkIn) {
+      final Money creditLimit = Money(state.selectedCustomer!.creditLimit);
+      if (potentialBalance > creditLimit) {
+        shouldShowCreditWarning = true;
+      }
+    }
+
     emit(state.copyWith(
       subtotal: subtotal,
       discount: discount,
       grandTotal: grandTotal,
       previousBalance: previousBalance,
+      shouldShowCreditWarning: shouldShowCreditWarning,
+      potentialBalance: potentialBalance,
     ));
   }
 

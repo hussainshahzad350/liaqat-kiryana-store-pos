@@ -97,7 +97,7 @@ class ProductCard extends StatelessWidget {
                     horizontal: DesktopDimensions.spacingXSmall,
                     vertical: DesktopDimensions.spacingXXSmall),
                 decoration: BoxDecoration(
-                  color: (product.currentStock) < 10
+                  color: product.isLowStock
                       ? colorScheme.errorContainer
                       : colorScheme.surfaceVariant,
                   borderRadius: BorderRadius.circular(
@@ -107,7 +107,7 @@ class ProductCard extends StatelessWidget {
                   '${product.currentStock}',
                   style: textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: (product.currentStock) < 10
+                    color: product.isLowStock
                         ? colorScheme.onErrorContainer
                         : colorScheme.onSurfaceVariant,
                   ),

@@ -24,6 +24,8 @@ class SalesState extends Equatable {
   final String? successMessage;
   final bool showCustomerList;
   final Invoice? completedInvoice;
+  final bool shouldShowCreditWarning;
+  final Money potentialBalance; 
   final CreditLimitUpdateStatus creditLimitUpdateStatus;
   final int? creditLimitUpdateCustomerId;
   final String? creditLimitUpdateError;
@@ -41,6 +43,8 @@ class SalesState extends Equatable {
     this.discount = const Money(0),
     this.grandTotal = const Money(0),
     this.previousBalance = const Money(0),
+    this.shouldShowCreditWarning = false,
+    this.potentialBalance = const Money(0),
     this.errorMessage,
     this.successMessage,
     this.showCustomerList = false,
@@ -64,6 +68,8 @@ class SalesState extends Equatable {
     Money? discount,
     Money? grandTotal,
     Money? previousBalance,
+    bool? shouldShowCreditWarning,
+    Money? potentialBalance,
     String? errorMessage,
     String? successMessage,
     bool? showCustomerList,
@@ -87,6 +93,8 @@ class SalesState extends Equatable {
       discount: discount ?? this.discount,
       grandTotal: grandTotal ?? this.grandTotal,
       previousBalance: previousBalance ?? this.previousBalance,
+      shouldShowCreditWarning: shouldShowCreditWarning ?? this.shouldShowCreditWarning,
+      potentialBalance: potentialBalance ?? this.potentialBalance,
       errorMessage: errorMessage,
       successMessage: successMessage,
       showCustomerList: showCustomerList ?? this.showCustomerList,
@@ -115,6 +123,8 @@ class SalesState extends Equatable {
         discount,
         grandTotal,
         previousBalance,
+        shouldShowCreditWarning,
+        potentialBalance,
         errorMessage,
         successMessage,
         showCustomerList,

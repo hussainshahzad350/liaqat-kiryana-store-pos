@@ -78,6 +78,9 @@ class Customer {
     );
   }
 
+  /// Whether this is a walk-in customer
+  bool get isWalkIn => id == 1;
+
   @override
   String toString() {
     return 'Customer(id: $id, nameEnglish: $nameEnglish, nameUrdu: $nameUrdu, '

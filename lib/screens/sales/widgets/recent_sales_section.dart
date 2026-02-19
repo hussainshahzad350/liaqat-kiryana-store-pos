@@ -120,7 +120,7 @@ class RecentSalesSection extends StatelessWidget {
                                         size: DesktopDimensions.iconSizeSmall),
                                     const SizedBox(
                                         width: DesktopDimensions.spacingSmall),
-                                    Text('Print', style: textTheme.bodyMedium)
+                                    Text(loc.printReceipt, style: textTheme.bodyMedium)
                                   ])),
                               PopupMenuItem(
                                   value: 'edit',
@@ -129,7 +129,7 @@ class RecentSalesSection extends StatelessWidget {
                                         size: DesktopDimensions.iconSizeSmall),
                                     const SizedBox(
                                         width: DesktopDimensions.spacingSmall),
-                                    Text('Edit', style: textTheme.bodyMedium)
+                                    Text(loc.editItem, style: textTheme.bodyMedium)
                                   ])),
                               PopupMenuItem(
                                   value: 'cancel',
@@ -139,14 +139,14 @@ class RecentSalesSection extends StatelessWidget {
                                         color: colorScheme.error),
                                     const SizedBox(
                                         width: DesktopDimensions.spacingSmall),
-                                    Text('Cancel',
+                                    Text(loc.cancel,
                                         style: textTheme.bodyMedium?.copyWith(
                                             color: colorScheme.error))
                                   ])),
                             ] else ...[
                               PopupMenuItem(
                                   enabled: false,
-                                  child: Text('Cancelled',
+                                  child: Text(loc.cancelled,
                                       style: textTheme.bodyMedium)),
                             ]
                           ],

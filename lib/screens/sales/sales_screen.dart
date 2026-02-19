@@ -24,6 +24,7 @@ import 'dialogs/increase_limit_dialog.dart';
 import 'dialogs/checkout_payment_dialog.dart';
 import 'dialogs/post_sale_dialog.dart';
 import 'dialogs/cancel_sale_dialog.dart';
+import 'dialogs/exit_confirmation_dialog.dart';
 import 'widgets/product_card.dart';
 import 'widgets/recent_sales_section.dart';
 import 'widgets/customer_section.dart';
@@ -120,64 +121,10 @@ class _SalesScreenState extends State<SalesScreen> {
     final state = context.read<SalesBloc>().state;
     if (state.status == SalesStatus.loading) return false;
 
-    final loc = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-
     if (state.cartItems.isNotEmpty) {
-      final bool? shouldExit = await showDialog(
+      final bool? shouldExit = await showDialog<bool>(
         context: context,
-        builder: (context) => Dialog(
-          shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.6,
-              minWidth: DesktopDimensions.dialogWidth * 1.5,
-            ),
-            padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(loc.unsavedTitle,
-                        style: Theme.of(context).textTheme.titleLarge),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context, false),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: DesktopDimensions.spacingMedium),
-                Text(loc.unsavedMsg,
-                    style: Theme.of(context).textTheme.bodyLarge),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Text(loc.cancel),
-                    ),
-                    const SizedBox(width: DesktopDimensions.spacingMedium),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.error,
-                          foregroundColor: colorScheme.onError),
-                      onPressed: () => Navigator.pop(context, true),
-                      child: Text(loc.exit),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
+        builder: (context) => const ExitConfirmationDialog(),
       );
       return shouldExit ?? false;
     }
@@ -261,7 +208,7 @@ class _SalesScreenState extends State<SalesScreen> {
     final state = context.read<SalesBloc>().state;
     if (state.cartItems.isEmpty) return;
 
-    if (state.selectedCustomer == null) {
+    if (state.selectedCustomer == null || !state.shouldShowCreditWarning) {
       showDialog(
         context: context,
         builder: (_) => BlocProvider.value(
@@ -272,71 +219,59 @@ class _SalesScreenState extends State<SalesScreen> {
       return;
     }
 
-    Money creditLimit = Money(state.selectedCustomer?.creditLimit ?? 0);
-    Money currentBalance =
-        Money(state.selectedCustomer?.outstandingBalance ?? 0);
-    final Money potentialBalance = currentBalance + state.grandTotal;
+    final selected = state.selectedCustomer!;
+    final Money creditLimit = Money(selected.creditLimit);
+    final Money currentBalance = Money(selected.outstandingBalance);
 
-    if (potentialBalance > creditLimit) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => BlocProvider.value(
-          value: context.read<SalesBloc>(),
-          child: CreditLimitWarningDialog(
-            creditLimit: creditLimit,
-            currentBalance: currentBalance,
-            billTotal: state.grandTotal,
-            potentialBalance: potentialBalance,
-            onContinueAnyway: () {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => BlocProvider.value(
+        value: context.read<SalesBloc>(),
+        child: CreditLimitWarningDialog(
+          creditLimit: creditLimit,
+          currentBalance: currentBalance,
+          billTotal: state.grandTotal,
+          potentialBalance: state.potentialBalance,
+          onContinueAnyway: () {
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (_) => BlocProvider.value(
+                value: context.read<SalesBloc>(),
+                child: const CheckoutPaymentDialog(ignoreCreditLimit: true),
+              ),
+            );
+          },
+          onIncreaseLimit: () {
+            final int? cid = selected.id;
+            if (cid != null) {
               showDialog(
                 context: context,
-                barrierDismissible: false,
                 builder: (_) => BlocProvider.value(
                   value: context.read<SalesBloc>(),
-                  child: const CheckoutPaymentDialog(ignoreCreditLimit: true),
+                  child: IncreaseLimitDialog(
+                    customerId: cid,
+                    currentLimit: creditLimit,
+                    onLimitUpdated: () {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => BlocProvider.value(
+                          value: context.read<SalesBloc>(),
+                          child: const CheckoutPaymentDialog(
+                              ignoreCreditLimit: true),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               );
-            },
-            onIncreaseLimit: () {
-              final selected = state.selectedCustomer;
-              final int? cid = selected?.id;
-              if (cid != null) {
-                showDialog(
-                  context: context,
-                  builder: (_) => BlocProvider.value(
-                    value: context.read<SalesBloc>(),
-                    child: IncreaseLimitDialog(
-                      customerId: cid,
-                      currentLimit: creditLimit,
-                      onLimitUpdated: () {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (_) => BlocProvider.value(
-                            value: context.read<SalesBloc>(),
-                            child: const CheckoutPaymentDialog(
-                                ignoreCreditLimit: true),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
+            }
+          },
         ),
-      );
-    } else {
-      showDialog(
-        context: context,
-        builder: (_) => BlocProvider.value(
-          value: context.read<SalesBloc>(),
-          child: const CheckoutPaymentDialog(),
-        ),
-      );
-    }
+      ),
+    );
   }
   
   void _showPostSaleDialog(Invoice invoice) {
@@ -724,7 +659,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                                 children: [
                                                   Expanded(
                                                       flex: 4,
-                                                      child: Text('Item',
+                                                      child: Text(loc.item,
                                                           style: TextStyle(
                                                               fontWeight:
                                                                   FontWeight
@@ -764,7 +699,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                                           .spacingMedium),
                                                   SizedBox(
                                                       width: 70,
-                                                      child: Text('Total',
+                                                      child: Text(loc.total,
                                                           textAlign:
                                                               TextAlign.end,
                                                           style: TextStyle(

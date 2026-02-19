@@ -25,30 +25,16 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
   final bankCtrl = TextEditingController();
   final creditCtrl = TextEditingController();
 
-  Money? _tryParseMoney(String text) {
-    final normalized = text.replaceAll(',', '').trim();
-    if (normalized.isEmpty) return Money.zero;
-    final validPattern = RegExp(r'^\d+(\.\d{1,2})?$');
-    if (!validPattern.hasMatch(normalized)) {
-      return null;
-    }
-    return Money.fromRupeesString(normalized);
-  }
-
   Money safeMoney(String text) {
-    return _tryParseMoney(text) ?? Money.zero;
+    return Money.tryParse(text) ?? Money.zero;
   }
 
   @override
   void initState() {
     super.initState();
-    // Initialize fields if needed, or leave empty
-    // Logic from _showCheckoutPaymentDialog:
-    // if (!isWalkInCustomer) { creditCtrl.text = '0'; }
     final state = context.read<SalesBloc>().state;
-    final isWalkInCustomer =
-      state.selectedCustomer == null || state.selectedCustomer?.id == 1;
-    if (!isWalkInCustomer) {
+    final isWalkIn = state.selectedCustomer?.isWalkIn ?? true;
+    if (!isWalkIn) {
       creditCtrl.text = '0';
     }
   }
@@ -78,7 +64,6 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
           billTotal: billTotal,
           potentialBalance: potentialBalance,
           onContinueAnyway: () {
-            // Re-show checkout dialog with ignoreCreditLimit = true
             showDialog(
               context: context,
               barrierDismissible: false,
@@ -101,7 +86,6 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                     customerId: custId,
                     currentLimit: Money(selected!.creditLimit),
                     onLimitUpdated: () {
-                      // Re-show checkout dialog with ignoreCreditLimit = true
                       showDialog(
                         context: context,
                         barrierDismissible: false,
@@ -142,22 +126,20 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
     final colorScheme = Theme.of(context).colorScheme;
     final state = context.read<SalesBloc>().state;
 
-    final selectedCustomerMap = state.selectedCustomer;
-    final isWalkInCustomer =
-        selectedCustomerMap == null || selectedCustomerMap.id == 1;
+    final customer = state.selectedCustomer;
+    final bool isWalkIn = customer?.isWalkIn ?? true;
     final Money billTotal = state.grandTotal;
     final Money oldBalance = state.previousBalance;
 
     return StatefulBuilder(builder: (context, setDialogState) {
-      final parsedCash = _tryParseMoney(cashCtrl.text);
-      final parsedBank = _tryParseMoney(bankCtrl.text);
-      final parsedCredit = _tryParseMoney(creditCtrl.text);
+      final parsedCash = Money.tryParse(cashCtrl.text);
+      final parsedBank = Money.tryParse(bankCtrl.text);
+      final parsedCredit = isWalkIn ? Money.zero : Money.tryParse(creditCtrl.text);
+
       final cashError = parsedCash == null ? loc.invalidAmount : null;
       final bankError = parsedBank == null ? loc.invalidAmount : null;
       final creditError = parsedCredit == null ? loc.invalidAmount : null;
-      final hasParseError = cashError != null ||
-          bankError != null ||
-          (!isWalkInCustomer && creditError != null);
+      final hasParseError = cashError != null || bankError != null || creditError != null;
 
       final Money cash = parsedCash ?? Money.zero;
       final Money bank = parsedBank ?? Money.zero;
@@ -166,14 +148,14 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
       Money change = const Money(0);
       bool isValid = false;
 
-      if (hasParseError) {
-        isValid = false;
-      } else if (!isWalkInCustomer) {
-        isValid = totalPayment == billTotal;
-      } else {
-        isValid = (cash + bank) >= billTotal;
-        if (isValid) {
-          change = (cash + bank) - billTotal;
+      if (!hasParseError) {
+        if (isWalkIn) {
+          isValid = (cash + bank) >= billTotal;
+          if (isValid) {
+            change = (cash + bank) - billTotal;
+          }
+        } else {
+          isValid = totalPayment == billTotal;
         }
       }
 
@@ -183,37 +165,21 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
       }
 
       void checkCreditLimitAndProcess() {
-        if (hasParseError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(loc.invalidAmount),
-              backgroundColor: colorScheme.error,
-            ),
-          );
-          return;
-        }
+        if (hasParseError) return;
 
-        if (widget.ignoreCreditLimit) {
+        if (widget.ignoreCreditLimit || isWalkIn || credit <= const Money(0)) {
           processSaleAction();
           return;
         }
 
-        if (isWalkInCustomer || credit <= const Money(0)) {
-          processSaleAction();
-          return;
-        }
-
-        final selectedCustomer = selectedCustomerMap;
-        final Money creditLimit = Money(selectedCustomer.creditLimit);
-        final Money potentialBalance = oldBalance + credit;
-
-        if (potentialBalance > creditLimit) {
-          Navigator.pop(context); // Close current dialog
+        // Use BLoC logic for warning check
+        if (state.shouldShowCreditWarning) {
+          Navigator.pop(context);
           _showCreditLimitWarning(
-            creditLimit: creditLimit,
+            creditLimit: Money(customer!.creditLimit),
             currentBalance: oldBalance,
             billTotal: credit,
-            potentialBalance: potentialBalance,
+            potentialBalance: oldBalance + credit,
           );
         } else {
           processSaleAction();
@@ -258,9 +224,9 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (!isWalkInCustomer) ...[
+                      if (!isWalkIn) ...[
                         Text(
-                            '${loc.searchCustomerHint}: ${selectedCustomerMap.nameEnglish}',
+                            '${loc.searchCustomerHint}: ${customer?.nameEnglish}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyLarge
@@ -302,87 +268,87 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                       const SizedBox(height: DesktopDimensions.spacingStandard),
                       Text(loc.paymentLabel,
                           style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: DesktopDimensions.spacingStandard),
-                      _input(context, loc.cashInput, cashCtrl, (v) {
-                        setDialogState(() {
-                          if (!isWalkInCustomer) {
-                            Money cash = safeMoney(cashCtrl.text);
-                            Money bank = safeMoney(bankCtrl.text);
-                            Money remaining = billTotal - cash - bank;
-                            creditCtrl.text = remaining > const Money(0)
-                                ? remaining.toRupeesString()
-                                : '0';
-                          }
-                        });
-                      }, errorText: cashError),
-                      _input(context, loc.bankInput, bankCtrl, (v) {
-                        setDialogState(() {
-                          if (!isWalkInCustomer) {
-                            Money cash = safeMoney(cashCtrl.text);
-                            Money bank = safeMoney(bankCtrl.text);
-                            Money remaining = billTotal - cash - bank;
-                            creditCtrl.text = remaining > const Money(0)
-                                ? remaining.toRupeesString()
-                                : '0';
-                          }
-                        });
-                      }, errorText: bankError),
-                      if (!isWalkInCustomer)
-                        _input(context, loc.creditInput, creditCtrl, (v) {
-                          setDialogState(() {});
-                        }, errorText: creditError),
-                      const SizedBox(height: DesktopDimensions.spacingStandard),
-                      if (isWalkInCustomer)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(loc.changeDue,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold)),
-                            Text(change.toString(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: change >= const Money(0)
-                                            ? colorScheme.primary
-                                            : colorScheme.error)),
-                          ],
-                        ),
-                    ],
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: DesktopDimensions.spacingStandard),
+                        _input(context, loc.cashInput, cashCtrl, (v) {
+                          setDialogState(() {
+                            if (!isWalkIn) {
+                              Money cashValue = safeMoney(cashCtrl.text);
+                              Money bankValue = safeMoney(bankCtrl.text);
+                              Money remaining = billTotal - cashValue - bankValue;
+                              creditCtrl.text = remaining > const Money(0)
+                                  ? remaining.toRupeesString()
+                                  : '0';
+                            }
+                          });
+                        }, errorText: cashError),
+                        _input(context, loc.bankInput, bankCtrl, (v) {
+                          setDialogState(() {
+                            if (!isWalkIn) {
+                              Money cashValue = safeMoney(cashCtrl.text);
+                              Money bankValue = safeMoney(bankCtrl.text);
+                              Money remaining = billTotal - cashValue - bankValue;
+                              creditCtrl.text = remaining > const Money(0)
+                                  ? remaining.toRupeesString()
+                                  : '0';
+                            }
+                          });
+                        }, errorText: bankError),
+                        if (!isWalkIn)
+                          _input(context, loc.creditInput, creditCtrl, (v) {
+                            setDialogState(() {});
+                          }, errorText: creditError),
+                        const SizedBox(height: DesktopDimensions.spacingStandard),
+                        if (isWalkIn)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(loc.changeDue,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(fontWeight: FontWeight.bold)),
+                              Text(change.toString(),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: change >= const Money(0)
+                                              ? colorScheme.primary
+                                              : colorScheme.error)),
+                            ],
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: DesktopDimensions.spacingLarge),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(loc.cancel),
-                  ),
-                  const SizedBox(width: DesktopDimensions.spacingMedium),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
+                const SizedBox(height: DesktopDimensions.spacingLarge),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(loc.cancel),
                     ),
-                    onPressed: isValid ? checkCreditLimitAndProcess : null,
-                    child: Text(loc.savePrint),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                      ),
+                      onPressed: isValid ? checkCreditLimitAndProcess : null,
+                      child: Text(loc.savePrint),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    });
+        );
+      });
   }
 
   Widget _infoRow(BuildContext context, String label, String value,
