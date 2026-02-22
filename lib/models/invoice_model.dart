@@ -4,6 +4,11 @@ import 'invoice_item_model.dart';
 /// Represents a finalized financial document (Invoice).
 /// Maps to the 'invoices' table.
 class Invoice {
+  // Status Constants
+  static const String statusDraft = 'DRAFT';
+  static const String statusPosted = 'POSTED';
+  static const String statusVoid = 'VOID';
+  static const String statusCancelled = 'CANCELLED';
   final int? id;
   final String invoiceNumber;
   final int customerId;
@@ -60,7 +65,13 @@ class Invoice {
     );
   }
 
-  bool get isReadOnly => status == 'POSTED' || status == 'VOID';
+  // Status Getters for convenience
+  bool get isDraft => status == statusDraft;
+  bool get isPosted => status == statusPosted;
+  bool get isVoid => status == statusVoid;
+  bool get isCancelled => status == statusCancelled;
+
+  bool get isReadOnly => status == statusPosted || status == statusVoid;
 
   bool get isMathematicallyValid {
     final sumItems = items.fold<int>(0, (sum, item) => sum + item.subtotal);
@@ -94,7 +105,7 @@ class Invoice {
       date: parsedDate ?? DateTime.now(),
       totalAmount: (map['grand_total'] as num?)?.toInt() ?? 0,
       discount: (map['discount_total'] as num?)?.toInt() ?? 0,
-      status: map['status'] as String? ?? 'POSTED',
+      status: map['status'] as String? ?? statusPosted,
       notes: map['notes'] as String?,
       items: [], // Load separately via repository
       customerName: map['customer_name'] as String?,

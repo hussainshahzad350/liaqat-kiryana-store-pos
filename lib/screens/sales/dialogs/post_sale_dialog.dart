@@ -25,7 +25,7 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
   Future<void> _handlePrintReceipt(Invoice invoice) async {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    if (invoice.status == 'CANCELLED') {
+    if (invoice.isCancelled) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.cannotPrintCancelled)),
       );
@@ -118,7 +118,7 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
                     // Capture theme values before async call
                     final errorColor = colorScheme.error;
 
-                    if (widget.invoice.status == 'CANCELLED') {
+                    if (widget.invoice.isCancelled) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

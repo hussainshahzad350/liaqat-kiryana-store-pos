@@ -153,13 +153,6 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
                               .copyWith(creditLimit: newLimit.paisas)));
                         }
 
-                        // Show success message, then close dialog and call callback
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(successMsg)),
-                          );
-                        }
-
                         // Close dialog first before calling callback
                         if (context.mounted && Navigator.of(context).canPop()) {
                           Navigator.pop(context);

@@ -3703,6 +3703,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'F5'**
   String get shortcutF5;
+
+  /// No description provided for @insufficientStockError.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient stock available'**
+  String get insufficientStockError;
+
+  /// No description provided for @outOfStockError.
+  ///
+  /// In en, this message translates to:
+  /// **'Product is out of stock'**
+  String get outOfStockError;
+
+  /// No description provided for @stockLimitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock limit reached'**
+  String get stockLimitError;
+
+  /// No description provided for @negativePriceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Product sale price cannot be negative'**
+  String get negativePriceError;
+
+  /// No description provided for @itemNegativePriceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Item price cannot be negative'**
+  String get itemNegativePriceError;
 }
 
 class _AppLocalizationsDelegate

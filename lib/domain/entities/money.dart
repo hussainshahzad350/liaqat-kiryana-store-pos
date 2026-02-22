@@ -113,6 +113,11 @@ class Money {
     return 'Rs ${_noDecimalFormat.format(rupees)}';
   }
 
+  /// Returns formatted value without currency symbol (e.g., "1,234.00")
+  String get valueOnly {
+    return format(withSymbol: false);
+  }
+
   /// Returns the value as a decimal string (e.g., "10.50")
   String toRupeesString() {
     return (paisas / 100.0).toStringAsFixed(2);

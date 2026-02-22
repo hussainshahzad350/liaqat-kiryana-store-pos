@@ -62,7 +62,7 @@ class RecentSalesSection extends StatelessWidget {
                     const Divider(height: DesktopDimensions.dividerThickness),
                 itemBuilder: (context, index) {
                   final invoice = recentInvoices[index];
-                  final isCancelled = invoice.status == 'CANCELLED';
+                  final isCancelled = invoice.isCancelled;
                   return ListTile(
                     dense: true,
                     contentPadding: const EdgeInsets.symmetric(

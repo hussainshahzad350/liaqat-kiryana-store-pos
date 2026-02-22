@@ -155,7 +155,7 @@ class _CartItemRowState extends State<CartItemRow> {
           SizedBox(
             width: 80,
             child: Text(
-              widget.item.total.toString().replaceAll('Rs ', ''),
+              widget.item.total.valueOnly,
               textAlign: TextAlign.end,
               style:
                   textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),

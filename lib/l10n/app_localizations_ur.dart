@@ -1865,4 +1865,19 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get shortcutF5 => 'F5';
+
+  @override
+  String get insufficientStockError => 'Insufficient stock available';
+
+  @override
+  String get outOfStockError => 'Product is out of stock';
+
+  @override
+  String get stockLimitError => 'Stock limit reached';
+
+  @override
+  String get negativePriceError => 'Product sale price cannot be negative';
+
+  @override
+  String get itemNegativePriceError => 'Item price cannot be negative';
 }

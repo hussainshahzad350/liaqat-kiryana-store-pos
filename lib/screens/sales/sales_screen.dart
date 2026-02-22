@@ -10,6 +10,7 @@ import '../../bloc/sales/sales_state.dart';
 import '../../core/repositories/receipt_repository.dart';
 import '../../core/constants/desktop_dimensions.dart';
 import '../../core/res/app_dimensions.dart';
+import '../../core/utils/error_handler.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
 import '../../models/invoice_model.dart';
@@ -143,8 +144,7 @@ class _SalesScreenState extends State<SalesScreen> {
   void _filterCustomers(String query) {
     _customerSearchDebounce?.cancel();
 
-    _customerSearchDebounce =
-        Timer(const Duration(milliseconds: 300), () async {
+    _customerSearchDebounce = Timer(const Duration(milliseconds: 300), () {
       context.read<SalesBloc>().add(CustomerSearchChanged(query));
     });
   }
@@ -301,7 +301,7 @@ class _SalesScreenState extends State<SalesScreen> {
   }
 
   void _handleEditInvoice(Invoice invoice) {
-    if (invoice.status == 'CANCELLED') {
+    if (invoice.isCancelled) {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
@@ -357,8 +357,15 @@ class _SalesScreenState extends State<SalesScreen> {
         ),
         child: Focus(
           autofocus: true,
-          child: WillPopScope(
-            onWillPop: _onWillPop,
+          child: PopScope(
+            canPop: false,
+            onPopInvoked: (bool didPop) async {
+              if (didPop) return;
+              final shouldPop = await _onWillPop();
+              if (shouldPop && context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
             child: BlocConsumer<SalesBloc, SalesState>(
               listener: (context, state) {
                 if (state.selectedCustomer == null &&
@@ -372,13 +379,15 @@ class _SalesScreenState extends State<SalesScreen> {
                   _lastHandledQuickCustomerId = quickAdded.id;
                   customerSearchController.text =
                       "${quickAdded.nameEnglish} (${quickAdded.contactPrimary ?? ''})";
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          "${loc.customerAdded}: '${quickAdded.nameEnglish}'"),
-                      backgroundColor: colorScheme.primary,
-                    ),
-                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            "${loc.customerAdded}: '${quickAdded.nameEnglish}'"),
+                        backgroundColor: colorScheme.primary,
+                      ),
+                    );
+                  }
                 }
 
                 if (state.status == SalesStatus.success) {
@@ -391,43 +400,24 @@ class _SalesScreenState extends State<SalesScreen> {
                         : success == 'Credit limit updated'
                             ? loc.creditLimitUpdated
                             : success;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(message),
-                        backgroundColor: colorScheme.primary,
-                      ),
-                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(message),
+                          backgroundColor: colorScheme.primary,
+                        ),
+                      );
+                    }
                   }
                 } else if (state.status == SalesStatus.error) {
                   // Only show error if there's an error message
                   // Some errors are transient and immediately reset (like stock validation)
-                  if (state.errorMessage != null) {
-                    final err = state.errorMessage ==
-                            'Cannot print cancelled invoice'
-                        ? loc.cannotPrintCancelled
-                        : state.errorMessage == 'Phone already exists'
-                            ? loc.phoneExistsError
-                            : state.errorMessage == 'Phone number is required'
-                                ? loc.phoneRequired
-                                : state.errorMessage == 'Name is required'
-                                    ? loc.nameRequired
-                                    : state.errorMessage == 'Insufficient stock'
-                                        ? 'Insufficient stock available'
-                                        : state.errorMessage == 'Out of stock'
-                                            ? 'Product is out of stock'
-                                            : state.errorMessage ==
-                                                    'Stock limit reached'
-                                                ? 'Stock limit reached'
-                                                : state.errorMessage ==
-                                                        'Product sale price cannot be negative'
-                                                    ? 'Product sale price cannot be negative'
-                                                    : state.errorMessage ==
-                                                            'Item price cannot be negative'
-                                                        ? 'Item price cannot be negative'
-                                                        : state.errorMessage;
+                  if (state.errorMessage != null && context.mounted) {
+                    final err = ErrorHandler.getLocalizedMessage(
+                        state.errorMessage, loc);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(err!),
+                        content: Text(err),
                         backgroundColor: colorScheme.error,
                       ),
                     );
@@ -453,7 +443,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                     size: DesktopDimensions.kpiIconSize),
                                 color: colorScheme.primary,
                                 onPressed: _refreshAllData,
-                                tooltip: 'Refresh',
+                                tooltip: loc.refresh,
                               ),
                               const SizedBox(
                                   width: DesktopDimensions.spacingMedium),
@@ -820,8 +810,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                                   cartItems.isNotEmpty,
                                               onCheckout: _showCheckoutDialog,
                                               onDiscountChanged: (_) =>
-                                                  setState(
-                                                      () => _calculateTotals()),
+                                                  _calculateTotals(),
                                             ),
                                           ],
                                         ),

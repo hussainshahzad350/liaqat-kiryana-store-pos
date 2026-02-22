@@ -665,5 +665,10 @@
   "descriptionRequired": "Description is required",
   "activity": "Activity",
   "shortcutCtrlN": "Ctrl + N",
-  "shortcutF5": "F5"
+  "shortcutF5": "F5",
+  "insufficientStockError": "Insufficient stock available",
+  "outOfStockError": "Product is out of stock",
+  "stockLimitError": "Stock limit reached",
+  "negativePriceError": "Product sale price cannot be negative",
+  "itemNegativePriceError": "Item price cannot be negative"
 }
