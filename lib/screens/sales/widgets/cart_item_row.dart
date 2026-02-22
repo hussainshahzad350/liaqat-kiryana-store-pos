@@ -72,12 +72,7 @@ class _CartItemRowState extends State<CartItemRow> {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
       final double qty = double.tryParse(_qtyCtrl.text) ?? 1.0;
-      Money price;
-      try {
-        price = Money.fromRupeesString(_priceCtrl.text);
-      } catch (_) {
-        price = Money.zero;
-      }
+      final Money price = Money.tryParse(_priceCtrl.text) ?? Money.zero;
       widget.onUpdate(widget.index, qty, price);
     });
   }

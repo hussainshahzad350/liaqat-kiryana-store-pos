@@ -40,9 +40,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
           borderRadius:
               BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
       child: Container(
-        constraints: BoxConstraints(
-          minWidth: DesktopDimensions.dialogWidth * 1.5,
-          maxWidth: MediaQuery.of(context).size.width * 0.6,
+        constraints: const BoxConstraints(
+          minWidth: 450,
+          maxWidth: 550,
         ),
         padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
         child: Column(

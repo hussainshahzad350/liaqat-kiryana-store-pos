@@ -33,59 +33,66 @@ class _CancelSaleDialogState extends State<CancelSaleDialog> {
           borderRadius:
               BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
       child: Container(
-        constraints: BoxConstraints(
-          minWidth: DesktopDimensions.dialogWidth * 1.5,
-          maxWidth: MediaQuery.of(context).size.width * 0.6,
+        constraints: const BoxConstraints(
+          minWidth: 400,
+          maxWidth: 500,
         ),
         padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(loc.cancelSaleTitle,
-                    style: Theme.of(context).textTheme.titleLarge),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context, null),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(loc.cancelSaleTitle,
+                        style: Theme.of(context).textTheme.titleLarge),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context, null),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: DesktopDimensions.spacingMedium),
-            Text(loc.cancelSaleMessage,
-                style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: DesktopDimensions.spacingMedium),
-            TextField(
-              controller: reasonCtrl,
-              decoration: InputDecoration(
-                labelText: loc.cancelReasonLabel,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: DesktopDimensions.spacingLarge),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, null),
-                  child: Text(loc.cancel),
-                ),
-                const SizedBox(width: DesktopDimensions.spacingMedium),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.error,
-                    foregroundColor: colorScheme.onError,
+                const SizedBox(height: DesktopDimensions.spacingMedium),
+                Text(loc.cancelSaleMessage,
+                    style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: DesktopDimensions.spacingMedium),
+                TextField(
+                  controller: reasonCtrl,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    labelText: loc.cancelReasonLabel,
+                    border: const OutlineInputBorder(),
                   ),
-                  onPressed: () => Navigator.pop(context, reasonCtrl.text.trim()),
-                  child: Text(loc.cancelSale),
+                ),
+                const SizedBox(height: DesktopDimensions.spacingLarge),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, null),
+                      child: Text(loc.cancel),
+                    ),
+                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.error,
+                        foregroundColor: colorScheme.onError,
+                      ),
+                      onPressed: reasonCtrl.text.trim().isEmpty
+                          ? null
+                          : () => Navigator.pop(context, reasonCtrl.text.trim()),
+                      child: Text(loc.cancelSale),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

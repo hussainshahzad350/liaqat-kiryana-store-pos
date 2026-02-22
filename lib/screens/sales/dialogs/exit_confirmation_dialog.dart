@@ -15,9 +15,9 @@ class ExitConfirmationDialog extends StatelessWidget {
           borderRadius:
               BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
       child: Container(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.6,
-          minWidth: DesktopDimensions.dialogWidth * 1.5,
+        constraints: const BoxConstraints(
+          minWidth: 400,
+          maxWidth: 500,
         ),
         padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
         child: Column(

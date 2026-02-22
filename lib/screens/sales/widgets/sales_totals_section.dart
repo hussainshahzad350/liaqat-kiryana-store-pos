@@ -102,7 +102,7 @@ class SalesTotalsSection extends StatelessWidget {
                 style: textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.w800)),
             Text(grandTotal.toString(),
-                style: textTheme.displaySmall?.copyWith(
+                style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w900, color: colorScheme.primary))
           ]),
           const SizedBox(height: DesktopDimensions.spacingMedium),

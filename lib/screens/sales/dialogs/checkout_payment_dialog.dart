@@ -191,9 +191,9 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
             borderRadius:
                 BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
         child: Container(
-          constraints: BoxConstraints(
-            minWidth: DesktopDimensions.dialogWidth * 1.5,
-            maxWidth: MediaQuery.of(context).size.width * 0.6,
+          constraints: const BoxConstraints(
+            minWidth: 500,
+            maxWidth: 650,
           ),
           padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
           child: Column(

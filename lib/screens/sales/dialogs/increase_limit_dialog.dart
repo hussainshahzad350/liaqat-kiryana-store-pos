@@ -49,9 +49,9 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
           borderRadius:
               BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
       child: Container(
-        constraints: BoxConstraints(
-          minWidth: DesktopDimensions.dialogWidth,
-          maxWidth: MediaQuery.of(context).size.width * 0.5,
+        constraints: const BoxConstraints(
+          minWidth: 450,
+          maxWidth: 550,
         ),
         padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
         child: Column(
@@ -145,17 +145,6 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
 
                       if (updateResult.creditLimitUpdateStatus ==
                           CreditLimitUpdateStatus.success) {
-                        // The SalesScreen Bloc listener handles usage of the updated limit
-                        // by refreshing customer data. We just need to trigger the callback
-                        // and close the dialog.
-
-                        // Actually, lines 733 in original code update the selectedCustomer
-                        // manually in the BLoC. We should probably do that here OR rely on
-                        // the parent to handle it.
-                        // Original code:
-                        // salesBloc.add(CustomerSelected(selectedCustomerMap!.copyWith(creditLimit: newLimit.paisas)));
-
-                        // To be safe and mimic original behavior exactly:
                         final state = salesBloc.state;
                         final int? sid = state.selectedCustomer?.id;
                         if (sid == widget.customerId &&
@@ -164,19 +153,19 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
                               .copyWith(creditLimit: newLimit.paisas)));
                         }
 
-                        if (context.mounted &&
-                            Navigator.of(context).canPop()) {
+                        // Show success message, then close dialog and call callback
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(successMsg)),
+                          );
+                        }
+
+                        // Close dialog first before calling callback
+                        if (context.mounted && Navigator.of(context).canPop()) {
                           Navigator.pop(context);
                         }
 
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(successMsg),
-                              backgroundColor: colorScheme.primary,
-                            ),
-                          );
-                        }
+                        // Callback will trigger checkout payment dialog
                         widget.onLimitUpdated();
                       } else {
                         if (context.mounted) {

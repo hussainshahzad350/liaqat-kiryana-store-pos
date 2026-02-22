@@ -273,7 +273,7 @@ class _SalesScreenState extends State<SalesScreen> {
       ),
     );
   }
-  
+
   void _showPostSaleDialog(Invoice invoice) {
     showDialog(
       context: context,
@@ -399,23 +399,39 @@ class _SalesScreenState extends State<SalesScreen> {
                     );
                   }
                 } else if (state.status == SalesStatus.error) {
-                  final err =
-                      state.errorMessage == 'Cannot print cancelled invoice'
-                          ? loc.cannotPrintCancelled
-                          : state.errorMessage == 'Phone already exists'
-                              ? loc.phoneExistsError
-                              : state.errorMessage == 'Phone number is required'
-                                  ? loc.phoneRequired
-                                  : state.errorMessage == 'Name is required'
-                                      ? loc.nameRequired
-                                      : state.errorMessage ??
-                                          'An unknown error occurred';
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(err),
-                      backgroundColor: colorScheme.error,
-                    ),
-                  );
+                  // Only show error if there's an error message
+                  // Some errors are transient and immediately reset (like stock validation)
+                  if (state.errorMessage != null) {
+                    final err = state.errorMessage ==
+                            'Cannot print cancelled invoice'
+                        ? loc.cannotPrintCancelled
+                        : state.errorMessage == 'Phone already exists'
+                            ? loc.phoneExistsError
+                            : state.errorMessage == 'Phone number is required'
+                                ? loc.phoneRequired
+                                : state.errorMessage == 'Name is required'
+                                    ? loc.nameRequired
+                                    : state.errorMessage == 'Insufficient stock'
+                                        ? 'Insufficient stock available'
+                                        : state.errorMessage == 'Out of stock'
+                                            ? 'Product is out of stock'
+                                            : state.errorMessage ==
+                                                    'Stock limit reached'
+                                                ? 'Stock limit reached'
+                                                : state.errorMessage ==
+                                                        'Product sale price cannot be negative'
+                                                    ? 'Product sale price cannot be negative'
+                                                    : state.errorMessage ==
+                                                            'Item price cannot be negative'
+                                                        ? 'Item price cannot be negative'
+                                                        : state.errorMessage;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(err!),
+                        backgroundColor: colorScheme.error,
+                      ),
+                    );
+                  }
                 }
               },
               builder: (context, state) {
@@ -427,7 +443,7 @@ class _SalesScreenState extends State<SalesScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: DesktopDimensions.spacingMedium,
-                              vertical: DesktopDimensions.spacingStandard),
+                              vertical: DesktopDimensions.spacingSmall),
                           color: colorScheme.surface,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
@@ -584,9 +600,13 @@ class _SalesScreenState extends State<SalesScreen> {
                                                       child: Builder(
                                                           builder: (context) {
                                                         return ProductCard(
-                                                            product: product,
-                                                            isFocused: Focus.of(context).hasFocus,
-                                                            onTap: () => _addToCart(product),
+                                                          product: product,
+                                                          isFocused:
+                                                              Focus.of(context)
+                                                                  .hasFocus,
+                                                          onTap: () =>
+                                                              _addToCart(
+                                                                  product),
                                                         );
                                                       }),
                                                     );
@@ -622,23 +642,31 @@ class _SalesScreenState extends State<SalesScreen> {
                                           children: [
                                             // Customer Section
                                             CustomerSection(
-                                              searchController: customerSearchController,
-                                              filteredCustomers: filteredCustomers,
-                                              showCustomerList: showCustomerList,
-                                              selectedCustomerId: selectedCustomerId,
+                                              searchController:
+                                                  customerSearchController,
+                                              filteredCustomers:
+                                                  filteredCustomers,
+                                              showCustomerList:
+                                                  showCustomerList,
+                                              selectedCustomerId:
+                                                  selectedCustomerId,
                                               onSearchChanged: _filterCustomers,
                                               onSearchTap: () async {
-                                                if (selectedCustomerId == null) {
-                                                  if (customerSearchController.text.isEmpty &&
-                                                      filteredCustomers.isEmpty) {
-                                                    context
-                                                        .read<SalesBloc>()
-                                                        .add(const CustomerSearchChanged(' '));
+                                                if (selectedCustomerId ==
+                                                    null) {
+                                                  if (customerSearchController
+                                                          .text.isEmpty &&
+                                                      filteredCustomers
+                                                          .isEmpty) {
+                                                    context.read<SalesBloc>().add(
+                                                        const CustomerSearchChanged(
+                                                            ' '));
                                                   }
                                                 }
                                               },
                                               onSelectCustomer: _selectCustomer,
-                                              onAddCustomer: _showAddCustomerDialog,
+                                              onAddCustomer:
+                                                  _showAddCustomerDialog,
                                             ),
                                             Divider(
                                                 height: 1,
@@ -782,14 +810,18 @@ class _SalesScreenState extends State<SalesScreen> {
 
                                             // Totals Section
                                             SalesTotalsSection(
-                                              discountController: discountController,
+                                              discountController:
+                                                  discountController,
                                               subtotal: subtotal,
                                               discount: discount,
                                               previousBalance: previousBalance,
                                               grandTotal: grandTotal,
-                                              isCheckoutEnabled: cartItems.isNotEmpty,
+                                              isCheckoutEnabled:
+                                                  cartItems.isNotEmpty,
                                               onCheckout: _showCheckoutDialog,
-                                              onDiscountChanged: (_) => setState(() => _calculateTotals()),
+                                              onDiscountChanged: (_) =>
+                                                  setState(
+                                                      () => _calculateTotals()),
                                             ),
                                           ],
                                         ),
@@ -814,5 +846,4 @@ class _SalesScreenState extends State<SalesScreen> {
       ),
     );
   }
-
 }
