@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/utils/rtl_helper.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/money.dart';
 
@@ -31,9 +32,9 @@ class CreditLimitWarningDialog extends StatelessWidget {
           borderRadius:
               BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
       child: Container(
-        constraints: const BoxConstraints(
-          minWidth: 500,
-          maxWidth: 650,
+        constraints: RTLHelper.getDialogConstraints(
+          context: context,
+          size: DialogSize.large,
         ),
         padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
         child: Column(

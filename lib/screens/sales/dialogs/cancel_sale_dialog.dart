@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/utils/rtl_helper.dart';
 import '../../../l10n/app_localizations.dart';
 
 // This dialog just returns true/false or the reason string.
@@ -33,9 +34,9 @@ class _CancelSaleDialogState extends State<CancelSaleDialog> {
           borderRadius:
               BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
       child: Container(
-        constraints: const BoxConstraints(
-          minWidth: 400,
-          maxWidth: 500,
+        constraints: RTLHelper.getDialogConstraints(
+          context: context,
+          size: DialogSize.small,
         ),
         padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
         child: StatefulBuilder(

@@ -4,6 +4,7 @@ import '../../../bloc/sales/sales_bloc.dart';
 import '../../../bloc/sales/sales_event.dart';
 import '../../../bloc/sales/sales_state.dart';
 import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/utils/rtl_helper.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/money.dart';
 
@@ -49,9 +50,9 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
           borderRadius:
               BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
       child: Container(
-        constraints: const BoxConstraints(
-          minWidth: 450,
-          maxWidth: 550,
+        constraints: RTLHelper.getDialogConstraints(
+          context: context,
+          size: DialogSize.medium,
         ),
         padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
         child: Column(
@@ -112,10 +113,10 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
                       return;
                     }
 
-                    // Capture localized strings before async call
-                    final successLabel = loc.creditLimitUpdated;
+                     // Capture localized strings before async call
+                    // final successLabel = loc.creditLimitUpdated;
                     final errorLabel = loc.error;
-                    final newLimitStr = newLimit.toString();
+                    // final newLimitStr = newLimit.toString();
 
                     try {
                       salesBloc.add(
@@ -137,7 +138,6 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
 
                       if (!mounted) return;
 
-                      final successMsg = '$successLabel: $newLimitStr';
                       final errorMsg = updateResult.creditLimitUpdateError ==
                               null
                           ? errorLabel

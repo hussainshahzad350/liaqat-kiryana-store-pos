@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/sales/sales_bloc.dart';
 import '../../../bloc/sales/sales_event.dart';
 import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/utils/rtl_helper.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/money.dart';
-import '../../../core/utils/rtl_helper.dart';
 
 class AddCustomerDialog extends StatefulWidget {
   const AddCustomerDialog({super.key});
@@ -41,9 +41,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
           borderRadius:
               BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
       child: Container(
-        constraints: const BoxConstraints(
-          minWidth: 450,
-          maxWidth: 550,
+        constraints: RTLHelper.getDialogConstraints(
+          context: context,
+          size: DialogSize.medium,
         ),
         padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
         child: Column(

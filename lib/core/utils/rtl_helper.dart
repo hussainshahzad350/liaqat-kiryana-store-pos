@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/desktop_dimensions.dart';
 
 /// Utility class for handling RTL (Right-to-Left) text direction
 /// and localized name selection.
@@ -143,6 +144,72 @@ class RTLHelper {
     if (!isDirectional) return 0;
     return isRTL(context) ? 3.14159 : 0; // 180 degrees in radians
   }
+
+  /// Get dialog constraints based on size and text direction
+  static BoxConstraints getDialogConstraints({
+    required BuildContext context,
+    required DialogSize size,
+  }) {
+    final isRtl = isRTL(context);
+
+    switch (size) {
+      case DialogSize.small:
+        return BoxConstraints(
+          minWidth: isRtl ? DesktopDimensions.dialogMinWidthSmallRTL : DesktopDimensions.dialogMinWidthSmallLTR,
+          maxWidth: isRtl ? DesktopDimensions.dialogMaxWidthSmallRTL : DesktopDimensions.dialogMaxWidthSmallLTR,
+        );
+      case DialogSize.medium:
+        return BoxConstraints(
+          minWidth: isRtl ? DesktopDimensions.dialogMinWidthMediumRTL : DesktopDimensions.dialogMinWidthMediumLTR,
+          maxWidth: isRtl ? DesktopDimensions.dialogMaxWidthMediumRTL : DesktopDimensions.dialogMaxWidthMediumLTR,
+        );
+      case DialogSize.large:
+        return BoxConstraints(
+          minWidth: isRtl ? DesktopDimensions.dialogMinWidthLargeRTL : DesktopDimensions.dialogMinWidthLargeLTR,
+          maxWidth: isRtl ? DesktopDimensions.dialogMaxWidthLargeRTL : DesktopDimensions.dialogMaxWidthLargeLTR,
+        );
+    }
+  }
+
+  /// Get responsive panel width based on screen size
+  static double getResponsivePanelWidth(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    if (screenWidth >= 2560) {
+      return DesktopDimensions.panelWidth2560;
+    } else if (screenWidth >= 1920) {
+      return DesktopDimensions.panelWidth1920;
+    } else {
+      return DesktopDimensions.panelWidth1366;
+    }
+  }
+
+  /// Get EdgeInsets with RTL-aware horizontal padding
+  static EdgeInsets getContentPadding({
+    required BuildContext context,
+    bool isInput = false,
+  }) {
+    final isRtl = isRTL(context);
+
+    if (isInput) {
+      return EdgeInsets.symmetric(
+        horizontal: isRtl ? 16.0 : 12.0, // More padding for Urdu
+        vertical: isRtl ? 16.0 : 14.0,
+      );
+    }
+
+    return EdgeInsets.symmetric(
+      horizontal: isRtl ? 20.0 : 16.0,
+      vertical: isRtl ? 12.0 : 8.0,
+    );
+  }
+}
+
+/// Dialog size enum for type-safe dialog constraint selection
+enum DialogSize {
+  small,  // Confirmations, simple forms (400-550px)
+  medium, // Forms with multiple fields (450-600px)
+  large,  // Complex forms, checkout (500-700px)
 }
 
 /// Extension on BuildContext for easier RTL checks

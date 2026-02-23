@@ -34,7 +34,6 @@ import 'widgets/cart_item_row.dart';
 import 'widgets/loading_overlay.dart';
 import 'utils/receipt_printer.dart';
 import 'utils/sales_shortcuts.dart';
-import '../../../core/utils/rtl_helper.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});

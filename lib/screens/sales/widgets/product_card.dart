@@ -65,7 +65,11 @@ class ProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: DesktopDimensions.spacingXSmall),
                   Text(
-                    product.nameEnglish,
+                    RTLHelper.getLocalizedName(
+                      context: context,
+                      nameEnglish: product.nameEnglish,
+                      nameUrdu: product.nameUrdu,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -75,18 +79,6 @@ class ProductCard extends StatelessWidget {
                       height: 1.2,
                     ),
                   ),
-                  if (product.nameUrdu != null && product.nameUrdu!.isNotEmpty)
-                    Text(
-                      product.nameUrdu!,
-                      style: textTheme.bodySmall?.copyWith(
-                        fontFamily: 'NooriNastaleeq',
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.2,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
                 ],
               ),
             ),

@@ -3,6 +3,7 @@ import '../../../core/constants/desktop_dimensions.dart';
 import '../../../models/customer_model.dart';
 import '../../../domain/entities/money.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/utils/rtl_helper.dart';
 
 class CustomerSection extends StatelessWidget {
   final TextEditingController searchController;
@@ -115,9 +116,15 @@ class CustomerSection extends StatelessWidget {
                           final c = filteredCustomers[index];
                           return ListTile(
                             dense: true,
-                            title: Text(c.nameEnglish,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
+                            title: Text(
+                              RTLHelper.getLocalizedName(
+                                context: context,
+                                nameEnglish: c.nameEnglish,
+                                nameUrdu: c.nameUrdu,
+                              ),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
                             subtitle: Text(c.contactPrimary ?? ''),
                             trailing: Text(
                                 '${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),

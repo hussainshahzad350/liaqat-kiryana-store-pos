@@ -131,6 +131,14 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
     setState(() {
       _locale = locale;
     });
+    
+    // Sync theme with language change
+    if (mounted) {
+      context.read<ThemeProvider>().setTextDirection(
+        isRTL: locale.languageCode == 'ur',
+      );
+    }
+    
     final repo = SettingsRepository();
     await repo.updateAppPreferences({'languageCode': locale.languageCode});
   }
@@ -139,22 +147,11 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
-        final lightTheme = themeProvider.lightTheme.copyWith(
-          textTheme: themeProvider.lightTheme.textTheme.apply(
-            fontFamily: _locale.languageCode == 'ur' ? 'NooriNastaleeq' : null,
-          ),
-        );
-        final darkTheme = themeProvider.darkTheme.copyWith(
-          textTheme: themeProvider.darkTheme.textTheme.apply(
-            fontFamily: _locale.languageCode == 'ur' ? 'NooriNastaleeq' : null,
-          ),
-        );
-
         return MaterialApp(
           title: 'Liaqat Kiryana Store',
           debugShowCheckedModeBanner: false,
-          theme: lightTheme,
-          darkTheme: darkTheme,
+          theme: themeProvider.lightTheme,
+          darkTheme: themeProvider.darkTheme,
           themeMode: themeProvider.themeMode,
           locale: _locale,
           supportedLocales: const [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/utils/rtl_helper.dart';
 import '../../../l10n/app_localizations.dart';
 
 class ExitConfirmationDialog extends StatelessWidget {
@@ -15,9 +16,9 @@ class ExitConfirmationDialog extends StatelessWidget {
           borderRadius:
               BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
       child: Container(
-        constraints: const BoxConstraints(
-          minWidth: 400,
-          maxWidth: 500,
+        constraints: RTLHelper.getDialogConstraints(
+          context: context,
+          size: DialogSize.small,
         ),
         padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
         child: Column(
