@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/desktop_dimensions.dart';
 import '../../../models/product_model.dart';
+import '../../../core/utils/rtl_helper.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
