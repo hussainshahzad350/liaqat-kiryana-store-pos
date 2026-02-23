@@ -1,19 +1,164 @@
 import 'package:flutter/material.dart';
 
 /// Defines the ThemeData for each theme in the app.
+/// 
+/// CRYSTAL CLEAR MODERN THEME - Features:
+/// - Proper Urdu font (NooriNastaleeq) for RTL layouts
+/// - Roboto for LTR layouts
+/// - No pixel breaks or shady rendering
+/// - Clean, modern appearance with proper contrast
+/// - RTL-aware text rendering
 class AppThemes {
-  // Common Text Theme for consistency
-  static const _baseTextTheme = TextTheme(
-    displayLarge: TextStyle(fontSize: 96, fontWeight: FontWeight.w300),
-    displayMedium: TextStyle(fontSize: 60, fontWeight: FontWeight.w400),
-    displaySmall: TextStyle(fontSize: 48, fontWeight: FontWeight.w400),
-    headlineMedium: TextStyle(fontSize: 34, fontWeight: FontWeight.w400),
-    headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-    titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-    bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-    bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+  // LTR (English) Text Theme - Uses Roboto with proper letter spacing
+  static const _ltrTextTheme = TextTheme(
+    displayLarge: TextStyle(
+      fontSize: 96,
+      fontWeight: FontWeight.w300,
+      fontFamily: 'Roboto',
+      letterSpacing: -1.5,
+      height: 1.2,
+    ),
+    displayMedium: TextStyle(
+      fontSize: 60,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'Roboto',
+      letterSpacing: -0.5,
+      height: 1.2,
+    ),
+    displaySmall: TextStyle(
+      fontSize: 48,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'Roboto',
+      letterSpacing: 0,
+      height: 1.2,
+    ),
+    headlineMedium: TextStyle(
+      fontSize: 34,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'Roboto',
+      letterSpacing: 0.25,
+      height: 1.3,
+    ),
+    headlineSmall: TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.w600,
+      fontFamily: 'Roboto',
+      letterSpacing: 0,
+      height: 1.3,
+    ),
+    titleLarge: TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.w500,
+      fontFamily: 'Roboto',
+      letterSpacing: 0.15,
+      height: 1.4,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w500,
+      fontFamily: 'Roboto',
+      letterSpacing: 0.15,
+      height: 1.4,
+    ),
+    bodyLarge: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'Roboto',
+      letterSpacing: 0.5,
+      height: 1.5,
+    ),
+    bodyMedium: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'Roboto',
+      letterSpacing: 0.25,
+      height: 1.5,
+    ),
+    bodySmall: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'Roboto',
+      letterSpacing: 0.4,
+      height: 1.5,
+    ),
     labelLarge: TextStyle(
-        fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 1.25),
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      fontFamily: 'Roboto',
+      letterSpacing: 1.25,
+      height: 1.4,
+    ),
+  );
+
+  // RTL (Urdu) Text Theme - Uses NooriNastaleeq with extra line height
+  // CRITICAL: Extra line height (1.8) prevents pixel breaks in Nastaleeq script
+  static const _rtlTextTheme = TextTheme(
+    displayLarge: TextStyle(
+      fontSize: 96,
+      fontWeight: FontWeight.w400, // Nastaleeq looks better with regular weight
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8, // CRITICAL: Prevents pixel breaks
+    ),
+    displayMedium: TextStyle(
+      fontSize: 60,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
+    displaySmall: TextStyle(
+      fontSize: 48,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
+    headlineMedium: TextStyle(
+      fontSize: 34,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
+    headlineSmall: TextStyle(
+      fontSize: 26, // Slightly larger for Urdu readability
+      fontWeight: FontWeight.w600,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
+    titleLarge: TextStyle(
+      fontSize: 24, // Larger for Urdu (was 22)
+      fontWeight: FontWeight.w500,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 20, // Larger for Urdu (was 18)
+      fontWeight: FontWeight.w500,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
+    bodyLarge: TextStyle(
+      fontSize: 18, // Larger for Urdu readability (was 16)
+      fontWeight: FontWeight.w400,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
+    bodyMedium: TextStyle(
+      fontSize: 16, // Larger for Urdu (was 14)
+      fontWeight: FontWeight.w400,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
+    bodySmall: TextStyle(
+      fontSize: 14, // Larger for Urdu (was 12)
+      fontWeight: FontWeight.w400,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
+    labelLarge: TextStyle(
+      fontSize: 16, // Larger for Urdu (was 14)
+      fontWeight: FontWeight.w500,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
   );
 
   static MaterialColor _getMaterialColor(String colorName) {
@@ -28,26 +173,35 @@ class AppThemes {
     }
   }
 
-  static ThemeData getTheme(String colorName, Brightness brightness) {
+  /// Get theme based on color and brightness
+  /// NEW: Also accepts optional isRTL parameter for font selection
+  static ThemeData getTheme(
+    String colorName,
+    Brightness brightness, {
+    bool isRTL = false, // NEW PARAMETER
+  }) {
     final MaterialColor palette = _getMaterialColor(colorName);
 
     if (brightness == Brightness.light) {
-      return _getShadedLightTheme(palette);
+      return _getCrystalClearLightTheme(palette, isRTL: isRTL);
     } else {
-      return _getShadedDarkTheme(palette);
+      return _getCrystalClearDarkTheme(palette, isRTL: isRTL);
     }
   }
 
-  static ThemeData _getShadedLightTheme(MaterialColor palette) {
-    // Light Mode Rules:
-    // Surfaces: 50-200 range
-    // Primary Actions: 500-600 range
-    // Text: Dark Grey/Black
-
-    final primaryColor = palette[600]!; // Slightly darker for text contrast
-    final backgroundColor = palette[50]!;
-    const textColor = Color(0xFF212121);
-    final dividerColor = palette[200]!;
+  /// CRYSTAL CLEAR LIGHT THEME
+  /// Uses pure white and vibrant colors for maximum clarity
+  static ThemeData _getCrystalClearLightTheme(
+    MaterialColor palette, {
+    required bool isRTL,
+  }) {
+    // CRYSTAL CLEAR COLORS - No shading, pure whites and clean colors
+    final primaryColor = palette[600]!; // Vibrant primary
+    const backgroundColor = Colors.white; // Pure white, not tinted
+    const surfaceColor = Colors.white; // Pure white surfaces
+    const textColor = Color(0xFF000000); // Pure black text
+    final dividerColor = Colors.grey[300]!; // Light grey dividers
+    final inputFillColor = Colors.grey[50]!; // Very light fill
 
     final colorScheme = ColorScheme.light(
       primary: primaryColor,
@@ -55,53 +209,53 @@ class AppThemes {
       secondary: palette[700]!,
       tertiary: palette[800]!,
       error: const Color(0xFFB00020),
-      surface: backgroundColor,
+      surface: surfaceColor,
       onSurface: textColor,
-      surfaceContainerHighest: palette[200], // For input fields
+      surfaceContainerHighest: inputFillColor,
       outline: dividerColor,
+      shadow: Colors.black.withOpacity(0.1), // Subtle shadows
     );
 
-    return _buildTheme(
+    return _buildCrystalClearTheme(
       brightness: Brightness.light,
       primaryColor: primaryColor,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: backgroundColor,
-      cardColor: backgroundColor,
+      cardColor: surfaceColor,
       textColor: textColor,
       dividerColor: dividerColor,
-      useMaterial3: true,
-      buttonBackgroundColor: palette[500]!,
-      buttonForegroundColor: Colors.white,
-      appBarColor: palette[200]!,
-      appBarForeground: textColor,
+      isRTL: isRTL,
     );
   }
 
-  static ThemeData _getShadedDarkTheme(MaterialColor palette) {
-    // Dark Mode Rules:
-    // Surfaces: 800-900 range (Deep shades)
-    // Primary Actions: 500 range (Mid shade)
-    // Text: White/Near-White
-
-    final primaryColor = palette[400]!; // Lighter for contrast on dark
-    final backgroundColor = palette[900]!; // Deep shade
-    final surfaceColor = palette[800]!;
-    const textColor = Color(0xFFEEEEEE);
-    final dividerColor = palette[700]!;
+  /// CRYSTAL CLEAR DARK THEME
+  /// Uses true dark background with high contrast text
+  static ThemeData _getCrystalClearDarkTheme(
+    MaterialColor palette, {
+    required bool isRTL,
+  }) {
+    // CRYSTAL CLEAR DARK COLORS
+    final primaryColor = palette[400]!; // Lighter primary for dark mode
+    const backgroundColor = Color(0xFF121212); // True dark, not grey
+    const surfaceColor = Color(0xFF1E1E1E); // Elevated dark
+    const textColor = Color(0xFFFFFFFF); // Pure white text
+    final dividerColor = Colors.grey[800]!; // Dark dividers
+    final inputFillColor = Colors.grey[900]!; // Dark input fill
 
     final colorScheme = ColorScheme.dark(
       primary: primaryColor,
       onPrimary: Colors.black,
-      secondary: palette[200]!,
-      tertiary: palette[100]!,
+      secondary: palette[300]!,
+      tertiary: palette[200]!,
       error: const Color(0xFFCF6679),
       surface: surfaceColor,
       onSurface: textColor,
-      surfaceContainerHighest: palette[700], // For input fields
+      surfaceContainerHighest: inputFillColor,
       outline: dividerColor,
+      shadow: Colors.black.withOpacity(0.3),
     );
 
-    return _buildTheme(
+    return _buildCrystalClearTheme(
       brightness: Brightness.dark,
       primaryColor: primaryColor,
       colorScheme: colorScheme,
@@ -109,15 +263,11 @@ class AppThemes {
       cardColor: surfaceColor,
       textColor: textColor,
       dividerColor: dividerColor,
-      useMaterial3: true,
-      buttonBackgroundColor: palette[600]!,
-      buttonForegroundColor: Colors.white,
-      appBarColor: palette[900]!,
-      appBarForeground: textColor,
+      isRTL: isRTL,
     );
   }
 
-  static ThemeData _buildTheme({
+  static ThemeData _buildCrystalClearTheme({
     required Brightness brightness,
     required Color primaryColor,
     required ColorScheme colorScheme,
@@ -125,87 +275,178 @@ class AppThemes {
     required Color cardColor,
     required Color textColor,
     required Color dividerColor,
-    required bool useMaterial3,
-    required Color buttonBackgroundColor,
-    required Color buttonForegroundColor,
-    required Color appBarColor,
-    required Color appBarForeground,
+    required bool isRTL,
   }) {
+    // Select text theme based on RTL
+    final textTheme = isRTL ? _rtlTextTheme : _ltrTextTheme;
+
     return ThemeData(
-      useMaterial3: useMaterial3,
+      useMaterial3: true,
       brightness: brightness,
       primaryColor: primaryColor,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: scaffoldBackgroundColor,
       cardColor: cardColor,
-      textTheme: _baseTextTheme.apply(
+      
+      // CRITICAL: Apply correct font based on text direction
+      fontFamily: isRTL ? 'NooriNastaleeq' : 'Roboto',
+      
+      textTheme: textTheme.apply(
         bodyColor: textColor,
         displayColor: textColor,
+        decorationColor: textColor,
       ),
+      
+      // AppBar - Crystal clear with subtle elevation
       appBarTheme: AppBarTheme(
-        backgroundColor: appBarColor,
-        foregroundColor: appBarForeground,
+        backgroundColor: scaffoldBackgroundColor,
+        foregroundColor: textColor,
         elevation: 0,
-        iconTheme: IconThemeData(color: appBarForeground),
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: IconThemeData(color: textColor),
+        titleTextStyle: textTheme.titleLarge?.copyWith(color: textColor),
       ),
+      
+      // Input Fields - Clean borders, no background tint
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        fillColor: colorScheme.surfaceContainerHighest,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isRTL ? 16 : 12, // More padding for Urdu
+          vertical: isRTL ? 16 : 14,
+        ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: dividerColor),
+          borderRadius: BorderRadius.circular(8), // Less rounded for modern look
+          borderSide: BorderSide(color: dividerColor, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: dividerColor),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: dividerColor, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: primaryColor, width: 2),
         ),
-        labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colorScheme.error, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
+        ),
+        labelStyle: textTheme.bodyMedium?.copyWith(
+          color: textColor.withOpacity(0.7),
+        ),
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: textColor.withOpacity(0.5),
+        ),
         prefixIconColor: textColor.withOpacity(0.7),
         suffixIconColor: textColor.withOpacity(0.7),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       ),
+      
+      // Scrollbar - Clean and minimal
       scrollbarTheme: ScrollbarThemeData(
         thumbVisibility: WidgetStateProperty.all(true),
         trackVisibility: WidgetStateProperty.all(true),
-        thumbColor: WidgetStateProperty.all(textColor.withOpacity(0.4)),
-        radius: const Radius.circular(10),
-        thickness: WidgetStateProperty.all(8),
+        thumbColor: WidgetStateProperty.all(textColor.withOpacity(0.3)),
+        trackColor: WidgetStateProperty.all(textColor.withOpacity(0.1)),
+        radius: const Radius.circular(4),
+        thickness: WidgetStateProperty.all(6),
       ),
+      
+      // Dialogs - Crystal clear with sharp corners
       dialogTheme: DialogThemeData(
         backgroundColor: cardColor,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        titleTextStyle: TextStyle(
-            color: textColor, fontSize: 20, fontWeight: FontWeight.bold),
-        contentTextStyle: TextStyle(color: textColor, fontSize: 16),
+        shadowColor: Colors.black.withOpacity(0.2),
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12), // Modern sharp corners
+        ),
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+        ),
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: textColor,
+        ),
       ),
+      
+      // Cards - Flat and clean
       cardTheme: CardThemeData(
         color: cardColor,
-        elevation: 2,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 0, // Flat cards, no shadows
+        margin: const EdgeInsets.all(8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: dividerColor, width: 1),
+        ),
       ),
+      
       dividerColor: dividerColor,
-      iconTheme: IconThemeData(color: textColor),
+      dividerTheme: DividerThemeData(
+        color: dividerColor,
+        thickness: 1,
+        space: 1,
+      ),
+      
+      iconTheme: IconThemeData(
+        color: textColor,
+        size: isRTL ? 26 : 24, // Slightly larger icons for Urdu
+      ),
+      
       listTileTheme: ListTileThemeData(
         iconColor: textColor,
         textColor: textColor,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: isRTL ? 20 : 16,
+          vertical: isRTL ? 12 : 8,
+        ),
       ),
+      
+      // Elevated Buttons - Flat modern style
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: buttonBackgroundColor,
-          foregroundColor: buttonForegroundColor,
-          elevation: 0,
-          // Removed border side for cleaner look in colored themes, or keep if desired
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(
-              vertical: 18,
-              horizontal: 24), // Adjusted for visual balance with text
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 0, // Flat buttons
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: EdgeInsets.symmetric(
+            vertical: isRTL ? 20 : 18,
+            horizontal: isRTL ? 28 : 24,
+          ),
+          textStyle: textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      
+      // Text Buttons - Clean and minimal
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primaryColor,
+          padding: EdgeInsets.symmetric(
+            vertical: isRTL ? 14 : 12,
+            horizontal: isRTL ? 20 : 16,
+          ),
+          textStyle: textTheme.labelLarge,
+        ),
+      ),
+      
+      // Floating Action Button - Crystal clear
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
