@@ -5,6 +5,7 @@ import '../../../bloc/sales/sales_event.dart';
 import '../../../core/constants/desktop_dimensions.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/money.dart';
+import '../../../core/utils/rtl_helper.dart';
 
 class AddCustomerDialog extends StatefulWidget {
   const AddCustomerDialog({super.key});
