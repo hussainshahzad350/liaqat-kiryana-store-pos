@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../domain/entities/money.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -32,14 +32,14 @@ class SalesTotalsSection extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, -4),
-            blurRadius: DesktopDimensions.spacingSmall,
+            blurRadius: AppTokens.spacingSmall,
           )
         ],
       ),
@@ -52,12 +52,12 @@ class SalesTotalsSection extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ))
           ]),
-          const SizedBox(height: DesktopDimensions.spacingStandard),
+          const SizedBox(height: AppTokens.spacingStandard),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text(loc.discount, style: textTheme.bodyLarge),
             SizedBox(
               width: 120,
-              height: DesktopDimensions.buttonHeight,
+              height: AppTokens.buttonHeight,
               child: TextField(
                 controller: discountController,
                 keyboardType: TextInputType.number,
@@ -65,11 +65,11 @@ class SalesTotalsSection extends StatelessWidget {
                 decoration: InputDecoration(
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
-                      vertical: DesktopDimensions.spacingStandard,
-                      horizontal: DesktopDimensions.spacingStandard),
+                      vertical: AppTokens.spacingStandard,
+                      horizontal: AppTokens.spacingStandard),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
-                          DesktopDimensions.buttonBorderRadius)),
+                          AppTokens.buttonBorderRadius)),
                   hintText: '0',
                 ),
                 style:
@@ -81,7 +81,7 @@ class SalesTotalsSection extends StatelessWidget {
           if (previousBalance > const Money(0))
             Padding(
               padding:
-                  const EdgeInsets.only(top: DesktopDimensions.spacingStandard),
+                  const EdgeInsets.only(top: AppTokens.spacingStandard),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -94,9 +94,9 @@ class SalesTotalsSection extends StatelessWidget {
                             fontWeight: FontWeight.bold))
                   ]),
             ),
-          const SizedBox(height: DesktopDimensions.spacingStandard),
+          const SizedBox(height: AppTokens.spacingStandard),
           const Divider(),
-          const SizedBox(height: DesktopDimensions.spacingStandard),
+          const SizedBox(height: AppTokens.spacingStandard),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text(loc.grandTotal.toUpperCase(),
                 style: textTheme.titleLarge
@@ -105,40 +105,40 @@ class SalesTotalsSection extends StatelessWidget {
                 style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w900, color: colorScheme.primary))
           ]),
-          const SizedBox(height: DesktopDimensions.spacingMedium),
+          const SizedBox(height: AppTokens.spacingMedium),
           SizedBox(
             width: double.infinity,
-            height: DesktopDimensions.buttonHeight * 1.4,
+            height: AppTokens.buttonHeight * 1.4,
             child: ElevatedButton(
               onPressed: isCheckoutEnabled ? onCheckout : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
-                elevation: DesktopDimensions.cardElevation,
+                elevation: AppTokens.cardElevation,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
-                        DesktopDimensions.cardBorderRadius)),
+                        AppTokens.cardBorderRadius)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.payment,
-                      size: DesktopDimensions.iconSizeXLarge),
-                  const SizedBox(width: DesktopDimensions.spacingStandard),
+                      size: AppTokens.iconSizeXLarge),
+                  const SizedBox(width: AppTokens.spacingStandard),
                   Text(
                     loc.checkoutButton.toUpperCase(),
                     style: textTheme.titleLarge
                         ?.copyWith(color: colorScheme.onPrimary),
                   ),
-                  const SizedBox(width: DesktopDimensions.spacingStandard),
+                  const SizedBox(width: AppTokens.spacingStandard),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: DesktopDimensions.spacingSmall,
-                        vertical: DesktopDimensions.spacingXSmall),
+                        horizontal: AppTokens.spacingSmall,
+                        vertical: AppTokens.spacingXSmall),
                     decoration: BoxDecoration(
                       color: colorScheme.onPrimary.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(
-                          DesktopDimensions.smallBorderRadius),
+                          AppTokens.smallBorderRadius),
                     ),
                     child: Text(
                       "F9",

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/sales/sales_bloc.dart';
 import '../../../bloc/sales/sales_event.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../core/utils/rtl_helper.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/money.dart';
@@ -19,7 +19,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
   final nameUrduCtrl = TextEditingController();
   final phoneCtrl = TextEditingController();
   final addressCtrl = TextEditingController();
-  final creditLimitCtrl = TextEditingController(text: '0');
+  final creditLimitCtrl = TextEditingController();
 
   @override
   void dispose() {
@@ -39,13 +39,18 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
+              BorderRadius.circular(AppTokens.dialogBorderRadius)),
       child: Container(
         constraints: RTLHelper.getDialogConstraints(
           context: context,
           size: DialogSize.medium,
         ),
-        padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppTokens.dialogPadding,
+          vertical: RTLHelper.isRTL(context)
+              ? AppTokens.dialogPadding + 12
+              : AppTokens.dialogPadding,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,7 +69,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
               ],
             ),
             const Divider(),
-            const SizedBox(height: DesktopDimensions.spacingMedium),
+            const SizedBox(height: AppTokens.spacingMedium),
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
@@ -72,48 +77,59 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                   children: [
                     TextField(
                         controller: nameEngCtrl,
+                        textAlign: TextAlign.center,
                         decoration:
-                            InputDecoration(labelText: loc.nameEnglish)),
-                    const SizedBox(height: DesktopDimensions.spacingMedium),
+                            InputDecoration(labelText: '${loc.nameEnglish} *')),
+                    const SizedBox(height: AppTokens.spacingLarge),
                     TextField(
                         controller: nameUrduCtrl,
-                        decoration: InputDecoration(labelText: loc.nameUrdu)),
-                    const SizedBox(height: DesktopDimensions.spacingMedium),
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(labelText: '${loc.nameUrdu} *')),
+                    const SizedBox(height: AppTokens.spacingLarge),
                     TextField(
                         controller: phoneCtrl,
+                        textAlign: TextAlign.center,
                         keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(labelText: loc.phoneNum)),
-                    const SizedBox(height: DesktopDimensions.spacingMedium),
+                        decoration: InputDecoration(labelText: '${loc.phoneNum} *')),
+                    const SizedBox(height: AppTokens.spacingLarge),
                     TextField(
                         controller: addressCtrl,
-                        decoration: InputDecoration(labelText: loc.address)),
-                    const SizedBox(height: DesktopDimensions.spacingMedium),
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(labelText: '${loc.address} *')),
+                    const SizedBox(height: AppTokens.spacingLarge),
                     TextField(
                         controller: creditLimitCtrl,
+                        textAlign: TextAlign.center,
                         keyboardType: TextInputType.number,
                         decoration:
-                            InputDecoration(labelText: loc.creditLimit)),
+                            InputDecoration(labelText: '${loc.creditLimit} *')),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: DesktopDimensions.spacingLarge),
+            const SizedBox(height: AppTokens.spacingLarge),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(loc.cancel)),
-                const SizedBox(width: DesktopDimensions.spacingMedium),
+                const SizedBox(width: AppTokens.spacingMedium),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary),
+                      foregroundColor: colorScheme.onPrimary,
+                      minimumSize: const Size(120, 48)),
                   onPressed: () {
                     // Validation
                     if (nameEngCtrl.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(loc.nameRequired)));
+                      return;
+                    }
+                    if (nameUrduCtrl.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(loc.urduNameRequired)));
                       return;
                     }
                     String phoneNumber = phoneCtrl.text.trim();
@@ -122,10 +138,23 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                           SnackBar(content: Text(loc.phoneRequired)));
                       return;
                     }
+                    if (addressCtrl.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(loc.addressRequired)));
+                      return;
+                    }
 
                     try {
+                      final creditText = creditLimitCtrl.text.trim();
+                      if (creditText.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(loc.creditLimitRequired)));
+                        return;
+                      }
+
                       final creditLimit =
-                          Money.fromRupeesString(creditLimitCtrl.text);
+                          Money.fromRupeesString(creditText);
 
                       context.read<SalesBloc>().add(
                             QuickCustomerAddRequested(
@@ -145,7 +174,10 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                       return;
                     }
                   },
-                  child: Text(loc.saveSelect),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(loc.saveSelect),
+                  ),
                 ),
               ],
             ),

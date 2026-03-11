@@ -766,6 +766,15 @@ class AppLocalizationsUr extends AppLocalizations {
   String get phoneRequired => 'فون نمبر لکھنا ضروری ہے';
 
   @override
+  String get urduNameRequired => 'اردو نام لکھنا ضروری ہے';
+
+  @override
+  String get addressRequired => 'پتہ لکھنا ضروری ہے';
+
+  @override
+  String get creditLimitRequired => 'کریڈٹ کی حد لکھنا ضروری ہے';
+
+  @override
   String get phoneExists => 'یہ فون نمبر پہلے سے موجود ہے';
 
   @override
@@ -820,7 +829,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get customerRestored => 'گاہک بحال ہو گیا';
 
   @override
-  String get actions => 'کارروائیاں';
+  String get actions => 'اعمال';
 
   @override
   String get restoreConfirmMsg =>
@@ -1540,6 +1549,12 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get paymentMustEqual => 'ادائیگی برابر ہونی چاہیے';
+
+  @override
+  String get subCategory => 'ذیلی زمرہ';
+
+  @override
+  String get brand => 'برانڈ';
 
   @override
   String get category => 'کیٹیگری';

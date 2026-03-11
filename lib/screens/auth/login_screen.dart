@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
-import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_tokens.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,26 +29,26 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: colorScheme.surface,
       body: Center(
         child: Container(
-          width: DesktopDimensions.sidebarWidthMedium,
-          padding: const EdgeInsets.all(DesktopDimensions.spacingXLarge),
+          width: AppTokens.sidebarWidthMedium,
+          padding: const EdgeInsets.all(AppTokens.spacingXLarge),
           child: Card(
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             shape: RoundedRectangleBorder(
               borderRadius:
-                  BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                  BorderRadius.circular(AppTokens.cardBorderRadius),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.store,
-                    size: DesktopDimensions.aboutIconSize,
+                    size: AppTokens.aboutIconSize,
                     color: colorScheme.primary,
                   ),
 
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
 
                   Text(
                     localizations.appTitle,
@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textAlign: TextAlign.center,
                   ),
 
-                  const SizedBox(height: DesktopDimensions.spacingSmall),
+                  const SizedBox(height: AppTokens.spacingSmall),
 
                   Text(
                     localizations.posSystem,
@@ -68,14 +68,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
 
                   // Password Field
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: DesktopDimensions.spacingSmall),
+                        vertical: AppTokens.spacingSmall),
                     child: SizedBox(
-                      height: DesktopDimensions.inputHeight,
+                      height: AppTokens.inputHeight,
                       child: TextField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
@@ -103,12 +103,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
 
                   // Login Button
                   SizedBox(
                     width: double.infinity,
-                    height: DesktopDimensions.buttonHeight,
+                    height: AppTokens.buttonHeight,
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.pushReplacementNamed(context, '/home');
@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: DesktopDimensions.spacingSmall),
+                  const SizedBox(height: AppTokens.spacingSmall),
 
                   // Forgot Password
                   TextButton(

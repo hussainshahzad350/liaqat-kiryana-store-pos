@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../constants/desktop_dimensions.dart';
+import '../res/app_tokens.dart';
 
 /// Utility class for handling RTL (Right-to-Left) text direction
 /// and localized name selection.
-/// 
+///
 /// Use this throughout the app to ensure proper bilingual support.
 class RTLHelper {
   RTLHelper._(); // Private constructor - utility class
@@ -14,9 +14,9 @@ class RTLHelper {
   }
 
   /// Get the appropriate name based on current text direction
-  /// 
+  ///
   /// Returns Urdu name in RTL mode (if available), otherwise English name.
-  /// 
+  ///
   /// Example usage:
   /// ```dart
   /// final displayName = RTLHelper.getLocalizedName(
@@ -37,7 +37,7 @@ class RTLHelper {
   }
 
   /// Get EdgeInsets with RTL-aware horizontal values
-  /// 
+  ///
   /// In RTL mode, left and right are swapped automatically by Flutter,
   /// but you can use this for explicit RTL-aware padding.
   static EdgeInsets edgeInsets({
@@ -55,7 +55,7 @@ class RTLHelper {
     }
 
     final isRtl = isRTL(context);
-    
+
     return EdgeInsets.only(
       left: isRtl ? (right ?? horizontal ?? 0) : (left ?? horizontal ?? 0),
       top: top ?? vertical ?? 0,
@@ -65,7 +65,7 @@ class RTLHelper {
   }
 
   /// Get Alignment with RTL support
-  /// 
+  ///
   /// Example: RTLHelper.alignment(context, Alignment.centerLeft)
   /// Returns Alignment.centerRight in RTL mode
   static Alignment alignment(BuildContext context, Alignment ltrAlignment) {
@@ -90,7 +90,7 @@ class RTLHelper {
   }
 
   /// Get TextAlign with RTL support
-  /// 
+  ///
   /// Example: RTLHelper.textAlign(context, TextAlign.left)
   /// Returns TextAlign.right in RTL mode
   static TextAlign textAlign(BuildContext context, TextAlign ltrAlign) {
@@ -140,7 +140,8 @@ class RTLHelper {
 
   /// Get icon rotation for RTL
   /// Returns 180 degrees for directional icons in RTL mode
-  static double iconRotation(BuildContext context, {bool isDirectional = true}) {
+  static double iconRotation(BuildContext context,
+      {bool isDirectional = true}) {
     if (!isDirectional) return 0;
     return isRTL(context) ? 3.14159 : 0; // 180 degrees in radians
   }
@@ -150,23 +151,22 @@ class RTLHelper {
     required BuildContext context,
     required DialogSize size,
   }) {
-    final isRtl = isRTL(context);
-
+    // Reverted to fixed widths as requested, keeping it as of english layout for both RTL/LTR
     switch (size) {
       case DialogSize.small:
-        return BoxConstraints(
-          minWidth: isRtl ? DesktopDimensions.dialogMinWidthSmallRTL : DesktopDimensions.dialogMinWidthSmallLTR,
-          maxWidth: isRtl ? DesktopDimensions.dialogMaxWidthSmallRTL : DesktopDimensions.dialogMaxWidthSmallLTR,
+        return const BoxConstraints(
+          minWidth: AppTokens.dialogMinWidthSmallLTR,
+          maxWidth: AppTokens.dialogMaxWidthSmallLTR,
         );
       case DialogSize.medium:
-        return BoxConstraints(
-          minWidth: isRtl ? DesktopDimensions.dialogMinWidthMediumRTL : DesktopDimensions.dialogMinWidthMediumLTR,
-          maxWidth: isRtl ? DesktopDimensions.dialogMaxWidthMediumRTL : DesktopDimensions.dialogMaxWidthMediumLTR,
+        return const BoxConstraints(
+          minWidth: AppTokens.dialogMinWidthMediumLTR,
+          maxWidth: AppTokens.dialogMaxWidthMediumLTR,
         );
       case DialogSize.large:
-        return BoxConstraints(
-          minWidth: isRtl ? DesktopDimensions.dialogMinWidthLargeRTL : DesktopDimensions.dialogMinWidthLargeLTR,
-          maxWidth: isRtl ? DesktopDimensions.dialogMaxWidthLargeRTL : DesktopDimensions.dialogMaxWidthLargeLTR,
+        return const BoxConstraints(
+          minWidth: AppTokens.dialogMinWidthLargeLTR,
+          maxWidth: AppTokens.dialogMaxWidthLargeLTR,
         );
     }
   }
@@ -176,11 +176,11 @@ class RTLHelper {
     final screenWidth = MediaQuery.of(context).size.width;
 
     if (screenWidth >= 2560) {
-      return DesktopDimensions.panelWidth2560;
+      return AppTokens.panelWidth2560;
     } else if (screenWidth >= 1920) {
-      return DesktopDimensions.panelWidth1920;
+      return AppTokens.panelWidth1920;
     } else {
-      return DesktopDimensions.panelWidth1366;
+      return AppTokens.panelWidth1366;
     }
   }
 
@@ -207,16 +207,16 @@ class RTLHelper {
 
 /// Dialog size enum for type-safe dialog constraint selection
 enum DialogSize {
-  small,  // Confirmations, simple forms (400-550px)
+  small, // Confirmations, simple forms (400-550px)
   medium, // Forms with multiple fields (450-600px)
-  large,  // Complex forms, checkout (500-700px)
+  large, // Complex forms, checkout (500-700px)
 }
 
 /// Extension on BuildContext for easier RTL checks
 extension RTLExtension on BuildContext {
   /// Quick check if current context is RTL
   bool get isRTL => Directionality.of(this) == TextDirection.rtl;
-  
+
   /// Quick check if current context is LTR
   bool get isLTR => Directionality.of(this) == TextDirection.ltr;
 }

@@ -131,14 +131,14 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
     setState(() {
       _locale = locale;
     });
-    
+
     // Sync theme with language change
     if (mounted) {
       context.read<ThemeProvider>().setTextDirection(
-        isRTL: locale.languageCode == 'ur',
-      );
+            isRTL: locale.languageCode == 'ur',
+          );
     }
-    
+
     final repo = SettingsRepository();
     await repo.updateAppPreferences({'languageCode': locale.languageCode});
   }

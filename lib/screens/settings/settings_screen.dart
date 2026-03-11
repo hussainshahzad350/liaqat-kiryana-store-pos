@@ -9,8 +9,7 @@ import '../../core/theme/theme_provider.dart';
 import '../../main.dart';
 import '../../core/utils/logger.dart';
 import '../../core/repositories/settings_repository.dart';
-import '../../core/constants/desktop_dimensions.dart';
-import '../../core/res/app_dimensions.dart';
+import '../../core/res/app_tokens.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,7 +18,8 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProviderStateMixin {
+class _SettingsScreenState extends State<SettingsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final SettingsRepository _settingsRepository = SettingsRepository();
 
@@ -41,47 +41,48 @@ class _SettingsScreenState extends State<SettingsScreen> with SingleTickerProvid
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+      padding: const EdgeInsets.all(AppTokens.spacingLarge),
       child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
-                ),
-                child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              labelColor: colorScheme.onPrimary,
-              unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
-              indicatorColor: colorScheme.onPrimary,
-              tabs: [
-                Tab(icon: const Icon(Icons.store), text: loc.shopProfile),
-                Tab(icon: const Icon(Icons.backup), text: loc.backup),
-                Tab(icon: const Icon(Icons.receipt), text: loc.receiptFormat),
-                Tab(icon: const Icon(Icons.settings), text: loc.preferences),
-                Tab(icon: const Icon(Icons.info), text: loc.about),
-              ],
-                ),
+        children: [
+          Container(
+            padding: const EdgeInsets.only(bottom: AppTokens.spacingMedium),
+            child: Container(
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+                borderRadius:
+                    BorderRadius.circular(AppTokens.cardBorderRadius / 2),
               ),
-            ),
-            Expanded(
-              child: TabBarView(
+              child: TabBar(
                 controller: _tabController,
-                children: [
-                  ShopProfileTab(repository: _settingsRepository),
-                  BackupTab(repository: _settingsRepository),
-                  ReceiptTab(repository: _settingsRepository),
-                  PreferencesTab(repository: _settingsRepository),
-                  AboutTab(repository: _settingsRepository),
+                isScrollable: true,
+                labelColor: colorScheme.onPrimary,
+                unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
+                indicatorColor: colorScheme.onPrimary,
+                tabs: [
+                  Tab(icon: const Icon(Icons.store), text: loc.shopProfile),
+                  Tab(icon: const Icon(Icons.backup), text: loc.backup),
+                  Tab(icon: const Icon(Icons.receipt), text: loc.receiptFormat),
+                  Tab(icon: const Icon(Icons.settings), text: loc.preferences),
+                  Tab(icon: const Icon(Icons.info), text: loc.about),
                 ],
               ),
             ),
-          ],
-        ),
-      );
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                ShopProfileTab(repository: _settingsRepository),
+                BackupTab(repository: _settingsRepository),
+                ReceiptTab(repository: _settingsRepository),
+                PreferencesTab(repository: _settingsRepository),
+                AboutTab(repository: _settingsRepository),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -170,7 +171,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Form(
@@ -178,10 +179,9 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
               child: Column(
                 children: [
                   Card(
-                    elevation: DesktopDimensions.cardElevation,
+                    elevation: AppTokens.cardElevation,
                     child: Padding(
-                      padding:
-                          const EdgeInsets.all(DesktopDimensions.cardPadding),
+                      padding: const EdgeInsets.all(AppTokens.cardPadding),
                       child: Column(
                         children: [
                           CircleAvatar(
@@ -190,8 +190,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                             child: const Icon(Icons.store,
                                 size: 50, color: Colors.white),
                           ),
-                          const SizedBox(
-                              height: AppDimensions.spacingMedium),
+                          const SizedBox(height: AppTokens.spacingMedium),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -205,8 +204,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                                               "Functionality not implemented yet.")));
                                 },
                               ),
-                              const SizedBox(
-                                  width: AppDimensions.spacingMedium),
+                              const SizedBox(width: AppTokens.spacingMedium),
                               OutlinedButton(
                                 onPressed: () {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -222,22 +220,24 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
                   Card(
                     child: Padding(
-                      padding:
-                          const EdgeInsets.all(DesktopDimensions.cardPadding),
+                      padding: const EdgeInsets.all(AppTokens.cardPadding),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             loc.shopDetails,
-                            style: const TextStyle(
-                                fontSize: DesktopDimensions.headingSize,
+                            style: TextStyle(
+                                fontSize: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.fontSize ??
+                                    24.0,
                                 fontWeight: FontWeight.bold),
                           ),
-                          const SizedBox(
-                              height: DesktopDimensions.spacingMedium),
+                          const SizedBox(height: AppTokens.spacingMedium),
                           TextFormField(
                             controller: _nameUrduController,
                             decoration: InputDecoration(
@@ -246,8 +246,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                               hintText: 'لياقت کريانہ اسٹور',
                             ),
                           ),
-                          const SizedBox(
-                              height: AppDimensions.spacingMedium),
+                          const SizedBox(height: AppTokens.spacingMedium),
                           TextFormField(
                             controller: _nameEnglishController,
                             decoration: InputDecoration(
@@ -256,8 +255,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                               hintText: 'Liaqat Kiryana Store',
                             ),
                           ),
-                          const SizedBox(
-                              height: AppDimensions.spacingMedium),
+                          const SizedBox(height: AppTokens.spacingMedium),
                           TextFormField(
                             controller: _addressController,
                             decoration: InputDecoration(
@@ -267,22 +265,19 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                             ),
                             maxLines: 2,
                           ),
-                          const SizedBox(
-                              height: AppDimensions.spacingMedium),
+                          const SizedBox(height: AppTokens.spacingMedium),
                           TextFormField(
                             controller: _primaryPhoneController,
-                            validator: (value) =>
-                                value == null || value.isEmpty
-                                    ? loc.fieldRequired
-                                    : null,
+                            validator: (value) => value == null || value.isEmpty
+                                ? loc.fieldRequired
+                                : null,
                             decoration: InputDecoration(
                               labelText: '${loc.primaryPhone} *',
                               border: const OutlineInputBorder(),
                               hintText: '0300-1234567',
                             ),
                           ),
-                          const SizedBox(
-                              height: AppDimensions.spacingMedium),
+                          const SizedBox(height: AppTokens.spacingMedium),
                           TextFormField(
                             controller: _secondaryPhoneController,
                             decoration: InputDecoration(
@@ -291,8 +286,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                               hintText: '042-1234567',
                             ),
                           ),
-                          const SizedBox(
-                              height: DesktopDimensions.spacingLarge),
+                          const SizedBox(height: AppTokens.spacingLarge),
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -302,10 +296,15 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                                 foregroundColor: colorScheme.onPrimary,
                                 minimumSize: const Size(0, 48),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.cardBorderRadius),
                                 ),
-                                textStyle: const TextStyle(
-                                  fontSize: DesktopDimensions.bodySize,
+                                textStyle: TextStyle(
+                                  fontSize: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.fontSize ??
+                                      14.0,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -378,12 +377,13 @@ class _BackupTabState extends State<BackupTab> {
   Future<void> _confirmRestore(String backupPath) async {
     final fileName = basename(backupPath);
     final loc = AppLocalizations.of(context)!;
-  
+
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(loc.restoreBackup),
-        content: Text('${loc.restoreConfirm}\n\n$fileName?\n\n${loc.restoreWarning}'),
+        content: Text(
+            '${loc.restoreConfirm}\n\n$fileName?\n\n${loc.restoreWarning}'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -391,32 +391,33 @@ class _BackupTabState extends State<BackupTab> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-            child: Text(loc.restore, style: const TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error),
+            child:
+                Text(loc.restore, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
-  
+
     if (confirm == true) {
       setState(() => isLoading = true);
       final success = await widget.repository.restoreBackup(backupPath);
-      if(mounted) setState(() => isLoading = false);
-      
+      if (mounted) setState(() => isLoading = false);
+
       if (mounted) {
         // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success 
-              ? loc.restoreSuccess
-              : loc.restoreFailed),
-            backgroundColor: success ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.error,
-          )
-        );
-         if (success) {
-            // You might want to restart the app or re-initialize services here
-            AppLogger.info("Database restored. App restart recommended.", tag: 'UI');
-          }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(success ? loc.restoreSuccess : loc.restoreFailed),
+          backgroundColor: success
+              ? Theme.of(context).primaryColor
+              : Theme.of(context).colorScheme.error,
+        ));
+        if (success) {
+          // You might want to restart the app or re-initialize services here
+          AppLogger.info("Database restored. App restart recommended.",
+              tag: 'UI');
+        }
       }
     }
   }
@@ -424,7 +425,7 @@ class _BackupTabState extends State<BackupTab> {
   Future<void> _confirmDelete(String backupPath) async {
     final fileName = basename(backupPath);
     final loc = AppLocalizations.of(context)!;
-  
+
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -437,27 +438,29 @@ class _BackupTabState extends State<BackupTab> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
-            child: Text(loc.delete, style: const TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error),
+            child:
+                Text(loc.delete, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
-  
+
     if (confirm == true) {
       final success = await widget.repository.deleteBackup(backupPath);
-       if (mounted) {
-          // ignore: use_build_context_synchronously
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(success ? loc.backupDeleted : loc.deleteFailed),
-              backgroundColor: success ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.error,
-            )
-          );
-        }
-        if (success) {
-          await _loadBackups();
-        }
+      if (mounted) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(success ? loc.backupDeleted : loc.deleteFailed),
+          backgroundColor: success
+              ? Theme.of(context).primaryColor
+              : Theme.of(context).colorScheme.error,
+        ));
+      }
+      if (success) {
+        await _loadBackups();
+      }
     }
   }
 
@@ -467,32 +470,37 @@ class _BackupTabState extends State<BackupTab> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       child: Column(
         children: [
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.currentDatabase,
-                    style: const TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                    style: TextStyle(
+                        fontSize: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.fontSize ??
+                            24.0,
                         fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   ListTile(
-                    leading:
-                        Icon(Icons.storage, color: Theme.of(context).primaryColor),
-                    title: const Text("app_database.db"), // Assuming a static name
+                    leading: Icon(Icons.storage,
+                        color: Theme.of(context).primaryColor),
+                    title:
+                        const Text("app_database.db"), // Assuming a static name
                     subtitle: Text(
                         '${loc.size}: ${currentDbSize?.toStringAsFixed(2) ?? '?'} MB'),
                   ),
                   ListTile(
-                    leading:
-                        Icon(Icons.history, color: Theme.of(context).primaryColor),
+                    leading: Icon(Icons.history,
+                        color: Theme.of(context).primaryColor),
                     title: Text(loc.lastBackup),
                     subtitle: Text(backups.isNotEmpty
                         ? DateFormat('dd-MM-yyyy HH:mm')
@@ -503,20 +511,20 @@ class _BackupTabState extends State<BackupTab> {
               ),
             ),
           ),
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.backupOptions,
-                    style: const TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                    style: TextStyle(
+                        fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                         fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -550,16 +558,21 @@ class _BackupTabState extends State<BackupTab> {
                         foregroundColor: colorScheme.onPrimary,
                         minimumSize: const Size(0, 48),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                          borderRadius:
+                              BorderRadius.circular(AppTokens.cardBorderRadius),
                         ),
-                        textStyle: const TextStyle(
-                          fontSize: DesktopDimensions.bodySize,
+                        textStyle: TextStyle(
+                          fontSize: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.fontSize ??
+                              14.0,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -571,7 +584,7 @@ class _BackupTabState extends State<BackupTab> {
                       },
                     ),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -587,10 +600,10 @@ class _BackupTabState extends State<BackupTab> {
               ),
             ),
           ),
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -598,15 +611,18 @@ class _BackupTabState extends State<BackupTab> {
                     children: [
                       Text(
                         loc.recentBackups,
-                        style: const TextStyle(
-                            fontSize: DesktopDimensions.headingSize,
+                        style: TextStyle(
+                            fontSize: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.fontSize ??
+                                24.0,
                             fontWeight: FontWeight.bold),
                       ),
                       const Spacer(),
                       if (isLoading)
                         const Padding(
-                          padding:
-                              EdgeInsets.all(AppDimensions.spacingMedium),
+                          padding: EdgeInsets.all(AppTokens.spacingMedium),
                           child: SizedBox(
                             height: 16,
                             width: 16,
@@ -620,11 +636,11 @@ class _BackupTabState extends State<BackupTab> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   if (backups.isEmpty && !isLoading)
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          vertical: DesktopDimensions.spacingLarge),
+                          vertical: AppTokens.spacingLarge),
                       child: Center(
                         child: Text(
                           loc.noBackupsFound,
@@ -646,8 +662,8 @@ class _BackupTabState extends State<BackupTab> {
                             leading: Icon(Icons.insert_drive_file,
                                 color: Theme.of(context).primaryColor),
                             title: Text(fileName),
-                            subtitle:
-                                Text('$dateStr • ${size.toStringAsFixed(2)} MB'),
+                            subtitle: Text(
+                                '$dateStr • ${size.toStringAsFixed(2)} MB'),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -682,6 +698,7 @@ class _BackupTabState extends State<BackupTab> {
     );
   }
 }
+
 // ==================== 3. Receipt Tab ====================
 class ReceiptTab extends StatelessWidget {
   final SettingsRepository repository;
@@ -693,31 +710,35 @@ class ReceiptTab extends StatelessWidget {
 
     // TODO: Load receipt preferences from repository
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       child: Column(
         children: [
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.receiptOptions,
-                    style: const TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                    style: TextStyle(
+                        fontSize: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.fontSize ??
+                            24.0,
                         fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   OptionSwitch(title: loc.showLogo),
                   OptionSwitch(title: loc.showShopAddress),
                   OptionSwitch(title: loc.showPhone),
                   OptionSwitch(title: loc.showDateTime),
                   OptionSwitch(title: loc.showCustomerDetails),
                   OptionSwitch(title: loc.showPaymentDetails),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   const Divider(),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Text(loc.fontSize),
                   DropdownButton<String>(
                     value: loc.medium,
@@ -732,7 +753,7 @@ class ReceiptTab extends StatelessWidget {
                     ],
                     onChanged: (value) {}, // TODO: Save preference
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Text(loc.paperWidth),
                   DropdownButton<String>(
                     value: loc.paper58,
@@ -751,20 +772,24 @@ class ReceiptTab extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.printerSettings,
-                    style: const TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                    style: TextStyle(
+                        fontSize: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.fontSize ??
+                            24.0,
                         fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Text(loc.selectPrinter),
                   DropdownButton<String>(
                     value: loc.printerUsb,
@@ -783,15 +808,17 @@ class ReceiptTab extends StatelessWidget {
                     ],
                     onChanged: (value) {}, // TODO: Save preference
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.print),
                       label: Text(loc.printTestReceipt),
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text("Functionality not implemented yet.")));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    "Functionality not implemented yet.")));
                       },
                     ),
                   ),
@@ -819,7 +846,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
   String? _selectedDateFormat;
   String _currencyPosition = 'before';
   String _currencySymbol = 'Rs';
-  
+
   // Security
   bool _requirePassword = false;
   final TextEditingController _passwordController = TextEditingController();
@@ -845,7 +872,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
     // In a real app, you'd load these from the repository
     // The repository currently returns placeholder data, but the UI is ready.
     final prefs = await widget.repository.getAppPreferences();
-    if(mounted) {
+    if (mounted) {
       setState(() {
         _selectedDateFormat = prefs['dateFormat'] ?? 'DD-MM-YYYY';
         _currencySymbol = prefs['currencySymbol'] ?? 'Rs';
@@ -855,7 +882,8 @@ class _PreferencesTabState extends State<PreferencesTab> {
         _lowStockAlert = prefs['lowStockAlert'] ?? true;
         _dayCloseReminder = prefs['dayCloseReminder'] ?? true;
         // The frequency might need localization if the keys are stored in english
-        _selectedFrequency = prefs['backupFrequency'] ?? AppLocalizations.of(context)!.daily;
+        _selectedFrequency =
+            prefs['backupFrequency'] ?? AppLocalizations.of(context)!.daily;
         _isLoading = false;
       });
     }
@@ -868,20 +896,19 @@ class _PreferencesTabState extends State<PreferencesTab> {
       'currencySymbol': _currencySymbol,
       'currencyPosition': _currencyPosition,
       'requirePassword': _requirePassword,
-      'password': _passwordController.text, // Note: Password should be hashed in a real app
+      'password': _passwordController
+          .text, // Note: Password should be hashed in a real app
       'autoBackupEnabled': _autoBackupEnabled,
       'backupFrequency': _selectedFrequency,
       'lowStockAlert': _lowStockAlert,
       'dayCloseReminder': _dayCloseReminder,
     };
     await widget.repository.updateAppPreferences(prefs);
-    if(mounted) {
-       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(loc.preferencesSaved),
-          backgroundColor: Theme.of(context).primaryColor,
-        )
-      );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(loc.preferencesSaved),
+        backgroundColor: Theme.of(context).primaryColor,
+      ));
     }
   }
 
@@ -901,30 +928,34 @@ class _PreferencesTabState extends State<PreferencesTab> {
     return _isLoading
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
-            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+            padding: const EdgeInsets.all(AppTokens.spacingMedium),
             child: Column(
               children: [
                 // Language & Theme
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                    padding: const EdgeInsets.all(AppTokens.cardPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           loc.languageAndRegion,
-                          style: const TextStyle(
-                              fontSize: DesktopDimensions.headingSize,
+                          style: TextStyle(
+                              fontSize: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.fontSize ??
+                                  24.0,
                               fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: AppTokens.spacingMedium),
                         Text(loc.appLanguage),
                         DropdownButton<String>(
                           value: dropdownValue,
                           isExpanded: true,
                           items: const ['اردو', 'English']
-                              .map((lang) =>
-                                  DropdownMenuItem(value: lang, child: Text(lang)))
+                              .map((lang) => DropdownMenuItem(
+                                  value: lang, child: Text(lang)))
                               .toList(),
                           onChanged: (String? newValue) {
                             if (newValue == 'English') {
@@ -936,16 +967,20 @@ class _PreferencesTabState extends State<PreferencesTab> {
                             }
                           },
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: AppTokens.spacingMedium),
                         const Divider(),
-                        const SizedBox(height: AppDimensions.spacingMedium),
-                        const Text(
+                        const SizedBox(height: AppTokens.spacingMedium),
+                        Text(
                           "Theme", // TODO: Add to localization
                           style: TextStyle(
-                              fontSize: DesktopDimensions.headingSize,
+                              fontSize: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.fontSize ??
+                                  24.0,
                               fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: AppTokens.spacingMedium),
                         Consumer<ThemeProvider>(
                           builder: (context, themeProvider, child) {
                             return Column(
@@ -961,8 +996,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
                                     DropdownMenuItem(
                                         value: 'blue', child: Text('Blue')),
                                     DropdownMenuItem(
-                                        value: 'orange',
-                                        child: Text('Orange')),
+                                        value: 'orange', child: Text('Orange')),
                                   ],
                                   onChanged: (String? newColor) {
                                     if (newColor != null) {
@@ -970,8 +1004,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
                                     }
                                   },
                                 ),
-                                const SizedBox(
-                                    height: AppDimensions.spacingMedium),
+                                const SizedBox(height: AppTokens.spacingMedium),
                                 const Text("Theme Mode"),
                                 Row(
                                   children: [
@@ -1020,7 +1053,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
                             );
                           },
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: AppTokens.spacingMedium),
                         Text(loc.dateFormat),
                         DropdownButton<String>(
                           value: _selectedDateFormat ?? 'DD-MM-YYYY',
@@ -1039,30 +1072,28 @@ class _PreferencesTabState extends State<PreferencesTab> {
                             });
                           },
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: AppTokens.spacingMedium),
                         Text(loc.currencySymbol),
                         Row(
                           children: [
                             Expanded(
                               child: TextFormField(
-                                decoration:
-                                    InputDecoration(hintText: loc.currencySymbol),
+                                decoration: InputDecoration(
+                                    hintText: loc.currencySymbol),
                                 initialValue: _currencySymbol,
                                 onChanged: (value) {
                                   _currencySymbol = value;
                                 },
                               ),
                             ),
-                            const SizedBox(
-                                width: AppDimensions.spacingMedium),
+                            const SizedBox(width: AppTokens.spacingMedium),
                             Expanded(
                               child: DropdownButton<String>(
                                 value: _currencyPosition,
                                 isExpanded: true,
                                 items: [
                                   DropdownMenuItem(
-                                      value: 'before',
-                                      child: Text(loc.before)),
+                                      value: 'before', child: Text(loc.before)),
                                   DropdownMenuItem(
                                       value: 'after', child: Text(loc.after)),
                                 ],
@@ -1079,21 +1110,25 @@ class _PreferencesTabState extends State<PreferencesTab> {
                     ),
                   ),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
                 // Security
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                    padding: const EdgeInsets.all(AppTokens.cardPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           loc.security,
-                          style: const TextStyle(
-                              fontSize: DesktopDimensions.headingSize,
+                          style: TextStyle(
+                              fontSize: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.fontSize ??
+                                  24.0,
                               fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: AppTokens.spacingMedium),
                         OptionSwitch(
                           title: loc.requirePasswordStartup,
                           isEnabled: _requirePassword,
@@ -1101,7 +1136,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
                               setState(() => _requirePassword = value),
                         ),
                         if (_requirePassword) ...[
-                          const SizedBox(height: AppDimensions.spacingMedium),
+                          const SizedBox(height: AppTokens.spacingMedium),
                           TextFormField(
                             controller: _passwordController,
                             decoration: InputDecoration(
@@ -1115,21 +1150,25 @@ class _PreferencesTabState extends State<PreferencesTab> {
                     ),
                   ),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
                 // Auto Backup
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                    padding: const EdgeInsets.all(AppTokens.cardPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           loc.autoBackup,
-                          style: const TextStyle(
-                              fontSize: DesktopDimensions.headingSize,
+                          style: TextStyle(
+                              fontSize: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.fontSize ??
+                                  24.0,
                               fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: AppTokens.spacingMedium),
                         OptionSwitch(
                           title: loc.enableAutoBackup,
                           isEnabled: _autoBackupEnabled,
@@ -1137,7 +1176,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
                               setState(() => _autoBackupEnabled = value),
                         ),
                         if (_autoBackupEnabled) ...[
-                          const SizedBox(height: AppDimensions.spacingMedium),
+                          const SizedBox(height: AppTokens.spacingMedium),
                           Text(loc.frequency),
                           DropdownButton<String>(
                             value: _selectedFrequency ?? loc.daily,
@@ -1157,21 +1196,25 @@ class _PreferencesTabState extends State<PreferencesTab> {
                     ),
                   ),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
                 // Notifications
                 Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                    padding: const EdgeInsets.all(AppTokens.cardPadding),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           loc.notifications,
-                          style: const TextStyle(
-                              fontSize: DesktopDimensions.headingSize,
+                          style: TextStyle(
+                              fontSize: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.fontSize ??
+                                  24.0,
                               fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: AppTokens.spacingMedium),
                         OptionSwitch(
                           title: loc.lowStockAlert,
                           isEnabled: _lowStockAlert,
@@ -1188,14 +1231,14 @@ class _PreferencesTabState extends State<PreferencesTab> {
                     ),
                   ),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _savePreferences,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                          vertical: DesktopDimensions.spacingMedium),
+                          vertical: AppTokens.spacingMedium),
                       backgroundColor: Theme.of(context).primaryColor,
                     ),
                     child: Text(loc.savePreferences,
@@ -1218,30 +1261,30 @@ class AboutTab extends StatelessWidget {
     final loc = AppLocalizations.of(context)!;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       child: Column(
         children: [
           // App Info
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 children: [
                   Icon(Icons.store,
                       size: 80, color: Theme.of(context).primaryColor),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Text(
                     loc.appTitle,
-                    style: const TextStyle(
-                        fontSize: DesktopDimensions.appTitleSize,
+                    style: TextStyle(
+                        fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize ?? 28.0,
                         fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: AppDimensions.spacingSmall),
+                  const SizedBox(height: AppTokens.spacingSmall),
                   Text(
                     '${loc.version}: 1.0.0', // TODO: Make this dynamic from pubspec
                     style: TextStyle(color: Theme.of(context).hintColor),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
                   ElevatedButton(
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -1249,22 +1292,24 @@ class AboutTab extends StatelessWidget {
                     },
                     child: Text(loc.checkForUpdates),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Text(
                     '${loc.developedBy}: Smart Khata Technologies',
                     style: TextStyle(
                         color: Theme.of(context).hintColor,
-                        fontSize: DesktopDimensions.captionSize),
+                        fontSize:
+                            Theme.of(context).textTheme.bodySmall?.fontSize ??
+                                12.0),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
           // System Info
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: FutureBuilder<Map<String, dynamic>>(
                   future: repository.getDatabaseStats(),
                   builder: (context, snapshot) {
@@ -1284,11 +1329,15 @@ class AboutTab extends StatelessWidget {
                       children: [
                         Text(
                           loc.systemInfo,
-                          style: const TextStyle(
-                              fontSize: DesktopDimensions.headingSize,
+                          style: TextStyle(
+                              fontSize: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.fontSize ??
+                                  24.0,
                               fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: AppDimensions.spacingMedium),
+                        const SizedBox(height: AppTokens.spacingMedium),
                         InfoItem(
                             label: loc.totalItems,
                             value: (stats['products'] ?? 0).toString()),
@@ -1310,52 +1359,59 @@ class AboutTab extends StatelessWidget {
                   }),
             ),
           ),
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
           // Maintenance
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.maintenance,
-                    style: const TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                    style: TextStyle(
+                        fontSize: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.fontSize ??
+                            24.0,
                         fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   _VacuumDatabaseButton(repository: repository, loc: loc),
-                  const SizedBox(height: AppDimensions.spacingSmall),
+                  const SizedBox(height: AppTokens.spacingSmall),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content:
-                                  Text("Functionality not implemented yet.")));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      "Functionality not implemented yet.")));
                         },
                         child: Text(loc.archiveOldData)),
                   ),
-                  const SizedBox(height: AppDimensions.spacingSmall),
+                  const SizedBox(height: AppTokens.spacingSmall),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content:
-                                  Text("Functionality not implemented yet.")));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      "Functionality not implemented yet.")));
                         },
                         child: Text(loc.clearCache)),
                   ),
-                  const SizedBox(height: AppDimensions.spacingSmall),
+                  const SizedBox(height: AppTokens.spacingSmall),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content:
-                                  Text("Functionality not implemented yet.")));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      "Functionality not implemented yet.")));
                         },
                         child: Text(loc.viewLogs)),
                   ),
@@ -1363,21 +1419,25 @@ class AboutTab extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
           // Support
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     loc.support,
-                    style: const TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                    style: TextStyle(
+                        fontSize: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.fontSize ??
+                            24.0,
                         fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   ListTile(
                     leading: const Icon(Icons.email),
                     title: Text(loc.email),
@@ -1399,15 +1459,16 @@ class AboutTab extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
           Container(
-            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+            padding: const EdgeInsets.all(AppTokens.spacingMedium),
             color: Theme.of(context).colorScheme.surface,
             child: Center(
               child: Text(
                 '© ${DateTime.now().year} ${loc.appTitle}. ${loc.allRightsReserved}',
                 style: TextStyle(
-                    fontSize: DesktopDimensions.captionSize,
+                    fontSize:
+                        Theme.of(context).textTheme.bodySmall?.fontSize ?? 12.0,
                     color: Theme.of(context).hintColor),
                 textAlign: TextAlign.center,
               ),
@@ -1438,17 +1499,17 @@ class _VacuumDatabaseButtonState extends State<_VacuumDatabaseButton> {
       width: double.infinity,
       child: OutlinedButton(
         onPressed: () async {
+          final primaryColor = Theme.of(context).primaryColor;
+          final errorColor = Theme.of(context).colorScheme.error;
           final success = await widget.repository.vacuumDatabase();
-          if (mounted) {
-            // ignore: use_build_context_synchronously
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(success ? "Database Optimized" : "Optimization failed"),
-                // ignore: use_build_context_synchronously
-                backgroundColor: success ? Theme.of(context).primaryColor : Theme.of(context).colorScheme.error,
-              ),
-            );
-          }
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  success ? "Database Optimized" : "Optimization failed"),
+              backgroundColor: success ? primaryColor : errorColor,
+            ),
+          );
         },
         child: Text(widget.loc.repairDb),
       ),
@@ -1479,20 +1540,21 @@ class BackupItem extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-          leading: Icon(Icons.insert_drive_file, color: Theme.of(context).primaryColor),
+          leading: Icon(Icons.insert_drive_file,
+              color: Theme.of(context).primaryColor),
           title: Text(fileName),
           subtitle: Text('$date • $size'),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.restore, size: DesktopDimensions.kpiIconSize),
+                icon: const Icon(Icons.restore, size: AppTokens.kpiIconSize),
                 color: colorScheme.primary,
                 onPressed: onRestore,
                 tooltip: loc.restore,
               ),
               IconButton(
-                icon: const Icon(Icons.delete, size: DesktopDimensions.kpiIconSize),
+                icon: const Icon(Icons.delete, size: AppTokens.kpiIconSize),
                 color: colorScheme.error,
                 onPressed: onDelete,
                 tooltip: loc.delete,
@@ -1512,7 +1574,7 @@ class OptionSwitch extends StatelessWidget {
   final Function(bool)? onChanged;
 
   const OptionSwitch({
-    super.key, 
+    super.key,
     required this.title,
     this.isEnabled = false,
     this.onChanged,
@@ -1523,10 +1585,7 @@ class OptionSwitch extends StatelessWidget {
     return Row(
       children: [
         Expanded(child: Text(title)),
-        Switch(
-          value: isEnabled, 
-          onChanged: onChanged
-        ),
+        Switch(value: isEnabled, onChanged: onChanged),
       ],
     );
   }

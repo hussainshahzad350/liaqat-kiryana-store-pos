@@ -91,73 +91,85 @@ class AppThemes {
   );
 
   // RTL (Urdu) Text Theme - Uses NooriNastaleeq with extra line height
-  // CRITICAL: Extra line height (1.8) prevents pixel breaks in Nastaleeq script
+  // CRITICAL: Extra line height prevents pixel breaks in Nastaleeq script
   static const _rtlTextTheme = TextTheme(
     displayLarge: TextStyle(
       fontSize: 96,
-      fontWeight: FontWeight.w400, // Nastaleeq looks better with regular weight
+      fontWeight: FontWeight.w400,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8, // CRITICAL: Prevents pixel breaks
+      height: 2.2, // Extra tall for Nastaleeq descenders
     ),
     displayMedium: TextStyle(
       fontSize: 60,
       fontWeight: FontWeight.w400,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
     ),
     displaySmall: TextStyle(
       fontSize: 48,
       fontWeight: FontWeight.w400,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
     ),
     headlineMedium: TextStyle(
-      fontSize: 34,
+      fontSize: 36,
       fontWeight: FontWeight.w400,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
     ),
     headlineSmall: TextStyle(
-      fontSize: 26, // Slightly larger for Urdu readability
+      fontSize: 28,
       fontWeight: FontWeight.w600,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
     ),
     titleLarge: TextStyle(
-      fontSize: 24, // Larger for Urdu (was 22)
+      fontSize: 26,
       fontWeight: FontWeight.w500,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
     ),
     titleMedium: TextStyle(
-      fontSize: 20, // Larger for Urdu (was 18)
+      fontSize: 22,
       fontWeight: FontWeight.w500,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
     ),
     bodyLarge: TextStyle(
-      fontSize: 18, // Larger for Urdu readability (was 16)
+      fontSize: 20,
       fontWeight: FontWeight.w400,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
     ),
     bodyMedium: TextStyle(
-      fontSize: 16, // Larger for Urdu (was 14)
+      fontSize: 18,
       fontWeight: FontWeight.w400,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
     ),
     bodySmall: TextStyle(
-      fontSize: 14, // Larger for Urdu (was 12)
+      fontSize: 16,
       fontWeight: FontWeight.w400,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
     ),
     labelLarge: TextStyle(
-      fontSize: 16, // Larger for Urdu (was 14)
+      fontSize: 18,
       fontWeight: FontWeight.w500,
       fontFamily: 'NooriNastaleeq',
-      height: 1.8,
+      height: 2.2,
+    ),
+    labelMedium: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      fontFamily: 'NooriNastaleeq',
+      height: 2.2,
+    ),
+    labelSmall: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+      fontFamily: 'NooriNastaleeq',
+      height: 2.2,
     ),
   );
 

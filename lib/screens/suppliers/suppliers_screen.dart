@@ -7,7 +7,7 @@ import '../../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart'; // Keep for PdfColor
 import '../../services/ledger_export_service.dart';
-import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_tokens.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -481,7 +481,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     final typeCtrl = TextEditingController(text: supplier?.supplierType);
     final balanceCtrl = TextEditingController(
         text: supplier != null
-            ? Money(supplier.outstandingBalance).toRupeesString()
+            ? Money(supplier.outstandingBalance).toInputString()
             : '0');
 
     showDialog(
@@ -490,9 +490,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         backgroundColor: colorScheme.surface,
         title: Text(isEdit ? loc.editSupplier : loc.addSupplier,
             style: Theme.of(context).textTheme.titleLarge),
-        contentPadding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+        contentPadding: const EdgeInsets.all(AppTokens.dialogPadding),
         content: SizedBox(
-          width: DesktopDimensions.dialogWidth,
+          width: AppTokens.dialogWidth,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -501,33 +501,33 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 decoration: _inputDecoration(
                     loc.nameEnglish, Icons.person, colorScheme),
               ),
-              const SizedBox(height: DesktopDimensions.spacingStandard),
+              const SizedBox(height: AppTokens.spacingStandard),
               TextField(
                 controller: nameUrduCtrl,
                 style: const TextStyle(fontFamily: 'NooriNastaleeq'),
                 decoration: _inputDecoration(
                     loc.nameUrdu, Icons.translate, colorScheme),
               ),
-              const SizedBox(height: DesktopDimensions.spacingStandard),
+              const SizedBox(height: AppTokens.spacingStandard),
               TextField(
                 controller: phoneCtrl,
                 keyboardType: TextInputType.phone,
                 decoration:
                     _inputDecoration(loc.phoneNum, Icons.phone, colorScheme),
               ),
-              const SizedBox(height: DesktopDimensions.spacingStandard),
+              const SizedBox(height: AppTokens.spacingStandard),
               TextField(
                 controller: addressCtrl,
                 decoration: _inputDecoration(
                     loc.address, Icons.location_on, colorScheme),
               ),
-              const SizedBox(height: DesktopDimensions.spacingStandard),
+              const SizedBox(height: AppTokens.spacingStandard),
               TextField(
                 controller: typeCtrl,
                 decoration: _inputDecoration(
                     "Supplier Type", Icons.category, colorScheme),
               ),
-              const SizedBox(height: DesktopDimensions.spacingStandard),
+              const SizedBox(height: AppTokens.spacingStandard),
               TextField(
                 controller: balanceCtrl,
                 keyboardType: TextInputType.number,
@@ -592,16 +592,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       filled: true,
       fillColor: colorScheme.surfaceVariant,
       border: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+          borderRadius: BorderRadius.circular(AppTokens.formFieldBorderRadius),
           borderSide: BorderSide(color: colorScheme.outline)),
       enabledBorder: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+          borderRadius: BorderRadius.circular(AppTokens.formFieldBorderRadius),
           borderSide: BorderSide(color: colorScheme.outline)),
       focusedBorder: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+          borderRadius: BorderRadius.circular(AppTokens.formFieldBorderRadius),
           borderSide: BorderSide(color: colorScheme.primary, width: 2)),
     );
   }
@@ -614,13 +611,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     return Stack(
       children: [
         Padding(
-          padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+          padding: const EdgeInsets.all(AppTokens.spacingLarge),
           child: Column(
             children: [
               // Local Toolbar
               Container(
                 padding: const EdgeInsets.only(
-                  bottom: DesktopDimensions.spacingMedium,
+                  bottom: AppTokens.spacingMedium,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -638,37 +635,37 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 ),
               ),
               _buildDashboard(loc),
-              const SizedBox(height: DesktopDimensions.spacingMedium),
+              const SizedBox(height: AppTokens.spacingMedium),
               Card(
-                elevation: DesktopDimensions.cardElevation,
+                elevation: AppTokens.cardElevation,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                        DesktopDimensions.cardBorderRadius)),
+                    borderRadius:
+                        BorderRadius.circular(AppTokens.cardBorderRadius)),
                 child: Padding(
-                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                  padding: const EdgeInsets.all(AppTokens.cardPadding),
                   child: TextField(
                     controller: searchController,
                     onChanged: (val) => _firstLoad(),
                     decoration: InputDecoration(
                       hintText: loc.search,
                       prefixIcon: Icon(Icons.search,
-                          size: DesktopDimensions.iconSizeMedium,
+                          size: AppTokens.iconSizeMedium,
                           color: colorScheme.onSurfaceVariant),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.smallBorderRadius),
+                              AppTokens.smallBorderRadius),
                           borderSide: BorderSide(color: colorScheme.outline)),
                       filled: true,
                       fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: DesktopDimensions.spacingSmall,
-                          vertical: DesktopDimensions.spacingSmall),
+                          horizontal: AppTokens.spacingSmall,
+                          vertical: AppTokens.spacingSmall),
                       isDense: true,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: DesktopDimensions.spacingMedium),
+              const SizedBox(height: AppTokens.spacingMedium),
               Expanded(
                 child: _isFirstLoadRunning
                     ? Center(
@@ -687,7 +684,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                               if (index == suppliers.length) {
                                 return Padding(
                                   padding: const EdgeInsets.all(
-                                      DesktopDimensions.spacingMedium),
+                                      AppTokens.spacingMedium),
                                   child: Center(
                                       child: CircularProgressIndicator(
                                           color: colorScheme.primary)),
@@ -712,14 +709,14 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
 
   Widget _buildDashboard(AppLocalizations loc) {
     return SizedBox(
-      height: DesktopDimensions.kpiHeight,
+      height: AppTokens.kpiHeight,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(child: _buildKpiCard("Total", countTotal, balTotal, null)),
-          const SizedBox(width: DesktopDimensions.spacingMedium),
+          const SizedBox(width: AppTokens.spacingMedium),
           Expanded(child: _buildKpiCard("Active", countActive, balTotal, null)),
-          const SizedBox(width: DesktopDimensions.spacingMedium),
+          const SizedBox(width: AppTokens.spacingMedium),
           Expanded(
             child: _buildKpiCard("Archived", countArchived, balArchived, () {
               setState(() {
@@ -747,11 +744,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       onTap: onTap,
       color: borderColor,
       child: Container(
-        padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+        padding: const EdgeInsets.all(AppTokens.cardPadding),
         decoration: BoxDecoration(
           color: containerColor,
-          borderRadius:
-              BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+          borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -779,13 +775,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     return ListTile(
       selected: isSelected,
       selectedTileColor: colorScheme.primaryContainer.withOpacity(0.2),
-      contentPadding: const EdgeInsets.symmetric(
-          horizontal: DesktopDimensions.spacingStandard),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: AppTokens.spacingStandard),
       leading: CircleAvatar(
-        radius: DesktopDimensions.iconSizeSmall,
+        radius: AppTokens.iconSizeSmall,
         backgroundColor: colorScheme.primaryContainer,
         child: Icon(Icons.business,
-            size: DesktopDimensions.iconSizeSmall,
+            size: AppTokens.iconSizeSmall,
             color: colorScheme.onPrimaryContainer),
       ),
       title: Text(
@@ -800,15 +796,14 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               style: Theme.of(context).textTheme.bodySmall),
           if (supplier.supplierType != null &&
               supplier.supplierType!.isNotEmpty) ...[
-            const SizedBox(width: DesktopDimensions.spacingMedium),
+            const SizedBox(width: AppTokens.spacingMedium),
             Container(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesktopDimensions.spacingSmall,
-                  vertical: DesktopDimensions.spacingSmall),
+                  horizontal: AppTokens.spacingSmall,
+                  vertical: AppTokens.spacingSmall),
               decoration: BoxDecoration(
                 color: colorScheme.secondaryContainer,
-                borderRadius:
-                    BorderRadius.circular(DesktopDimensions.spacingSmall),
+                borderRadius: BorderRadius.circular(AppTokens.spacingSmall),
               ),
               child: Text(supplier.supplierType!,
                   style: Theme.of(context)
@@ -836,7 +831,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               Text(loc.balance, style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
-          const SizedBox(width: DesktopDimensions.spacingMedium),
+          const SizedBox(width: AppTokens.spacingMedium),
           IconButton(
             icon: Icon(Icons.receipt_long, color: colorScheme.primary),
             tooltip: "View Ledger",
@@ -844,7 +839,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           ),
           PopupMenuButton<String>(
             icon: Icon(Icons.more_vert,
-                size: DesktopDimensions.iconSizeSmallMedium,
+                size: AppTokens.iconSizeSmallMedium,
                 color: colorScheme.onSurfaceVariant),
             padding: EdgeInsets.zero,
             onSelected: (value) {
@@ -859,27 +854,27 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   value: 'edit',
                   child: Row(children: [
                     Icon(Icons.edit,
-                        size: DesktopDimensions.iconSizeSmall,
+                        size: AppTokens.iconSizeSmall,
                         color: colorScheme.secondary),
-                    const SizedBox(width: DesktopDimensions.spacingSmall),
+                    const SizedBox(width: AppTokens.spacingSmall),
                     Text(loc.editSupplier)
                   ])),
               PopupMenuItem(
                   value: 'archive',
                   child: Row(children: [
                     Icon(Icons.archive,
-                        size: DesktopDimensions.iconSizeSmall,
+                        size: AppTokens.iconSizeSmall,
                         color: colorScheme.onSurface),
-                    const SizedBox(width: DesktopDimensions.spacingSmall),
+                    const SizedBox(width: AppTokens.spacingSmall),
                     Text(loc.archiveAction)
                   ])),
               PopupMenuItem(
                   value: 'delete',
                   child: Row(children: [
                     Icon(Icons.delete,
-                        size: DesktopDimensions.iconSizeSmall,
+                        size: AppTokens.iconSizeSmall,
                         color: colorScheme.error),
-                    const SizedBox(width: DesktopDimensions.spacingSmall),
+                    const SizedBox(width: AppTokens.spacingSmall),
                     Text(loc.delete,
                         style: Theme.of(context)
                             .textTheme
@@ -910,12 +905,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             child: Container(color: colorScheme.shadow.withOpacity(0.5))),
         Center(
           child: Container(
-            width: DesktopDimensions.dialogWidth,
-            height: DesktopDimensions.dialogHeight,
+            width: AppTokens.dialogWidth,
+            height: AppTokens.dialogHeight,
             decoration: BoxDecoration(
               color: colorScheme.surface,
-              borderRadius:
-                  BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+              borderRadius: BorderRadius.circular(AppTokens.dialogBorderRadius),
               boxShadow: [
                 BoxShadow(
                     blurRadius: 20, color: colorScheme.shadow.withOpacity(0.25))
@@ -926,8 +920,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 // Header
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: DesktopDimensions.spacingLarge,
-                      vertical: DesktopDimensions.spacingMedium),
+                      horizontal: AppTokens.spacingLarge,
+                      vertical: AppTokens.spacingMedium),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     border: Border(
@@ -949,22 +943,21 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                         children: [
                           _buildSummaryChip("Payable Balance", netBalance,
                               colorScheme.primary, colorScheme),
-                          const SizedBox(
-                              width: DesktopDimensions.spacingStandard),
+                          const SizedBox(width: AppTokens.spacingStandard),
                           ElevatedButton.icon(
                             onPressed: _showPaymentDialog,
                             icon: const Icon(Icons.payment,
-                                size: DesktopDimensions.iconSizeSmallMedium),
+                                size: AppTokens.iconSizeSmallMedium),
                             label: const Text("Pay Supplier"),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colorScheme.primary,
                               foregroundColor: colorScheme.onPrimary,
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: DesktopDimensions.spacingMedium,
-                                  vertical: DesktopDimensions.spacingStandard),
+                                  horizontal: AppTokens.spacingMedium,
+                                  vertical: AppTokens.spacingStandard),
                             ),
                           ),
-                          const SizedBox(width: DesktopDimensions.spacingSmall),
+                          const SizedBox(width: AppTokens.spacingSmall),
                           IconButton(
                               icon: const Icon(Icons.print),
                               onPressed: () => _handleExport(loc),
@@ -982,8 +975,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 // Filter Bar
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: DesktopDimensions.spacingMedium,
-                      vertical: DesktopDimensions.spacingSmall),
+                      horizontal: AppTokens.spacingMedium,
+                      vertical: AppTokens.spacingSmall),
                   color: colorScheme.surfaceVariant.withOpacity(0.3),
                   child: Row(
                     children: [
@@ -1009,7 +1002,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                           }
                         },
                         icon: const Icon(Icons.calendar_today,
-                            size: DesktopDimensions.bodySize),
+                            size: AppTokens.iconSizeSmall),
                         label: Text(_ledgerStartDate == null
                             ? "Date Range"
                             : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}"),
@@ -1019,8 +1012,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                       ),
                       if (_ledgerStartDate != null)
                         IconButton(
-                            icon: const Icon(Icons.clear,
-                                size: DesktopDimensions.bodySize),
+                            icon: const Icon(Icons.clear, size: AppTokens.iconSizeSmall),
                             onPressed: () {
                               setState(() {
                                 _ledgerStartDate = null;
@@ -1028,7 +1020,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                               });
                               _getSupplierLedger(supplier.id!);
                             }),
-                      const SizedBox(width: DesktopDimensions.spacingStandard),
+                      const SizedBox(width: AppTokens.spacingStandard),
                       SegmentedButton<String>(
                         segments: const [
                           ButtonSegment(value: 'ALL', label: Text('All')),
@@ -1045,20 +1037,20 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                       ),
                       const Spacer(),
                       SizedBox(
-                        width: DesktopDimensions.labelWidthStandard,
+                        width: AppTokens.labelWidthStandard,
                         child: TextField(
                           controller: _ledgerSearchCtrl,
                           decoration: InputDecoration(
                             hintText: "Search...",
                             prefixIcon: const Icon(Icons.search,
-                                size: DesktopDimensions.iconSizeSmall),
+                                size: AppTokens.iconSizeSmall),
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(
-                                vertical: DesktopDimensions.spacingSmall,
-                                horizontal: DesktopDimensions.spacingSmall),
+                                vertical: AppTokens.spacingSmall,
+                                horizontal: AppTokens.spacingSmall),
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(
-                                    DesktopDimensions.smallBorderRadius)),
+                                    AppTokens.smallBorderRadius)),
                           ),
                           onChanged: (val) =>
                               setState(() => _ledgerSearchQuery = val),
@@ -1071,14 +1063,14 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 // Table Header
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      vertical: DesktopDimensions.spacingStandard,
-                      horizontal: DesktopDimensions.spacingMedium),
+                      vertical: AppTokens.spacingStandard,
+                      horizontal: AppTokens.spacingMedium),
                   color: colorScheme.surfaceVariant.withOpacity(0.5),
                   child: Row(
                     children: [
                       const SizedBox(
-                          width: DesktopDimensions
-                              .buttonHeight), // Space for expand icon
+                          width:
+                              AppTokens.buttonHeight), // Space for expand icon
                       Expanded(
                           flex: 2,
                           child: Text("Date",
@@ -1136,12 +1128,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       String label, int amount, Color color, ColorScheme scheme) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesktopDimensions.spacingStandard,
-          vertical: DesktopDimensions.spacingSmall),
+          horizontal: AppTokens.spacingStandard,
+          vertical: AppTokens.spacingSmall),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius:
-            BorderRadius.circular(DesktopDimensions.smallBorderRadius),
+        borderRadius: BorderRadius.circular(AppTokens.smallBorderRadius),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Column(
@@ -1186,8 +1177,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           hoverColor: colorScheme.surfaceVariant.withOpacity(0.3),
           child: Container(
             padding: const EdgeInsets.symmetric(
-                vertical: DesktopDimensions.spacingStandard,
-                horizontal: DesktopDimensions.spacingMedium),
+                vertical: AppTokens.spacingStandard,
+                horizontal: AppTokens.spacingMedium),
             decoration: BoxDecoration(
               border: Border(
                   bottom: BorderSide(
@@ -1196,13 +1187,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             child: Row(
               children: [
                 SizedBox(
-                  width: DesktopDimensions.buttonHeight,
+                  width: AppTokens.buttonHeight,
                   child: isBill
                       ? Icon(
                           isExpanded
                               ? Icons.keyboard_arrow_up
                               : Icons.keyboard_arrow_down,
-                          size: DesktopDimensions.iconSizeMedium,
+                          size: AppTokens.iconSizeMedium,
                           color: colorScheme.onSurfaceVariant)
                       : null,
                 ),
@@ -1247,10 +1238,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               ? Container(
                   color: colorScheme.surfaceVariant.withOpacity(0.1),
                   padding: const EdgeInsets.fromLTRB(
-                      DesktopDimensions.spacingXLarge,
-                      DesktopDimensions.spacingSmall,
-                      DesktopDimensions.spacingMedium,
-                      DesktopDimensions.spacingMedium),
+                      AppTokens.spacingXLarge,
+                      AppTokens.spacingSmall,
+                      AppTokens.spacingMedium,
+                      AppTokens.spacingMedium),
                   child: _buildExpandedDetails(row['ref_id'], colorScheme),
                 )
               : const SizedBox.shrink(),
@@ -1265,13 +1256,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
     if (items == null) {
       return const Center(
           child: Padding(
-              padding: EdgeInsets.all(DesktopDimensions.spacingSmall),
+              padding: EdgeInsets.all(AppTokens.spacingSmall),
               child: CircularProgressIndicator(strokeWidth: 2)));
     }
 
     if (items.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
+        padding: const EdgeInsets.all(AppTokens.spacingSmall),
         child: Text("No items details available.",
             style: Theme.of(context)
                 .textTheme
@@ -1295,31 +1286,26 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   bottom: BorderSide(color: colorScheme.outlineVariant))),
           children: [
             Padding(
-                padding: const EdgeInsets.only(
-                    bottom: DesktopDimensions.spacingXSmall),
+                padding: const EdgeInsets.only(bottom: AppTokens.spacingXSmall),
                 child:
                     Text("Item", style: Theme.of(context).textTheme.bodySmall)),
             Padding(
-                padding: const EdgeInsets.only(
-                    bottom: DesktopDimensions.spacingXSmall),
+                padding: const EdgeInsets.only(bottom: AppTokens.spacingXSmall),
                 child: Text("Qty",
                     textAlign: TextAlign.right,
                     style: Theme.of(context).textTheme.bodySmall)),
             Padding(
-                padding: const EdgeInsets.only(
-                    bottom: DesktopDimensions.spacingXSmall),
+                padding: const EdgeInsets.only(bottom: AppTokens.spacingXSmall),
                 child: Text("Unit",
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodySmall)),
             Padding(
-                padding: const EdgeInsets.only(
-                    bottom: DesktopDimensions.spacingXSmall),
+                padding: const EdgeInsets.only(bottom: AppTokens.spacingXSmall),
                 child: Text("Rate",
                     textAlign: TextAlign.right,
                     style: Theme.of(context).textTheme.bodySmall)),
             Padding(
-                padding: const EdgeInsets.only(
-                    bottom: DesktopDimensions.spacingXSmall),
+                padding: const EdgeInsets.only(bottom: AppTokens.spacingXSmall),
                 child: Text("Total",
                     textAlign: TextAlign.right,
                     style: Theme.of(context).textTheme.bodySmall)),
@@ -1329,25 +1315,25 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               children: [
                 Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: DesktopDimensions.spacingXSmall),
+                        vertical: AppTokens.spacingXSmall),
                     child: Text(
                         item['name_english'] ?? item['name_urdu'] ?? 'Unknown',
                         style: Theme.of(context).textTheme.bodyLarge)),
                 Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: DesktopDimensions.spacingXSmall),
+                        vertical: AppTokens.spacingXSmall),
                     child: Text(item['quantity'].toString(),
                         textAlign: TextAlign.right,
                         style: Theme.of(context).textTheme.bodyLarge)),
                 Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: DesktopDimensions.spacingXSmall),
+                        vertical: AppTokens.spacingXSmall),
                     child: Text(item['unit_type'] ?? '-',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyLarge)),
                 Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: DesktopDimensions.spacingXSmall),
+                        vertical: AppTokens.spacingXSmall),
                     child: Text(
                         item['cost_price'] != null
                             ? Money((item['cost_price'] as num).toInt())
@@ -1357,7 +1343,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                         style: Theme.of(context).textTheme.bodyLarge)),
                 Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: DesktopDimensions.spacingXSmall),
+                        vertical: AppTokens.spacingXSmall),
                     child: Text(
                         item['total_amount'] != null
                             ? Money((item['total_amount'] as num).toInt())
@@ -1380,13 +1366,13 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             child: Container(color: colorScheme.shadow.withOpacity(0.5))),
         Center(
           child: Container(
-            width: DesktopDimensions.dialogWidth,
-            height: DesktopDimensions.dialogHeight,
-            padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+            width: AppTokens.dialogWidth,
+            height: AppTokens.dialogHeight,
+            padding: const EdgeInsets.all(AppTokens.dialogPadding),
             decoration: BoxDecoration(
                 color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(
-                    DesktopDimensions.dialogBorderRadius)),
+                borderRadius:
+                    BorderRadius.circular(AppTokens.dialogBorderRadius)),
             child: Column(
               children: [
                 Row(
@@ -1450,7 +1436,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               keyboardType: TextInputType.number,
               decoration: _inputDecoration("Amount", Icons.money, colorScheme),
             ),
-            const SizedBox(height: DesktopDimensions.spacingStandard),
+            const SizedBox(height: AppTokens.spacingStandard),
             TextField(
               controller: notesCtrl,
               decoration: _inputDecoration("Notes", Icons.note, colorScheme),
@@ -1530,8 +1516,7 @@ class _HoverableCardState extends State<_HoverableCard> {
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius:
-              BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+          borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
           boxShadow: [
             BoxShadow(
               color: colorScheme.shadow
@@ -1552,8 +1537,7 @@ class _HoverableCardState extends State<_HoverableCard> {
           child: InkWell(
             onTap: widget.onTap,
             onFocusChange: (value) => setState(() => _isFocused = value),
-            borderRadius:
-                BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+            borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
             hoverColor: widget.color.withOpacity(0.05),
             child: widget.child,
           ),

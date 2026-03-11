@@ -8,8 +8,7 @@ import '../../bloc/sales/sales_bloc.dart';
 import '../../bloc/sales/sales_event.dart';
 import '../../bloc/sales/sales_state.dart';
 import '../../core/repositories/receipt_repository.dart';
-import '../../core/constants/desktop_dimensions.dart';
-import '../../core/res/app_dimensions.dart';
+import '../../core/res/app_tokens.dart';
 import '../../core/utils/error_handler.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
@@ -34,6 +33,7 @@ import 'widgets/cart_item_row.dart';
 import 'widgets/loading_overlay.dart';
 import 'utils/receipt_printer.dart';
 import 'utils/sales_shortcuts.dart';
+import '../../core/utils/rtl_helper.dart';
 
 class SalesScreen extends StatefulWidget {
   const SalesScreen({super.key});
@@ -154,8 +154,12 @@ class _SalesScreenState extends State<SalesScreen> {
     if (customer == null) {
       customerSearchController.clear();
     } else {
-      customerSearchController.text =
-          "${customer.nameEnglish} (${customer.contactPrimary ?? ''})";
+      final localizedName = RTLHelper.getLocalizedName(
+        context: context,
+        nameEnglish: customer.nameEnglish,
+        nameUrdu: customer.nameUrdu,
+      );
+      customerSearchController.text = localizedName;
     }
     context.read<SalesBloc>().add(CustomerSelected(customer));
   }
@@ -354,6 +358,18 @@ class _SalesScreenState extends State<SalesScreen> {
             _productSearchFocusNode.requestFocus();
           },
           onAddCustomer: _showAddCustomerDialog,
+          onNewSale: () {
+            // Ctrl+Shift+N: start a fresh sale
+            _performClearCart();
+            _refreshAllData();
+          },
+          onPrint: () {
+            // Ctrl+P: print the most recent invoice if available
+            final state = context.read<SalesBloc>().state;
+            if (state.recentInvoices.isNotEmpty) {
+              _handlePrintReceipt(state.recentInvoices.first);
+            }
+          },
         ),
         child: Focus(
           autofocus: true,
@@ -377,13 +393,18 @@ class _SalesScreenState extends State<SalesScreen> {
                 if (quickAdded != null &&
                     quickAdded.id != _lastHandledQuickCustomerId) {
                   _lastHandledQuickCustomerId = quickAdded.id;
+                  final quickLocalizedName = RTLHelper.getLocalizedName(
+                    context: context,
+                    nameEnglish: quickAdded.nameEnglish,
+                    nameUrdu: quickAdded.nameUrdu,
+                  );
                   customerSearchController.text =
-                      "${quickAdded.nameEnglish} (${quickAdded.contactPrimary ?? ''})";
+                      "$quickLocalizedName (${quickAdded.contactPrimary ?? ''})";
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                            "${loc.customerAdded}: '${quickAdded.nameEnglish}'"),
+                            "${loc.customerAdded}: '$quickLocalizedName'"),
                         backgroundColor: colorScheme.primary,
                       ),
                     );
@@ -432,24 +453,24 @@ class _SalesScreenState extends State<SalesScreen> {
                         // Actions Toolbar
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: DesktopDimensions.spacingMedium,
-                              vertical: DesktopDimensions.spacingSmall),
+                              horizontal: AppTokens.spacingMedium,
+                              vertical: AppTokens.spacingSmall),
                           color: colorScheme.surface,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.refresh,
-                                    size: DesktopDimensions.kpiIconSize),
+                                    size: AppTokens.kpiIconSize),
                                 color: colorScheme.primary,
                                 onPressed: _refreshAllData,
                                 tooltip: loc.refresh,
                               ),
                               const SizedBox(
-                                  width: DesktopDimensions.spacingMedium),
+                                  width: AppTokens.spacingMedium),
                               IconButton(
                                 icon: const Icon(Icons.delete_sweep,
-                                    size: DesktopDimensions.kpiIconSize),
+                                    size: AppTokens.kpiIconSize),
                                 color: colorScheme.error,
                                 onPressed: _clearCart,
                                 tooltip: loc.clearCartTitle,
@@ -460,7 +481,7 @@ class _SalesScreenState extends State<SalesScreen> {
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.all(
-                                DesktopDimensions.spacingMedium),
+                                AppTokens.spacingMedium),
                             child: LayoutBuilder(
                               builder: (context, constraints) {
                                 // Responsive Right Panel Width
@@ -486,15 +507,15 @@ class _SalesScreenState extends State<SalesScreen> {
                                           // Item Search
                                           Card(
                                             elevation:
-                                                DesktopDimensions.cardElevation,
+                                                AppTokens.cardElevation,
                                             shape: RoundedRectangleBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(
-                                                        DesktopDimensions
+                                                        AppTokens
                                                             .cardBorderRadius)),
                                             child: Padding(
                                               padding: const EdgeInsets.all(
-                                                  DesktopDimensions
+                                                  AppTokens
                                                       .cardPadding),
                                               child: Focus(
                                                 onFocusChange: (hasFocus) {
@@ -519,7 +540,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                                     border: OutlineInputBorder(
                                                         borderRadius:
                                                             BorderRadius.circular(
-                                                                DesktopDimensions
+                                                                AppTokens
                                                                     .cardBorderRadius)),
                                                     filled: true,
                                                     fillColor: colorScheme
@@ -545,7 +566,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                             ),
                                           ),
                                           const SizedBox(
-                                              height: DesktopDimensions
+                                              height: AppTokens
                                                   .spacingMedium),
 
                                           // Product Grid
@@ -564,9 +585,9 @@ class _SalesScreenState extends State<SalesScreen> {
                                                   padding: const EdgeInsets
                                                       .symmetric(
                                                       horizontal:
-                                                          DesktopDimensions
+                                                          AppTokens
                                                               .spacingMedium,
-                                                      vertical: AppDimensions
+                                                      vertical: AppTokens
                                                           .spacingSmall),
                                                   gridDelegate:
                                                       SliverGridDelegateWithFixedCrossAxisCount(
@@ -574,10 +595,10 @@ class _SalesScreenState extends State<SalesScreen> {
                                                         crossAxisCount,
                                                     childAspectRatio: 16 / 9,
                                                     crossAxisSpacing:
-                                                        DesktopDimensions
+                                                        AppTokens
                                                             .spacingStandard,
                                                     mainAxisSpacing:
-                                                        DesktopDimensions
+                                                        AppTokens
                                                             .spacingStandard,
                                                   ),
                                                   itemCount:
@@ -669,7 +690,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                               padding:
                                                   const EdgeInsets.symmetric(
                                                       horizontal:
-                                                          DesktopDimensions
+                                                          AppTokens
                                                               .spacingMedium),
                                               color: colorScheme.surfaceVariant
                                                   .withOpacity(0.5),
@@ -698,7 +719,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                                               color: colorScheme
                                                                   .onSurfaceVariant))),
                                                   const SizedBox(
-                                                      width: AppDimensions
+                                                      width: AppTokens
                                                           .spacingMedium),
                                                   SizedBox(
                                                       width: 60,
@@ -713,7 +734,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                                               color: colorScheme
                                                                   .onSurfaceVariant))),
                                                   const SizedBox(
-                                                      width: AppDimensions
+                                                      width: AppTokens
                                                           .spacingMedium),
                                                   SizedBox(
                                                       width: 70,
@@ -754,15 +775,12 @@ class _SalesScreenState extends State<SalesScreen> {
                                                                   .withOpacity(
                                                                       0.5)),
                                                           const SizedBox(
-                                                              height: DesktopDimensions
+                                                              height: AppTokens
                                                                   .spacingMedium),
                                                           Text(loc.cartEmpty,
-                                                              style: TextStyle(
+                                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                                                   color: colorScheme
-                                                                      .onSurfaceVariant,
-                                                                  fontSize:
-                                                                      DesktopDimensions
-                                                                          .bodySize)),
+                                                                      .onSurfaceVariant)),
                                                         ],
                                                       ),
                                                     )

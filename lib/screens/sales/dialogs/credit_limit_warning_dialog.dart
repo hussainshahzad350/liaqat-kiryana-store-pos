@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../core/utils/rtl_helper.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/money.dart';
@@ -30,13 +30,18 @@ class CreditLimitWarningDialog extends StatelessWidget {
     return Dialog(
       shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
+              BorderRadius.circular(AppTokens.dialogBorderRadius)),
       child: Container(
         constraints: RTLHelper.getDialogConstraints(
           context: context,
           size: DialogSize.large,
         ),
-        padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppTokens.dialogPadding,
+          vertical: RTLHelper.isRTL(context) 
+              ? AppTokens.dialogPadding + 16
+              : AppTokens.dialogPadding,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +49,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.warning, color: colorScheme.error),
-                const SizedBox(width: DesktopDimensions.spacingSmall),
+                const SizedBox(width: AppTokens.spacingSmall),
                 Text(
                   loc.creditLimitExceeded,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -62,7 +67,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
               ],
             ),
             const Divider(),
-            const SizedBox(height: DesktopDimensions.spacingMedium),
+            const SizedBox(height: AppTokens.spacingMedium),
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
@@ -72,14 +77,14 @@ class CreditLimitWarningDialog extends StatelessWidget {
                       loc.creditLimitWarningMsg(creditLimit.toString()),
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
-                    const SizedBox(height: DesktopDimensions.spacingLarge),
+                    const SizedBox(height: AppTokens.spacingLarge),
                     Container(
                       padding:
-                          const EdgeInsets.all(DesktopDimensions.cardPadding),
+                          const EdgeInsets.all(AppTokens.cardPadding),
                       decoration: BoxDecoration(
                         color: colorScheme.errorContainer,
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius),
+                            AppTokens.cardBorderRadius),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +109,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
                             color: colorScheme.error,
                           ),
                           const SizedBox(
-                              height: DesktopDimensions.spacingSmall),
+                              height: AppTokens.spacingSmall),
                           Text(
                             '${loc.excessAmount}: ${(potentialBalance - creditLimit).toString()}',
                             style: Theme.of(context)
@@ -122,16 +127,10 @@ class CreditLimitWarningDialog extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: DesktopDimensions.spacingLarge),
+            const SizedBox(height: AppTokens.spacingLarge),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(loc.cancel,
-                      style: TextStyle(color: colorScheme.onSurfaceVariant)),
-                ),
-                const SizedBox(width: DesktopDimensions.spacingMedium),
                 OutlinedButton(
                   onPressed: () {
                     Navigator.pop(context);
@@ -143,7 +142,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
                   ),
                   child: Text(loc.increaseLimit),
                 ),
-                const SizedBox(width: DesktopDimensions.spacingMedium),
+                const SizedBox(width: AppTokens.spacingMedium),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
@@ -154,6 +153,12 @@ class CreditLimitWarningDialog extends StatelessWidget {
                     foregroundColor: colorScheme.onError,
                   ),
                   child: Text(loc.continueAnyway),
+                ),
+                const SizedBox(width: AppTokens.spacingMedium),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(loc.cancel,
+                      style: TextStyle(color: colorScheme.onSurfaceVariant)),
                 ),
               ],
             ),
@@ -171,9 +176,9 @@ class CreditLimitWarningDialog extends StatelessWidget {
     TextStyle? baseStyle;
     if (size == null) {
       baseStyle = textTheme.bodyMedium;
-    } else if (size >= DesktopDimensions.headingSize) {
+    } else if (size >= 24.0) {
       baseStyle = textTheme.titleMedium;
-    } else if (size >= DesktopDimensions.bodyLargeSize) {
+    } else if (size >= (textTheme.bodyLarge?.fontSize ?? 16.0)) {
       baseStyle = textTheme.bodyLarge;
     } else {
       baseStyle = textTheme.bodyMedium;
@@ -187,7 +192,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-          vertical: DesktopDimensions.spacingXXSmall),
+          vertical: AppTokens.spacingXXSmall),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

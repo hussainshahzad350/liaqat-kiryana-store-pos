@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../models/product_model.dart';
 import '../../../core/utils/rtl_helper.dart';
 
@@ -21,12 +21,12 @@ class ProductCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
-      elevation: DesktopDimensions.cardElevation,
+      elevation: AppTokens.cardElevation,
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
         side: BorderSide(
             color: isFocused
                 ? colorScheme.primary
@@ -39,7 +39,7 @@ class ProductCard extends StatelessWidget {
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
+              padding: const EdgeInsets.all(AppTokens.spacingSmall),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -47,12 +47,12 @@ class ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.inventory_2_outlined,
-                          size: DesktopDimensions.iconSizeSmall,
+                          size: AppTokens.iconSizeSmall,
                           color: colorScheme.primary.withOpacity(0.7)),
-                      const SizedBox(width: DesktopDimensions.spacingXSmall),
+                      const SizedBox(width: AppTokens.spacingXSmall),
                       Flexible(
                         child: Text(
-                          product.salePrice.formatted,
+                          product.salePrice.toString(),
                           style: textTheme.bodyLarge?.copyWith(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.w800,
@@ -63,7 +63,7 @@ class ProductCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingXSmall),
+                  const SizedBox(height: AppTokens.spacingXSmall),
                   Text(
                     RTLHelper.getLocalizedName(
                       context: context,
@@ -83,18 +83,18 @@ class ProductCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: DesktopDimensions.spacingXSmall,
-              right: DesktopDimensions.spacingXSmall,
+              top: AppTokens.spacingXSmall,
+              right: AppTokens.spacingXSmall,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingXSmall,
-                    vertical: DesktopDimensions.spacingXXSmall),
+                    horizontal: AppTokens.spacingXSmall,
+                    vertical: AppTokens.spacingXXSmall),
                 decoration: BoxDecoration(
                   color: product.isLowStock
                       ? colorScheme.errorContainer
                       : colorScheme.surfaceVariant,
                   borderRadius: BorderRadius.circular(
-                      DesktopDimensions.smallBorderRadius),
+                      AppTokens.smallBorderRadius),
                 ),
                 child: Text(
                   '${product.currentStock}',

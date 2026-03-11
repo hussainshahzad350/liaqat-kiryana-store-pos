@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../models/invoice_model.dart';
 import '../../../domain/entities/money.dart';
 import '../../../l10n/app_localizations.dart';
@@ -25,29 +25,29 @@ class RecentSalesSection extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Card(
-      elevation: DesktopDimensions.cardElevation,
-      margin: const EdgeInsets.only(top: DesktopDimensions.spacingMedium),
+      elevation: AppTokens.cardElevation,
+      margin: const EdgeInsets.only(top: AppTokens.spacingMedium),
       shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+              BorderRadius.circular(AppTokens.cardBorderRadius)),
       child: Container(
         height: 200,
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius:
-              BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+              BorderRadius.circular(AppTokens.cardBorderRadius),
         ),
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.symmetric(
-                  horizontal: DesktopDimensions.spacingStandard,
-                  vertical: DesktopDimensions.spacingSmall),
+                  horizontal: AppTokens.spacingStandard,
+                  vertical: AppTokens.spacingSmall),
               decoration: BoxDecoration(
                 color: colorScheme.surfaceVariant.withOpacity(0.3),
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(DesktopDimensions.cardBorderRadius),
-                  topRight: Radius.circular(DesktopDimensions.cardBorderRadius),
+                  topLeft: Radius.circular(AppTokens.cardBorderRadius),
+                  topRight: Radius.circular(AppTokens.cardBorderRadius),
                 ),
               ),
               width: double.infinity,
@@ -59,16 +59,16 @@ class RecentSalesSection extends StatelessWidget {
               child: ListView.separated(
                 itemCount: recentInvoices.length,
                 separatorBuilder: (c, i) =>
-                    const Divider(height: DesktopDimensions.dividerThickness),
+                    const Divider(height: AppTokens.dividerThickness),
                 itemBuilder: (context, index) {
                   final invoice = recentInvoices[index];
                   final isCancelled = invoice.isCancelled;
                   return ListTile(
                     dense: true,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: DesktopDimensions.spacingStandard),
+                        horizontal: AppTokens.spacingStandard),
                     leading: CircleAvatar(
-                      radius: DesktopDimensions.iconSizeSmall,
+                      radius: AppTokens.iconSizeSmall,
                       backgroundColor: isCancelled
                           ? colorScheme.errorContainer
                           : colorScheme.primaryContainer,
@@ -95,13 +95,13 @@ class RecentSalesSection extends StatelessWidget {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(Money(invoice.totalAmount).formatted,
+                        Text(Money(invoice.totalAmount).toString(),
                             style: textTheme.bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(width: DesktopDimensions.spacingSmall),
+                        const SizedBox(width: AppTokens.spacingSmall),
                         PopupMenuButton<String>(
                           icon: Icon(Icons.more_vert,
-                              size: DesktopDimensions.iconSizeMedium,
+                              size: AppTokens.iconSizeMedium,
                               color: colorScheme.onSurfaceVariant),
                           padding: EdgeInsets.zero,
                           onSelected: (value) {
@@ -117,28 +117,19 @@ class RecentSalesSection extends StatelessWidget {
                                   value: 'print',
                                   child: Row(children: [
                                     const Icon(Icons.print,
-                                        size: DesktopDimensions.iconSizeSmall),
+                                        size: AppTokens.iconSizeSmall),
                                     const SizedBox(
-                                        width: DesktopDimensions.spacingSmall),
+                                        width: AppTokens.spacingSmall),
                                     Text(loc.printReceipt, style: textTheme.bodyMedium)
-                                  ])),
-                              PopupMenuItem(
-                                  value: 'edit',
-                                  child: Row(children: [
-                                    const Icon(Icons.edit,
-                                        size: DesktopDimensions.iconSizeSmall),
-                                    const SizedBox(
-                                        width: DesktopDimensions.spacingSmall),
-                                    Text(loc.editItem, style: textTheme.bodyMedium)
                                   ])),
                               PopupMenuItem(
                                   value: 'cancel',
                                   child: Row(children: [
                                     Icon(Icons.cancel,
-                                        size: DesktopDimensions.iconSizeSmall,
+                                        size: AppTokens.iconSizeSmall,
                                         color: colorScheme.error),
                                     const SizedBox(
-                                        width: DesktopDimensions.spacingSmall),
+                                        width: AppTokens.spacingSmall),
                                     Text(loc.cancel,
                                         style: textTheme.bodyMedium?.copyWith(
                                             color: colorScheme.error))

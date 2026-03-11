@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/sales/sales_bloc.dart';
 import '../../../bloc/sales/sales_event.dart';
 import '../../../bloc/sales/sales_state.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../core/utils/rtl_helper.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/money.dart';
@@ -30,7 +30,7 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
   @override
   void initState() {
     super.initState();
-    limitCtrl.text = widget.currentLimit.toRupeesString();
+    limitCtrl.text = widget.currentLimit.toInputString();
   }
 
   @override
@@ -45,146 +45,136 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
     final colorScheme = Theme.of(context).colorScheme;
     final salesBloc = context.read<SalesBloc>();
 
-    return Dialog(
-      shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
-      child: Container(
-        constraints: RTLHelper.getDialogConstraints(
-          context: context,
-          size: DialogSize.medium,
-        ),
-        padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(loc.increaseCreditLimit,
-                    style: Theme.of(context).textTheme.titleLarge),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-            const Divider(),
-            const SizedBox(height: DesktopDimensions.spacingMedium),
-            Text(
-              '${loc.current}: ${widget.currentLimit.toString()}',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const SizedBox(height: DesktopDimensions.spacingMedium),
-            TextField(
-              controller: limitCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: loc.newCreditLimit,
-                border: const OutlineInputBorder(),
+    return BlocListener<SalesBloc, SalesState>(
+      listener: (context, state) {
+        if (state.creditLimitUpdateCustomerId == widget.customerId) {
+          if (state.creditLimitUpdateStatus == CreditLimitUpdateStatus.success) {
+             // Close dialog first
+            if (Navigator.of(context).canPop()) {
+              Navigator.pop(context);
+            }
+            
+            // Show success snackbar
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(loc.creditLimitUpdated),
+                backgroundColor: colorScheme.primary,
               ),
-            ),
-            const SizedBox(height: DesktopDimensions.spacingLarge),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(loc.cancel),
-                ),
-                const SizedBox(width: DesktopDimensions.spacingMedium),
-                ElevatedButton(
-                  onPressed: () async {
-                    Money newLimit;
-                    // Check if dialog is still mounted before async operations
-                    final dialogMounted = context.mounted;
-                    if (!dialogMounted) return;
-                    try {
-                      newLimit = Money.fromRupeesString(limitCtrl.text);
-                    } catch (_) {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(loc.invalidLimit)),
-                      );
-                      return;
-                    }
+            );
 
-                     // Capture localized strings before async call
-                    // final successLabel = loc.creditLimitUpdated;
-                    final errorLabel = loc.error;
-                    // final newLimitStr = newLimit.toString();
-
-                    try {
-                      salesBloc.add(
-                        CustomerCreditLimitUpdateRequested(
-                          customerId: widget.customerId,
-                          newLimitPaisas: newLimit.paisas,
+            // Trigger callback
+            widget.onLimitUpdated();
+          } else if (state.creditLimitUpdateStatus == CreditLimitUpdateStatus.error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.creditLimitUpdateError ?? loc.error),
+                backgroundColor: colorScheme.error,
+              ),
+            );
+          }
+        }
+      },
+      child: Dialog(
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(AppTokens.dialogBorderRadius)),
+        child: Container(
+          constraints: RTLHelper.getDialogConstraints(
+            context: context,
+            size: DialogSize.medium,
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppTokens.dialogPadding,
+            vertical: RTLHelper.isRTL(context) 
+                ? AppTokens.dialogPadding + 12
+                : AppTokens.dialogPadding,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(loc.increaseCreditLimit,
+                      style: Theme.of(context).textTheme.titleLarge),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+              const Divider(),
+              const SizedBox(height: AppTokens.spacingMedium),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${loc.current}: ${widget.currentLimit.toString()}',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      const SizedBox(height: AppTokens.spacingMedium),
+                      TextField(
+                        controller: limitCtrl,
+                        textAlign: TextAlign.center,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          labelText: loc.newCreditLimit,
+                          border: const OutlineInputBorder(),
                         ),
-                      );
-
-                      final updateResult = await salesBloc.stream.firstWhere(
-                        (state) =>
-                            state.creditLimitUpdateCustomerId ==
-                                widget.customerId &&
-                            (state.creditLimitUpdateStatus ==
-                                    CreditLimitUpdateStatus.success ||
-                                state.creditLimitUpdateStatus ==
-                                    CreditLimitUpdateStatus.error),
-                      );
-
-                      if (!mounted) return;
-
-                      final errorMsg = updateResult.creditLimitUpdateError ==
-                              null
-                          ? errorLabel
-                          : '$errorLabel: ${updateResult.creditLimitUpdateError}';
-
-                      if (updateResult.creditLimitUpdateStatus ==
-                          CreditLimitUpdateStatus.success) {
-                        final state = salesBloc.state;
-                        final int? sid = state.selectedCustomer?.id;
-                        if (sid == widget.customerId &&
-                            state.selectedCustomer != null) {
-                          salesBloc.add(CustomerSelected(state.selectedCustomer!
-                              .copyWith(creditLimit: newLimit.paisas)));
-                        }
-
-                        // Close dialog first before calling callback
-                        if (context.mounted && Navigator.of(context).canPop()) {
-                          Navigator.pop(context);
-                        }
-
-                        // Callback will trigger checkout payment dialog
-                        widget.onLimitUpdated();
-                      } else {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(errorMsg),
-                              backgroundColor: colorScheme.error,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppTokens.spacingLarge),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(loc.cancel),
+                  ),
+                  const SizedBox(width: AppTokens.spacingMedium),
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        minimumSize: const Size(120, 48),
+                      ),
+                      onPressed: () {
+                        try {
+                          final newLimit = Money.fromRupeesString(limitCtrl.text);
+                          salesBloc.add(
+                            CustomerCreditLimitUpdateRequested(
+                              customerId: widget.customerId,
+                              newLimitPaisas: newLimit.paisas,
                             ),
                           );
+                        } catch (_) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(loc.invalidLimit)),
+                          );
                         }
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('$errorLabel: $e'),
-                              backgroundColor: colorScheme.error),
-                        );
-                      }
-                    }
-                  },
-                  child: Text(loc.updateLimit),
-                ),
-              ],
-            ),
-          ],
+                      },
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(loc.updateLimit),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

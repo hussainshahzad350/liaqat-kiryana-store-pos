@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../core/routes/app_routes.dart';
 import '../core/providers/sidebar_provider.dart';
-import '../core/res/app_dimensions.dart';
+import '../core/res/app_tokens.dart';
 
 class AppNavigationSidebar extends StatelessWidget {
   final String currentRoute;
@@ -25,8 +25,8 @@ class AppNavigationSidebar extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       width: isExpanded
-          ? AppDimensions.sidebarExpandedWidth
-          : AppDimensions.sidebarCollapsedWidth,
+          ? AppTokens.sidebarExpandedWidth
+          : AppTokens.sidebarCollapsedWidth,
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: BorderDirectional(
@@ -163,7 +163,7 @@ class AppNavigationSidebar extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
-      height: AppDimensions.sidebarHeaderHeight,
+      height: AppTokens.sidebarHeaderHeight,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -201,11 +201,11 @@ class AppNavigationSidebar extends StatelessWidget {
             const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.spacingMedium),
+                  horizontal: AppTokens.spacingMedium),
               child: Text(
                 localizations.appTitle,
                 style: TextStyle(
-                  fontSize: AppDimensions.menuItemFontSize,
+                  fontSize: AppTokens.menuItemFontSize,
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimary,
                 ),
@@ -240,15 +240,15 @@ class AppNavigationSidebar extends StatelessWidget {
             }
           },
       child: Container(
-        height: AppDimensions.menuItemHeight,
+        height: AppTokens.menuItemHeight,
         margin: const EdgeInsets.symmetric(
-            horizontal: AppDimensions.spacingSmall,
-            vertical: AppDimensions.spacingSmall),
+            horizontal: AppTokens.spacingSmall,
+            vertical: AppTokens.spacingSmall),
         decoration: BoxDecoration(
           color: isActive
               ? colorScheme.primary.withOpacity(0.15)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppDimensions.spacingMedium),
+          borderRadius: BorderRadius.circular(AppTokens.spacingMedium),
           border: isActive
               ? Border.all(color: colorScheme.primary, width: 1)
               : null,
@@ -261,7 +261,7 @@ class AppNavigationSidebar extends StatelessWidget {
               padding: EdgeInsets.only(left: isExpanded ? 12.0 : 0),
               child: Icon(
                 icon,
-                size: AppDimensions.menuItemIconSize,
+                size: AppTokens.menuItemIconSize,
                 color: color ??
                     (isActive
                         ? colorScheme.primary
@@ -276,7 +276,7 @@ class AppNavigationSidebar extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: AppDimensions.menuItemFontSize,
+                    fontSize: AppTokens.menuItemFontSize,
                     fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                     color: color ??
                         (isActive
@@ -309,49 +309,50 @@ class AppNavigationSidebar extends StatelessWidget {
         children: [
           if (isExpanded) ...[
             Container(
-              constraints: const BoxConstraints(maxHeight: 40),
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.spacingMedium,
-                  vertical: AppDimensions.spacingSmall),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: AppDimensions.spacingSmall),
-                      Flexible(
-                        child: Text(
-                          localizations.systemOnline,
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
+                  horizontal: AppTokens.spacingMedium,
+                  vertical: AppTokens.spacingSmall),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            shape: BoxShape.circle,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'v1.0.0',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: colorScheme.onSurfaceVariant,
+                        const SizedBox(width: AppTokens.spacingSmall),
+                        Flexible(
+                          child: Text(
+                            localizations.systemOnline,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      'v1.0.0',
+                      style: TextStyle(
+                        fontSize: 9,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -360,7 +361,7 @@ class AppNavigationSidebar extends StatelessWidget {
             child: InkWell(
               onTap: () => sidebarProvider.toggleSidebar(),
               child: Container(
-                height: AppDimensions.sidebarFooterHeight,
+                height: AppTokens.sidebarFooterHeight,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   border: Border(

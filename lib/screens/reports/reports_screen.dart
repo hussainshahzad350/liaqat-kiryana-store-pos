@@ -7,8 +7,7 @@ import '../../bloc/reports/reports_state.dart';
 import '../../core/repositories/invoice_repository.dart';
 import '../../domain/entities/money.dart';
 import '../../l10n/app_localizations.dart';
-import '../../core/constants/desktop_dimensions.dart';
-import '../../core/res/app_dimensions.dart';
+import '../../core/res/app_tokens.dart';
 
 
 class ReportsScreen extends StatefulWidget {
@@ -43,15 +42,15 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
         invoiceRepository: context.read<InvoiceRepository>(),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+        padding: const EdgeInsets.all(AppTokens.spacingLarge),
         child: Column(
             children: [
             Container(
-              padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingMedium),
+              padding: const EdgeInsets.only(bottom: AppTokens.spacingMedium),
               child: Container(
                 decoration: BoxDecoration(
                   color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
+                  borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius / 2),
                 ),
                 child: TabBar(
                 controller: _tabController,
@@ -152,15 +151,15 @@ class _SalesReportTabState extends State<SalesReportTab> {
         final totalBills = state.salesReportData.length;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+          padding: const EdgeInsets.all(AppTokens.spacingMedium),
           child: Column(
             children: [
               // Date Range Selector
               Card(
                 color: colorScheme.surface,
-                elevation: DesktopDimensions.cardElevation,
+                elevation: AppTokens.cardElevation,
                 child: Padding(
-                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                  padding: const EdgeInsets.all(AppTokens.cardPadding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -168,10 +167,10 @@ class _SalesReportTabState extends State<SalesReportTab> {
                         loc.selectDate,
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: DesktopDimensions.headingSize,
+                            fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                             color: colorScheme.onSurface),
                       ),
-                      const SizedBox(height: AppDimensions.spacingMedium),
+                      const SizedBox(height: AppTokens.spacingMedium),
                       Row(
                         children: [
                           Expanded(
@@ -187,15 +186,15 @@ class _SalesReportTabState extends State<SalesReportTab> {
                                     color: colorScheme.primary),
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                        DesktopDimensions.cardBorderRadius)),
+                                        AppTokens.cardBorderRadius)),
                                 enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                        DesktopDimensions.cardBorderRadius),
+                                        AppTokens.cardBorderRadius),
                                     borderSide: BorderSide(
                                         color: colorScheme.outline)),
                                 focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                        DesktopDimensions.cardBorderRadius),
+                                        AppTokens.cardBorderRadius),
                                     borderSide: BorderSide(
                                         color: colorScheme.primary)),
                                 filled: true,
@@ -206,13 +205,13 @@ class _SalesReportTabState extends State<SalesReportTab> {
                             ),
                           ),
                           const SizedBox(
-                              width: DesktopDimensions.spacingMedium),
+                              width: AppTokens.spacingMedium),
                           Text(loc.to,
                               style: TextStyle(
-                                  fontSize: DesktopDimensions.headingSize,
+                                  fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                                   color: colorScheme.onSurface)),
                           const SizedBox(
-                              width: DesktopDimensions.spacingMedium),
+                              width: AppTokens.spacingMedium),
                           Expanded(
                             child: TextField(
                               controller: endDateController,
@@ -226,15 +225,15 @@ class _SalesReportTabState extends State<SalesReportTab> {
                                     color: colorScheme.primary),
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                        DesktopDimensions.cardBorderRadius)),
+                                        AppTokens.cardBorderRadius)),
                                 enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                        DesktopDimensions.cardBorderRadius),
+                                        AppTokens.cardBorderRadius),
                                     borderSide: BorderSide(
                                         color: colorScheme.outline)),
                                 focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                        DesktopDimensions.cardBorderRadius),
+                                        AppTokens.cardBorderRadius),
                                     borderSide: BorderSide(
                                         color: colorScheme.primary)),
                                 filled: true,
@@ -251,7 +250,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                 ),
               ),
 
-              const SizedBox(height: DesktopDimensions.spacingLarge),
+              const SizedBox(height: AppTokens.spacingLarge),
 
               // Summary Cards
               Row(
@@ -264,7 +263,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                       icon: Icons.currency_rupee,
                     ),
                   ),
-                  const SizedBox(width: DesktopDimensions.spacingMedium),
+                  const SizedBox(width: AppTokens.spacingMedium),
                   Expanded(
                     child: SummaryCard(
                       title: loc.avgDaily,
@@ -273,7 +272,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                       icon: Icons.trending_up,
                     ),
                   ),
-                  const SizedBox(width: DesktopDimensions.spacingMedium),
+                  const SizedBox(width: AppTokens.spacingMedium),
                   Expanded(
                     child: SummaryCard(
                       title: loc.totalBills,
@@ -285,14 +284,14 @@ class _SalesReportTabState extends State<SalesReportTab> {
                 ],
               ),
 
-              const SizedBox(height: DesktopDimensions.spacingLarge),
+              const SizedBox(height: AppTokens.spacingLarge),
 
               // Sales Table
               Card(
                 color: colorScheme.surface,
-                elevation: DesktopDimensions.cardElevation,
+                elevation: AppTokens.cardElevation,
                 child: Padding(
-                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                  padding: const EdgeInsets.all(AppTokens.cardPadding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -302,27 +301,27 @@ class _SalesReportTabState extends State<SalesReportTab> {
                             loc.detailedSales,
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: DesktopDimensions.headingSize,
+                                fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                                 color: colorScheme.onSurface),
                           ),
                           const Spacer(),
                           IconButton(
                             icon: const Icon(Icons.download,
-                                size: DesktopDimensions.kpiIconSize),
+                                size: AppTokens.kpiIconSize),
                             color: colorScheme.primary,
                             onPressed: () {},
                             tooltip: loc.downloadReport,
                           ),
                           IconButton(
                             icon: const Icon(Icons.print,
-                                size: DesktopDimensions.kpiIconSize),
+                                size: AppTokens.kpiIconSize),
                             color: colorScheme.primary,
                             onPressed: () {},
                             tooltip: loc.printReport,
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppDimensions.spacingMedium),
+                      const SizedBox(height: AppTokens.spacingMedium),
                       if (state.status == ReportStatus.loading)
                         const Center(child: CircularProgressIndicator())
                       else if (state.status == ReportStatus.error)
@@ -333,16 +332,16 @@ class _SalesReportTabState extends State<SalesReportTab> {
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: DataTable(
-                            headingRowHeight: DesktopDimensions.bodySize * 2.5,
-                            dataRowMinHeight: DesktopDimensions.bodySize * 2.5,
-                            dataRowMaxHeight: DesktopDimensions.bodySize * 2.5,
-                            columnSpacing: DesktopDimensions.spacingMedium,
-                            horizontalMargin: DesktopDimensions.spacingMedium,
+                            headingRowHeight: (Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14.0) * 2.5,
+                            dataRowMinHeight: (Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14.0) * 2.5,
+                            dataRowMaxHeight: (Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14.0) * 2.5,
+                            columnSpacing: AppTokens.spacingMedium,
+                            horizontalMargin: AppTokens.spacingMedium,
                             headingRowColor:
                                 MaterialStateProperty.all(colorScheme.primaryContainer),
                             headingTextStyle: TextStyle(
                                 color: colorScheme.onPrimaryContainer,
-                                fontSize: DesktopDimensions.headingSize,
+                                fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                                 fontWeight: FontWeight.bold),
                             columns: [
                               DataColumn(label: Text(loc.date)),
@@ -394,25 +393,25 @@ class ProfitReportTab extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       child: Column(
         children: [
           // Profit Summary
           Card(
             color: colorScheme.surface,
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 children: [
                   Text(
                     loc.profitSummary,
                     style: TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                        fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
                   Row(
                     children: [
                       Expanded(
@@ -422,7 +421,7 @@ class ProfitReportTab extends StatelessWidget {
                           color: colorScheme.primary,
                         ),
                       ),
-                      const SizedBox(width: DesktopDimensions.spacingMedium),
+                      const SizedBox(width: AppTokens.spacingMedium),
                       Expanded(
                         child: ProfitCard(
                           title: loc.totalCost,
@@ -430,7 +429,7 @@ class ProfitReportTab extends StatelessWidget {
                           color: colorScheme.error,
                         ),
                       ),
-                      const SizedBox(width: DesktopDimensions.spacingMedium),
+                      const SizedBox(width: AppTokens.spacingMedium),
                       Expanded(
                         child: ProfitCard(
                           title: loc.netProfit,
@@ -440,7 +439,7 @@ class ProfitReportTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Row(
                     children: [
                       Expanded(
@@ -450,7 +449,7 @@ class ProfitReportTab extends StatelessWidget {
                           color: colorScheme.secondary,
                         ),
                       ),
-                      const SizedBox(width: DesktopDimensions.spacingMedium),
+                      const SizedBox(width: AppTokens.spacingMedium),
                       Expanded(
                         child: ProfitCard(
                           title: loc.avgProfitPerBill,
@@ -465,14 +464,14 @@ class ProfitReportTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
 
           // Expenses Breakdown
           Card(
             color: colorScheme.surface,
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -480,10 +479,10 @@ class ProfitReportTab extends StatelessWidget {
                     loc.expenseDetails,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: DesktopDimensions.headingSize,
+                        fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                         color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   ExpenseItem(
                       name: loc.purchaseCost,
                       amount: 'Rs 120,000',
@@ -498,7 +497,7 @@ class ProfitReportTab extends StatelessWidget {
                       name: loc.otherExpenses,
                       amount: 'Rs 2,000',
                       percentage: '1.3%'),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   const Divider(),
                   ExpenseItem(
                       name: loc.totalExpenses,
@@ -560,25 +559,25 @@ class CustomerReportTab extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       child: Column(
         children: [
           // Outstanding Summary
           Card(
             color: colorScheme.surface,
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 children: [
                   Text(
                     loc.customerBalanceSummary,
                     style: TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                        fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
                   Row(
                     children: [
                       Expanded(
@@ -589,7 +588,7 @@ class CustomerReportTab extends StatelessWidget {
                           icon: Icons.money_off,
                         ),
                       ),
-                      const SizedBox(width: DesktopDimensions.spacingMedium),
+                      const SizedBox(width: AppTokens.spacingMedium),
                       Expanded(
                         child: SummaryCard(
                           title: loc.customers,
@@ -598,7 +597,7 @@ class CustomerReportTab extends StatelessWidget {
                           icon: Icons.people,
                         ),
                       ),
-                      const SizedBox(width: DesktopDimensions.spacingMedium),
+                      const SizedBox(width: AppTokens.spacingMedium),
                       Expanded(
                         child: SummaryCard(
                           title: loc.avgBalance,
@@ -614,14 +613,14 @@ class CustomerReportTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
 
           // Aging Analysis
           Card(
             color: colorScheme.surface,
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -629,10 +628,10 @@ class CustomerReportTab extends StatelessWidget {
                     loc.balanceAging,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: DesktopDimensions.headingSize,
+                        fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                         color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   AgingItem(
                       days: '0-30 ${loc.days}',
                       amount: 'Rs 25,000',
@@ -649,7 +648,7 @@ class CustomerReportTab extends StatelessWidget {
                       days: '90+ ${loc.days}',
                       amount: 'Rs 3,000',
                       color: colorScheme.error),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   const Divider(),
                   AgingItem(
                       days: loc.total,
@@ -660,14 +659,14 @@ class CustomerReportTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
 
           // Top Customers
           Card(
             color: colorScheme.surface,
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -675,10 +674,10 @@ class CustomerReportTab extends StatelessWidget {
                     loc.topCustomersBalance,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: DesktopDimensions.headingSize,
+                        fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                         color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   CustomerBalanceItem(
                     name: 'Ali Khan',
                     balance: const Money(1250000),
@@ -705,25 +704,25 @@ class StockReportTab extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       child: Column(
         children: [
           // Stock Value Summary
           Card(
             color: colorScheme.surface,
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 children: [
                   Text(
                     loc.stockValueSummary,
                     style: TextStyle(
-                        fontSize: DesktopDimensions.headingSize,
+                        fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
                   Row(
                     children: [
                       Expanded(
@@ -734,7 +733,7 @@ class StockReportTab extends StatelessWidget {
                           icon: Icons.warehouse,
                         ),
                       ),
-                      const SizedBox(width: DesktopDimensions.spacingMedium),
+                      const SizedBox(width: AppTokens.spacingMedium),
                       Expanded(
                         child: SummaryCard(
                           title: loc.totalItems,
@@ -743,7 +742,7 @@ class StockReportTab extends StatelessWidget {
                           icon: Icons.inventory,
                         ),
                       ),
-                      const SizedBox(width: DesktopDimensions.spacingMedium),
+                      const SizedBox(width: AppTokens.spacingMedium),
                       Expanded(
                         child: SummaryCard(
                           title: loc.avgPrice,
@@ -759,14 +758,14 @@ class StockReportTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
 
           // Category-wise Stock
           Card(
             color: colorScheme.surface,
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -774,10 +773,10 @@ class StockReportTab extends StatelessWidget {
                     loc.stockByCategory,
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: DesktopDimensions.headingSize,
+                        fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                         color: colorScheme.onSurface),
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   const StockCategoryItem(
                     category: 'Rice',
                     value: 'Rs 150,000',
@@ -789,26 +788,26 @@ class StockReportTab extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: DesktopDimensions.spacingLarge),
+          const SizedBox(height: AppTokens.spacingLarge),
 
           // Low Stock Items
           Card(
             color: colorScheme.errorContainer,
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       Icon(Icons.warning, color: colorScheme.error),
-                      const SizedBox(width: AppDimensions.spacingMedium),
+                      const SizedBox(width: AppTokens.spacingMedium),
                       Text(
                         loc.lowStockItems,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: DesktopDimensions.headingSize,
+                          fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                           color: colorScheme.error,
                         ),
                       ),
@@ -819,7 +818,7 @@ class StockReportTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   const LowStockItem(
                     name: 'Rice',
                     current: '5 KG',
@@ -856,29 +855,29 @@ class SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      elevation: DesktopDimensions.cardElevation,
+      elevation: AppTokens.cardElevation,
       child: Padding(
-        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+        padding: const EdgeInsets.all(AppTokens.spacingStandard),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(AppDimensions.spacingMedium),
+              padding: const EdgeInsets.all(AppTokens.spacingMedium),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
                 borderRadius:
-                    BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                    BorderRadius.circular(AppTokens.cardBorderRadius),
               ),
               child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(height: AppDimensions.spacingMedium),
+            const SizedBox(height: AppTokens.spacingMedium),
             Text(value,
-                style: const TextStyle(
-                    fontSize: DesktopDimensions.bodySize,
+                style: TextStyle(
+                    fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14.0,
                     fontWeight: FontWeight.bold)),
-            const SizedBox(height: AppDimensions.spacingSmall),
+            const SizedBox(height: AppTokens.spacingSmall),
             Text(title,
                 style: TextStyle(
-                    fontSize: DesktopDimensions.captionSize,
+                    fontSize: Theme.of(context).textTheme.bodySmall?.fontSize ?? 12.0,
                     color: colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center),
           ],
@@ -906,18 +905,18 @@ class ProfitCard extends StatelessWidget {
     return Card(
       color: color.withOpacity(0.1),
       child: Padding(
-        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+        padding: const EdgeInsets.all(AppTokens.spacingStandard),
         child: Column(
           children: [
             Text(value,
                 style: TextStyle(
-                    fontSize: DesktopDimensions.headingSize,
+                    fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                     fontWeight: FontWeight.bold,
                     color: color)),
-            const SizedBox(height: AppDimensions.spacingSmall),
+            const SizedBox(height: AppTokens.spacingSmall),
             Text(title,
                 style: TextStyle(
-                    fontSize: DesktopDimensions.captionSize,
+                    fontSize: Theme.of(context).textTheme.bodySmall?.fontSize ?? 12.0,
                     color: colorScheme.onSurface),
                 textAlign: TextAlign.center),
           ],
@@ -943,22 +942,22 @@ class ExpenseItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
+      padding: const EdgeInsets.symmetric(vertical: AppTokens.spacingMedium),
       child: Row(
         children: [
           Expanded(
               child:
                   Text(name, style: TextStyle(color: colorScheme.onSurface))),
           Text(amount, style: TextStyle(color: colorScheme.onSurface)),
-          const SizedBox(width: DesktopDimensions.spacingLarge),
+          const SizedBox(width: AppTokens.spacingLarge),
           Container(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.spacingMedium,
-                vertical: AppDimensions.spacingSmall),
+                horizontal: AppTokens.spacingMedium,
+                vertical: AppTokens.spacingSmall),
             decoration: BoxDecoration(
                 color: colorScheme.surfaceVariant,
                 borderRadius:
-                    BorderRadius.circular(AppDimensions.spacingSmall)),
+                    BorderRadius.circular(AppTokens.spacingSmall)),
             child: Text(percentage),
           ),
         ],
@@ -983,7 +982,7 @@ class AgingItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
+      padding: const EdgeInsets.symmetric(vertical: AppTokens.spacingMedium),
       child: Row(
         children: [
           Container(
@@ -992,8 +991,8 @@ class AgingItem extends StatelessWidget {
               decoration: BoxDecoration(
                   color: color,
                   borderRadius:
-                      BorderRadius.circular(AppDimensions.spacingSmall))),
-          const SizedBox(width: AppDimensions.spacingMedium),
+                      BorderRadius.circular(AppTokens.spacingSmall))),
+          const SizedBox(width: AppTokens.spacingMedium),
           Expanded(
               child:
                   Text(days, style: TextStyle(color: colorScheme.onSurface))),
@@ -1024,10 +1023,10 @@ class CustomerBalanceItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      margin: const EdgeInsets.only(bottom: AppDimensions.spacingMedium),
+      margin: const EdgeInsets.only(bottom: AppTokens.spacingMedium),
       color: colorScheme.surface,
       child: Padding(
-        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+        padding: const EdgeInsets.all(AppTokens.spacingStandard),
         child: Row(
           children: [
             Container(
@@ -1036,12 +1035,12 @@ class CustomerBalanceItem extends StatelessWidget {
               decoration: BoxDecoration(
                   color: colorScheme.errorContainer,
                   borderRadius:
-                      BorderRadius.circular(AppDimensions.spacingMedium)),
+                      BorderRadius.circular(AppTokens.spacingMedium)),
               child: Center(
                   child:
                       Icon(Icons.person, color: colorScheme.error, size: 20)),
             ),
-            const SizedBox(width: DesktopDimensions.spacingStandard),
+            const SizedBox(width: AppTokens.spacingStandard),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1052,7 +1051,7 @@ class CustomerBalanceItem extends StatelessWidget {
                           color: colorScheme.onSurface)),
                   Text(phone,
                       style: TextStyle(
-                          fontSize: DesktopDimensions.captionSize,
+                          fontSize: Theme.of(context).textTheme.bodySmall?.fontSize ?? 12.0,
                           color: colorScheme.onSurfaceVariant)),
                 ],
               ),
@@ -1062,12 +1061,12 @@ class CustomerBalanceItem extends StatelessWidget {
               children: [
                 Text(balance.toString(),
                     style: TextStyle(
-                        fontSize: DesktopDimensions.bodySize,
+                        fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14.0,
                         fontWeight: FontWeight.bold,
                         color: colorScheme.error)),
                 Text(days,
                     style: TextStyle(
-                        fontSize: DesktopDimensions.captionSize,
+                        fontSize: Theme.of(context).textTheme.bodySmall?.fontSize ?? 12.0,
                         color: colorScheme.onSurfaceVariant)),
               ],
             ),
@@ -1097,7 +1096,7 @@ class StockCategoryItem extends StatelessWidget {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacingMedium),
+      padding: const EdgeInsets.symmetric(vertical: AppTokens.spacingMedium),
       child: Row(
         children: [
           Expanded(
@@ -1105,17 +1104,17 @@ class StockCategoryItem extends StatelessWidget {
                   style: TextStyle(color: colorScheme.onSurface))),
           Text('$items ${loc.items}',
               style: TextStyle(color: colorScheme.onSurface)),
-          const SizedBox(width: DesktopDimensions.spacingLarge),
+          const SizedBox(width: AppTokens.spacingLarge),
           Text(value, style: TextStyle(color: colorScheme.onSurface)),
-          const SizedBox(width: DesktopDimensions.spacingLarge),
+          const SizedBox(width: AppTokens.spacingLarge),
           Container(
             padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.spacingMedium,
-                vertical: AppDimensions.spacingSmall),
+                horizontal: AppTokens.spacingMedium,
+                vertical: AppTokens.spacingSmall),
             decoration: BoxDecoration(
                 color: colorScheme.surfaceVariant,
                 borderRadius:
-                    BorderRadius.circular(AppDimensions.spacingSmall)),
+                    BorderRadius.circular(AppTokens.spacingSmall)),
             child: Text(percentage),
           ),
         ],
@@ -1143,14 +1142,14 @@ class LowStockItem extends StatelessWidget {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      margin: const EdgeInsets.only(bottom: AppDimensions.spacingMedium),
+      margin: const EdgeInsets.only(bottom: AppTokens.spacingMedium),
       color: colorScheme.surface,
       child: Padding(
-        padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
+        padding: const EdgeInsets.all(AppTokens.spacingStandard),
         child: Row(
           children: [
             Icon(Icons.warning, size: 16, color: colorScheme.error),
-            const SizedBox(width: AppDimensions.spacingMedium),
+            const SizedBox(width: AppTokens.spacingMedium),
             Expanded(
                 child:
                     Text(name, style: TextStyle(color: colorScheme.onSurface))),
@@ -1163,7 +1162,7 @@ class LowStockItem extends StatelessWidget {
                     style: TextStyle(color: colorScheme.onSurface)),
               ],
             ),
-            const SizedBox(width: DesktopDimensions.spacingStandard),
+            const SizedBox(width: AppTokens.spacingStandard),
             Text(difference,
                 style: TextStyle(
                     fontWeight: FontWeight.bold, color: colorScheme.error)),

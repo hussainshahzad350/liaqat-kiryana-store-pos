@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:liaqat_store/core/constants/desktop_dimensions.dart';
+import 'package:liaqat_store/core/res/app_tokens.dart';
 import '../../core/repositories/purchase_repository.dart';
 import '../../core/repositories/suppliers_repository.dart';
 import '../../core/repositories/items_repository.dart';
@@ -50,7 +50,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Select Supplier'),
         content: SizedBox(
-          width: DesktopDimensions.dialogWidth,
+          width: AppTokens.dialogWidth,
           child: ListView.builder(
             shrinkWrap: true,
             itemCount: suppliers.length,
@@ -97,8 +97,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Select Item'),
         content: SizedBox(
-          width: DesktopDimensions.dialogWidth,
-          height: DesktopDimensions.dialogHeight,
+          width: AppTokens.dialogWidth,
+          height: AppTokens.dialogHeight,
           child: Column(
             children: [
               TextField(
@@ -107,9 +107,9 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius))),
+                            AppTokens.cardBorderRadius))),
               ),
-              const SizedBox(height: DesktopDimensions.spacingSmall),
+              const SizedBox(height: AppTokens.spacingSmall),
               Expanded(
                 child: ListView.builder(
                   itemCount: products.length,
@@ -150,7 +150,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
   void _showItemDetailsDialog(Map<String, dynamic> item) {
     final qtyCtrl = TextEditingController(text: '1');
     final costCtrl = TextEditingController(
-        text: Money(item['avg_cost_price'] ?? 0).toRupeesString());
+        text: Money(item['avg_cost_price'] ?? 0).toInputString());
     final batchCtrl = TextEditingController();
     final expiryCtrl = TextEditingController();
 
@@ -160,7 +160,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
         title: Text('Add: ${item['name_english']}'),
         content: SingleChildScrollView(
           child: SizedBox(
-            width: DesktopDimensions.dialogWidth,
+            width: AppTokens.dialogWidth,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -172,9 +172,9 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                       labelText: 'Quantity',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius))),
+                              AppTokens.cardBorderRadius))),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingStandard),
+                const SizedBox(height: AppTokens.spacingStandard),
                 TextField(
                   controller: costCtrl,
                   keyboardType: TextInputType.number,
@@ -182,26 +182,26 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                       labelText: 'Buy Price (Unit)',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius)),
+                              AppTokens.cardBorderRadius)),
                       prefixText: 'Rs '),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingStandard),
+                const SizedBox(height: AppTokens.spacingStandard),
                 TextField(
                   controller: batchCtrl,
                   decoration: InputDecoration(
                       labelText: 'Batch Number (Optional)',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius))),
+                              AppTokens.cardBorderRadius))),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingStandard),
+                const SizedBox(height: AppTokens.spacingStandard),
                 TextField(
                   controller: expiryCtrl,
                   decoration: InputDecoration(
                       labelText: 'Expiry Date (YYYY-MM-DD)',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius)),
+                              AppTokens.cardBorderRadius)),
                       hintText: '2025-12-31'),
                   onTap: () async {
                     DateTime? picked = await showDatePicker(
@@ -264,7 +264,6 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
       return;
     }
 
-
     try {
       await _purchaseRepo.createPurchase(
         supplierId: _selectedSupplier!['id'],
@@ -314,7 +313,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
             children: [
               // Header Section
               Container(
-                padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                padding: const EdgeInsets.all(AppTokens.spacingMedium),
                 color: colorScheme.surfaceVariant.withOpacity(0.3),
                 child: Column(
                   children: [
@@ -328,7 +327,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                                 labelText: 'Supplier',
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                        DesktopDimensions.cardBorderRadius)),
+                                        AppTokens.cardBorderRadius)),
                                 prefixIcon: const Icon(Icons.store),
                               ),
                               child: Text(
@@ -347,7 +346,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: DesktopDimensions.spacingMedium),
+                        const SizedBox(width: AppTokens.spacingMedium),
                         Expanded(
                           child: TextField(
                             controller: _invoiceCtrl,
@@ -355,13 +354,13 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                               labelText: 'Supplier Invoice #',
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(
-                                      DesktopDimensions.cardBorderRadius)),
+                                      AppTokens.cardBorderRadius)),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: DesktopDimensions.spacingStandard),
+                    const SizedBox(height: AppTokens.spacingStandard),
                     Row(
                       children: [
                         Expanded(
@@ -382,7 +381,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                                 labelText: 'Purchase Date',
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                        DesktopDimensions.cardBorderRadius)),
+                                        AppTokens.cardBorderRadius)),
                                 prefixIcon: const Icon(Icons.calendar_today),
                               ),
                               child: Text(DateFormat('yyyy-MM-dd')
@@ -390,7 +389,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: DesktopDimensions.spacingMedium),
+                        const SizedBox(width: AppTokens.spacingMedium),
                         Expanded(
                           child: TextField(
                             controller: _notesCtrl,
@@ -398,7 +397,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                               labelText: 'Notes',
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(
-                                      DesktopDimensions.cardBorderRadius)),
+                                      AppTokens.cardBorderRadius)),
                             ),
                           ),
                         ),
@@ -415,7 +414,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                         child: TextButton.icon(
                           onPressed: _addItem,
                           icon: Icon(Icons.add_circle_outline,
-                              size: DesktopDimensions.iconSizeXXLarge,
+                              size: AppTokens.iconSizeXXLarge,
                               color: colorScheme.primary),
                           label: Text('Add Items',
                               style: Theme.of(context).textTheme.headlineSmall),
@@ -423,7 +422,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.all(
-                            DesktopDimensions.spacingMedium),
+                            AppTokens.spacingMedium),
                         itemCount: _cartItems.length,
                         separatorBuilder: (_, __) =>
                             Divider(color: colorScheme.outlineVariant),
@@ -459,7 +458,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
 
               // Footer Actions
               Container(
-                padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                padding: const EdgeInsets.all(AppTokens.spacingMedium),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   boxShadow: [
@@ -475,16 +474,16 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                     ElevatedButton.icon(
                       onPressed: _addItem,
                       icon: const Icon(Icons.add,
-                          size: DesktopDimensions.iconSizeLarge),
+                          size: AppTokens.iconSizeLarge),
                       label: const Text('Add Item'),
                       style: ElevatedButton.styleFrom(
                         minimumSize:
-                            const Size(0, DesktopDimensions.buttonHeight),
+                            const Size(0, AppTokens.buttonHeight),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: DesktopDimensions.spacingMedium),
+                            horizontal: AppTokens.spacingMedium),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.buttonBorderRadius),
+                              AppTokens.buttonBorderRadius),
                         ),
                         textStyle: Theme.of(context).textTheme.bodyLarge,
                       ),
@@ -492,18 +491,18 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                     ElevatedButton.icon(
                       onPressed: _savePurchase,
                       icon: const Icon(Icons.save,
-                          size: DesktopDimensions.iconSizeLarge),
+                          size: AppTokens.iconSizeLarge),
                       label: const Text('SAVE'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
                         minimumSize:
-                            const Size(0, DesktopDimensions.buttonHeight),
+                            const Size(0, AppTokens.buttonHeight),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: DesktopDimensions.spacingMedium),
+                            horizontal: AppTokens.spacingMedium),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.buttonBorderRadius),
+                              AppTokens.buttonBorderRadius),
                         ),
                         textStyle: Theme.of(context).textTheme.bodyLarge,
                       ),

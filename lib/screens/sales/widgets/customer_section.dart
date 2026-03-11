@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../models/customer_model.dart';
 import '../../../domain/entities/money.dart';
 import '../../../l10n/app_localizations.dart';
@@ -33,12 +33,12 @@ class CustomerSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
-      elevation: DesktopDimensions.cardElevation,
+      elevation: AppTokens.cardElevation,
       shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+              BorderRadius.circular(AppTokens.cardBorderRadius)),
       child: Padding(
-        padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+        padding: const EdgeInsets.all(AppTokens.cardPadding),
         child: Column(
           children: [
             Row(
@@ -58,7 +58,7 @@ class CustomerSection extends StatelessWidget {
                           : null,
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.cardBorderRadius / 2)),
+                              AppTokens.cardBorderRadius / 2)),
                       filled: true,
                       fillColor: colorScheme.surfaceVariant,
                     ),
@@ -66,10 +66,10 @@ class CustomerSection extends StatelessWidget {
                     onTap: onSearchTap,
                   ),
                 ),
-                const SizedBox(width: DesktopDimensions.spacingSmall),
+                const SizedBox(width: AppTokens.spacingSmall),
                 SizedBox(
-                  height: DesktopDimensions.buttonHeight,
-                  width: DesktopDimensions.buttonHeight,
+                  height: AppTokens.buttonHeight,
+                  width: AppTokens.buttonHeight,
                   child: ElevatedButton(
                     onPressed: onAddCustomer,
                     style: ElevatedButton.styleFrom(
@@ -78,7 +78,7 @@ class CustomerSection extends StatelessWidget {
                       foregroundColor: colorScheme.onPrimaryContainer,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
-                              DesktopDimensions.buttonBorderRadius)),
+                              AppTokens.buttonBorderRadius)),
                     ),
                     child: const Icon(Icons.person_add),
                   ),
@@ -89,16 +89,16 @@ class CustomerSection extends StatelessWidget {
               Container(
                 constraints: const BoxConstraints(maxHeight: 200),
                 margin:
-                    const EdgeInsets.only(top: DesktopDimensions.spacingXSmall),
+                    const EdgeInsets.only(top: AppTokens.spacingXSmall),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   border: Border.all(color: colorScheme.outline),
                   borderRadius: BorderRadius.circular(
-                      DesktopDimensions.buttonBorderRadius),
+                      AppTokens.buttonBorderRadius),
                   boxShadow: [
                     BoxShadow(
                         color: colorScheme.shadow.withOpacity(0.1),
-                        blurRadius: DesktopDimensions.spacingXSmall)
+                        blurRadius: AppTokens.spacingXSmall)
                   ],
                 ),
                 child: filteredCustomers.isEmpty

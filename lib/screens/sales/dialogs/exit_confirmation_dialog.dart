@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../core/utils/rtl_helper.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -14,13 +14,18 @@ class ExitConfirmationDialog extends StatelessWidget {
     return Dialog(
       shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
+              BorderRadius.circular(AppTokens.dialogBorderRadius)),
       child: Container(
         constraints: RTLHelper.getDialogConstraints(
           context: context,
           size: DialogSize.small,
         ),
-        padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+        padding: EdgeInsets.symmetric(
+          horizontal: AppTokens.dialogPadding,
+          vertical: RTLHelper.isRTL(context) 
+              ? AppTokens.dialogPadding + 12
+              : AppTokens.dialogPadding,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -38,10 +43,20 @@ class ExitConfirmationDialog extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: DesktopDimensions.spacingMedium),
-            Text(loc.unsavedMsg,
-                style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: DesktopDimensions.spacingLarge),
+            const SizedBox(height: AppTokens.spacingMedium),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(loc.unsavedMsg,
+                        style: Theme.of(context).textTheme.bodyLarge),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppTokens.spacingLarge),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -49,7 +64,7 @@ class ExitConfirmationDialog extends StatelessWidget {
                   onPressed: () => Navigator.pop(context, false),
                   child: Text(loc.cancel),
                 ),
-                const SizedBox(width: DesktopDimensions.spacingMedium),
+                const SizedBox(width: AppTokens.spacingMedium),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.error,

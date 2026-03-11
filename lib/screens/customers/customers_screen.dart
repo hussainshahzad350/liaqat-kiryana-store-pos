@@ -8,7 +8,7 @@ import '../../models/invoice_item_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/customer_model.dart';
 import '../../domain/entities/money.dart';
-import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_tokens.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -208,7 +208,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
-        padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+        padding: const EdgeInsets.all(AppTokens.spacingMedium),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -305,26 +305,26 @@ class _CustomersScreenState extends State<CustomersScreen> {
           backgroundColor: colorScheme.surface,
           shape: RoundedRectangleBorder(
             borderRadius:
-                BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+                BorderRadius.circular(AppTokens.dialogBorderRadius),
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              maxWidth: DesktopDimensions.dialogWidth,
-              maxHeight: DesktopDimensions.dialogHeight,
+              maxWidth: AppTokens.dialogWidth,
+              maxHeight: AppTokens.dialogHeight,
             ),
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+              padding: const EdgeInsets.all(AppTokens.dialogPadding),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(loc.warning,
                       style: textTheme.titleLarge
                           ?.copyWith(color: colorScheme.onSurface)),
-                  const SizedBox(height: DesktopDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Text(loc.cannotDeleteBal,
                       style: textTheme.bodyMedium
                           ?.copyWith(color: colorScheme.onSurface)),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -334,13 +334,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             style: textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.onSurface)),
                       ),
-                      const SizedBox(width: DesktopDimensions.spacingStandard),
+                      const SizedBox(width: AppTokens.spacingStandard),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colorScheme.tertiary,
                           foregroundColor: colorScheme.onTertiary,
                           minimumSize:
-                              const Size(0, DesktopDimensions.buttonHeight),
+                              const Size(0, AppTokens.buttonHeight),
                         ),
                         onPressed: () {
                           Navigator.pop(context);
@@ -366,26 +366,26 @@ class _CustomersScreenState extends State<CustomersScreen> {
         backgroundColor: colorScheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+              BorderRadius.circular(AppTokens.dialogBorderRadius),
         ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            maxWidth: DesktopDimensions.dialogWidth,
-            maxHeight: DesktopDimensions.dialogHeight,
+            maxWidth: AppTokens.dialogWidth,
+            maxHeight: AppTokens.dialogHeight,
           ),
           child: Padding(
-            padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+            padding: const EdgeInsets.all(AppTokens.dialogPadding),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(loc.confirm,
                     style: textTheme.titleLarge
                         ?.copyWith(color: colorScheme.onSurface)),
-                const SizedBox(height: DesktopDimensions.spacingMedium),
+                const SizedBox(height: AppTokens.spacingMedium),
                 Text(loc.confirmDeleteItem,
                     style: textTheme.bodyMedium
                         ?.copyWith(color: colorScheme.onSurface)),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -395,13 +395,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           style: textTheme.bodyMedium
                               ?.copyWith(color: colorScheme.onSurface)),
                     ),
-                    const SizedBox(width: DesktopDimensions.spacingStandard),
+                    const SizedBox(width: AppTokens.spacingStandard),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.error,
                         foregroundColor: colorScheme.onError,
                         minimumSize:
-                            const Size(0, DesktopDimensions.buttonHeight),
+                            const Size(0, AppTokens.buttonHeight),
                       ),
                       onPressed: () => Navigator.pop(context, true),
                       child: Text(loc.yesDelete),
@@ -445,26 +445,26 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return Stack(
       children: [
         Padding(
-          padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+          padding: const EdgeInsets.all(AppTokens.spacingLarge),
           child: Column(
             children: [
               // Actions Toolbar
               _buildActionToolbar(loc, colorScheme, textTheme),
-              const SizedBox(height: DesktopDimensions.spacingMedium),
+              const SizedBox(height: AppTokens.spacingMedium),
 
               // Dashboard
               _buildDashboard(loc, colorScheme, textTheme),
-              const SizedBox(height: DesktopDimensions.spacingMedium),
+              const SizedBox(height: AppTokens.spacingMedium),
 
               // Search Card
               Card(
-                elevation: DesktopDimensions.cardElevation,
+                elevation: AppTokens.cardElevation,
                 shape: RoundedRectangleBorder(
                   borderRadius:
-                      BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                      BorderRadius.circular(AppTokens.cardBorderRadius),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+                  padding: const EdgeInsets.all(AppTokens.cardPadding),
                   child: TextField(
                     controller: searchController,
                     onChanged: (_) => _loadActiveCustomers(),
@@ -477,40 +477,40 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       prefixIcon:
                           Icon(Icons.search, color: colorScheme.primary),
                       filled: true,
-                      fillColor: colorScheme.surfaceVariant,
+                      fillColor: colorScheme.surfaceContainerHighest,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.buttonBorderRadius),
+                            AppTokens.buttonBorderRadius),
                         borderSide:
                             BorderSide(color: colorScheme.outline, width: 1.5),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.buttonBorderRadius),
+                            AppTokens.buttonBorderRadius),
                         borderSide:
                             BorderSide(color: colorScheme.primary, width: 2.5),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: DesktopDimensions.spacingStandard,
-                        vertical: DesktopDimensions.spacingStandard,
+                        horizontal: AppTokens.spacingStandard,
+                        vertical: AppTokens.spacingStandard,
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: DesktopDimensions.spacingMedium),
+              const SizedBox(height: AppTokens.spacingMedium),
 
               // Customers List
               Expanded(
                 child: Card(
-                  elevation: DesktopDimensions.cardElevation,
+                  elevation: AppTokens.cardElevation,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
-                        DesktopDimensions.cardBorderRadius),
+                        AppTokens.cardBorderRadius),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(
-                        DesktopDimensions.cardBorderRadius),
+                        AppTokens.cardBorderRadius),
                     child: _isFirstLoadRunning
                         ? Center(
                             child: CircularProgressIndicator(
@@ -526,7 +526,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                               )
                             : ListView.builder(
                                 padding: const EdgeInsets.only(
-                                    bottom: DesktopDimensions.spacingLarge),
+                                    bottom: AppTokens.spacingLarge),
                                 itemCount: customers.length,
                                 itemBuilder: (context, index) =>
                                     _buildCustomerCard(
@@ -550,18 +550,18 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Widget _buildActionToolbar(
       AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           ElevatedButton.icon(
             onPressed: () => _showAddDialog(),
-            icon: const Icon(Icons.add, size: DesktopDimensions.iconSizeMedium),
+            icon: const Icon(Icons.add, size: AppTokens.iconSizeMedium),
             label: Text(loc.addCustomer),
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
               foregroundColor: colorScheme.onPrimary,
-              minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+              minimumSize: const Size(0, AppTokens.buttonHeight),
             ),
           ),
         ],
@@ -572,7 +572,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Widget _buildDashboard(
       AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return SizedBox(
-      height: DesktopDimensions.kpiHeight,
+      height: AppTokens.kpiHeight,
       child: Row(
         children: [
           Expanded(
@@ -586,7 +586,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               textTheme,
             ),
           ),
-          const SizedBox(width: DesktopDimensions.spacingMedium),
+          const SizedBox(width: AppTokens.spacingMedium),
           Expanded(
             child: _buildKpiCard(
               loc,
@@ -598,7 +598,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               textTheme,
             ),
           ),
-          const SizedBox(width: DesktopDimensions.spacingMedium),
+          const SizedBox(width: AppTokens.spacingMedium),
           Expanded(
             child: _buildKpiCard(
               loc,
@@ -640,17 +640,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final borderColor = isTertiary ? colorScheme.tertiary : colorScheme.primary;
 
     return Card(
-      elevation: DesktopDimensions.cardElevation,
+      elevation: AppTokens.cardElevation,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
         side: BorderSide(color: borderColor, width: 1.2),
       ),
       color: containerColor,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
         child: Padding(
-          padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+          padding: const EdgeInsets.all(AppTokens.cardPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -667,7 +667,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 children: [
                   Icon(
                     Icons.people,
-                    size: DesktopDimensions.iconSizeLarge,
+                    size: AppTokens.iconSizeLarge,
                     color: contentColor,
                   ),
                   Flexible(
@@ -707,24 +707,24 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final String phone = customer.contactPrimary ?? '';
 
     return Card(
-      elevation: DesktopDimensions.cardElevation,
+      elevation: AppTokens.cardElevation,
       margin: const EdgeInsets.symmetric(
-        horizontal: DesktopDimensions.spacingMedium,
-        vertical: DesktopDimensions.spacingSmall,
+        horizontal: AppTokens.spacingMedium,
+        vertical: AppTokens.spacingSmall,
       ),
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
         side: BorderSide(color: colorScheme.outlineVariant, width: 1),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: DesktopDimensions.spacingStandard,
-          vertical: DesktopDimensions.spacingSmall,
+          horizontal: AppTokens.spacingStandard,
+          vertical: AppTokens.spacingSmall,
         ),
         dense: true,
         leading: CircleAvatar(
-          radius: DesktopDimensions.iconSizeMedium,
+          radius: AppTokens.iconSizeMedium,
           backgroundColor: colorScheme.primaryContainer,
           child: Text(
             name.isNotEmpty ? name[0].toUpperCase() : '?',
@@ -736,11 +736,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
         ),
         title: Text(
           name,
-          style: textTheme.bodyMedium?.copyWith(
+          style: (isUrdu ? textTheme.titleLarge : textTheme.bodyMedium)?.copyWith(
             color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontFamily: isUrdu ? 'NooriNastaleeq' : null,
-            fontSize: isUrdu ? DesktopDimensions.titleLargeSize : null,
           ),
         ),
         subtitle: Column(
@@ -765,17 +764,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
             if (balance != const Money(0))
               Container(
                 margin: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingSmall),
+                    horizontal: AppTokens.spacingSmall),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: DesktopDimensions.spacingSmall,
-                  vertical: DesktopDimensions.spacingXSmall,
+                  horizontal: AppTokens.spacingSmall,
+                  vertical: AppTokens.spacingXSmall,
                 ),
                 decoration: BoxDecoration(
                   color: balance > const Money(0)
                       ? colorScheme.errorContainer
                       : colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(
-                      DesktopDimensions.buttonBorderRadius),
+                      AppTokens.buttonBorderRadius),
                   border: Border.all(
                     color: balance > const Money(0)
                         ? colorScheme.error
@@ -816,9 +815,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     child: Row(
                       children: [
                         Icon(Icons.edit,
-                            size: DesktopDimensions.iconSizeSmall,
+                            size: AppTokens.iconSizeSmall,
                             color: colorScheme.onSurface),
-                        const SizedBox(width: DesktopDimensions.spacingSmall),
+                        const SizedBox(width: AppTokens.spacingSmall),
                         Text(loc.editAction,
                             style: textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.onSurface)),
@@ -830,9 +829,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     child: Row(
                       children: [
                         Icon(Icons.archive,
-                            size: DesktopDimensions.iconSizeSmall,
+                            size: AppTokens.iconSizeSmall,
                             color: colorScheme.onSurface),
-                        const SizedBox(width: DesktopDimensions.spacingSmall),
+                        const SizedBox(width: AppTokens.spacingSmall),
                         Text(loc.archiveAction,
                             style: textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.onSurface)),
@@ -844,9 +843,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     child: Row(
                       children: [
                         Icon(Icons.delete,
-                            size: DesktopDimensions.iconSizeSmall,
+                            size: AppTokens.iconSizeSmall,
                             color: colorScheme.error),
-                        const SizedBox(width: DesktopDimensions.spacingSmall),
+                        const SizedBox(width: AppTokens.spacingSmall),
                         Text(loc.deleteAction,
                             style: textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.error)),
@@ -874,7 +873,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       children: [
         GestureDetector(
           onTap: () => setState(() => _showLedgerOverlay = false),
-          child: Container(color: colorScheme.shadow.withOpacity(0.5)),
+          child: Container(color: colorScheme.shadow.withValues(alpha: 0.5)),
         ),
         Center(
           child: Container(
@@ -883,11 +882,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
             decoration: BoxDecoration(
               color: colorScheme.surface,
               borderRadius:
-                  BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                  BorderRadius.circular(AppTokens.cardBorderRadius),
               boxShadow: [
                 BoxShadow(
-                  blurRadius: DesktopDimensions.cardElevation * 4,
-                  color: colorScheme.shadow.withOpacity(0.3),
+                  blurRadius: AppTokens.cardElevation * 4,
+                  color: colorScheme.shadow.withValues(alpha: 0.3),
                 ),
               ],
             ),
@@ -942,11 +941,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
     final isDebit = balance > const Money(0);
 
     return Container(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(DesktopDimensions.cardBorderRadius)),
+            top: Radius.circular(AppTokens.cardBorderRadius)),
         border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
@@ -970,7 +969,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-              const SizedBox(height: DesktopDimensions.spacingXSmall),
+              const SizedBox(height: AppTokens.spacingXSmall),
               Text(
                 customer.contactPrimary ?? '',
                 style: textTheme.bodyMedium
@@ -1011,36 +1010,36 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 ),
             ],
           ),
-          const SizedBox(width: DesktopDimensions.spacingLarge),
+          const SizedBox(width: AppTokens.spacingLarge),
           // Actions
           Row(
             children: [
               ElevatedButton.icon(
                 onPressed: _showPaymentDialog,
                 icon: const Icon(Icons.add,
-                    size: DesktopDimensions.iconSizeMedium),
+                    size: AppTokens.iconSizeMedium),
                 label: Text(loc.receivePaymentButton),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
-                  minimumSize: const Size(0, DesktopDimensions.buttonHeight),
+                  minimumSize: const Size(0, AppTokens.buttonHeight),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingMedium,
-                    vertical: DesktopDimensions.spacingSmall,
+                    horizontal: AppTokens.spacingMedium,
+                    vertical: AppTokens.spacingSmall,
                   ),
                 ),
               ),
-              const SizedBox(width: DesktopDimensions.spacingSmall),
+              const SizedBox(width: AppTokens.spacingSmall),
               IconButton(
                 icon: const Icon(Icons.print,
-                    size: DesktopDimensions.iconSizeMedium),
+                    size: AppTokens.iconSizeMedium),
                 onPressed: () => _handleExport(loc),
                 tooltip: loc.exportTooltip,
                 color: colorScheme.onSurfaceVariant,
               ),
               IconButton(
                 icon: const Icon(Icons.close,
-                    size: DesktopDimensions.iconSizeMedium),
+                    size: AppTokens.iconSizeMedium),
                 onPressed: () => setState(() => _showLedgerOverlay = false),
                 tooltip: loc.closeTooltip,
                 color: colorScheme.onSurfaceVariant,
@@ -1056,10 +1055,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
       AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: DesktopDimensions.spacingMedium,
-        vertical: DesktopDimensions.spacingSmall,
+        horizontal: AppTokens.spacingMedium,
+        vertical: AppTokens.spacingSmall,
       ),
-      color: colorScheme.surfaceVariant,
+      color: colorScheme.surfaceContainerHighest,
       child: Row(
         children: [
           // Date Range
@@ -1084,7 +1083,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               }
             },
             icon: const Icon(Icons.calendar_today,
-                size: DesktopDimensions.iconSizeSmall),
+                size: AppTokens.iconSizeSmall),
             label: Text(_ledgerStartDate == null
                 ? loc.dateRangeButton
                 : "${DateFormat('dd/MM').format(_ledgerStartDate!)} - ${DateFormat('dd/MM').format(_ledgerEndDate!)}"),
@@ -1096,7 +1095,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           if (_ledgerStartDate != null)
             IconButton(
               icon: const Icon(Icons.clear,
-                  size: DesktopDimensions.iconSizeSmall),
+                  size: AppTokens.iconSizeSmall),
               onPressed: () {
                 setState(() {
                   _ledgerStartDate = null;
@@ -1107,7 +1106,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               color: colorScheme.onSurfaceVariant,
             ),
 
-          const SizedBox(width: DesktopDimensions.spacingMedium),
+          const SizedBox(width: AppTokens.spacingMedium),
           // Type Filter
           SegmentedButton<String>(
             segments: [
@@ -1123,8 +1122,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
               visualDensity: VisualDensity.compact,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               backgroundColor:
-                  MaterialStateProperty.resolveWith<Color?>((states) {
-                if (states.contains(MaterialState.selected)) {
+                  WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.selected)) {
                   return Theme.of(context).colorScheme.primaryContainer;
                 }
                 return Theme.of(context).colorScheme.surface;
@@ -1135,7 +1134,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           const Spacer(),
           // Search
           SizedBox(
-            width: DesktopDimensions.sidebarWidthSmall,
+            width: AppTokens.sidebarWidthSmall,
             child: TextField(
               controller: _ledgerSearchCtrl,
               style:
@@ -1145,11 +1144,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 hintStyle: textTheme.bodyMedium
                     ?.copyWith(color: colorScheme.onSurfaceVariant),
                 prefixIcon: const Icon(Icons.search,
-                    size: DesktopDimensions.iconSizeSmall),
+                    size: AppTokens.iconSizeSmall),
                 suffixIcon: _ledgerSearchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear,
-                            size: DesktopDimensions.iconSizeSmall),
+                            size: AppTokens.iconSizeSmall),
                         onPressed: () {
                           _ledgerSearchCtrl.clear();
                           setState(() => _ledgerSearchQuery = '');
@@ -1159,12 +1158,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     : null,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(
-                  vertical: DesktopDimensions.spacingSmall,
-                  horizontal: DesktopDimensions.spacingStandard,
+                  vertical: AppTokens.spacingSmall,
+                  horizontal: AppTokens.spacingStandard,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
-                      DesktopDimensions.buttonBorderRadius),
+                      AppTokens.buttonBorderRadius),
                   borderSide: BorderSide(color: colorScheme.outline),
                 ),
                 filled: true,
@@ -1178,14 +1177,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildLedgerTableHeader(AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildLedgerTableHeader(
+      AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        vertical: DesktopDimensions.spacingSmall,
-        horizontal: DesktopDimensions.spacingMedium,
+        vertical: AppTokens.spacingSmall,
+        horizontal: AppTokens.spacingMedium,
       ),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant,
+        color: colorScheme.surfaceContainerHighest,
         border: Border(bottom: BorderSide(color: colorScheme.outline)),
       ),
       child: Row(
@@ -1246,16 +1246,16 @@ class _CustomersScreenState extends State<CustomersScreen> {
         backgroundColor: colorScheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+              BorderRadius.circular(AppTokens.dialogBorderRadius),
           side: BorderSide(color: colorScheme.outline, width: 2),
         ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            maxWidth: DesktopDimensions.dialogWidth,
-            maxHeight: DesktopDimensions.dialogHeight,
+            maxWidth: AppTokens.dialogWidth,
+            maxHeight: AppTokens.dialogHeight,
           ),
           child: Padding(
-            padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+            padding: const EdgeInsets.all(AppTokens.dialogPadding),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1266,16 +1266,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
                 TextField(
                   controller: amountCtrl,
                   keyboardType: TextInputType.number,
                   style: textTheme.bodyMedium
                       ?.copyWith(color: colorScheme.onSurface),
-                  decoration:
-                      _cleanInput(loc.amount, Icons.money, colorScheme),
+                  decoration: _cleanInput(loc.amount, Icons.money, colorScheme),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingMedium),
+                const SizedBox(height: AppTokens.spacingMedium),
                 TextField(
                   controller: notesCtrl,
                   style: textTheme.bodyMedium
@@ -1283,7 +1282,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   decoration: _cleanInput(
                       loc.notesOptionalLabel, Icons.note, colorScheme),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -1293,13 +1292,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           style: textTheme.bodyMedium
                               ?.copyWith(color: colorScheme.onSurface)),
                     ),
-                    const SizedBox(width: DesktopDimensions.spacingStandard),
+                    const SizedBox(width: AppTokens.spacingStandard),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
                         minimumSize:
-                            const Size(0, DesktopDimensions.buttonHeight),
+                            const Size(0, AppTokens.buttonHeight),
                       ),
                       onPressed: () async {
                         if (amountCtrl.text.isNotEmpty) {
@@ -1362,17 +1361,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
       children: [
         GestureDetector(
           onTap: () => setState(() => _showArchiveOverlay = false),
-          child: Container(color: colorScheme.shadow.withOpacity(0.5)),
+          child: Container(color: colorScheme.shadow.withValues(alpha: 0.5)),
         ),
         Center(
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             height: MediaQuery.of(context).size.height * 0.7,
-            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+            padding: const EdgeInsets.all(AppTokens.spacingMedium),
             decoration: BoxDecoration(
               color: colorScheme.surface,
               borderRadius:
-                  BorderRadius.circular(DesktopDimensions.cardBorderRadius),
+                  BorderRadius.circular(AppTokens.cardBorderRadius),
               border: Border.all(color: colorScheme.outline, width: 2),
             ),
             child: Column(
@@ -1450,17 +1449,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
               backgroundColor: colorScheme.surface,
               shape: RoundedRectangleBorder(
                 borderRadius:
-                    BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+                    BorderRadius.circular(AppTokens.dialogBorderRadius),
                 side: BorderSide(color: colorScheme.outline, width: 2),
               ),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(
-                  maxWidth: DesktopDimensions.dialogWidth,
-                  maxHeight: DesktopDimensions.dialogHeight,
+                  maxWidth: AppTokens.dialogWidth,
+                  maxHeight: AppTokens.dialogHeight,
                 ),
                 child: Padding(
                   padding:
-                      const EdgeInsets.all(DesktopDimensions.dialogPadding),
+                      const EdgeInsets.all(AppTokens.dialogPadding),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1471,7 +1470,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: DesktopDimensions.spacingLarge),
+                      const SizedBox(height: AppTokens.spacingLarge),
                       Expanded(
                         child: SingleChildScrollView(
                           child: Column(
@@ -1487,22 +1486,21 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                 enabled: !isEdit,
                               ),
                               const SizedBox(
-                                  height: DesktopDimensions.spacingMedium),
+                                  height: AppTokens.spacingMedium),
                               TextFormField(
                                 controller: nameUrController,
                                 textAlign: TextAlign.start,
                                 decoration: _cleanInput("${loc.nameUrdu} *",
                                     Icons.translate, colorScheme),
-                                style: textTheme.bodyMedium?.copyWith(
+                                style: textTheme.bodyLarge?.copyWith(
                                   fontFamily: 'NooriNastaleeq',
-                                  fontSize: DesktopDimensions.bodyLargeSize,
                                   color: colorScheme.onSurface,
                                 ),
                                 readOnly: isEdit,
                                 enabled: !isEdit,
                               ),
                               const SizedBox(
-                                  height: DesktopDimensions.spacingMedium),
+                                  height: AppTokens.spacingMedium),
                               TextFormField(
                                 controller: phoneController,
                                 decoration: _cleanInput("${loc.phoneLabel} *",
@@ -1514,7 +1512,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                 enabled: !isEdit,
                               ),
                               const SizedBox(
-                                  height: DesktopDimensions.spacingMedium),
+                                  height: AppTokens.spacingMedium),
                               TextFormField(
                                 controller: addressController,
                                 decoration: _cleanInput(loc.addressLabel,
@@ -1524,7 +1522,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                     ?.copyWith(color: colorScheme.onSurface),
                               ),
                               const SizedBox(
-                                  height: DesktopDimensions.spacingMedium),
+                                  height: AppTokens.spacingMedium),
                               TextFormField(
                                 controller: limitController,
                                 decoration: _cleanInput(loc.creditLimit,
@@ -1537,7 +1535,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: DesktopDimensions.spacingLarge),
+                      const SizedBox(height: AppTokens.spacingLarge),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -1549,13 +1547,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                     ?.copyWith(color: colorScheme.onSurface)),
                           ),
                           const SizedBox(
-                              width: DesktopDimensions.spacingStandard),
+                              width: AppTokens.spacingStandard),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colorScheme.primary,
                               foregroundColor: colorScheme.onPrimary,
                               minimumSize:
-                                  const Size(0, DesktopDimensions.buttonHeight),
+                                  const Size(0, AppTokens.buttonHeight),
                             ),
                             onPressed: isSaving
                                 ? null
@@ -1606,8 +1604,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                   },
                             child: isSaving
                                 ? SizedBox(
-                                    width: DesktopDimensions.iconSizeMedium,
-                                    height: DesktopDimensions.iconSizeMedium,
+                                    width: AppTokens.iconSizeMedium,
+                                    height: AppTokens.iconSizeMedium,
                                     child: CircularProgressIndicator(
                                         color: colorScheme.onPrimary),
                                   )
@@ -1636,24 +1634,25 @@ class _CustomersScreenState extends State<CustomersScreen> {
       String label, IconData icon, ColorScheme colorScheme) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: colorScheme.primary),
+      labelStyle: Theme.of(context).textTheme.bodyMedium
+          ?.copyWith(color: colorScheme.primary),
       prefixIcon: Icon(icon,
-          size: DesktopDimensions.iconSizeMedium, color: colorScheme.primary),
+          size: AppTokens.iconSizeMedium, color: colorScheme.primary),
       filled: true,
       fillColor: colorScheme.surface,
       enabledBorder: OutlineInputBorder(
         borderRadius:
-            BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
+            BorderRadius.circular(AppTokens.buttonBorderRadius),
         borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius:
-            BorderRadius.circular(DesktopDimensions.buttonBorderRadius),
+            BorderRadius.circular(AppTokens.buttonBorderRadius),
         borderSide: BorderSide(color: colorScheme.primary, width: 2.5),
       ),
       contentPadding: const EdgeInsets.symmetric(
-        vertical: DesktopDimensions.spacingMedium,
-        horizontal: DesktopDimensions.spacingMedium,
+        vertical: AppTokens.spacingMedium,
+        horizontal: AppTokens.spacingMedium,
       ),
       isDense: true,
     );
@@ -1698,7 +1697,8 @@ class _LedgerRowState extends State<_LedgerRow> {
         final invoiceId = _tryParseInt(widget.row['ref_no']);
         if (invoiceId == null) {
           if (mounted) {
-            setState(() => _error = AppLocalizations.of(context)!.failedToLoadDetails);
+            setState(() =>
+                _error = AppLocalizations.of(context)!.failedToLoadDetails);
           }
           return;
         }
@@ -1707,7 +1707,8 @@ class _LedgerRowState extends State<_LedgerRow> {
         if (mounted) setState(() => _items = invoice?.items);
       } catch (e) {
         if (mounted) {
-          setState(() => _error = AppLocalizations.of(context)!.failedToLoadDetails);
+          setState(
+              () => _error = AppLocalizations.of(context)!.failedToLoadDetails);
         }
       } finally {
         if (mounted) setState(() => _isLoadingItems = false);
@@ -1725,15 +1726,15 @@ class _LedgerRowState extends State<_LedgerRow> {
         backgroundColor: colorScheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(DesktopDimensions.dialogBorderRadius),
+              BorderRadius.circular(AppTokens.dialogBorderRadius),
         ),
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            maxWidth: DesktopDimensions.dialogWidth,
-            maxHeight: DesktopDimensions.dialogHeight,
+            maxWidth: AppTokens.dialogWidth,
+            maxHeight: AppTokens.dialogHeight,
           ),
           child: Padding(
-            padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+            padding: const EdgeInsets.all(AppTokens.dialogPadding),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1742,13 +1743,13 @@ class _LedgerRowState extends State<_LedgerRow> {
                   style: textTheme.titleLarge
                       ?.copyWith(color: colorScheme.onSurface),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingMedium),
+                const SizedBox(height: AppTokens.spacingMedium),
                 Text(
                   AppLocalizations.of(context)!.confirmCancelInvoiceMessage,
                   style: textTheme.bodyMedium
                       ?.copyWith(color: colorScheme.onSurface),
                 ),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -1758,16 +1759,17 @@ class _LedgerRowState extends State<_LedgerRow> {
                           style: textTheme.bodyMedium
                               ?.copyWith(color: colorScheme.onSurface)),
                     ),
-                    const SizedBox(width: DesktopDimensions.spacingStandard),
+                    const SizedBox(width: AppTokens.spacingStandard),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context, true),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.error,
                         foregroundColor: colorScheme.onError,
                         minimumSize:
-                            const Size(0, DesktopDimensions.buttonHeight),
+                            const Size(0, AppTokens.buttonHeight),
                       ),
-                      child: Text(AppLocalizations.of(context)!.yesCancelButton),
+                      child:
+                          Text(AppLocalizations.of(context)!.yesCancelButton),
                     ),
                   ],
                 ),
@@ -1792,8 +1794,8 @@ class _LedgerRowState extends State<_LedgerRow> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                  AppLocalizations.of(context)!.invoiceCancelledSuccess),
+              content:
+                  Text(AppLocalizations.of(context)!.invoiceCancelledSuccess),
               backgroundColor: colorScheme.primary,
             ),
           );
@@ -1841,8 +1843,8 @@ class _LedgerRowState extends State<_LedgerRow> {
           hoverColor: colorScheme.primaryContainer.withOpacity(0.1),
           child: Container(
             padding: const EdgeInsets.symmetric(
-              vertical: DesktopDimensions.spacingSmall,
-              horizontal: DesktopDimensions.spacingMedium,
+              vertical: AppTokens.spacingSmall,
+              horizontal: AppTokens.spacingMedium,
             ),
             decoration: BoxDecoration(
               color: bgColor,
@@ -1885,7 +1887,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                             _isExpanded
                                 ? Icons.arrow_drop_down
                                 : Icons.arrow_right,
-                            size: DesktopDimensions.iconSizeSmall,
+                            size: AppTokens.iconSizeSmall,
                             color: colorScheme.onSurfaceVariant,
                           ),
                         Expanded(
@@ -1900,10 +1902,10 @@ class _LedgerRowState extends State<_LedgerRow> {
                             icon: Icon(
                               Icons.cancel,
                               color: colorScheme.error,
-                              size: DesktopDimensions.iconSizeSmall,
+                              size: AppTokens.iconSizeSmall,
                             ),
-                            tooltip:
-                                AppLocalizations.of(context)!.cancelInvoiceTooltip,
+                            tooltip: AppLocalizations.of(context)!
+                                .cancelInvoiceTooltip,
                             onPressed: _cancelInvoice,
                           ),
                       ],
@@ -1943,18 +1945,18 @@ class _LedgerRowState extends State<_LedgerRow> {
         ),
         if (_isExpanded)
           Container(
-            color: colorScheme.surfaceVariant,
+            color: colorScheme.surfaceContainerHighest,
             padding: const EdgeInsets.fromLTRB(
-              DesktopDimensions.spacingXXLarge,
-              DesktopDimensions.spacingSmall,
-              DesktopDimensions.spacingMedium,
-              DesktopDimensions.spacingMedium,
+              AppTokens.spacingXXLarge,
+              AppTokens.spacingSmall,
+              AppTokens.spacingMedium,
+              AppTokens.spacingMedium,
             ),
             child: _isLoadingItems
                 ? const Center(
                     child: SizedBox(
-                      width: DesktopDimensions.iconSizeMedium,
-                      height: DesktopDimensions.iconSizeMedium,
+                      width: AppTokens.iconSizeMedium,
+                      height: AppTokens.iconSizeMedium,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   )
@@ -1969,7 +1971,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                     : _items == null || _items!.isEmpty
                         ? Center(
                             child: Text(
-                              "No items found",
+                              AppLocalizations.of(context)!.noItemsFound,
                               style: textTheme.bodySmall
                                   ?.copyWith(fontStyle: FontStyle.italic),
                             ),
@@ -1990,11 +1992,11 @@ class _LedgerRowState extends State<_LedgerRow> {
                                 children: [
                                   TableRow(
                                     decoration: BoxDecoration(
-                                        color: colorScheme.surfaceVariant),
+                                        color: colorScheme.surfaceContainerHighest),
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.all(
-                                            DesktopDimensions.spacingXSmall),
+                                            AppTokens.spacingXSmall),
                                         child: Text(
                                             AppLocalizations.of(context)!.item,
                                             style: textTheme.bodySmall
@@ -2004,7 +2006,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(
-                                            DesktopDimensions.spacingXSmall),
+                                            AppTokens.spacingXSmall),
                                         child: Text(
                                             AppLocalizations.of(context)!.qty,
                                             textAlign: TextAlign.center,
@@ -2015,7 +2017,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(
-                                            DesktopDimensions.spacingXSmall),
+                                            AppTokens.spacingXSmall),
                                         child: Text(
                                             AppLocalizations.of(context)!
                                                 .rateHeader,
@@ -2027,7 +2029,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                                       ),
                                       Padding(
                                         padding: const EdgeInsets.all(
-                                            DesktopDimensions.spacingXSmall),
+                                            AppTokens.spacingXSmall),
                                         child: Text(
                                             AppLocalizations.of(context)!
                                                 .totalHeader,
@@ -2043,14 +2045,14 @@ class _LedgerRowState extends State<_LedgerRow> {
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.all(
-                                                DesktopDimensions
+                                                AppTokens
                                                     .spacingXSmall),
                                             child: Text(item.itemNameSnapshot,
                                                 style: textTheme.bodySmall),
                                           ),
                                           Padding(
                                             padding: const EdgeInsets.all(
-                                                DesktopDimensions
+                                                AppTokens
                                                     .spacingXSmall),
                                             child: Text(
                                               item.quantity.toString(),
@@ -2060,7 +2062,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                                           ),
                                           Padding(
                                             padding: const EdgeInsets.all(
-                                                DesktopDimensions
+                                                AppTokens
                                                     .spacingXSmall),
                                             child: Text(
                                               Money(item.unitPrice).toString(),
@@ -2070,7 +2072,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                                           ),
                                           Padding(
                                             padding: const EdgeInsets.all(
-                                                DesktopDimensions
+                                                AppTokens
                                                     .spacingXSmall),
                                             child: Text(
                                               Money(item.totalPrice).toString(),

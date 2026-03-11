@@ -1,8 +1,8 @@
 // lib/screens/master_data/items_screen.dart
-// ignore_for_file: deprecated_member_use, use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_tokens.dart';
 import '../../core/repositories/categories_repository.dart';
 import '../../core/repositories/items_repository.dart';
 import '../../core/repositories/units_repository.dart';
@@ -176,15 +176,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
     final localizations = AppLocalizations.of(context)!;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: Column(
+    return ColoredBox(
+      color: colorScheme.surface,
+      child: Column(
         children: [
           // Top Toolbar
           Padding(
-            padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+            padding: const EdgeInsets.all(AppTokens.spacingMedium),
             child: Row(
               children: [
                 // Search Field (Left)
@@ -205,21 +204,21 @@ class _ItemsScreenState extends State<ItemsScreen> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.buttonBorderRadius),
+                            AppTokens.buttonBorderRadius),
                         borderSide: BorderSide(color: colorScheme.outline),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.buttonBorderRadius),
+                            AppTokens.buttonBorderRadius),
                         borderSide: BorderSide(color: colorScheme.outline),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
-                            DesktopDimensions.buttonBorderRadius),
+                            AppTokens.buttonBorderRadius),
                         borderSide: BorderSide(color: colorScheme.primary),
                       ),
                       filled: true,
-                      fillColor: colorScheme.surfaceVariant,
+                      fillColor: colorScheme.surfaceContainerHighest,
                       suffixIcon: IconButton(
                         icon: Icon(Icons.clear,
                             color: colorScheme.onSurfaceVariant),
@@ -231,23 +230,23 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(width: DesktopDimensions.spacingMedium),
+                const SizedBox(width: AppTokens.spacingMedium),
                 // Add Item Button (Right)
                 ElevatedButton.icon(
                   onPressed: _showAddItemDialog,
                   icon: const Icon(Icons.add,
-                      size: DesktopDimensions.iconSizeLarge),
+                      size: AppTokens.iconSizeLarge),
                   label: Text(localizations.addItem),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
                     minimumSize:
-                        const Size(0, DesktopDimensions.buttonHeight),
+                        const Size(0, AppTokens.buttonHeight),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: DesktopDimensions.spacingMedium),
+                        horizontal: AppTokens.spacingMedium),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
-                          DesktopDimensions.cardBorderRadius),
+                          AppTokens.cardBorderRadius),
                     ),
                     textStyle: textTheme.bodyLarge
                         ?.copyWith(fontWeight: FontWeight.bold),
@@ -281,25 +280,25 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                         minWidth: constraints.maxWidth),
                                     child: DataTable(
                                       headingRowHeight:
-                                          DesktopDimensions.bodySize * 2.5,
+                                          AppTokens.buttonHeight,
                                       dataRowMinHeight:
-                                          DesktopDimensions.bodySize * 2.5,
+                                          AppTokens.buttonHeight,
                                       dataRowMaxHeight:
-                                          DesktopDimensions.bodySize * 2.5,
+                                          AppTokens.buttonHeight,
                                       columnSpacing:
-                                          DesktopDimensions.spacingMedium,
+                                          AppTokens.spacingMedium,
                                       horizontalMargin:
-                                          DesktopDimensions.spacingMedium,
+                                          AppTokens.spacingMedium,
                                       headingRowColor:
-                                          MaterialStateProperty.all(
+                                          WidgetStateProperty.all(
                                               colorScheme.primaryContainer),
-                                      dataRowColor: MaterialStateProperty
+                                      dataRowColor: WidgetStateProperty
                                           .resolveWith<Color?>(
-                                              (Set<MaterialState> states) {
+                                              (Set<WidgetState> states) {
                                         if (states
-                                            .contains(MaterialState.hovered)) {
-                                          return colorScheme.surfaceVariant
-                                              .withOpacity(0.2);
+                                            .contains(WidgetState.hovered)) {
+                                          return colorScheme.surfaceContainerHighest
+                                              .withValues(alpha: 0.2);
                                         }
                                         return null;
                                       }),
@@ -322,7 +321,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                         )),
                                         DataColumn(
                                             label: Text(
-                                          'Category',
+                                          localizations.category,
                                           style: textTheme.titleSmall?.copyWith(
                                               color: colorScheme
                                                   .onPrimaryContainer,
@@ -330,7 +329,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                         )),
                                         DataColumn(
                                             label: Text(
-                                          'Sub Category',
+                                          localizations.subCategory,
                                           style: textTheme.titleSmall?.copyWith(
                                               color: colorScheme
                                                   .onPrimaryContainer,
@@ -338,7 +337,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                         )),
                                         DataColumn(
                                             label: Text(
-                                          'Brand',
+                                          localizations.brand,
                                           style: textTheme.titleSmall?.copyWith(
                                               color: colorScheme
                                                   .onPrimaryContainer,
@@ -346,7 +345,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                         )),
                                         DataColumn(
                                             label: Text(
-                                          'Unit',
+                                          localizations.unit,
                                           style: textTheme.titleSmall?.copyWith(
                                               color: colorScheme
                                                   .onPrimaryContainer,
@@ -354,7 +353,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                         )),
                                         DataColumn(
                                             label: Text(
-                                          'Packing',
+                                          localizations.packingType,
                                           style: textTheme.titleSmall?.copyWith(
                                               color: colorScheme
                                                   .onPrimaryContainer,
@@ -362,7 +361,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                         )),
                                         DataColumn(
                                             label: Text(
-                                          'Actions',
+                                          localizations.actions,
                                           style: textTheme.titleSmall?.copyWith(
                                               color: colorScheme
                                                   .onPrimaryContainer,
@@ -407,7 +406,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                                       Icons.edit_outlined,
                                                       color:
                                                           colorScheme.secondary,
-                                                      size: DesktopDimensions
+                                                      size: AppTokens
                                                           .iconSizeMedium,
                                                     ),
                                                     onPressed: () =>
@@ -417,20 +416,18 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                                         localizations.editItem,
                                                   ),
                                                   const SizedBox(
-                                                      width: DesktopDimensions
+                                                      width: AppTokens
                                                           .spacingSmall),
                                                   IconButton(
                                                     icon: Icon(
                                                       Icons.delete_outline,
                                                       color: colorScheme.error,
-                                                      size: DesktopDimensions
+                                                      size: AppTokens
                                                           .iconSizeMedium,
                                                     ),
                                                     onPressed: () =>
                                                         _deleteItem(item.id!),
-                                                    tooltip: isUrdu
-                                                        ? 'آئٹم حذف کریں'
-                                                        : 'Delete Item',
+                                                    tooltip: localizations.deleteItem,
                                                   ),
                                                 ],
                                               ),
@@ -444,14 +441,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                 if (_isLoadMoreRunning)
                                   const Padding(
                                     padding: EdgeInsets.all(
-                                        DesktopDimensions.spacingMedium),
+                                        AppTokens.spacingMedium),
                                     child: Center(
                                         child: CircularProgressIndicator()),
                                   ),
                                 if (!_hasNextPage && items.isNotEmpty)
                                   Padding(
                                     padding: const EdgeInsets.all(
-                                        DesktopDimensions.spacingMedium),
+                                        AppTokens.spacingMedium),
                                     child: Center(
                                       child: Text(
                                         localizations.endOfList,
@@ -525,7 +522,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
           TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text(localizations.no,
-                  style: TextStyle(color: colorScheme.onSurface))),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface))),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
@@ -644,25 +642,25 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
           ?.copyWith(color: colorScheme.onSurfaceVariant),
       prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
       filled: true,
-      fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       border: OutlineInputBorder(
         borderRadius:
-            BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+            BorderRadius.circular(AppTokens.formFieldBorderRadius),
         borderSide: BorderSide(color: colorScheme.outline),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius:
-            BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+            BorderRadius.circular(AppTokens.formFieldBorderRadius),
         borderSide: BorderSide(color: colorScheme.outline),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius:
-            BorderRadius.circular(DesktopDimensions.formFieldBorderRadius),
+            BorderRadius.circular(AppTokens.formFieldBorderRadius),
         borderSide: BorderSide(color: colorScheme.primary),
       ),
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: DesktopDimensions.spacingMedium,
-        vertical: DesktopDimensions.spacingMedium,
+        horizontal: AppTokens.spacingMedium,
+        vertical: AppTokens.spacingMedium,
       ),
     );
   }
@@ -681,7 +679,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
         style: textTheme.headlineSmall,
       ),
       content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: DesktopDimensions.dialogWidth),
+        constraints: const BoxConstraints(maxWidth: AppTokens.dialogWidth),
         child: FutureBuilder(
           future: Future.wait([
             widget.categoriesRepository.getAllCategories(),
@@ -690,12 +688,12 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const SizedBox(
-                  height: DesktopDimensions.dialogHeight,
+                  height: AppTokens.dialogHeight,
                   child: Center(child: CircularProgressIndicator()));
             }
             if (snapshot.hasError) {
               return SizedBox(
-                  height: DesktopDimensions.dialogHeight,
+                  height: AppTokens.dialogHeight,
                   child: Center(child: Text('Error: ${snapshot.error}')));
             }
 
@@ -706,7 +704,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: DesktopDimensions.spacingStandard),
+                  const SizedBox(height: AppTokens.spacingStandard),
                   Row(children: [
                     Expanded(
                         child: TextField(
@@ -716,7 +714,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                           localizations.englishName,
                           Icons.inventory_2_outlined),
                     )),
-                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    const SizedBox(width: AppTokens.spacingMedium),
                     Expanded(
                         child: TextField(
                       controller: _nameUrduCtrl,
@@ -726,7 +724,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                           ?.copyWith(fontFamily: 'NooriNastaleeq'),
                     )),
                   ]),
-                  const SizedBox(height: DesktopDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Row(children: [
                     Expanded(
                         child: DropdownButtonFormField<int>(
@@ -746,7 +744,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                         if (val != null) _fetchSubCategories(val);
                       },
                     )),
-                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    const SizedBox(width: AppTokens.spacingMedium),
                     Expanded(
                         child: DropdownButtonFormField<int>(
                       value: _subCategories
@@ -754,7 +752,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                           ? _selectedSubCategoryId
                           : null,
                       decoration: _buildInputDecoration(
-                          'Sub Category', Icons.subdirectory_arrow_right),
+                          localizations.subCategory, Icons.subdirectory_arrow_right),
                       items: _subCategories
                           .where((s) => s.id != null)
                           .map((s) => DropdownMenuItem(
@@ -764,15 +762,15 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                           setState(() => _selectedSubCategoryId = val),
                     )),
                   ]),
-                  const SizedBox(height: DesktopDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Row(children: [
                     Expanded(
                         child: TextField(
                       controller: _brandCtrl,
                       decoration: _buildInputDecoration(
-                          'Brand', Icons.branding_watermark_outlined),
+                          localizations.brand, Icons.branding_watermark_outlined),
                     )),
-                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    const SizedBox(width: AppTokens.spacingMedium),
                     Expanded(
                         child: TextField(
                             controller: _packingCtrl,
@@ -780,7 +778,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                                 localizations.packingType,
                                 Icons.archive_outlined))),
                   ]),
-                  const SizedBox(height: DesktopDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   Row(children: [
                     Expanded(
                         child: DropdownButtonFormField<int>(
@@ -798,7 +796,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                             units.firstWhere((u) => u.id == val).code;
                       }),
                     )),
-                    const SizedBox(width: DesktopDimensions.spacingMedium),
+                    const SizedBox(width: AppTokens.spacingMedium),
                     Expanded(
                         child: TextField(
                             controller: _tagsCtrl,

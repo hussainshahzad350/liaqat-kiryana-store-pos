@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/sales/sales_bloc.dart';
 import '../../../bloc/sales/sales_event.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/invoice_model.dart';
 import '../../../core/repositories/receipt_repository.dart';
@@ -39,7 +39,6 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
       if (invoiceId != null) {
         await _receiptRepository.trackPrint(invoiceId);
       }
-      // _loadRecentInvoices(); // Handled by SalesScreen or BLoC refresh
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -62,9 +61,6 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
   }
 
   void _performClearCart() {
-    // This dialog is shown after success, so we might want to clear cart if not already cleared?
-    // In SalesScreen, _showPostSaleDialog is called after SalesStatus.success.
-    // Usually BLoC might have already cleared cart or we trigger it here for new sale.
     context.read<SalesBloc>().add(CartCleared());
   }
 
@@ -83,47 +79,51 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
       child: Dialog(
         shape: RoundedRectangleBorder(
             borderRadius:
-                BorderRadius.circular(DesktopDimensions.dialogBorderRadius)),
+                BorderRadius.circular(AppTokens.dialogBorderRadius)),
         child: Container(
           constraints:
-              const BoxConstraints(maxWidth: DesktopDimensions.dialogWidth),
-          padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+              const BoxConstraints(maxWidth: AppTokens.dialogWidth),
+          padding: const EdgeInsets.all(AppTokens.dialogPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.check_circle,
                   color: colorScheme.primary,
-                  size: DesktopDimensions.aboutIconSize),
-              const SizedBox(height: DesktopDimensions.spacingMedium),
+                  size: AppTokens.aboutIconSize),
+              const SizedBox(height: AppTokens.spacingMedium),
               Text(loc.saleCompleted, style: textTheme.titleLarge),
               Text('${loc.bill} #${widget.invoice.invoiceNumber}',
                   style: textTheme.bodyMedium
                       ?.copyWith(color: colorScheme.onSurfaceVariant)),
-              const SizedBox(height: DesktopDimensions.spacingXLarge),
+              const SizedBox(height: AppTokens.spacingXLarge),
+              // Print Receipt button
               SizedBox(
                 width: double.infinity,
-                height: DesktopDimensions.buttonHeight,
+                height: AppTokens.buttonHeight * 1.3,
                 child: OutlinedButton.icon(
                   onPressed: () => _handlePrintReceipt(widget.invoice),
                   icon: const Icon(Icons.print),
-                  label: Text(loc.printReceipt),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(loc.printReceipt),
+                  ),
                 ),
               ),
-              const SizedBox(height: DesktopDimensions.spacingStandard),
+              const SizedBox(height: AppTokens.spacingStandard),
+              // Save as PDF button
               SizedBox(
                 width: double.infinity,
-                height: DesktopDimensions.buttonHeight,
+                height: AppTokens.buttonHeight * 1.3,
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    // Capture theme values before async call
                     final errorColor = colorScheme.error;
 
                     if (widget.invoice.isCancelled) {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content:
-                                const Text('Cannot save cancelled invoice as PDF'),
+                            content: const Text(
+                                'Cannot save cancelled invoice as PDF'),
                             backgroundColor: errorColor,
                           ),
                         );
@@ -152,13 +152,17 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
                     }
                   },
                   icon: const Icon(Icons.picture_as_pdf),
-                  label: Text(loc.saveAsPdf),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(loc.saveAsPdf),
+                  ),
                 ),
               ),
-              const SizedBox(height: DesktopDimensions.spacingLarge),
+              const SizedBox(height: AppTokens.spacingLarge),
+              // Start New Sale button — FittedBox prevents Urdu text from being clipped
               SizedBox(
                 width: double.infinity,
-                height: DesktopDimensions.buttonHeight,
+                height: AppTokens.buttonHeight * 1.5,
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(context);
@@ -166,12 +170,15 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
                     _refreshAllData();
                   },
                   icon: const Icon(Icons.add_shopping_cart),
-                  label: Text(loc.startNewSale.toUpperCase()),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(loc.startNewSale),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
-                    textStyle: textTheme.bodyLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    minimumSize: const Size(180, 52),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                   ),
                 ),
               ),

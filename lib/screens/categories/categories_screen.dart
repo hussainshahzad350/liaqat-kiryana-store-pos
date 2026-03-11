@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/category_models.dart';
 import '../../core/repositories/categories_repository.dart';
-import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_tokens.dart';
 
 // ==========================================
 // SCREEN IMPLEMENTATION
@@ -204,8 +204,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.only(
-                  bottom: DesktopDimensions.spacingMedium),
+              padding: const EdgeInsets.only(bottom: AppTokens.spacingMedium),
               child: TextField(
                 controller: nameEnController,
                 decoration: InputDecoration(labelText: loc.nameEnglishLabel),
@@ -425,7 +424,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     backgroundColor: Theme.of(context).colorScheme.error),
                 onPressed: () => Navigator.pop(context, true),
                 child: Text(loc.yesDelete,
-                    style: const TextStyle(color: Colors.white)),
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onError)),
               ),
             ],
           ),
@@ -455,19 +455,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Center(child: CircularProgressIndicator());
     }
     return Padding(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingLarge),
+      padding: const EdgeInsets.all(AppTokens.spacingLarge),
       child: Column(
         children: [
           Card(
-            elevation: DesktopDimensions.cardElevation,
+            elevation: AppTokens.cardElevation,
             shape: RoundedRectangleBorder(
                 borderRadius:
-                    BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                    BorderRadius.circular(AppTokens.cardBorderRadius)),
             child: Padding(
-              padding: const EdgeInsets.all(DesktopDimensions.cardPadding),
+              padding: const EdgeInsets.all(AppTokens.cardPadding),
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
@@ -484,61 +484,60 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         )
                       : null,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                        DesktopDimensions.cardBorderRadius / 2),
+                    borderRadius: BorderRadius.circular(AppTokens.radius6),
                     borderSide: BorderSide(color: colorScheme.outline),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: DesktopDimensions.spacingStandard,
-                      vertical: 12),
+                      horizontal: AppTokens.spacingStandard,
+                      vertical: AppTokens.spacingStandard),
                   isDense: true,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: DesktopDimensions.spacingMedium),
+          const SizedBox(height: AppTokens.spacingMedium),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(
-                  width: DesktopDimensions.sidebarWidthSmall,
+                  width: AppTokens.sidebarWidthSmall,
                   child: Card(
-                    elevation: DesktopDimensions.cardElevation,
+                    elevation: AppTokens.cardElevation,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius)),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.cardBorderRadius)),
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.cardBorderRadius),
                         child: _buildDepartmentsPane(loc, colorScheme)),
                   ),
                 ),
-                const SizedBox(width: DesktopDimensions.spacingMedium),
+                const SizedBox(width: AppTokens.spacingMedium),
                 Expanded(
                   flex: 3,
                   child: Card(
-                    elevation: DesktopDimensions.cardElevation,
+                    elevation: AppTokens.cardElevation,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius)),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.cardBorderRadius)),
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.cardBorderRadius),
                         child: _buildTaxonomyPane(loc, colorScheme)),
                   ),
                 ),
-                const SizedBox(width: DesktopDimensions.spacingMedium),
+                const SizedBox(width: AppTokens.spacingMedium),
                 Expanded(
                   flex: 2,
                   child: Card(
-                    elevation: DesktopDimensions.cardElevation,
+                    elevation: AppTokens.cardElevation,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius)),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.cardBorderRadius)),
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.cardBorderRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.cardBorderRadius),
                         child: _buildDetailsPane(loc, colorScheme)),
                   ),
                 ),
@@ -555,6 +554,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   // ==========================================
 
   Widget _buildDepartmentsPane(AppLocalizations loc, ColorScheme colorScheme) {
+    final textTheme = Theme.of(context).textTheme;
     final filteredDepts = _searchResults == null
         ? _departments
         : _departments
@@ -565,15 +565,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
-          color: colorScheme.surfaceVariant.withOpacity(0.3),
+          padding: const EdgeInsets.all(AppTokens.spacingStandard),
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 loc.departmentsHeader,
-                style: TextStyle(
-                  fontSize: DesktopDimensions.captionSize,
+                style: textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurfaceVariant,
                   letterSpacing: 1,
@@ -581,7 +580,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline,
-                    size: DesktopDimensions.iconSizeMedium),
+                    size: AppTokens.iconSizeMedium),
                 onPressed: () {
                   _showDepartmentDialog();
                 },
@@ -602,7 +601,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               return ListTile(
                 selected: isSelected,
                 selectedTileColor:
-                    colorScheme.primaryContainer.withOpacity(0.4),
+                    colorScheme.primaryContainer.withValues(alpha: 0.4),
                 onTap: () => _onDepartmentSelected(dept),
                 leading: Container(
                   width: 4,
@@ -610,13 +609,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   decoration: BoxDecoration(
                     color:
                         isSelected ? colorScheme.primary : Colors.transparent,
-                    borderRadius:
-                        BorderRadius.circular(DesktopDimensions.spacingSmall),
+                    borderRadius: BorderRadius.circular(AppTokens.radius8),
                   ),
                 ),
                 title: _buildHighlightedText(
                   dept.nameEn,
-                  TextStyle(
+                  textTheme.bodyMedium!.copyWith(
                     fontWeight:
                         isSelected ? FontWeight.bold : FontWeight.normal,
                     color: colorScheme.onSurface,
@@ -625,8 +623,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 ),
                 subtitle: _buildHighlightedText(
                   dept.nameUr,
-                  TextStyle(
-                      fontSize: DesktopDimensions.captionSize,
+                  textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontFamily: 'NooriNastaleeq'),
                   colorScheme.primaryContainer,
@@ -648,6 +645,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   // ==========================================
 
   Widget _buildTaxonomyPane(AppLocalizations loc, ColorScheme colorScheme) {
+    final textTheme = Theme.of(context).textTheme;
     if (_selectedDepartment == null) {
       return Center(
           child: Text(loc.selectDepartmentInstruction,
@@ -664,23 +662,21 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          padding: const EdgeInsets.all(DesktopDimensions.spacingStandard),
-          color: colorScheme.surfaceVariant.withOpacity(0.3),
+          padding: const EdgeInsets.all(AppTokens.spacingStandard),
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 loc.categoriesSubcategoriesHeader,
-                style: TextStyle(
-                  fontSize: DesktopDimensions.captionSize,
+                style: textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurfaceVariant,
                   letterSpacing: 1,
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.add,
-                    size: DesktopDimensions.iconSizeMedium),
+                icon: const Icon(Icons.add, size: AppTokens.iconSizeMedium),
                 onPressed: () {
                   _showCategoryDialog(parentDeptId: _selectedDepartment!.id);
                 },
@@ -696,7 +692,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         else
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+              padding: const EdgeInsets.all(AppTokens.spacingMedium),
               itemCount: filteredCats.length,
               itemBuilder: (context, index) {
                 final cat = filteredCats[index];
@@ -721,11 +717,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           : colorScheme.outlineVariant,
                       width: isCatSelected ? 2 : 1,
                     ),
-                    borderRadius: BorderRadius.circular(
-                        DesktopDimensions.cardBorderRadius),
+                    borderRadius:
+                        BorderRadius.circular(AppTokens.cardBorderRadius),
                   ),
-                  margin: const EdgeInsets.only(
-                      bottom: DesktopDimensions.spacingStandard),
+                  margin:
+                      const EdgeInsets.only(bottom: AppTokens.spacingStandard),
                   child: Theme(
                     data: Theme.of(context)
                         .copyWith(dividerColor: Colors.transparent),
@@ -752,13 +748,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           children: [
                             _buildHighlightedText(
                                 cat.nameEn,
-                                const TextStyle(fontWeight: FontWeight.bold),
+                                textTheme.bodyMedium!
+                                    .copyWith(fontWeight: FontWeight.bold),
                                 colorScheme.primaryContainer),
-                            const SizedBox(
-                                width: DesktopDimensions.spacingMedium),
+                            const SizedBox(width: AppTokens.spacingMedium),
                             _buildHighlightedText(
                                 cat.nameUr,
-                                TextStyle(
+                                textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
                                     fontFamily: 'NooriNastaleeq'),
                                 colorScheme.primaryContainer),
@@ -767,7 +763,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       ),
                       trailing: IconButton(
                         icon: const Icon(Icons.add,
-                            size: DesktopDimensions.iconSizeMedium),
+                            size: AppTokens.iconSizeMedium),
                         onPressed: () {
                           _showSubCategoryDialog(parentCatId: cat.id);
                         },
@@ -776,8 +772,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       children: [
                         if (!isLoaded)
                           const Padding(
-                            padding:
-                                EdgeInsets.all(DesktopDimensions.spacingLarge),
+                            padding: EdgeInsets.all(AppTokens.spacingLarge),
                             child: Center(
                                 child: SizedBox(
                                     width: 20,
@@ -787,12 +782,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           )
                         else if (filteredSubs.isEmpty)
                           Padding(
-                            padding: const EdgeInsets.all(
-                                DesktopDimensions.spacingLarge),
+                            padding:
+                                const EdgeInsets.all(AppTokens.spacingLarge),
                             child: Text(
                               loc.noSubcategories,
                               style: TextStyle(
-                                  fontSize: DesktopDimensions.captionSize,
+                                  fontSize: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.fontSize ??
+                                      12.0,
                                   color: colorScheme.outline),
                             ),
                           ),
@@ -802,11 +801,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                 _selectedSubCategory?.id == sub.id;
                             return ListTile(
                               contentPadding: const EdgeInsets.only(
-                                  left: DesktopDimensions.spacingXXLarge,
-                                  right: DesktopDimensions.spacingLarge),
+                                  left: AppTokens.spacingXXLarge,
+                                  right: AppTokens.spacingLarge),
                               selected: isSubSelected,
-                              selectedTileColor:
-                                  colorScheme.primaryContainer.withOpacity(0.5),
+                              selectedTileColor: colorScheme.primaryContainer
+                                  .withValues(alpha: 0.5),
                               onTap: () {
                                 setState(() {
                                   _selectedCategory =
@@ -820,11 +819,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                   size: 16, color: colorScheme.outline),
                               title: _buildHighlightedText(
                                   sub.nameEn,
-                                  const TextStyle(),
+                                  textTheme.bodyMedium!,
                                   colorScheme.primaryContainer),
                               subtitle: _buildHighlightedText(
                                   sub.nameUr,
-                                  TextStyle(
+                                  textTheme.bodySmall?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
                                       fontFamily: 'NooriNastaleeq'),
                                   colorScheme.primaryContainer),
@@ -846,13 +845,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   // ==========================================
 
   Widget _buildDetailsPane(AppLocalizations loc, ColorScheme colorScheme) {
+    final textTheme = Theme.of(context).textTheme;
     if (_selectionLevel == 0) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.touch_app, size: 48, color: colorScheme.outlineVariant),
-            const SizedBox(height: DesktopDimensions.spacingLarge),
+            const SizedBox(height: AppTokens.spacingLarge),
             Text(loc.selectItemToManageInstruction,
                 style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ],
@@ -894,8 +894,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           // Details Header
           Container(
             padding: const EdgeInsets.symmetric(
-              horizontal: DesktopDimensions.spacingXXLarge,
-              vertical: DesktopDimensions.spacingXLarge,
+              horizontal: AppTokens.spacingXXLarge,
+              vertical: AppTokens.spacingXLarge,
             ),
             decoration: BoxDecoration(
               border:
@@ -909,24 +909,23 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: DesktopDimensions.spacingMedium,
-                          vertical: DesktopDimensions.spacingSmall),
+                          horizontal: AppTokens.spacingMedium,
+                          vertical: AppTokens.spacingSmall),
                       decoration: BoxDecoration(
                         color: colorScheme.primary,
-                        borderRadius: BorderRadius.circular(
-                            DesktopDimensions.spacingSmall),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.spacingSmall),
                       ),
                       child: Text(
                         typeLabel.toUpperCase(),
-                        style: TextStyle(
-                            fontSize: 10,
+                        style: textTheme.labelSmall?.copyWith(
                             color: colorScheme.onPrimary,
                             fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: DesktopDimensions.spacingLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
                 Row(
                   children: [
                     Expanded(
@@ -934,23 +933,21 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(titleEn,
-                              style: const TextStyle(
-                                  fontSize: DesktopDimensions.headingSize,
-                                  fontWeight: FontWeight.bold)),
+                              style: textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
                           Text(titleUr,
-                              style: const TextStyle(
-                                  fontSize: DesktopDimensions.bodySize,
-                                  fontFamily: 'NooriNastaleeq')),
+                              style: textTheme.bodyMedium
+                                  ?.copyWith(fontFamily: 'NooriNastaleeq')),
                         ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: DesktopDimensions.spacingMedium),
+                const SizedBox(height: AppTokens.spacingMedium),
                 // Breadcrumbs
                 _buildBreadcrumbs(loc, colorScheme),
 
-                const SizedBox(height: DesktopDimensions.spacingXXLarge),
+                const SizedBox(height: AppTokens.spacingXXLarge),
                 Row(
                   children: [
                     Expanded(
@@ -972,7 +969,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         label: Text(loc.editDetails),
                       ),
                     ),
-                    const SizedBox(width: DesktopDimensions.spacingStandard),
+                    const SizedBox(width: AppTokens.spacingStandard),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: _deleteItem,
@@ -991,21 +988,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           // Specific Content based on selection
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(DesktopDimensions.spacingXXLarge),
+              padding: const EdgeInsets.all(AppTokens.spacingLarge),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Status Section
                   Text(
                     loc.statusVisibilityHeader,
-                    style: TextStyle(
-                      fontSize: DesktopDimensions.captionSize,
+                    style: textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurfaceVariant,
                       letterSpacing: 1,
                     ),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingMedium),
+                  const SizedBox(height: AppTokens.spacingMedium),
                   SwitchListTile(
                     title: Text(loc.active),
                     subtitle: Text(loc.activeSubtitle),
@@ -1015,8 +1011,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           isActive: val, isVisible: isVisibleInPOS);
                     },
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: DesktopDimensions.spacingMedium,
-                        vertical: DesktopDimensions.spacingSmall),
+                        horizontal: AppTokens.spacingMedium,
+                        vertical: AppTokens.spacingSmall),
                   ),
                   SwitchListTile(
                     title: Text(loc.visibleInPOS),
@@ -1026,10 +1022,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       await _updateStatus(isActive: isActive, isVisible: val);
                     },
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: DesktopDimensions.spacingMedium,
-                        vertical: DesktopDimensions.spacingSmall),
+                        horizontal: AppTokens.spacingMedium,
+                        vertical: AppTokens.spacingSmall),
                   ),
-                  const Divider(height: DesktopDimensions.spacingXXLarge),
+                  const Divider(height: AppTokens.spacingXXLarge),
 
                   // Stats for all levels
                   _buildStats(loc, colorScheme, typeLabel),
@@ -1043,6 +1039,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Widget _buildBreadcrumbs(AppLocalizations loc, ColorScheme colorScheme) {
+    final textTheme = Theme.of(context).textTheme;
     List<String> parts = [loc.home];
     if (_selectedDepartment != null) parts.add(_selectedDepartment!.nameEn);
     if (_selectionLevel >= 2 && _selectedCategory != null) {
@@ -1059,9 +1056,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(entry.value,
-                style: TextStyle(
-                    color: isLast ? colorScheme.onSurface : colorScheme.outline,
-                    fontSize: DesktopDimensions.captionSize)),
+                style: textTheme.bodySmall?.copyWith(
+                    color:
+                        isLast ? colorScheme.onSurface : colorScheme.outline)),
             if (!isLast)
               Icon(Icons.chevron_right, size: 16, color: colorScheme.outline),
           ],
@@ -1072,19 +1069,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   Widget _buildStats(
       AppLocalizations loc, ColorScheme colorScheme, String type) {
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           loc.statisticsHeader,
-          style: TextStyle(
-            fontSize: DesktopDimensions.captionSize,
+          style: textTheme.labelSmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: colorScheme.onSurfaceVariant,
             letterSpacing: 1,
           ),
         ),
-        const SizedBox(height: DesktopDimensions.spacingMedium),
+        const SizedBox(height: AppTokens.spacingMedium),
         if (_selectionLevel == 1)
           _buildStatRow(loc.categories, _detailsSubCount.toString(),
               Icons.folder, colorScheme),
@@ -1102,21 +1099,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget _buildStatRow(
       String label, String value, IconData icon, ColorScheme colorScheme) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingStandard),
+      padding: const EdgeInsets.only(bottom: AppTokens.spacingStandard),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(DesktopDimensions.spacingSmall),
+            padding: const EdgeInsets.all(AppTokens.spacingSmall),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant,
+              color: colorScheme.surfaceContainerHighest,
               borderRadius:
-                  BorderRadius.circular(DesktopDimensions.cardBorderRadius / 2),
+                  BorderRadius.circular(AppTokens.cardBorderRadius / 2),
             ),
             child: Icon(icon,
-                size: DesktopDimensions.kpiIconSize,
-                color: colorScheme.primary),
+                size: AppTokens.kpiIconSize, color: colorScheme.primary),
           ),
-          const SizedBox(width: DesktopDimensions.spacingMedium),
+          const SizedBox(width: AppTokens.spacingMedium),
           Text(label, style: TextStyle(color: colorScheme.onSurface)),
           const Spacer(),
           Text(
@@ -1165,7 +1161,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   Widget _buildHighlightedText(
-      String text, TextStyle baseStyle, Color highlightColor) {
+      String text, TextStyle? baseStyle, Color highlightColor) {
+    final textTheme = Theme.of(context).textTheme;
+    baseStyle ??= textTheme.bodyMedium!;
     final query = _searchController.text;
     if (query.isEmpty) return Text(text, style: baseStyle);
 

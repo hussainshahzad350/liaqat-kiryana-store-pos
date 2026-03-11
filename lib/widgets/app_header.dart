@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../core/res/app_dimensions.dart';
+import '../core/res/app_tokens.dart';
 import '../l10n/app_localizations.dart';
 import '../core/routes/app_routes.dart';
 
@@ -44,8 +44,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     final screenTitle = _getScreenTitle(context, currentRoute);
 
     return Container(
-      height: AppDimensions.headerHeight,
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingLarge),
+      height: AppTokens.headerHeight,
+      padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingLarge),
       decoration: BoxDecoration(
         color: colorScheme.primary,
         boxShadow: [
@@ -73,7 +73,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
                   size: 20,
                 ),
               ),
-              const SizedBox(width: AppDimensions.spacingMedium),
+              const SizedBox(width: AppTokens.spacingMedium),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,9 +121,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-  
+
   @override
-  Size get preferredSize => const Size.fromHeight(AppDimensions.headerHeight);
+  Size get preferredSize => const Size.fromHeight(AppTokens.headerHeight);
 }
 
 class LiveClock extends StatefulWidget {
@@ -168,7 +168,8 @@ class _LiveClockState extends State<LiveClock> {
       decoration: BoxDecoration(
         color: colorScheme.onPrimary.withOpacity(0.15),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colorScheme.onPrimary.withOpacity(0.3), width: 1),
+        border:
+            Border.all(color: colorScheme.onPrimary.withOpacity(0.3), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -177,7 +178,8 @@ class _LiveClockState extends State<LiveClock> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.access_time, size: 14, color: colorScheme.onPrimary.withOpacity(0.9)),
+              Icon(Icons.access_time,
+                  size: 14, color: colorScheme.onPrimary.withOpacity(0.9)),
               const SizedBox(width: 6),
               Text(
                 _currentTime,
@@ -185,6 +187,7 @@ class _LiveClockState extends State<LiveClock> {
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimary,
+                  height: 1.1,
                 ),
               ),
             ],
@@ -195,6 +198,7 @@ class _LiveClockState extends State<LiveClock> {
             style: TextStyle(
               fontSize: 10,
               color: colorScheme.onPrimary.withOpacity(0.8),
+              height: 1.1,
             ),
           ),
         ],

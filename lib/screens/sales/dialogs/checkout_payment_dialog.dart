@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/sales/sales_bloc.dart';
 import '../../../bloc/sales/sales_event.dart';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/money.dart';
 import 'credit_limit_warning_dialog.dart';
@@ -36,7 +36,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
     final state = context.read<SalesBloc>().state;
     final isWalkIn = state.selectedCustomer?.isWalkIn ?? true;
     if (!isWalkIn) {
-      creditCtrl.text = '0';
+      creditCtrl.text = '';
     }
   }
 
@@ -192,13 +192,18 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
       return Dialog(
         shape: RoundedRectangleBorder(
             borderRadius:
-                BorderRadius.circular(DesktopDimensions.cardBorderRadius)),
+                BorderRadius.circular(AppTokens.cardBorderRadius)),
         child: Container(
           constraints: RTLHelper.getDialogConstraints(
             context: context,
             size: DialogSize.large,
           ),
-          padding: const EdgeInsets.all(DesktopDimensions.dialogPadding),
+          padding: EdgeInsets.symmetric(
+            horizontal: AppTokens.dialogPadding,
+            vertical: RTLHelper.isRTL(context) 
+                ? AppTokens.dialogPadding + 16
+                : AppTokens.dialogPadding,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,11 +211,17 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
               Row(
                 children: [
                   Icon(Icons.shopping_cart, color: colorScheme.primary),
-                  const SizedBox(width: DesktopDimensions.spacingSmall),
-                  Text(loc.checkoutButton,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold)),
+                  const SizedBox(width: AppTokens.spacingSmall),
+                  Expanded(
+                    child: FittedBox(
+                      alignment: AlignmentDirectional.centerStart,
+                      fit: BoxFit.scaleDown,
+                      child: Text(loc.checkoutButton,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -221,7 +232,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                 ],
               ),
               const Divider(),
-              const SizedBox(height: DesktopDimensions.spacingMedium),
+              const SizedBox(height: AppTokens.spacingMedium),
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
@@ -234,22 +245,22 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                                 .textTheme
                                 .bodyLarge
                                 ?.copyWith(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: DesktopDimensions.spacingSmall),
+                        const SizedBox(height: AppTokens.spacingSmall),
                         Container(
                           padding: const EdgeInsets.all(
-                              DesktopDimensions.spacingSmall),
+                              AppTokens.spacingSmall),
                           decoration: BoxDecoration(
                               color: colorScheme.secondaryContainer,
                               borderRadius: BorderRadius.circular(
-                                  DesktopDimensions.smallBorderRadius),
+                                  AppTokens.smallBorderRadius),
                               border: Border.all(color: colorScheme.secondary)),
                           child: Row(
                             children: [
                               Icon(Icons.info_outline,
-                                  size: DesktopDimensions.iconSizeSmall,
+                                  size: AppTokens.iconSizeSmall,
                                   color: colorScheme.secondary),
                               const SizedBox(
-                                  width: DesktopDimensions.spacingSmall),
+                                  width: AppTokens.spacingSmall),
                               Text(
                                   '${loc.prevBalance}: ${oldBalance.toString()}',
                                   style: Theme.of(context)
@@ -261,20 +272,20 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                             ],
                           ),
                         ),
-                        const Divider(height: DesktopDimensions.spacingLarge),
+                        const Divider(height: AppTokens.spacingLarge),
                       ],
                       _infoRow(context, loc.billTotal, billTotal.toString(),
                           isBold: true,
-                          size: DesktopDimensions.headingSize,
+                          size: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
                           color: colorScheme.onSurface),
                       const Divider(),
-                      const SizedBox(height: DesktopDimensions.spacingStandard),
+                      const SizedBox(height: AppTokens.spacingStandard),
                       Text(loc.paymentLabel,
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: DesktopDimensions.spacingStandard),
+                      const SizedBox(height: AppTokens.spacingStandard),
                       _input(context, loc.cashInput, cashCtrl, (v) {
                         setDialogState(() {
                           if (!isWalkIn) {
@@ -282,8 +293,8 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                             Money bankValue = safeMoney(bankCtrl.text);
                             Money remaining = billTotal - cashValue - bankValue;
                             creditCtrl.text = remaining > const Money(0)
-                                ? remaining.toRupeesString()
-                                : '0';
+                                ? remaining.toInputString()
+                                : '';
                           }
                         });
                       }, errorText: cashError),
@@ -294,8 +305,8 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                             Money bankValue = safeMoney(bankCtrl.text);
                             Money remaining = billTotal - cashValue - bankValue;
                             creditCtrl.text = remaining > const Money(0)
-                                ? remaining.toRupeesString()
-                                : '0';
+                                ? remaining.toInputString()
+                                : '';
                           }
                         });
                       }, errorText: bankError),
@@ -303,7 +314,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                         _input(context, loc.creditInput, creditCtrl, (v) {
                           setDialogState(() {});
                         }, errorText: creditError),
-                      const SizedBox(height: DesktopDimensions.spacingStandard),
+                      const SizedBox(height: AppTokens.spacingStandard),
                       if (isWalkIn)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -328,22 +339,32 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                   ),
                 ),
               ),
-              const SizedBox(height: DesktopDimensions.spacingLarge),
+              const SizedBox(height: AppTokens.spacingLarge),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(loc.cancel),
-                  ),
-                  const SizedBox(width: DesktopDimensions.spacingMedium),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(loc.cancel),
                     ),
-                    onPressed: isValid ? checkCreditLimitAndProcess : null,
-                    child: Text(loc.savePrint),
+                  ),
+                  const SizedBox(width: AppTokens.spacingMedium),
+                  SizedBox(
+                    height: AppTokens.buttonHeight * 1.5,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        minimumSize: const Size(120, 52),
+                      ),
+                      onPressed: isValid ? checkCreditLimitAndProcess : null,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(loc.savePrint),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -362,9 +383,9 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
     TextStyle? baseStyle;
     if (size == null) {
       baseStyle = textTheme.bodyMedium;
-    } else if (size >= DesktopDimensions.headingSize) {
+    } else if (size >= 24.0) {
       baseStyle = textTheme.titleMedium;
-    } else if (size >= DesktopDimensions.bodyLargeSize) {
+    } else if (size >= (textTheme.bodyLarge?.fontSize ?? 16.0)) {
       baseStyle = textTheme.bodyLarge;
     } else {
       baseStyle = textTheme.bodyMedium;
@@ -378,7 +399,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(
-          vertical: DesktopDimensions.spacingXXSmall),
+          vertical: AppTokens.spacingXXSmall),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -395,40 +416,47 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: DesktopDimensions.spacingStandard),
-      child: Row(children: [
-        SizedBox(
-            width: DesktopDimensions.labelWidthStandard,
-            child: Text(label, style: textTheme.bodyLarge)),
-        Expanded(
-          child: SizedBox(
-            height: DesktopDimensions.formFieldHeight,
-            child: TextField(
-              controller: ctrl,
-              enabled: enabled,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: DesktopDimensions.spacingStandard),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                        DesktopDimensions.formFieldBorderRadius)),
-                prefixText: 'Rs ',
-                filled: !enabled,
-                fillColor: enabled ? null : colorScheme.surfaceVariant,
-                errorText: errorText,
+      padding: const EdgeInsets.only(bottom: AppTokens.spacingStandard),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+              width: AppTokens.labelWidthStandard,
+              child: Text(label,
+                  style: textTheme.bodyLarge,
+                  overflow: TextOverflow.visible)),
+          Expanded(
+            child: SizedBox(
+              height: AppTokens.formFieldHeight,
+              child: TextField(
+                controller: ctrl,
+                textAlign: TextAlign.center,
+                enabled: enabled,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: AppTokens.spacingStandard,
+                      vertical: 12),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                          AppTokens.formFieldBorderRadius)),
+                  prefixText: 'Rs ',
+                  filled: !enabled,
+                  fillColor: enabled ? null : colorScheme.surfaceVariant,
+                  errorText: errorText,
+                ),
+                style: textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: enabled
+                        ? colorScheme.onSurface
+                        : colorScheme.onSurfaceVariant),
+                onChanged: onChanged,
               ),
-              style: textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: enabled
-                      ? colorScheme.onSurface
-                      : colorScheme.onSurfaceVariant),
-              onChanged: onChanged,
             ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 }

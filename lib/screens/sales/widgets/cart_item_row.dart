@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../../../core/constants/desktop_dimensions.dart';
+import '../../../core/res/app_tokens.dart';
 import '../../../models/cart_item_model.dart';
 import '../../../domain/entities/money.dart';
 
@@ -35,7 +35,7 @@ class _CartItemRowState extends State<CartItemRow> {
   void initState() {
     super.initState();
     _priceCtrl =
-        TextEditingController(text: widget.item.unitPrice.toRupeesString());
+        TextEditingController(text: widget.item.unitPrice.toInputString());
     _qtyCtrl = TextEditingController(text: widget.item.quantity.toString());
   }
 
@@ -55,7 +55,7 @@ class _CartItemRowState extends State<CartItemRow> {
         currentPrice = Money.zero;
       }
       if (currentPrice != widget.item.unitPrice) {
-        _priceCtrl.text = widget.item.unitPrice.toRupeesString();
+        _priceCtrl.text = widget.item.unitPrice.toInputString();
       }
     }
   }
@@ -82,8 +82,8 @@ class _CartItemRowState extends State<CartItemRow> {
     final textTheme = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: DesktopDimensions.spacingStandard,
-          vertical: DesktopDimensions.spacingSmall),
+          horizontal: AppTokens.spacingStandard,
+          vertical: AppTokens.spacingSmall),
       color: widget.index % 2 == 0
           ? widget.colorScheme.surface
           : widget.colorScheme.surfaceVariant.withOpacity(0.2),
@@ -112,7 +112,7 @@ class _CartItemRowState extends State<CartItemRow> {
           ),
           SizedBox(
             width: 80,
-            height: DesktopDimensions.formFieldHeight,
+            height: AppTokens.formFieldHeight,
             child: TextField(
               controller: _priceCtrl,
               keyboardType: TextInputType.number,
@@ -120,8 +120,8 @@ class _CartItemRowState extends State<CartItemRow> {
               decoration: const InputDecoration(
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(
-                    vertical: DesktopDimensions.spacingSmall,
-                    horizontal: DesktopDimensions.spacingXSmall),
+                    vertical: AppTokens.spacingSmall,
+                    horizontal: AppTokens.spacingXSmall),
                 border: InputBorder.none,
                 hintText: '0',
               ),
@@ -129,10 +129,10 @@ class _CartItemRowState extends State<CartItemRow> {
               onChanged: (_) => _onChanged(),
             ),
           ),
-          const SizedBox(width: DesktopDimensions.spacingSmall),
+          const SizedBox(width: AppTokens.spacingSmall),
           SizedBox(
             width: 70,
-            height: DesktopDimensions.formFieldHeight,
+            height: AppTokens.formFieldHeight,
             child: TextField(
               controller: _qtyCtrl,
               keyboardType: TextInputType.number,
@@ -140,18 +140,18 @@ class _CartItemRowState extends State<CartItemRow> {
               decoration: InputDecoration(
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(
-                    vertical: DesktopDimensions.spacingSmall,
-                    horizontal: DesktopDimensions.spacingXSmall),
+                    vertical: AppTokens.spacingSmall,
+                    horizontal: AppTokens.spacingXSmall),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(
-                        DesktopDimensions.formFieldBorderRadius)),
+                        AppTokens.formFieldBorderRadius)),
               ),
               style:
                   textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               onChanged: (_) => _onChanged(),
             ),
           ),
-          const SizedBox(width: DesktopDimensions.spacingSmall),
+          const SizedBox(width: AppTokens.spacingSmall),
           SizedBox(
             width: 80,
             child: Text(
@@ -162,11 +162,11 @@ class _CartItemRowState extends State<CartItemRow> {
             ),
           ),
           SizedBox(
-            width: DesktopDimensions.iconSizeXLarge,
+            width: AppTokens.iconSizeXLarge,
             child: IconButton(
               icon: Icon(Icons.close,
                   color: widget.colorScheme.error,
-                  size: DesktopDimensions.iconSizeMedium),
+                  size: AppTokens.iconSizeMedium),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
               onPressed: () => widget.onRemove(widget.index),

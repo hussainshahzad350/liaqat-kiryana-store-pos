@@ -767,6 +767,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phoneRequired => 'Phone Number is required';
 
   @override
+  String get urduNameRequired => 'Urdu Name is required';
+
+  @override
+  String get addressRequired => 'Address is required';
+
+  @override
+  String get creditLimitRequired => 'Credit Limit is required';
+
+  @override
   String get phoneExists => 'Phone number already exists';
 
   @override
@@ -1544,6 +1553,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentMustEqual => 'Payment must equal';
+
+  @override
+  String get subCategory => 'Sub Category';
+
+  @override
+  String get brand => 'Brand';
 
   @override
   String get category => 'Category';

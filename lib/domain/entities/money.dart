@@ -65,9 +65,9 @@ class Money {
   @override
   int get hashCode => paisas.hashCode;
 
-  /// Formats the money value as "Rs 1,234.00"
+  /// Shows smart format: "Rs 180" for whole, "Rs 1.50" for fractional
   @override
-  String toString() => formatted;
+  String toString() => formattedSmart;
 
   Money operator +(Money other) => Money(paisas + other.paisas);
 
@@ -99,6 +99,43 @@ class Money {
   Money abs() => Money(paisas.abs());
 
   double get rupees => paisas / 100.0;
+
+  /// Returns a smart string for numeric input fields.
+  /// Whole amounts use no decimals (e.g. "180"), fractional use 1–2 decimals:
+  /// 50 paisas -> "0.5", 150 paisas -> "1.5", 175 paisas -> "1.75".
+  String toInputString() {
+    final absValue = paisas.abs();
+    // Whole rupees — no decimal part
+    if (absValue % 100 == 0) {
+      return (paisas ~/ 100).toString();
+    }
+
+    final value = paisas / 100.0;
+
+    // Exactly one decimal place (e.g. 0.5, 1.5)
+    if (absValue % 10 == 0) {
+      final oneDecimal = value.toStringAsFixed(1);
+      return paisas < 0 ? oneDecimal : oneDecimal;
+    }
+
+    // Up to two decimals for the rest (e.g. 1.25)
+    final twoDecimals = value.toStringAsFixed(2);
+    return paisas < 0 ? twoDecimals : twoDecimals;
+  }
+
+  /// Formats money intelligently: no decimals for whole numbers, shows decimals for fractional.
+  /// e.g. Rs 180, Rs 1, Rs 1.50, Rs 0.75
+  String get formattedSmart {
+    final absValue = paisas.abs();
+    final sign = paisas < 0 ? '-' : '';
+    if (absValue % 100 == 0) {
+      // Whole rupees — no decimal
+      return '${sign}Rs ${_noDecimalFormat.format(absValue ~/ 100)}';
+    } else {
+      // Has fractional paisa — show 2 decimal places
+      return '${sign}Rs ${_currencyFormat.format(absValue / 100.0)}';
+    }
+  }
 
   /// Formats the money value as "Rs 1,234.00"
   String get formatted {

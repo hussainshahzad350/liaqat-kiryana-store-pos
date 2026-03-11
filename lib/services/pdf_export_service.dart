@@ -85,7 +85,7 @@ class PdfExportService {
                 _buildDetailRow('Quantity Impact:', '${activity.quantityChange > 0 ? '+' : ''}${activity.quantityChange}', textDirection),
               
               if (activity.financialImpact != null)
-                _buildDetailRow('Financial Impact:', activity.financialImpact!.formatted, textDirection),
+                _buildDetailRow('Financial Impact:', activity.financialImpact!.toString(), textDirection),
 
               // Footer
               pw.Spacer(),

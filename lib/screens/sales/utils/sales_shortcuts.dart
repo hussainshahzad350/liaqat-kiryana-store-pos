@@ -18,6 +18,14 @@ class AddCustomerIntent extends Intent {
   const AddCustomerIntent();
 }
 
+class NewSaleIntent extends Intent {
+  const NewSaleIntent();
+}
+
+class PrintReceiptIntent extends Intent {
+  const PrintReceiptIntent();
+}
+
 /// Provides keyboard shortcuts configuration for the Sales screen
 class SalesShortcuts {
   /// Returns the keyboard shortcuts mapping for sales operations
@@ -29,21 +37,23 @@ class SalesShortcuts {
           FocusSearchIntent(),
       SingleActivator(LogicalKeyboardKey.keyN, control: true):
           AddCustomerIntent(),
+      // Ctrl+Shift+N = New Sale (Ctrl+N is taken by Add Customer)
+      SingleActivator(LogicalKeyboardKey.keyN, control: true, shift: true):
+          NewSaleIntent(),
+      // Ctrl+P = Print last receipt
+      SingleActivator(LogicalKeyboardKey.keyP, control: true):
+          PrintReceiptIntent(),
     };
   }
 
   /// Creates action handlers for the shortcuts
-  /// 
-  /// Parameters:
-  /// - onCheckout: Called when F9 is pressed (requires non-empty cart)
-  /// - onClearCart: Called when ESC is pressed (requires non-empty cart)
-  /// - onFocusSearch: Called when Ctrl+F is pressed
-  /// - onAddCustomer: Called when Ctrl+N is pressed
   static Map<Type, Action<Intent>> createActions({
     required VoidCallback onCheckout,
     required VoidCallback onClearCart,
     required VoidCallback onFocusSearch,
     required VoidCallback onAddCustomer,
+    required VoidCallback onNewSale,
+    required VoidCallback onPrint,
   }) {
     return <Type, Action<Intent>>{
       CheckoutIntent: CallbackAction<CheckoutIntent>(
@@ -67,6 +77,18 @@ class SalesShortcuts {
       AddCustomerIntent: CallbackAction<AddCustomerIntent>(
         onInvoke: (_) {
           onAddCustomer();
+          return null;
+        },
+      ),
+      NewSaleIntent: CallbackAction<NewSaleIntent>(
+        onInvoke: (_) {
+          onNewSale();
+          return null;
+        },
+      ),
+      PrintReceiptIntent: CallbackAction<PrintReceiptIntent>(
+        onInvoke: (_) {
+          onPrint();
           return null;
         },
       ),

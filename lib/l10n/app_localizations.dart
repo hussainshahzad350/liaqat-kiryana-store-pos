@@ -1604,6 +1604,24 @@ abstract class AppLocalizations {
   /// **'Phone Number is required'**
   String get phoneRequired;
 
+  /// No description provided for @urduNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Urdu Name is required'**
+  String get urduNameRequired;
+
+  /// No description provided for @addressRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Address is required'**
+  String get addressRequired;
+
+  /// No description provided for @creditLimitRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Limit is required'**
+  String get creditLimitRequired;
+
   /// No description provided for @phoneExists.
   ///
   /// In en, this message translates to:
@@ -3109,6 +3127,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment must equal'**
   String get paymentMustEqual;
+
+  /// No description provided for @subCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub Category'**
+  String get subCategory;
+
+  /// No description provided for @brand.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get brand;
 
   /// No description provided for @category.
   ///

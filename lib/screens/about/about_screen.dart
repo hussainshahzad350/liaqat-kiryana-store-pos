@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/desktop_dimensions.dart';
+import '../../core/res/app_tokens.dart';
 import '../../l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -11,7 +11,7 @@ class AboutScreen extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(DesktopDimensions.spacingMedium),
+      padding: const EdgeInsets.all(AppTokens.spacingMedium),
       child: Column(
         children: [
           Expanded(
@@ -21,32 +21,32 @@ class AboutScreen extends StatelessWidget {
                 children: [
                   // App Logo and Info
                   Card(
-                    elevation: DesktopDimensions.cardElevation,
+                    elevation: AppTokens.cardElevation,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
-                          DesktopDimensions.cardBorderRadius),
+                          AppTokens.cardBorderRadius),
                     ),
                     child: Padding(
                       padding:
-                          const EdgeInsets.all(DesktopDimensions.spacingXLarge),
+                          const EdgeInsets.all(AppTokens.spacingXLarge),
                       child: Column(
                         children: [
                           Container(
-                            width: DesktopDimensions.aboutLogoSize,  // ✅ Fixed
-                            height: DesktopDimensions.aboutLogoSize, // ✅ Fixed
+                            width: AppTokens.aboutLogoSize,  // ✅ Fixed
+                            height: AppTokens.aboutLogoSize, // ✅ Fixed
                             decoration: BoxDecoration(
                               color: colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(
-                                  DesktopDimensions.cardBorderRadius),
+                                  AppTokens.cardBorderRadius),
                             ),
                             child: Icon(
                               Icons.store,
-                              size: DesktopDimensions.aboutIconScale,  // ✅ Fixed
+                              size: AppTokens.aboutIconScale,  // ✅ Fixed
                               color: colorScheme.onPrimaryContainer,
                             ),
                           ),
                           const SizedBox(
-                              height: DesktopDimensions.spacingLarge),
+                              height: AppTokens.spacingLarge),
                           Text(
                             loc.appTitle,
                             style: textTheme.titleLarge?.copyWith(
@@ -54,14 +54,14 @@ class AboutScreen extends StatelessWidget {
                                 color: colorScheme.onSurface),
                           ),
                           const SizedBox(
-                              height: DesktopDimensions.spacingSmall),
+                              height: AppTokens.spacingSmall),
                           Text(
                             '${loc.version}: 1.0.0',
                             style: textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(
-                              height: DesktopDimensions.spacingSmall),
+                              height: AppTokens.spacingSmall),
                           Text(
                             loc.appDescription,
                             textAlign: TextAlign.center,
@@ -72,17 +72,17 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
 
                   Card(
-                    elevation: DesktopDimensions.cardElevation,  // ✅ Added
+                    elevation: AppTokens.cardElevation,  // ✅ Added
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
-                          DesktopDimensions.cardBorderRadius),
+                          AppTokens.cardBorderRadius),
                     ),
                     child: Padding(
                       padding:
-                          const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                          const EdgeInsets.all(AppTokens.spacingMedium),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -93,7 +93,7 @@ class AboutScreen extends StatelessWidget {
                                 color: colorScheme.onSurface),
                           ),
                           const SizedBox(
-                              height: DesktopDimensions.spacingXSmall),
+                              height: AppTokens.spacingXSmall),
                           _buildTechItem(
                               context, loc.framework, 'Flutter 3.0+'),
                           _buildTechItem(
@@ -104,7 +104,7 @@ class AboutScreen extends StatelessWidget {
                           _buildTechItem(
                               context, loc.uiFramework, 'Material Design 3'),
                           const SizedBox(
-                              height: DesktopDimensions.spacingXSmall),
+                              height: AppTokens.spacingXSmall),
                           Text(
                             loc.lastUpdated('December 2024'),
                             style: textTheme.bodySmall
@@ -114,17 +114,17 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
 
                   Card(
-                    elevation: DesktopDimensions.cardElevation,  // ✅ Added
+                    elevation: AppTokens.cardElevation,  // ✅ Added
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
-                          DesktopDimensions.cardBorderRadius),
+                          AppTokens.cardBorderRadius),
                     ),
                     child: Padding(
                       padding:
-                          const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                          const EdgeInsets.all(AppTokens.spacingMedium),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -135,7 +135,7 @@ class AboutScreen extends StatelessWidget {
                                 color: colorScheme.onSurface),
                           ),
                           const SizedBox(
-                              height: DesktopDimensions.spacingMedium),
+                              height: AppTokens.spacingMedium),
                           _buildFeatureItem(context, loc.featurePos),
                           _buildFeatureItem(
                               context, loc.featureStockManagement),
@@ -149,18 +149,18 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
 
                   // ✅ Changed from Container to Card for consistency
                   Card(
-                    elevation: DesktopDimensions.cardElevation,  // ✅ Added
+                    elevation: AppTokens.cardElevation,  // ✅ Added
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
-                          DesktopDimensions.cardBorderRadius),
+                          AppTokens.cardBorderRadius),
                     ),
                     child: Padding(
                       padding:
-                          const EdgeInsets.all(DesktopDimensions.spacingMedium),
+                          const EdgeInsets.all(AppTokens.spacingMedium),
                       child: Column(
                         children: [
                           Text(
@@ -169,7 +169,7 @@ class AboutScreen extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.onSurfaceVariant),
                           ),
-                          const SizedBox(height: DesktopDimensions.spacingSmall),
+                          const SizedBox(height: AppTokens.spacingSmall),
                           Text(
                             loc.allRightsReserved,
                             style: textTheme.bodySmall
@@ -179,7 +179,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: DesktopDimensions.spacingLarge),
+                  const SizedBox(height: AppTokens.spacingLarge),
                 ],
               ),
             ),
@@ -194,11 +194,11 @@ class AboutScreen extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding:
-          const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingSmall),
+          const EdgeInsets.symmetric(vertical: AppTokens.spacingSmall),
       child: Row(
         children: [
           SizedBox(
-            width: DesktopDimensions.sidebarMinWidth / 3,
+            width: AppTokens.sidebarMinWidth / 3,
             child: Text(
               label,
               style: textTheme.bodySmall?.copyWith(
@@ -231,13 +231,13 @@ class AboutScreen extends StatelessWidget {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding:
-          const EdgeInsets.symmetric(vertical: DesktopDimensions.spacingSmall),
+          const EdgeInsets.symmetric(vertical: AppTokens.spacingSmall),
       child: Row(
         children: [
           Icon(Icons.check_circle,
               color: colorScheme.primary,
-              size: DesktopDimensions.kpiIconSize),
-          const SizedBox(width: DesktopDimensions.spacingMedium),
+              size: AppTokens.kpiIconSize),
+          const SizedBox(width: AppTokens.spacingMedium),
           Expanded(
               child: Text(
             feature,
