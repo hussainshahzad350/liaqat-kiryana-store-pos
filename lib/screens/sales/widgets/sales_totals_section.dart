@@ -37,7 +37,7 @@ class SalesTotalsSection extends StatelessWidget {
         color: colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             offset: const Offset(0, -4),
             blurRadius: AppTokens.spacingSmall,
           )
@@ -136,7 +136,7 @@ class SalesTotalsSection extends StatelessWidget {
                         horizontal: AppTokens.spacingSmall,
                         vertical: AppTokens.spacingXSmall),
                     decoration: BoxDecoration(
-                      color: colorScheme.onPrimary.withOpacity(0.2),
+                      color: colorScheme.onPrimary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(
                           AppTokens.smallBorderRadius),
                     ),

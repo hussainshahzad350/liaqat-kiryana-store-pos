@@ -675,5 +675,54 @@
   "outOfStockError": "Product is out of stock",
   "stockLimitError": "Stock limit reached",
   "negativePriceError": "Product sale price cannot be negative",
-  "itemNegativePriceError": "Item price cannot be negative"
+  "itemNegativePriceError": "Item price cannot be negative",
+  "cannotSaveCancelledInvoiceAsPdf": "Cannot save cancelled invoice as PDF",
+  "receiptSavedTo": "Receipt saved to: {path}",
+  "@receiptSavedTo": {
+    "description": "Message shown when receipt is saved",
+    "placeholders": {
+      "path": {
+        "type": "String",
+        "example": "/Downloads/receipt_2026-03-12.pdf"
+      }
+    }
+  },
+  "errorSavingPdf": "Error saving PDF: {error}",
+  "@errorSavingPdf": {
+    "description": "Error message when PDF save fails",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "File permission denied"
+      }
+    }
+  },
+  "expired": "Expired",
+  "oldStock": "Old Stock",
+  "loadMoreItems": "Load More Items",
+  "loadMore": "Load More",
+  "errorWithDetails": "Error: {details}",
+  "@errorWithDetails": {
+    "description": "Error message with details",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "File not found"
+      }
+    }
+  },
+  "all": "All",
+  "ok": "OK",
+  "filters": "Filters",
+  "category": "Category",
+  "supplier": "Supplier",
+  "actions": "Actions",
+  "recentActivities": "Recent Activities",
+  "noDataAvailable": "No data available",
+  "date": "Date",
+  "time": "Time",
+  "activityType": "Activity Type",
+  "saveAsPdf": "Save as PDF",
+  "stockUpdated": "Stock updated successfully",
+  "invoiceCancelledSuccess": "Invoice cancelled successfully"
 }

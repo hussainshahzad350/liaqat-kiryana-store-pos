@@ -443,7 +443,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                           AppTokens.formFieldBorderRadius)),
                   prefixText: 'Rs ',
                   filled: !enabled,
-                  fillColor: enabled ? null : colorScheme.surfaceVariant,
+                  fillColor: enabled ? null : colorScheme.surfaceContainerHighest,
                   errorText: errorText,
                 ),
                 style: textTheme.bodyLarge?.copyWith(

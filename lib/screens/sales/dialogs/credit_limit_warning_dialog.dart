@@ -100,7 +100,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
                               color: colorScheme.onErrorContainer),
                           Divider(
                               color: colorScheme.onErrorContainer
-                                  .withOpacity(0.5)),
+                                  .withValues(alpha: 0.5)),
                           _infoRow(
                             context,
                             '${loc.totalBalance}:',

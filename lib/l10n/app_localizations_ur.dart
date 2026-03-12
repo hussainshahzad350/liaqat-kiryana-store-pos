@@ -829,7 +829,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get customerRestored => 'گاہک بحال ہو گیا';
 
   @override
-  String get actions => 'اعمال';
+  String get actions => 'اقدامات';
 
   @override
   String get restoreConfirmMsg =>
@@ -928,7 +928,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get cannotPrintCancelled => 'منسوخ شدہ بل پرنٹ نہیں کیا جا سکتا۔';
 
   @override
-  String get saveAsPdf => 'PDF محفوظ کریں';
+  String get saveAsPdf => 'پی ڈی ایف کے طور پر محفوظ کریں';
 
   @override
   String get startNewSale => 'نیا بل شروع کریں';
@@ -1423,7 +1423,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get newCustomerAdded => 'نیا گاہک شامل کیا گیا';
 
   @override
-  String get stockUpdated => 'اسٹاک اپ ڈیٹ ہوا';
+  String get stockUpdated => 'سٹاک کامیابی سے اپ ڈیٹ ہو گیا';
 
   @override
   String get pendingCredits => 'باقی رقم';
@@ -1464,7 +1464,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get todaysCustomers => 'Today\'s Customers';
 
   @override
-  String get activityType => 'سرگرمی';
+  String get activityType => 'سرگرمی کی قسم';
 
   @override
   String get status => 'حیثیت';
@@ -1533,7 +1533,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get fieldRequired => 'فیلڈ ضروری ہے';
 
   @override
-  String get noDataAvailable => 'کوئی ڈیٹا موجود نہیں';
+  String get noDataAvailable => 'ڈیٹا دستیاب نہیں ہے';
 
   @override
   String get refreshingData => 'ڈیٹا ریفریش ہو رہا ہے...';
@@ -1557,7 +1557,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get brand => 'برانڈ';
 
   @override
-  String get category => 'کیٹیگری';
+  String get category => 'کٹیگری';
 
   @override
   String get baseUnit => 'Base Unit';
@@ -1608,7 +1608,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get deleteItem => 'آئٹم حذف کریں';
 
   @override
-  String get all => 'سب';
+  String get all => 'تمام';
 
   @override
   String get yes => 'ہاں';
@@ -1809,7 +1809,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get yesCancelButton => 'ہاں، منسوخ کریں';
 
   @override
-  String get invoiceCancelledSuccess => 'انوائس کامیابی سے منسوخ ہو گئی';
+  String get invoiceCancelledSuccess => 'انوائس کامیابی سے منسوخ کر دی گئی';
 
   @override
   String errorMessage(Object error) {
@@ -1895,4 +1895,41 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get itemNegativePriceError => 'Item price cannot be negative';
+
+  @override
+  String get cannotSaveCancelledInvoiceAsPdf =>
+      'منسوخ شدہ انوائس کو PDF کے طور پر محفوظ نہیں کیا جا سکتا';
+
+  @override
+  String receiptSavedTo(String path) {
+    return 'رسید یہاں محفوظ کی گئی: $path';
+  }
+
+  @override
+  String errorSavingPdf(String error) {
+    return 'PDF محفوظ کرنے میں خرابی: $error';
+  }
+
+  @override
+  String get expired => 'ختم شدہ';
+
+  @override
+  String get oldStock => 'پرانا سٹاک';
+
+  @override
+  String get loadMoreItems => 'مزید آئٹمز لوڈ کریں';
+
+  @override
+  String get loadMore => 'مزید لوڈ کریں';
+
+  @override
+  String errorWithDetails(String details) {
+    return 'خرابی: $details';
+  }
+
+  @override
+  String get filters => 'فلٹرز';
+
+  @override
+  String get supplier => 'سپلائر';
 }

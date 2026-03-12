@@ -44,7 +44,7 @@ class RecentSalesSection extends StatelessWidget {
                   horizontal: AppTokens.spacingStandard,
                   vertical: AppTokens.spacingSmall),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withOpacity(0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(AppTokens.cardBorderRadius),
                   topRight: Radius.circular(AppTokens.cardBorderRadius),
@@ -85,7 +85,7 @@ class RecentSalesSection extends StatelessWidget {
                         decoration:
                             isCancelled ? TextDecoration.lineThrough : null,
                         color: isCancelled
-                            ? colorScheme.onSurface.withOpacity(0.6)
+                            ? colorScheme.onSurface.withValues(alpha: 0.6)
                             : colorScheme.onSurface,
                       ),
                     ),

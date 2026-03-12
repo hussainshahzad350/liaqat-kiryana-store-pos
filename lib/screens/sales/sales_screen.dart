@@ -1,5 +1,5 @@
 // lib/screens/sales/sales_screen.dart
-// ignore_for_file: unnecessary_to_list_in_spreads, deprecated_member_use, avoid_print
+// ignore_for_file: unnecessary_to_list_in_spreads
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -343,6 +343,7 @@ class _SalesScreenState extends State<SalesScreen> {
     final loc = AppLocalizations.of(context)!;
     final bool isRTL = Directionality.of(context) == TextDirection.rtl;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Shortcuts(
       shortcuts: SalesShortcuts.getShortcuts(),
@@ -544,8 +545,8 @@ class _SalesScreenState extends State<SalesScreen> {
                                                                     .cardBorderRadius)),
                                                     filled: true,
                                                     fillColor: colorScheme
-                                                        .surfaceVariant
-                                                        .withOpacity(0.5),
+                                                        .surfaceContainerHighest
+                                                        .withValues(alpha: 0.5),
                                                     contentPadding:
                                                         const EdgeInsets
                                                             .symmetric(
@@ -699,11 +700,10 @@ class _SalesScreenState extends State<SalesScreen> {
                                                   Expanded(
                                                       flex: 4,
                                                       child: Text(loc.item,
-                                                          style: TextStyle(
+                                                          style: textTheme.labelSmall?.copyWith(
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
-                                                              fontSize: 12,
                                                               color: colorScheme
                                                                   .onSurfaceVariant))),
                                                   SizedBox(
@@ -711,11 +711,10 @@ class _SalesScreenState extends State<SalesScreen> {
                                                       child: Text(loc.price,
                                                           textAlign:
                                                               TextAlign.center,
-                                                          style: TextStyle(
+                                                          style: textTheme.labelSmall?.copyWith(
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
-                                                              fontSize: 12,
                                                               color: colorScheme
                                                                   .onSurfaceVariant))),
                                                   const SizedBox(
@@ -726,11 +725,10 @@ class _SalesScreenState extends State<SalesScreen> {
                                                       child: Text(loc.qty,
                                                           textAlign:
                                                               TextAlign.center,
-                                                          style: TextStyle(
+                                                          style: textTheme.labelSmall?.copyWith(
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
-                                                              fontSize: 12,
                                                               color: colorScheme
                                                                   .onSurfaceVariant))),
                                                   const SizedBox(
@@ -741,11 +739,10 @@ class _SalesScreenState extends State<SalesScreen> {
                                                       child: Text(loc.total,
                                                           textAlign:
                                                               TextAlign.end,
-                                                          style: TextStyle(
+                                                          style: textTheme.labelSmall?.copyWith(
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
-                                                              fontSize: 12,
                                                               color: colorScheme
                                                                   .onSurfaceVariant))),
                                                   const SizedBox(width: 32),
@@ -772,8 +769,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                                               size: 64,
                                                               color: colorScheme
                                                                   .outline
-                                                                  .withOpacity(
-                                                                      0.5)),
+                                                                  .withValues(alpha: 0.5)),
                                                           const SizedBox(
                                                               height: AppTokens
                                                                   .spacingMedium),

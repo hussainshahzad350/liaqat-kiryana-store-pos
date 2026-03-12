@@ -1426,7 +1426,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newCustomerAdded => 'New customer added';
 
   @override
-  String get stockUpdated => 'Stock updated';
+  String get stockUpdated => 'Stock updated successfully';
 
   @override
   String get pendingCredits => 'Pending Credits';
@@ -1467,7 +1467,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get todaysCustomers => 'Today\'s Customers';
 
   @override
-  String get activityType => 'Activity';
+  String get activityType => 'Activity Type';
 
   @override
   String get status => 'Status';
@@ -1537,7 +1537,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fieldRequired => 'Field is required';
 
   @override
-  String get noDataAvailable => 'No Data Available';
+  String get noDataAvailable => 'No data available';
 
   @override
   String get refreshingData => 'Refreshing Data';
@@ -1899,4 +1899,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get itemNegativePriceError => 'Item price cannot be negative';
+
+  @override
+  String get cannotSaveCancelledInvoiceAsPdf =>
+      'Cannot save cancelled invoice as PDF';
+
+  @override
+  String receiptSavedTo(String path) {
+    return 'Receipt saved to: $path';
+  }
+
+  @override
+  String errorSavingPdf(String error) {
+    return 'Error saving PDF: $error';
+  }
+
+  @override
+  String get expired => 'Expired';
+
+  @override
+  String get oldStock => 'Old Stock';
+
+  @override
+  String get loadMoreItems => 'Load More Items';
+
+  @override
+  String get loadMore => 'Load More';
+
+  @override
+  String errorWithDetails(String details) {
+    return 'Error: $details';
+  }
+
+  @override
+  String get filters => 'Filters';
+
+  @override
+  String get supplier => 'Supplier';
 }

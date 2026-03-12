@@ -657,5 +657,54 @@
     }
   },
   "shortcutCtrlN": "Ctrl + N",
-  "shortcutF5": "F5"
+  "shortcutF5": "F5",
+  "cannotSaveCancelledInvoiceAsPdf": "منسوخ شدہ انوائس کو PDF کے طور پر محفوظ نہیں کیا جا سکتا",
+  "receiptSavedTo": "رسید یہاں محفوظ کی گئی: {path}",
+  "@receiptSavedTo": {
+    "description": "رسید کے محفوظ ہونے پر پیغام",
+    "placeholders": {
+      "path": {
+        "type": "String",
+        "example": "/Downloads/receipt_2026-03-12.pdf"
+      }
+    }
+  },
+  "errorSavingPdf": "PDF محفوظ کرنے میں خرابی: {error}",
+  "@errorSavingPdf": {
+    "description": "PDF محفوظ کرنے میں ناکامی کا پیغام",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "فائل کی اجازت مسترد"
+      }
+    }
+  },
+  "expired": "ختم شدہ",
+  "oldStock": "پرانا سٹاک",
+  "loadMoreItems": "مزید آئٹمز لوڈ کریں",
+  "loadMore": "مزید لوڈ کریں",
+  "errorWithDetails": "خرابی: {details}",
+  "@errorWithDetails": {
+    "description": "تفصیلات کے ساتھ خرابی کا پیغام",
+    "placeholders": {
+      "details": {
+        "type": "String",
+        "example": "فائل نہیں ملی"
+      }
+    }
+  },
+  "all": "تمام",
+  "ok": "ٹھیک ہے",
+  "filters": "فلٹرز",
+  "category": "کٹیگری",
+  "supplier": "سپلائر",
+  "actions": "اقدامات",
+  "recentActivities": "حالیہ سرگرمیاں",
+  "noDataAvailable": "ڈیٹا دستیاب نہیں ہے",
+  "date": "تاریخ",
+  "time": "وقت",
+  "activityType": "سرگرمی کی قسم",
+  "saveAsPdf": "پی ڈی ایف کے طور پر محفوظ کریں",
+  "stockUpdated": "سٹاک کامیابی سے اپ ڈیٹ ہو گیا",
+  "invoiceCancelledSuccess": "انوائس کامیابی سے منسوخ کر دی گئی"
 }

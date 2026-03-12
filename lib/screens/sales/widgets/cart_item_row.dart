@@ -86,7 +86,7 @@ class _CartItemRowState extends State<CartItemRow> {
           vertical: AppTokens.spacingSmall),
       color: widget.index % 2 == 0
           ? widget.colorScheme.surface
-          : widget.colorScheme.surfaceVariant.withOpacity(0.2),
+          : widget.colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
       child: Row(
         children: [
           Expanded(

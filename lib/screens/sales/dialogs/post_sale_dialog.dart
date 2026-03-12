@@ -74,8 +74,8 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Dialog(
         shape: RoundedRectangleBorder(
             borderRadius:
@@ -122,8 +122,8 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text(
-                                'Cannot save cancelled invoice as PDF'),
+                            content: Text(
+                                loc.cannotSaveCancelledInvoiceAsPdf),
                             backgroundColor: errorColor,
                           ),
                         );
@@ -137,11 +137,11 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
                           .saveReceiptAsPDF(widget.invoice);
                       if (mounted) {
                         scaffoldMessenger.showSnackBar(
-                          SnackBar(content: Text('Receipt saved to: $path')),
+                          SnackBar(content: Text(loc.receiptSavedTo(path))),
                         );
                       }
                     } catch (e) {
-                      final errorMsg = 'Error saving PDF: $e';
+                      final errorMsg = loc.errorSavingPdf(e.toString());
                       if (mounted) {
                         scaffoldMessenger.showSnackBar(
                           SnackBar(

@@ -30,12 +30,12 @@ class ProductCard extends StatelessWidget {
         side: BorderSide(
             color: isFocused
                 ? colorScheme.primary
-                : colorScheme.outlineVariant.withOpacity(0.3),
+                : colorScheme.outlineVariant.withValues(alpha: 0.3),
             width: isFocused ? 2 : 1),
       ),
       child: InkWell(
         onTap: onTap,
-        hoverColor: colorScheme.primaryContainer.withOpacity(0.3),
+        hoverColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
         child: Stack(
           children: [
             Padding(
@@ -48,7 +48,7 @@ class ProductCard extends StatelessWidget {
                     children: [
                       Icon(Icons.inventory_2_outlined,
                           size: AppTokens.iconSizeSmall,
-                          color: colorScheme.primary.withOpacity(0.7)),
+                          color: colorScheme.primary.withValues(alpha: 0.7)),
                       const SizedBox(width: AppTokens.spacingXSmall),
                       Flexible(
                         child: Text(

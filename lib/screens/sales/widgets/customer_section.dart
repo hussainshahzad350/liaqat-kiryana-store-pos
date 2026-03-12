@@ -97,7 +97,7 @@ class CustomerSection extends StatelessWidget {
                       AppTokens.buttonBorderRadius),
                   boxShadow: [
                     BoxShadow(
-                        color: colorScheme.shadow.withOpacity(0.1),
+                        color: colorScheme.shadow.withValues(alpha: 0.1),
                         blurRadius: AppTokens.spacingXSmall)
                   ],
                 ),
@@ -105,8 +105,8 @@ class CustomerSection extends StatelessWidget {
                     ? Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(loc.noCustomersFound,
-                            style:
-                                TextStyle(color: colorScheme.onSurfaceVariant)),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant)),
                       )
                     : ListView.separated(
                         shrinkWrap: true,
@@ -122,15 +122,15 @@ class CustomerSection extends StatelessWidget {
                                 nameEnglish: c.nameEnglish,
                                 nameUrdu: c.nameUrdu,
                               ),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text(c.contactPrimary ?? ''),
                             trailing: Text(
                                 '${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),
                             onTap: () => onSelectCustomer(c),
                             hoverColor:
-                                colorScheme.primaryContainer.withOpacity(0.1),
+                                colorScheme.primaryContainer.withValues(alpha: 0.1),
                           );
                         },
                       ),

@@ -2879,7 +2879,7 @@ abstract class AppLocalizations {
   /// No description provided for @stockUpdated.
   ///
   /// In en, this message translates to:
-  /// **'Stock updated'**
+  /// **'Stock updated successfully'**
   String get stockUpdated;
 
   /// No description provided for @pendingCredits.
@@ -2957,7 +2957,7 @@ abstract class AppLocalizations {
   /// No description provided for @activityType.
   ///
   /// In en, this message translates to:
-  /// **'Activity'**
+  /// **'Activity Type'**
   String get activityType;
 
   /// No description provided for @status.
@@ -3095,7 +3095,7 @@ abstract class AppLocalizations {
   /// No description provided for @noDataAvailable.
   ///
   /// In en, this message translates to:
-  /// **'No Data Available'**
+  /// **'No data available'**
   String get noDataAvailable;
 
   /// No description provided for @refreshingData.
@@ -3763,6 +3763,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Item price cannot be negative'**
   String get itemNegativePriceError;
+
+  /// No description provided for @cannotSaveCancelledInvoiceAsPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot save cancelled invoice as PDF'**
+  String get cannotSaveCancelledInvoiceAsPdf;
+
+  /// Message shown when receipt is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt saved to: {path}'**
+  String receiptSavedTo(String path);
+
+  /// Error message when PDF save fails
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving PDF: {error}'**
+  String errorSavingPdf(String error);
+
+  /// No description provided for @expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get expired;
+
+  /// No description provided for @oldStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Old Stock'**
+  String get oldStock;
+
+  /// No description provided for @loadMoreItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Load More Items'**
+  String get loadMoreItems;
+
+  /// No description provided for @loadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load More'**
+  String get loadMore;
+
+  /// Error message with details
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {details}'**
+  String errorWithDetails(String details);
+
+  /// No description provided for @filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get filters;
+
+  /// No description provided for @supplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get supplier;
 }
 
 class _AppLocalizationsDelegate
