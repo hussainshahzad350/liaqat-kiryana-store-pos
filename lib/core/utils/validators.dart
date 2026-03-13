@@ -1,15 +1,21 @@
+import '../../../l10n/app_localizations.dart';
+
 class Validators {
-  static String? validateNotEmpty(String? value, String fieldName) {
+  Validators._();
+
+  static String? validateNotEmpty(
+      String? value, String fieldName, AppLocalizations loc) {
     if (value == null || value.trim().isEmpty) {
-      return '$fieldName is required';
+      return loc.fieldRequired(fieldName);
     }
     return null;
   }
-  
-  static String? validatePhone(String? value) {
+
+  static String? validatePhone(String? value, AppLocalizations loc) {
     if (value == null || value.isEmpty) return null;
-    if (!RegExp(r'^\d{10,}$').hasMatch(value.replaceAll(RegExp(r'[^\d]'), ''))) {
-      return 'Invalid phone number';
+    final digits = value.replaceAll(RegExp(r'[^\d]'), '');
+    if (!RegExp(r'^\d{10,11}$').hasMatch(digits)) {
+      return loc.invalidPhone;
     }
     return null;
   }

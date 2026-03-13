@@ -90,20 +90,4 @@ class AppColors {
       900: Color(0xFFB71C1C),
     },
   );
-
-  static const MaterialColor lightGreenPrimary = AppColors.green;
-  static const Color lightGreenAccent = Color(0xFF388E3C);
-  static const Color darkBackground = AppColors.black;
-  static const MaterialColor darkGreenPrimary = AppColors.green;
-  static const Color darkGreenAccent = Color(0xFF81C784); // AppColors.green[300]
-  static const Color darkSurface = AppColors.darkGrey;
-  static const Color darkPrimaryText = AppColors.white;
-  static const Color darkSecondaryText = AppColors.lightGrey;
-  static const Color darkDivider = AppColors.darkGrey;
-
-  static const MaterialColor lightBluePrimary = AppColors.blue;
-  static const Color lightBlueAccent = Color(0xFF1976D2); // AppColors.blue[700]
-
-  static const MaterialColor darkBluePrimary = AppColors.blue;
-  static const Color darkBlueAccent = Color(0xFF64B5F6); // AppColors.blue[300]
 }

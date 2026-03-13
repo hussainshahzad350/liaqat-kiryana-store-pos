@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import 'invoice_item_model.dart';
+import '../features/sales/domain/entities/sale_status.dart';
 
 /// Represents a finalized financial document (Invoice).
 /// Maps to the 'invoices' table.
@@ -9,6 +10,7 @@ class Invoice {
   static const String statusPosted = 'POSTED';
   static const String statusVoid = 'VOID';
   static const String statusCancelled = 'CANCELLED';
+  static const String statusCompleted = 'COMPLETED';
   final int? id;
   final String invoiceNumber;
   final int customerId;
@@ -69,9 +71,13 @@ class Invoice {
   bool get isDraft => status == statusDraft;
   bool get isPosted => status == statusPosted;
   bool get isVoid => status == statusVoid;
-  bool get isCancelled => status == statusCancelled;
+  bool get isCancelled => status == SaleStatus.cancelled.dbValue;
+  bool get isCompleted => status == SaleStatus.completed.dbValue;
 
-  bool get isReadOnly => status == statusPosted || status == statusVoid;
+  bool get isReadOnly =>
+      status == statusPosted ||
+      status == statusVoid ||
+      status == SaleStatus.cancelled.dbValue;
 
   bool get isMathematicallyValid {
     final sumItems = items.fold<int>(0, (sum, item) => sum + item.subtotal);

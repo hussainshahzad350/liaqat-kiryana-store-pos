@@ -56,7 +56,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
                 controller: _tabController,
                 isScrollable: true,
                 labelColor: colorScheme.onPrimary,
-                unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
+                unselectedLabelColor: colorScheme.onPrimary.withValues(alpha: 0.7),
                 indicatorColor: colorScheme.onPrimary,
                 tabs: [
                   Tab(icon: const Icon(Icons.shopping_bag), text: loc.sales),
@@ -199,7 +199,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                                         color: colorScheme.primary)),
                                 filled: true,
                                 fillColor:
-                                    colorScheme.surfaceVariant.withOpacity(0.3),
+                                    colorScheme.surfaceVariant.withValues(alpha: 0.3),
                               ),
                               onTap: () => _selectDate(context, true),
                             ),
@@ -238,7 +238,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                                         color: colorScheme.primary)),
                                 filled: true,
                                 fillColor:
-                                    colorScheme.surfaceVariant.withOpacity(0.3),
+                                    colorScheme.surfaceVariant.withValues(alpha: 0.3),
                               ),
                               onTap: () => _selectDate(context, false),
                             ),
@@ -526,7 +526,7 @@ class PurchaseReportTab extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shopping_cart, size: 100, color: colorScheme.primary.withOpacity(0.5)),
+          Icon(Icons.shopping_cart, size: 100, color: colorScheme.primary.withValues(alpha: 0.5)),
           const SizedBox(height: 20),
           Text(
             loc.purchaseReport,
@@ -863,7 +863,7 @@ class SummaryCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(AppTokens.spacingMedium),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius:
                     BorderRadius.circular(AppTokens.cardBorderRadius),
               ),
@@ -903,7 +903,7 @@ class ProfitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      color: color.withOpacity(0.1),
+      color: color.withValues(alpha: 0.1),
       child: Padding(
         padding: const EdgeInsets.all(AppTokens.spacingStandard),
         child: Column(

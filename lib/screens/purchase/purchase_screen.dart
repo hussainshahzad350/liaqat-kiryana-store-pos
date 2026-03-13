@@ -314,7 +314,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
               // Header Section
               Container(
                 padding: const EdgeInsets.all(AppTokens.spacingMedium),
-                color: colorScheme.surfaceVariant.withOpacity(0.3),
+                color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
                 child: Column(
                   children: [
                     Row(
@@ -339,7 +339,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                                     ?.copyWith(
                                       color: _selectedSupplier == null
                                           ? colorScheme.onSurface
-                                              .withOpacity(0.5)
+                                              .withValues(alpha: 0.5)
                                           : colorScheme.onSurface,
                                     ),
                               ),
@@ -463,7 +463,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                   color: colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
-                        color: colorScheme.shadow.withOpacity(0.1),
+                        color: colorScheme.shadow.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, -2))
                   ],

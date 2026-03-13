@@ -308,9 +308,12 @@ class _SalesScreenState extends State<SalesScreen> {
     if (invoice.isCancelled) {
       return;
     }
+    final colorScheme = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(AppLocalizations.of(context)!.editFeatureComingSoon)),
+        content: Text(AppLocalizations.of(context)!.editFeatureComingSoon),
+        backgroundColor: colorScheme.primary,
+      ),
     );
   }
 
@@ -694,7 +697,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                                           AppTokens
                                                               .spacingMedium),
                                               color: colorScheme.surfaceVariant
-                                                  .withOpacity(0.5),
+                                                  .withValues(alpha: 0.5),
                                               child: Row(
                                                 children: [
                                                   Expanded(

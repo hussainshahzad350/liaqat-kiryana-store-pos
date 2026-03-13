@@ -818,7 +818,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
             if (_nameEngCtrl.text.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(
-                      "${localizations.englishName} ${localizations.fieldRequired}")));
+                      localizations.fieldRequired(localizations.englishName))));
               return;
             }
             final product =

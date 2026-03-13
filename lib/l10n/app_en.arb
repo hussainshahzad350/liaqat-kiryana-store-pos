@@ -724,5 +724,9 @@
   "activityType": "Activity Type",
   "saveAsPdf": "Save as PDF",
   "stockUpdated": "Stock updated successfully",
-  "invoiceCancelledSuccess": "Invoice cancelled successfully"
+  "invoiceCancelledSuccess": "Invoice cancelled successfully",
+  "unknownError": "An unknown error occurred",
+  "fieldRequired": "{field} is required",
+  "@fieldRequired": { "placeholders": { "field": { "type": "String" } } },
+  "invalidPhone": "Invalid phone number"
 }

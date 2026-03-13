@@ -2,11 +2,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app_navigation_sidebar.dart';
 import '../l10n/app_localizations.dart';
 import '../core/routes/app_routes.dart';
-import '../core/providers/sidebar_provider.dart';
+import '../core/cubits/sidebar_cubit.dart';
 import 'app_header.dart';
 
 class MainLayout extends StatelessWidget {
@@ -24,17 +24,12 @@ class MainLayout extends StatelessWidget {
     final localizations = AppLocalizations.of(context)!;
     final isEnglish = localizations.localeName == 'en';
     final colorScheme = Theme.of(context).colorScheme;
-    final sidebarProvider = Provider.of<SidebarProvider>(context, listen: false);
-
-    const newSaleIntent = _NewSaleIntent();
-    const refreshIntent = _RefreshIntent();
-    const toggleSidebarIntent = _ToggleSidebarIntent();
 
     return Shortcuts(
-      shortcuts: <LogicalKeySet, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyN): newSaleIntent,
-        LogicalKeySet(LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyR): refreshIntent,
-        LogicalKeySet(LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyB): toggleSidebarIntent,
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.keyN, control: true): _NewSaleIntent(),
+        SingleActivator(LogicalKeyboardKey.keyR, control: true): _RefreshIntent(),
+        SingleActivator(LogicalKeyboardKey.keyB, control: true): _ToggleSidebarIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
@@ -55,7 +50,7 @@ class MainLayout extends StatelessWidget {
             return null;
           }),
           _ToggleSidebarIntent: CallbackAction<_ToggleSidebarIntent>(onInvoke: (intent) {
-            sidebarProvider.toggleSidebar();
+            context.read<SidebarCubit>().toggle();
             return null;
           }),
         },

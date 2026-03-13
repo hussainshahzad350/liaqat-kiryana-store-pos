@@ -56,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 controller: _tabController,
                 isScrollable: true,
                 labelColor: colorScheme.onPrimary,
-                unselectedLabelColor: colorScheme.onPrimary.withOpacity(0.7),
+                unselectedLabelColor: colorScheme.onPrimary.withValues(alpha: 0.7),
                 indicatorColor: colorScheme.onPrimary,
                 tabs: [
                   Tab(icon: const Icon(Icons.store), text: loc.shopProfile),
@@ -146,10 +146,11 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
     if (!mounted) return;
     if (mounted) {
       final loc = AppLocalizations.of(context)!;
+      final colorScheme = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.saveChangesSuccess),
-          backgroundColor: Theme.of(context).primaryColor,
+          backgroundColor: colorScheme.primary,
         ),
       );
     }
@@ -186,7 +187,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                         children: [
                           CircleAvatar(
                             radius: 50,
-                            backgroundColor: Theme.of(context).primaryColor,
+                            backgroundColor: colorScheme.primary,
                             child: const Icon(Icons.store,
                                 size: 50, color: Colors.white),
                           ),
@@ -269,7 +270,7 @@ class _ShopProfileTabState extends State<ShopProfileTab> {
                           TextFormField(
                             controller: _primaryPhoneController,
                             validator: (value) => value == null || value.isEmpty
-                                ? loc.fieldRequired
+                                ? loc.fieldRequired(loc.primaryPhone)
                                 : null,
                             decoration: InputDecoration(
                               labelText: '${loc.primaryPhone} *',
@@ -377,6 +378,7 @@ class _BackupTabState extends State<BackupTab> {
   Future<void> _confirmRestore(String backupPath) async {
     final fileName = basename(backupPath);
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     bool? confirm = await showDialog<bool>(
       context: context,
@@ -410,8 +412,8 @@ class _BackupTabState extends State<BackupTab> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(success ? loc.restoreSuccess : loc.restoreFailed),
           backgroundColor: success
-              ? Theme.of(context).primaryColor
-              : Theme.of(context).colorScheme.error,
+              ? colorScheme.primary
+              : colorScheme.error,
         ));
         if (success) {
           // You might want to restart the app or re-initialize services here
@@ -425,6 +427,7 @@ class _BackupTabState extends State<BackupTab> {
   Future<void> _confirmDelete(String backupPath) async {
     final fileName = basename(backupPath);
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     bool? confirm = await showDialog<bool>(
       context: context,
@@ -439,7 +442,7 @@ class _BackupTabState extends State<BackupTab> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error),
+                backgroundColor: colorScheme.error),
             child:
                 Text(loc.delete, style: const TextStyle(color: Colors.white)),
           ),
@@ -454,8 +457,8 @@ class _BackupTabState extends State<BackupTab> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(success ? loc.backupDeleted : loc.deleteFailed),
           backgroundColor: success
-              ? Theme.of(context).primaryColor
-              : Theme.of(context).colorScheme.error,
+              ? colorScheme.primary
+              : colorScheme.error,
         ));
       }
       if (success) {
@@ -492,7 +495,7 @@ class _BackupTabState extends State<BackupTab> {
                   const SizedBox(height: AppTokens.spacingMedium),
                   ListTile(
                     leading: Icon(Icons.storage,
-                        color: Theme.of(context).primaryColor),
+                        color: colorScheme.primary),
                     title:
                         const Text("app_database.db"), // Assuming a static name
                     subtitle: Text(
@@ -500,7 +503,7 @@ class _BackupTabState extends State<BackupTab> {
                   ),
                   ListTile(
                     leading: Icon(Icons.history,
-                        color: Theme.of(context).primaryColor),
+                        color: colorScheme.primary),
                     title: Text(loc.lastBackup),
                     subtitle: Text(backups.isNotEmpty
                         ? DateFormat('dd-MM-yyyy HH:mm')
@@ -521,7 +524,11 @@ class _BackupTabState extends State<BackupTab> {
                   Text(
                     loc.backupOptions,
                     style: TextStyle(
-                        fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
+                        fontSize: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.fontSize ??
+                            24.0,
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppTokens.spacingMedium),
@@ -532,7 +539,7 @@ class _BackupTabState extends State<BackupTab> {
                       label: Text(loc.createBackupNow,
                           style: const TextStyle(color: Colors.white)),
                       onPressed: () async {
-                        final theme = Theme.of(context);
+                        final colorScheme = Theme.of(context).colorScheme;
                         setState(() => isLoading = true);
                         final success = await _createBackup();
                         if (mounted) setState(() => isLoading = false);
@@ -544,8 +551,8 @@ class _BackupTabState extends State<BackupTab> {
                           content: Text(
                               success ? loc.backupCreated : loc.backupFailed),
                           backgroundColor: success
-                              ? theme.primaryColor
-                              : theme.colorScheme.error,
+                              ? colorScheme.primary
+                              : colorScheme.error,
                         ));
 
                         if (success) {
@@ -660,7 +667,7 @@ class _BackupTabState extends State<BackupTab> {
                         children: [
                           ListTile(
                             leading: Icon(Icons.insert_drive_file,
-                                color: Theme.of(context).primaryColor),
+                                color: colorScheme.primary),
                             title: Text(fileName),
                             subtitle: Text(
                                 '$dateStr • ${size.toStringAsFixed(2)} MB'),
@@ -669,7 +676,7 @@ class _BackupTabState extends State<BackupTab> {
                               children: [
                                 IconButton(
                                   icon: Icon(Icons.restore,
-                                      color: Theme.of(context).primaryColor),
+                                      color: colorScheme.primary),
                                   onPressed: () =>
                                       _confirmRestore(backup['path'] as String),
                                   tooltip: loc.restore,
@@ -677,7 +684,7 @@ class _BackupTabState extends State<BackupTab> {
                                 IconButton(
                                   icon: Icon(Icons.delete,
                                       color:
-                                          Theme.of(context).colorScheme.error),
+                                          colorScheme.error),
                                   onPressed: () =>
                                       _confirmDelete(backup['path'] as String),
                                   tooltip: loc.delete,
@@ -891,6 +898,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
 
   Future<void> _savePreferences() async {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final prefs = {
       'dateFormat': _selectedDateFormat,
       'currencySymbol': _currencySymbol,
@@ -907,7 +915,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(loc.preferencesSaved),
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: colorScheme.primary,
       ));
     }
   }
@@ -921,6 +929,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     final String currentLangCode = Localizations.localeOf(context).languageCode;
     String dropdownValue = currentLangCode == 'ur' ? 'اردو' : 'English';
@@ -1239,7 +1248,7 @@ class _PreferencesTabState extends State<PreferencesTab> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           vertical: AppTokens.spacingMedium),
-                      backgroundColor: Theme.of(context).primaryColor,
+                      backgroundColor: colorScheme.primary,
                     ),
                     child: Text(loc.savePreferences,
                         style: const TextStyle(color: Colors.white)),
@@ -1259,6 +1268,7 @@ class AboutTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTokens.spacingMedium),
@@ -1271,12 +1281,16 @@ class AboutTab extends StatelessWidget {
               child: Column(
                 children: [
                   Icon(Icons.store,
-                      size: 80, color: Theme.of(context).primaryColor),
+                      size: 80, color: colorScheme.primary),
                   const SizedBox(height: AppTokens.spacingMedium),
                   Text(
                     loc.appTitle,
                     style: TextStyle(
-                        fontSize: Theme.of(context).textTheme.headlineMedium?.fontSize ?? 28.0,
+                        fontSize: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.fontSize ??
+                            28.0,
                         fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppTokens.spacingSmall),
@@ -1499,14 +1513,15 @@ class _VacuumDatabaseButtonState extends State<_VacuumDatabaseButton> {
       width: double.infinity,
       child: OutlinedButton(
         onPressed: () async {
-          final primaryColor = Theme.of(context).primaryColor;
-          final errorColor = Theme.of(context).colorScheme.error;
+          final colorScheme = Theme.of(context).colorScheme;
+          final primaryColor = colorScheme.primary;
+          final errorColor = colorScheme.error;
           final success = await widget.repository.vacuumDatabase();
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                  success ? "Database Optimized" : "Optimization failed"),
+              content:
+                  Text(success ? "Database Optimized" : "Optimization failed"),
               backgroundColor: success ? primaryColor : errorColor,
             ),
           );
@@ -1541,7 +1556,7 @@ class BackupItem extends StatelessWidget {
       children: [
         ListTile(
           leading: Icon(Icons.insert_drive_file,
-              color: Theme.of(context).primaryColor),
+              color: colorScheme.primary),
           title: Text(fileName),
           subtitle: Text('$date • $size'),
           trailing: Row(

@@ -5,7 +5,7 @@ import '../core/res/app_tokens.dart';
 import '../l10n/app_localizations.dart';
 import '../core/routes/app_routes.dart';
 
-class AppHeader extends StatelessWidget implements PreferredSizeWidget {
+class AppHeader extends StatelessWidget {
   final String currentRoute;
 
   const AppHeader({super.key, required this.currentRoute});
@@ -18,7 +18,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       case AppRoutes.sales:
         return localizations.sales;
       case AppRoutes.purchase:
-        return "Purchase";
+        return localizations.purchase;
       case AppRoutes.stock:
         return localizations.stockManagement;
       case AppRoutes.customers:
@@ -39,7 +39,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final screenTitle = _getScreenTitle(context, currentRoute);
 
@@ -50,7 +49,7 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         color: colorScheme.primary,
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.1),
+            color: colorScheme.shadow.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -58,56 +57,14 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: Row(
         children: [
-          // LEFT: Shop Icon + Name
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.onPrimary.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.store_mall_directory,
-                  color: colorScheme.onPrimary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: AppTokens.spacingMedium),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    localizations.appTitle, // "Liaqat Kiryana Store"
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimary,
-                    ),
-                  ),
-                  Text(
-                    'POS System', // Subtitle or specific branch if needed
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: colorScheme.onPrimary.withOpacity(0.8),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
           // CENTER: Screen Title
           Expanded(
             child: Center(
               child: Text(
                 screenTitle,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: colorScheme.onPrimary,
-                  letterSpacing: 0.5,
+                  fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -121,9 +78,6 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(AppTokens.headerHeight);
 }
 
 class LiveClock extends StatefulWidget {
@@ -163,13 +117,14 @@ class _LiveClockState extends State<LiveClock> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: colorScheme.onPrimary.withOpacity(0.15),
+        color: colorScheme.onPrimary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
         border:
-            Border.all(color: colorScheme.onPrimary.withOpacity(0.3), width: 1),
+            Border.all(color: colorScheme.onPrimary.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -179,26 +134,22 @@ class _LiveClockState extends State<LiveClock> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.access_time,
-                  size: 14, color: colorScheme.onPrimary.withOpacity(0.9)),
-              const SizedBox(width: 6),
+                  size: 12, color: colorScheme.onPrimary.withValues(alpha: 0.9)),
+              const SizedBox(width: 4),
               Text(
                 _currentTime,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+                style: textTheme.labelSmall?.copyWith(
                   color: colorScheme.onPrimary,
-                  height: 1.1,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             _currentDate,
-            style: TextStyle(
-              fontSize: 10,
-              color: colorScheme.onPrimary.withOpacity(0.8),
-              height: 1.1,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onPrimary.withValues(alpha: 0.8),
             ),
           ),
         ],

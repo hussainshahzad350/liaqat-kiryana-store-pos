@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:liaqat_store/core/res/app_colors.dart';
+import 'package:liaqat_store/core/res/app_tokens.dart';
 
 /// Defines the ThemeData for each theme in the app.
 /// 
@@ -60,6 +62,13 @@ class AppThemes {
       letterSpacing: 0.15,
       height: 1.4,
     ),
+    titleSmall: TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      fontFamily: 'Roboto',
+      letterSpacing: 0.1,
+      height: 1.4,
+    ),
     bodyLarge: TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w400,
@@ -86,6 +95,20 @@ class AppThemes {
       fontWeight: FontWeight.w500,
       fontFamily: 'Roboto',
       letterSpacing: 1.25,
+      height: 1.4,
+    ),
+    labelMedium: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      fontFamily: 'Roboto',
+      letterSpacing: 0.5,
+      height: 1.4,
+    ),
+    labelSmall: TextStyle(
+      fontSize: 10,
+      fontWeight: FontWeight.w500,
+      fontFamily: 'Roboto',
+      letterSpacing: 0.5,
       height: 1.4,
     ),
   );
@@ -135,6 +158,12 @@ class AppThemes {
       fontFamily: 'NooriNastaleeq',
       height: 2.2,
     ),
+    titleSmall: TextStyle(
+      fontSize: 15,
+      fontWeight: FontWeight.w500,
+      fontFamily: 'NooriNastaleeq',
+      height: 1.8,
+    ),
     bodyLarge: TextStyle(
       fontSize: 20,
       fontWeight: FontWeight.w400,
@@ -160,28 +189,28 @@ class AppThemes {
       height: 2.2,
     ),
     labelMedium: TextStyle(
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: FontWeight.w500,
       fontFamily: 'NooriNastaleeq',
-      height: 2.2,
+      height: 1.8,
     ),
     labelSmall: TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w400,
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
       fontFamily: 'NooriNastaleeq',
-      height: 2.2,
+      height: 1.8,
     ),
   );
 
   static MaterialColor _getMaterialColor(String colorName) {
     switch (colorName) {
       case 'blue':
-        return Colors.blue;
+        return AppColors.blue;
       case 'orange':
-        return Colors.orange;
+        return AppColors.orange;
       case 'green':
       default:
-        return Colors.green;
+        return AppColors.green;
     }
   }
 
@@ -225,7 +254,7 @@ class AppThemes {
       onSurface: textColor,
       surfaceContainerHighest: inputFillColor,
       outline: dividerColor,
-      shadow: Colors.black.withOpacity(0.1), // Subtle shadows
+      shadow: Colors.black.withValues(alpha: 0.1), // Subtle shadows
     );
 
     return _buildCrystalClearTheme(
@@ -264,7 +293,7 @@ class AppThemes {
       onSurface: textColor,
       surfaceContainerHighest: inputFillColor,
       outline: dividerColor,
-      shadow: Colors.black.withOpacity(0.3),
+      shadow: Colors.black.withValues(alpha: 0.3),
     );
 
     return _buildCrystalClearTheme(
@@ -329,42 +358,42 @@ class AppThemes {
           vertical: isRTL ? 16 : 14,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8), // Less rounded for modern look
+          borderRadius: BorderRadius.circular(AppTokens.radius8), // Less rounded for modern look
           borderSide: BorderSide(color: dividerColor, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTokens.radius8),
           borderSide: BorderSide(color: dividerColor, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTokens.radius8),
           borderSide: BorderSide(color: primaryColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTokens.radius8),
           borderSide: BorderSide(color: colorScheme.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTokens.radius8),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         labelStyle: textTheme.bodyMedium?.copyWith(
-          color: textColor.withOpacity(0.7),
+          color: textColor.withValues(alpha: 0.7),
         ),
         hintStyle: textTheme.bodyMedium?.copyWith(
-          color: textColor.withOpacity(0.5),
+          color: textColor.withValues(alpha: 0.5),
         ),
-        prefixIconColor: textColor.withOpacity(0.7),
-        suffixIconColor: textColor.withOpacity(0.7),
+        prefixIconColor: textColor.withValues(alpha: 0.7),
+        suffixIconColor: textColor.withValues(alpha: 0.7),
       ),
       
       // Scrollbar - Clean and minimal
       scrollbarTheme: ScrollbarThemeData(
         thumbVisibility: WidgetStateProperty.all(true),
         trackVisibility: WidgetStateProperty.all(true),
-        thumbColor: WidgetStateProperty.all(textColor.withOpacity(0.3)),
-        trackColor: WidgetStateProperty.all(textColor.withOpacity(0.1)),
-        radius: const Radius.circular(4),
+        thumbColor: WidgetStateProperty.all(textColor.withValues(alpha: 0.3)),
+        trackColor: WidgetStateProperty.all(textColor.withValues(alpha: 0.1)),
+        radius: const Radius.circular(AppTokens.radius4),
         thickness: WidgetStateProperty.all(6),
       ),
       
@@ -372,10 +401,10 @@ class AppThemes {
       dialogTheme: DialogThemeData(
         backgroundColor: cardColor,
         surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.black.withOpacity(0.2),
+        shadowColor: Colors.black.withValues(alpha: 0.2),
         elevation: 8,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12), // Modern sharp corners
+          borderRadius: BorderRadius.circular(AppTokens.radius12), // Modern sharp corners
         ),
         titleTextStyle: textTheme.titleLarge?.copyWith(
           color: textColor,
@@ -391,9 +420,9 @@ class AppThemes {
         color: cardColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0, // Flat cards, no shadows
-        margin: const EdgeInsets.all(8),
+        margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppTokens.radius8),
           side: BorderSide(color: dividerColor, width: 1),
         ),
       ),
@@ -428,7 +457,7 @@ class AppThemes {
           shadowColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppTokens.radius8),
           ),
           padding: EdgeInsets.symmetric(
             vertical: isRTL ? 20 : 18,
@@ -458,7 +487,7 @@ class AppThemes {
         foregroundColor: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppTokens.radius16),
         ),
       ),
     );

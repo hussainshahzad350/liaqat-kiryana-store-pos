@@ -35,6 +35,16 @@ class ThemeProvider with ChangeNotifier {
       );
 
   ThemeMode get themeMode => _mode;
+
+  /// A utility function to toggle between light and dark versions of the current primary color.
+  Future<void> toggleBrightness() async {
+    final isDark = _mode == ThemeMode.dark ||
+        (_mode == ThemeMode.system &&
+            WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+                Brightness.dark);
+    await setMode(isDark ? ThemeMode.light : ThemeMode.dark);
+  }
+
   String get currentColor => _color;
   bool get isRTL => _isRTL;
 

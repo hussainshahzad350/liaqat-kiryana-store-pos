@@ -7,6 +7,7 @@ import '../../domain/entities/money.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
+import '../../features/sales/domain/entities/sale_status.dart';
 
 class InvoiceRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -79,7 +80,7 @@ class InvoiceRepository {
         'sub_total': grandTotal + discount,
         'discount_total': discount,
         'grand_total': grandTotal,
-        'status': 'COMPLETED',
+        'status': SaleStatus.completed.dbValue,
         'notes': notes,
       });
 
@@ -239,7 +240,7 @@ class InvoiceRepository {
       final invoiceRes = await txn.query(
         'invoices',
         where: 'id = ? AND status = ?',
-        whereArgs: [invoiceId, 'COMPLETED'],
+        whereArgs: [invoiceId, SaleStatus.completed.dbValue],
         limit: 1,
       );
 
@@ -256,7 +257,7 @@ class InvoiceRepository {
       await txn.update(
         'invoices',
         {
-          'status': 'CANCELLED',
+          'status': SaleStatus.cancelled.dbValue,
           'notes':
               '${invoice['notes'] ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]',
         },
@@ -429,7 +430,7 @@ class InvoiceRepository {
 
     final result = await db.rawQuery(
       'SELECT SUM(grand_total) as total FROM invoices WHERE DATE(invoice_date) = ? AND status = ?',
-      [today, 'COMPLETED'],
+      [today, SaleStatus.completed.dbValue],
     );
     return (result.first['total'] as num?)?.toInt() ?? 0;
   }

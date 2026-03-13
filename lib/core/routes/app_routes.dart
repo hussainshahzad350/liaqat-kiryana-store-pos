@@ -18,38 +18,6 @@ class AppRoutes {
   static const String cashLedger = '/cash-ledger';
   static const String settings = '/settings';
   static const String about = '/about';
-  
-  // Helper: Get route from screen type
-  static String? getCurrentRoute(String screenName) {
-    switch (screenName) {
-      case 'HomeScreen':
-        return home;
-      case 'SalesScreen':
-        return sales;
-      case 'PurchaseScreen':
-        return purchase;
-      case 'StockScreen':
-        return stock;
-      case 'ItemsScreen':
-        return items;
-      case 'CustomersScreen':
-        return customers;
-      case 'SuppliersScreen':
-        return suppliers;
-      case 'CategoriesScreen':
-        return categories;
-      case 'UnitsScreen':
-        return units;
-      case 'ReportsScreen':
-        return reports;
-      case 'CashLedgerScreen':
-        return cashLedger;
-      case 'SettingsScreen':
-        return settings;
-      case 'AboutScreen':
-        return about;
-      default:
-        return null;
-    }
-  }
+  static const String login = '/';
+  static const String logout = '/logout';
 }

@@ -14,8 +14,8 @@ class ErrorHandler {
     if (showSnackbar && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${error.toString()}'),
-          backgroundColor: Colors.red,
+          content: Text(getLocalizedMessage(error.toString(), AppLocalizations.of(context)!)),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -30,7 +30,7 @@ class ErrorHandler {
     AppLocalizations loc,
   ) {
     if (errorMessage == null || errorMessage.isEmpty) {
-      return 'An unknown error occurred';
+      return loc.unknownError;
     }
 
     final errorMap = {

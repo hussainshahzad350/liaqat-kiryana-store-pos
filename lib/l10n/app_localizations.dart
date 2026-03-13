@@ -3089,8 +3089,8 @@ abstract class AppLocalizations {
   /// No description provided for @fieldRequired.
   ///
   /// In en, this message translates to:
-  /// **'Field is required'**
-  String get fieldRequired;
+  /// **'{field} is required'**
+  String fieldRequired(String field);
 
   /// No description provided for @noDataAvailable.
   ///
@@ -3823,6 +3823,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Supplier'**
   String get supplier;
+
+  /// No description provided for @unknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unknown error occurred'**
+  String get unknownError;
+
+  /// No description provided for @invalidPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid phone number'**
+  String get invalidPhone;
 }
 
 class _AppLocalizationsDelegate

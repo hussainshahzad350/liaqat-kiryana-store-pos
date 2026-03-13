@@ -297,7 +297,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     _currentLedger, _selectedSupplierForLedger!);
                 if (!mounted) return;
                 messenger.showSnackBar(
-                  SnackBar(content: Text('Saved to: $path')),
+                  SnackBar(
+                    content: Text('Saved to: $path'),
+                    backgroundColor: colorScheme.primary,
+                  ),
                 );
               },
             ),
@@ -312,6 +315,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   Future<void> _addSupplier(String nameEng, String nameUrdu, String phone,
       String address, String type, int balance) async {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     if (nameEng.isEmpty) return;
 
     try {
@@ -324,7 +328,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         if (exists) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(loc.phoneExistsError),
-              backgroundColor: Theme.of(context).colorScheme.error));
+              backgroundColor: colorScheme.error));
           return;
         }
       }
@@ -345,17 +349,19 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(loc.supplierAdded),
-          backgroundColor: Theme.of(context).colorScheme.primary));
+          backgroundColor: colorScheme.primary));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${loc.error}: $e'),
+          backgroundColor: colorScheme.error));
     }
   }
 
   Future<void> _updateSupplier(int id, String nameEng, String nameUrdu,
       String phone, String address, String type, int balance) async {
     final loc = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     try {
       // Check phone uniqueness
       if (phone.isNotEmpty) {
@@ -367,7 +373,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
         if (exists) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(loc.phoneExistsError),
-              backgroundColor: Theme.of(context).colorScheme.error));
+              backgroundColor: colorScheme.error));
           return;
         }
       }
@@ -387,11 +393,12 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(loc.supplierUpdated),
-          backgroundColor: Theme.of(context).colorScheme.primary));
+          backgroundColor: colorScheme.primary));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${loc.error}: $e'),
+          backgroundColor: colorScheme.error));
     }
   }
 
@@ -457,8 +464,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             backgroundColor: colorScheme.error));
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('${loc.error}: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('${loc.error}: $e'),
+            backgroundColor: colorScheme.error));
       }
     }
   }
@@ -656,7 +664,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                               AppTokens.smallBorderRadius),
                           borderSide: BorderSide(color: colorScheme.outline)),
                       filled: true,
-                      fillColor: colorScheme.surfaceVariant.withOpacity(0.5),
+                      fillColor: colorScheme.surfaceVariant.withValues(alpha: 0.5),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: AppTokens.spacingSmall,
                           vertical: AppTokens.spacingSmall),
@@ -758,11 +766,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Icon(Icons.business, color: contentColor),
               Text("$count",
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: contentColor, fontWeight: FontWeight.bold))
             ]),
             Text(Money(amount).formattedNoDecimal,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: contentColor, fontWeight: FontWeight.bold)),
           ],
         ),
@@ -774,7 +782,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       AppLocalizations loc, bool isSelected) {
     return ListTile(
       selected: isSelected,
-      selectedTileColor: colorScheme.primaryContainer.withOpacity(0.2),
+      selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.2),
       contentPadding:
           const EdgeInsets.symmetric(horizontal: AppTokens.spacingStandard),
       leading: CircleAvatar(
@@ -902,7 +910,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       children: [
         GestureDetector(
             onTap: () => setState(() => _selectedSupplierForLedger = null),
-            child: Container(color: colorScheme.shadow.withOpacity(0.5))),
+            child: Container(color: colorScheme.shadow.withValues(alpha: 0.5))),
         Center(
           child: Container(
             width: AppTokens.dialogWidth,
@@ -912,7 +920,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
               borderRadius: BorderRadius.circular(AppTokens.dialogBorderRadius),
               boxShadow: [
                 BoxShadow(
-                    blurRadius: 20, color: colorScheme.shadow.withOpacity(0.25))
+                    blurRadius: 20, color: colorScheme.shadow.withValues(alpha: 0.25))
               ],
             ),
             child: Column(
@@ -977,7 +985,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppTokens.spacingMedium,
                       vertical: AppTokens.spacingSmall),
-                  color: colorScheme.surfaceVariant.withOpacity(0.3),
+                  color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
                   child: Row(
                     children: [
                       OutlinedButton.icon(
@@ -1012,7 +1020,8 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                       ),
                       if (_ledgerStartDate != null)
                         IconButton(
-                            icon: const Icon(Icons.clear, size: AppTokens.iconSizeSmall),
+                            icon: const Icon(Icons.clear,
+                                size: AppTokens.iconSizeSmall),
                             onPressed: () {
                               setState(() {
                                 _ledgerStartDate = null;
@@ -1065,7 +1074,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   padding: const EdgeInsets.symmetric(
                       vertical: AppTokens.spacingStandard,
                       horizontal: AppTokens.spacingMedium),
-                  color: colorScheme.surfaceVariant.withOpacity(0.5),
+                  color: colorScheme.surfaceVariant.withValues(alpha: 0.5),
                   child: Row(
                     children: [
                       const SizedBox(
@@ -1131,9 +1140,9 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           horizontal: AppTokens.spacingStandard,
           vertical: AppTokens.spacingSmall),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTokens.smallBorderRadius),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -1174,7 +1183,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   });
                 }
               : null,
-          hoverColor: colorScheme.surfaceVariant.withOpacity(0.3),
+          hoverColor: colorScheme.surfaceVariant.withValues(alpha: 0.3),
           child: Container(
             padding: const EdgeInsets.symmetric(
                 vertical: AppTokens.spacingStandard,
@@ -1182,7 +1191,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
             decoration: BoxDecoration(
               border: Border(
                   bottom: BorderSide(
-                      color: colorScheme.outlineVariant.withOpacity(0.5))),
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5))),
             ),
             child: Row(
               children: [
@@ -1236,7 +1245,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           curve: Curves.easeInOut,
           child: isExpanded
               ? Container(
-                  color: colorScheme.surfaceVariant.withOpacity(0.1),
+                  color: colorScheme.surfaceVariant.withValues(alpha: 0.1),
                   padding: const EdgeInsets.fromLTRB(
                       AppTokens.spacingXLarge,
                       AppTokens.spacingSmall,
@@ -1363,7 +1372,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       children: [
         GestureDetector(
             onTap: () => setState(() => _showArchiveOverlay = false),
-            child: Container(color: colorScheme.shadow.withOpacity(0.5))),
+            child: Container(color: colorScheme.shadow.withValues(alpha: 0.5))),
         Center(
           child: Container(
             width: AppTokens.dialogWidth,
@@ -1520,14 +1529,14 @@ class _HoverableCardState extends State<_HoverableCard> {
           boxShadow: [
             BoxShadow(
               color: colorScheme.shadow
-                  .withOpacity(isHoveredOrFocused ? 0.15 : 0.05),
+                  .withValues(alpha: isHoveredOrFocused ? 0.15 : 0.05),
               blurRadius: isHoveredOrFocused ? 8 : 2,
               offset: Offset(0, isHoveredOrFocused ? 4 : 2),
             ),
           ],
           border: Border.all(
             color: isHoveredOrFocused
-                ? widget.color.withOpacity(0.5)
+                ? widget.color.withValues(alpha: 0.5)
                 : Colors.transparent,
             width: 1.5,
           ),
@@ -1538,7 +1547,7 @@ class _HoverableCardState extends State<_HoverableCard> {
             onTap: widget.onTap,
             onFocusChange: (value) => setState(() => _isFocused = value),
             borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
-            hoverColor: widget.color.withOpacity(0.05),
+            hoverColor: widget.color.withValues(alpha: 0.05),
             child: widget.child,
           ),
         ),

@@ -36,10 +36,25 @@ class RTLHelper {
     return nameEnglish;
   }
 
+  /// Returns RTL-safe insets using directional start/end.
+  /// Flutter automatically maps start→left in LTR and start→right in RTL.
+  static EdgeInsetsDirectional directionalInsets({
+    double start = 0,
+    double top = 0,
+    double end = 0,
+    double bottom = 0,
+  }) {
+    return EdgeInsetsDirectional.fromSTEB(start, top, end, bottom);
+  }
+
   /// Get EdgeInsets with RTL-aware horizontal values
   ///
   /// In RTL mode, left and right are swapped automatically by Flutter,
   /// but you can use this for explicit RTL-aware padding.
+  @Deprecated(
+    'Use EdgeInsetsDirectional.fromSTEB() directly or RTLHelper.directionalInsets(). '
+    'Flutter handles RTL start/end automatically.'
+  )
   static EdgeInsets edgeInsets({
     required BuildContext context,
     double? all,
@@ -61,6 +76,20 @@ class RTLHelper {
       top: top ?? vertical ?? 0,
       right: isRtl ? (left ?? horizontal ?? 0) : (right ?? horizontal ?? 0),
       bottom: bottom ?? vertical ?? 0,
+    );
+  }
+
+  /// Returns an icon that is horizontally mirrored in RTL mode.
+  /// Use for directional icons like arrows, chevrons.
+  static Widget directionalIcon(
+    BuildContext context, {
+    required IconData icon,
+    double? size,
+    Color? color,
+  }) {
+    return Transform.scale(
+      scaleX: isRTL(context) ? -1.0 : 1.0,
+      child: Icon(icon, size: size, color: color),
     );
   }
 

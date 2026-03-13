@@ -706,5 +706,9 @@
   "activityType": "سرگرمی کی قسم",
   "saveAsPdf": "پی ڈی ایف کے طور پر محفوظ کریں",
   "stockUpdated": "سٹاک کامیابی سے اپ ڈیٹ ہو گیا",
-  "invoiceCancelledSuccess": "انوائس کامیابی سے منسوخ کر دی گئی"
+  "invoiceCancelledSuccess": "انوائس کامیابی سے منسوخ کر دی گئی",
+  "unknownError": "ایک نامعلوم خرابی پیش آئی",
+  "fieldRequired": "{field} لازمی ہے",
+  "@fieldRequired": { "placeholders": { "field": { "type": "String" } } },
+  "invalidPhone": "فون نمبر غلط ہے"
 }

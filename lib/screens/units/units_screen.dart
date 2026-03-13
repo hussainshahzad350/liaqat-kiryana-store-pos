@@ -137,15 +137,16 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
-                                            content:
-                                                Text(loc.systemUnitWarning)),
+                                          content: Text(loc.systemUnitWarning),
+                                          backgroundColor: colorScheme.error,
+                                        ),
                                       );
                                     } else {
                                       _showEditUnitDialog(context, unit);
                                     }
                                   },
                                   hoverColor: colorScheme.primaryContainer
-                                      .withOpacity(0.1),
+                                      .withValues(alpha: 0.1),
                                   child: Container(
                                     height: AppTokens.buttonHeight,
                                     padding: const EdgeInsets.symmetric(
@@ -220,7 +221,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                     border: Border.all(
                                                         color: colorScheme
                                                             .outline
-                                                            .withOpacity(0.3)),
+                                                            .withValues(alpha: 0.3)),
                                                   ),
                                                   child: Text(
                                                     'System',
@@ -280,7 +281,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                         .iconSizeMedium),
                                                 color: unit.isSystem
                                                     ? colorScheme.outline
-                                                        .withOpacity(0.5)
+                                                        .withValues(alpha: 0.5)
                                                     : colorScheme.primary,
                                                 onPressed: unit.isSystem
                                                     ? null
@@ -297,7 +298,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                         .iconSizeMedium),
                                                 color: unit.isSystem
                                                     ? colorScheme.outline
-                                                        .withOpacity(0.5)
+                                                        .withValues(alpha: 0.5)
                                                     : colorScheme.error,
                                                 onPressed: unit.isSystem
                                                     ? null

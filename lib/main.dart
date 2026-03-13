@@ -17,7 +17,7 @@ import 'bloc/stock/stock_overview/stock_overview_bloc.dart';
 import 'bloc/stock/stock_overview/stock_overview_event.dart';
 import 'bloc/units/units_bloc.dart';
 import 'bloc/units/units_event.dart';
-import 'core/providers/sidebar_provider.dart';
+import 'core/cubits/sidebar_cubit.dart';
 import 'core/repositories/categories_repository.dart';
 import 'core/repositories/customers_repository.dart';
 import 'core/repositories/invoice_repository.dart';
@@ -79,7 +79,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => SidebarProvider()),
+        BlocProvider(create: (_) => SidebarCubit()),
         ChangeNotifierProvider(
             create: (_) => ThemeProvider(settingsRepository)),
         RepositoryProvider(create: (context) => settingsRepository),

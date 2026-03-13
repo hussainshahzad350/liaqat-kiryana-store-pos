@@ -201,7 +201,10 @@ class _StockScreenState extends State<StockScreen> {
                 if (!mounted) return;
                 if (state is StockActivityActionSuccess) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(_localizedActionMessage(loc, state.message))),
+                    SnackBar(
+                      content: Text(_localizedActionMessage(loc, state.message)),
+                      backgroundColor: colorScheme.primary,
+                    ),
                   );
                   final filterState = context.read<StockFilterBloc>().state;
                   context.read<StockOverviewBloc>().add(LoadStockOverview(
@@ -266,7 +269,10 @@ class _StockScreenState extends State<StockScreen> {
           const SizedBox(width: AppTokens.spacingStandard),
           ElevatedButton.icon(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.adjustStock)));
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(loc.adjustStock),
+                backgroundColor: colorScheme.primary,
+              ));
             },
             icon: const Icon(Icons.tune),
             label: Text(loc.adjustStock),

@@ -105,7 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error_outline, color: Theme.of(context).colorScheme.onError),
+                Icon(Icons.error_outline,
+                    color: Theme.of(context).colorScheme.onError),
                 const SizedBox(width: AppTokens.spacingStandard),
                 Expanded(
                     child: Text(AppLocalizations.of(context)!
@@ -406,7 +407,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final textTheme = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppTokens.spacingMedium, vertical: AppTokens.spacingStandard),
+          horizontal: AppTokens.spacingMedium,
+          vertical: AppTokens.spacingStandard),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         border: Border(
@@ -425,8 +427,9 @@ class _HomeScreenState extends State<HomeScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.surface,
                 foregroundColor: colorScheme.primary,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppTokens.space24, vertical: AppTokens.spacingStandard),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.space24,
+                    vertical: AppTokens.spacingStandard),
                 elevation: 3,
                 shadowColor: colorScheme.shadow.withValues(alpha: 0.2),
                 side: BorderSide(color: colorScheme.primary, width: 2),
@@ -452,7 +455,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   size: 22, color: colorScheme.primary),
               label: Text(
                 localizations.generateBillWithShortcut,
-                style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.primary),
+                style: textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold, color: colorScheme.primary),
               ),
             ),
 
@@ -569,10 +573,13 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: colorScheme.surface,
           foregroundColor: color,
           side: BorderSide(color: color, width: 1.5),
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingMedium, vertical: AppTokens.spacingStandard),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.spacingMedium,
+              vertical: AppTokens.spacingStandard),
           elevation: 2,
           shadowColor: colorScheme.shadow.withValues(alpha: 0.1),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radius8)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTokens.radius8)),
         ).copyWith(
           overlayColor: WidgetStateProperty.resolveWith<Color?>(
             (Set<WidgetState> states) {
@@ -603,7 +610,8 @@ class _HomeScreenState extends State<HomeScreen> {
         icon: Icon(icon, size: 18, color: color),
         label: Text(
           label,
-          style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: color),
+          style: textTheme.bodySmall
+              ?.copyWith(fontWeight: FontWeight.w600, color: color),
         ),
       ),
     );
@@ -814,7 +822,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     message: localizations.trendTooltip(trend),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: AppTokens.spacingSmall, vertical: AppTokens.spacingXSmall),
+                          horizontal: AppTokens.spacingSmall,
+                          vertical: AppTokens.spacingXSmall),
                       decoration: BoxDecoration(
                         color: trendUp
                             ? colorScheme.primary.withValues(alpha: 0.1)
@@ -834,9 +843,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(width: 2),
                           Text(
                             trend,
-                            style: textTheme.labelSmall?.copyWith(fontWeight: FontWeight.bold, color: trendUp
-                                  ? colorScheme.primary
-                                  : colorScheme.error),
+                            style: textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: trendUp
+                                    ? colorScheme.primary
+                                    : colorScheme.error),
                           ),
                         ],
                       ),
@@ -861,14 +872,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     title,
-                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                    style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: AppTokens.spacingXXSmall),
                   Text(
                     value,
-                    style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                    style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -876,7 +891,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: AppTokens.spacingXXSmall),
                     Text(
                       subtitle,
-                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                      style: textTheme.bodySmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -952,7 +968,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: AppTokens.spacingStandard),
                 Text(
                   localizations.todaysCustomers,
-                  style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                  style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface),
                 ),
               ],
             ),
@@ -966,7 +984,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     localizations.cashSale;
                 final amount = (customer['total_amount'] as num?)?.toInt() ?? 0;
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: AppTokens.spacingStandard),
+                  padding:
+                      const EdgeInsets.only(bottom: AppTokens.spacingStandard),
                   child: Row(
                     children: [
                       CircleAvatar(
@@ -979,14 +998,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       Expanded(
                         child: Text(
                           name,
-                          style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                          style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
                         Money(amount).formattedNoDecimal,
-                        style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.tertiary),
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.tertiary),
                       ),
                     ],
                   ),
@@ -1004,7 +1027,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: AppTokens.spacingSmall),
                       Text(
                         localizations.noCustomersToday,
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -1037,7 +1061,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: AppTokens.spacingStandard),
                 Text(
                   localizations.lowStock,
-                  style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                  style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface),
                 ),
               ],
             ),
@@ -1053,14 +1079,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 final unit =
                     item['unit_type']?.toString() ?? localizations.units;
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: AppTokens.spacingStandard),
+                  padding:
+                      const EdgeInsets.only(bottom: AppTokens.spacingStandard),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(AppTokens.spacingSmall),
                         decoration: BoxDecoration(
                           color: colorScheme.errorContainer,
-                          borderRadius: BorderRadius.circular(AppTokens.radius8),
+                          borderRadius:
+                              BorderRadius.circular(AppTokens.radius8),
                         ),
                         child: Icon(Icons.inventory_2,
                             size: 18, color: colorScheme.onErrorContainer),
@@ -1072,13 +1100,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               name,
-                              style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                              style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.onSurface),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
                               _buildOnlyLeftText(localizations, stock, unit),
-                              style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                              style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -1101,7 +1132,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: AppTokens.spacingSmall),
                       Text(
                         localizations.allStockAvailable,
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -1139,7 +1171,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: AppTokens.spacingStandard),
                 Text(
                   localizations.recentActivities,
-                  style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                  style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface),
                 ),
                 const Spacer(),
                 if (_isRefreshing)
@@ -1173,21 +1207,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     flex: 4,
                     child: Text(
                       localizations.name,
-                      style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
+                      style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurfaceVariant),
                     ),
                   ),
                   Expanded(
                     flex: 3,
                     child: Text(
                       localizations.activityType,
-                      style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
+                      style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurfaceVariant),
                     ),
                   ),
                   SizedBox(
                     width: 85,
                     child: Text(
                       localizations.time,
-                      style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
+                      style: textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -1195,7 +1235,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 100,
                     child: Text(
                       localizations.status,
-                      style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurfaceVariant),
+                      style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -1237,7 +1279,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: AppTokens.spacingStandard),
                       Text(
                         localizations.noActivitiesYet,
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -1289,14 +1332,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           activity['title']?.toString() ??
                               localizations.unknown,
-                          style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                          style: textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (activity['customer_name'] != null)
                           Text(
                             activity['customer_name'].toString(),
-                            style: textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: textTheme.labelSmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -1315,13 +1361,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     _getActivityDescription(activity, localizations),
-                    style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500, color: colorScheme.onSurface),
+                    style: textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSurface),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     _getActivityDetails(activity, localizations),
-                    style: textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: textTheme.labelSmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1335,7 +1384,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Text(
                 _getRelativeTime(
                     activity['timestamp']?.toString(), localizations),
-                style: textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -1392,14 +1443,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Container(
       constraints: const BoxConstraints(minWidth: 85),
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingSmall, vertical: AppTokens.spacingXSmall),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppTokens.spacingSmall,
+          vertical: AppTokens.spacingXSmall),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(AppTokens.radius12),
       ),
       child: Text(
         label,
-        style: textTheme.labelSmall?.copyWith(color: textColor, fontWeight: FontWeight.w600),
+        style: textTheme.labelSmall
+            ?.copyWith(color: textColor, fontWeight: FontWeight.w600),
         textAlign: TextAlign.center,
         maxLines: 1,
         softWrap: false,
@@ -1536,7 +1590,8 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 6),
           Text(
             localizations.databaseConnected,
-            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: AppTokens.spacingLarge),
           Icon(Icons.backup, size: 14, color: colorScheme.tertiary),
@@ -1544,13 +1599,15 @@ class _HomeScreenState extends State<HomeScreen> {
           // TODO: Fetch and display the actual last backup time
           Text(
             localizations.lastBackupAt('...'),
-            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
           const Spacer(),
           // TODO: Fetch and display the actual app version
           Text(
             localizations.appVersion('...'),
-            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            style: textTheme.bodySmall
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: AppTokens.spacingStandard),
           Container(
@@ -1562,7 +1619,9 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 6),
           Text(
             localizations.systemOk,
-            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant, fontWeight: FontWeight.w600),
+            style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600),
           ),
         ],
       ),
