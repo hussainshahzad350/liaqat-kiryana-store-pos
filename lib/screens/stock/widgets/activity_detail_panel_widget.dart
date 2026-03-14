@@ -26,7 +26,9 @@ class _ActivityDetailPanelWidgetState extends State<ActivityDetailPanelWidget> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
     final isCancelled = widget.activity.isCancelled;
 
     return Column(
@@ -47,7 +49,7 @@ class _ActivityDetailPanelWidgetState extends State<ActivityDetailPanelWidget> {
               const SizedBox(height: AppTokens.spacingSmall),
               Text(
                 widget.activity.type.name.toUpperCase(),
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                style: textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurface,
                   decoration: isCancelled ? TextDecoration.lineThrough : null,
@@ -55,7 +57,8 @@ class _ActivityDetailPanelWidgetState extends State<ActivityDetailPanelWidget> {
               ),
               Text(
                 widget.activity.referenceNumber,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                style: textTheme.bodyMedium
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: AppTokens.spacingSmall),
               Container(
@@ -71,7 +74,7 @@ class _ActivityDetailPanelWidgetState extends State<ActivityDetailPanelWidget> {
                 ),
                 child: Text(
                   widget.activity.status,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  style: textTheme.labelSmall?.copyWith(
                     color: isCancelled
                         ? colorScheme.onErrorContainer
                         : colorScheme.onPrimaryContainer,

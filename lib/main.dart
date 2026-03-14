@@ -15,6 +15,7 @@ import 'bloc/stock/stock_filter/stock_filter_bloc.dart';
 import 'bloc/stock/stock_filter/stock_filter_event.dart';
 import 'bloc/stock/stock_overview/stock_overview_bloc.dart';
 import 'bloc/stock/stock_overview/stock_overview_event.dart';
+import 'bloc/stock/stock_ui/stock_ui_cubit.dart';
 import 'bloc/units/units_bloc.dart';
 import 'bloc/units/units_event.dart';
 import 'core/cubits/sidebar_cubit.dart';
@@ -187,6 +188,9 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                   currentRoute: AppRoutes.stock,
                   child: MultiBlocProvider(
                     providers: [
+                      BlocProvider(
+                        create: (context) => StockUiCubit(),
+                      ),
                       BlocProvider(
                         create: (context) =>
                             StockOverviewBloc(context.read<StockRepository>())

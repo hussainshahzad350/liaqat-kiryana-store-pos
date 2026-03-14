@@ -1940,4 +1940,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get invalidPhone => 'فون نمبر غلط ہے';
+
+  @override
+  String get processing => 'کارروائی جاری ہے...';
 }

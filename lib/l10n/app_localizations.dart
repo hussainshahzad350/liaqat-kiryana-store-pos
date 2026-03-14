@@ -3835,6 +3835,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid phone number'**
   String get invalidPhone;
+
+  /// No description provided for @processing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing...'**
+  String get processing;
 }
 
 class _AppLocalizationsDelegate

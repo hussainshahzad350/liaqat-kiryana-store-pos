@@ -32,3 +32,5 @@ class StockActivityActionError extends StockActivityState {
   final String message;
   StockActivityActionError(this.message);
 }
+
+class StockActivityProcessing extends StockActivityState {}

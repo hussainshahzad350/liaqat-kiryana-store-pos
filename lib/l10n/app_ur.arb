@@ -710,5 +710,6 @@
   "unknownError": "ایک نامعلوم خرابی پیش آئی",
   "fieldRequired": "{field} لازمی ہے",
   "@fieldRequired": { "placeholders": { "field": { "type": "String" } } },
-  "invalidPhone": "فون نمبر غلط ہے"
+  "invalidPhone": "فون نمبر غلط ہے",
+  "processing": "کارروائی جاری ہے..."
 }

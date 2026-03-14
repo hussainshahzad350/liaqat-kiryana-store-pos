@@ -728,5 +728,6 @@
   "unknownError": "An unknown error occurred",
   "fieldRequired": "{field} is required",
   "@fieldRequired": { "placeholders": { "field": { "type": "String" } } },
-  "invalidPhone": "Invalid phone number"
+  "invalidPhone": "Invalid phone number",
+  "processing": "Processing..."
 }

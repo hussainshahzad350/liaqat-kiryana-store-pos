@@ -12,6 +12,7 @@ import '../../bloc/stock/stock_filter/stock_filter_event.dart';
 import '../../bloc/stock/stock_activity/stock_activity_bloc.dart';
 import '../../bloc/stock/stock_activity/stock_activity_state.dart';
 import '../../bloc/stock/stock_activity/stock_activity_event.dart';
+import '../../bloc/stock/stock_ui/stock_ui_cubit.dart';
 import '../../core/entity/stock_item_entity.dart';
 import '../../core/entity/stock_summary_entity.dart';
 import '../../core/entity/stock_activity_entity.dart';
@@ -26,6 +27,7 @@ import 'widgets/recent_activities_table_widget.dart';
 import 'widgets/filter_panel_widget.dart';
 import 'widgets/stock_table_skeleton_widget.dart';
 import 'widgets/activity_table_skeleton_widget.dart';
+import 'widgets/loading_overlay.dart';
 import 'utils/stock_shortcuts.dart';
 
 class StockScreen extends StatefulWidget {
@@ -42,30 +44,10 @@ class _StockScreenState extends State<StockScreen> {
     super.dispose();
   }
 
-  int _sortColumnIndex = 0;
-  bool _isAscending = true;
-  int _focusedIndex = 0;
+  // Removed local fields — owned by StockUiCubit
 
   final PdfExportService _pdfExportService = PdfExportService();
   Timer? _searchDebounce;
-
-  // Side Panel State
-  bool _showSidePanel = false;
-  String _sidePanelTitle = '';
-  Widget? _sidePanelContent;
-
-  void _openSidePanel(String title, Widget content) {
-    setState(() {
-      _showSidePanel = true;
-      _sidePanelTitle = title;
-      _sidePanelContent = content;
-    });
-  }
-
-  void _closeSidePanel() {
-    if (!mounted) return;
-    setState(() => _showSidePanel = false);
-  }
 
   void _openAdjustStockPanel(StockItemEntity item) {
     showDialog<void>(
@@ -176,17 +158,23 @@ class _StockScreenState extends State<StockScreen> {
             // Search focus handling would require a way to reach FilterPanelWidget's focus node
             // For now we keep it simple or implement a focus manager
           },
-          onClosePanel: () {
-            if (_showSidePanel) _closeSidePanel();
-          },
-          onMoveUp: () {
-            if (_focusedIndex > 0) setState(() => _focusedIndex--);
-          },
+          onClosePanel: () => context.read<StockUiCubit>().closeSidePanel(),
+          onMoveUp: () => context.read<StockUiCubit>().moveFocusUp(),
           onMoveDown: () {
-            // Need access to current items length for proper boundary check
+            final overviewState = context.read<StockOverviewBloc>().state;
+            if (overviewState is StockOverviewLoaded) {
+              context
+                  .read<StockUiCubit>()
+                  .moveFocusDown(overviewState.items.length);
+            }
           },
           onActivate: () {
-            // Need access to current items for activation
+            final overviewState = context.read<StockOverviewBloc>().state;
+            final uiState = context.read<StockUiCubit>().state;
+            if (overviewState is StockOverviewLoaded &&
+                uiState.focusedIndex < overviewState.items.length) {
+              _openAdjustStockPanel(overviewState.items[uiState.focusedIndex]);
+            }
           },
           onNewPurchase: () => Navigator.pushNamed(context, AppRoutes.purchase),
         ),
@@ -232,26 +220,40 @@ class _StockScreenState extends State<StockScreen> {
               },
             ),
           ],
-          child: Column(
-            children: [
-              _buildToolbar(context, loc, colorScheme),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppTokens.spacingLarge),
-                  child: Column(
-                    children: [
-                      _buildKPISection(loc, colorScheme),
-                      const SizedBox(height: AppTokens.spacingLarge),
-                      _buildFilterSection(),
-                      const SizedBox(height: AppTokens.spacingLarge),
-                      Expanded(
-                          child:
-                              _buildMainContentArea(context, loc, colorScheme)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+          child: Focus(
+            autofocus: true,
+            child: BlocBuilder<StockActivityBloc, StockActivityState>(
+              builder: (context, activityState) {
+                final isProcessing = activityState is StockActivityProcessing;
+                return Stack(
+                  children: [
+                    Column(
+                      children: [
+                        _buildToolbar(context, loc, colorScheme),
+                        Expanded(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.all(AppTokens.spacingLarge),
+                            child: Column(
+                              children: [
+                                _buildKPISection(loc, colorScheme),
+                                const SizedBox(height: AppTokens.spacingLarge),
+                                _buildFilterSection(),
+                                const SizedBox(height: AppTokens.spacingLarge),
+                                Expanded(
+                                    child: _buildMainContentArea(
+                                        context, loc, colorScheme)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (isProcessing) const LoadingOverlay(),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -399,8 +401,9 @@ class _StockScreenState extends State<StockScreen> {
 
   Widget _buildMainContentArea(
       BuildContext context, AppLocalizations loc, ColorScheme colorScheme) {
+    final textTheme = Theme.of(context).textTheme;
     return LayoutBuilder(
-      builder: (context, constraints) {
+      builder: (layoutContext, constraints) {
         double sidePanelWidth = 420;
         if (constraints.maxWidth >= 2560) {
           sidePanelWidth = 560;
@@ -420,35 +423,43 @@ class _StockScreenState extends State<StockScreen> {
                   Expanded(
                     flex: 2,
                     child: BlocBuilder<StockOverviewBloc, StockOverviewState>(
-                      builder: (context, state) {
+                      builder: (overviewContext, state) {
                         if (state is StockOverviewLoading) {
                           return StockTableSkeletonWidget(
                               colorScheme: colorScheme);
                         }
                         if (state is StockOverviewError) {
                           return Center(
-                              child: Text(state.message,
-                                  style: TextStyle(color: colorScheme.error)));
+                            child: Text(
+                              ErrorHandler.getLocalizedMessage(
+                                  state.message, loc),
+                              style: textTheme.bodyMedium
+                                  ?.copyWith(color: colorScheme.error),
+                            ),
+                          );
                         }
                         if (state is StockOverviewLoaded) {
-                          return StockTableWidget(
-                            items: state.items,
-                            hasReachedMax: state.hasReachedMax,
-                            sortColumnIndex: _sortColumnIndex,
-                            isAscending: _isAscending,
-                            focusedIndex: _focusedIndex,
-                            onAdjustStock: _openAdjustStockPanel,
-                            onQuickPurchase: _showQuickPurchaseDialog,
-                            onViewHistory: (title, item) => _openSidePanel(
-                                title,
-                                Center(child: Text(loc.noDataAvailable))),
-                            onSort: (index, asc) => setState(() {
-                              _sortColumnIndex = index;
-                              _isAscending = asc;
-                            }),
-                            onLoadMore: () => context
-                                .read<StockOverviewBloc>()
-                                .add(LoadMoreStockOverview()),
+                          return BlocBuilder<StockUiCubit, StockUiState>(
+                            builder: (uiContext, uiState) => StockTableWidget(
+                              items: state.items,
+                              hasReachedMax: state.hasReachedMax,
+                              sortColumnIndex: uiState.sortColumnIndex,
+                              isAscending: uiState.isAscending,
+                              focusedIndex: uiState.focusedIndex,
+                              onAdjustStock: _openAdjustStockPanel,
+                              onQuickPurchase: _showQuickPurchaseDialog,
+                              onViewHistory: (title, item) => uiContext
+                                  .read<StockUiCubit>()
+                                  .openSidePanel(
+                                      title,
+                                      Center(child: Text(loc.noDataAvailable))),
+                              onSort: (index, asc) => uiContext
+                                  .read<StockUiCubit>()
+                                  .setSort(index, asc),
+                              onLoadMore: () => uiContext
+                                  .read<StockOverviewBloc>()
+                                  .add(LoadMoreStockOverview()),
+                            ),
                           );
                         }
                         return const SizedBox.shrink();
@@ -459,7 +470,7 @@ class _StockScreenState extends State<StockScreen> {
                   Expanded(
                     flex: 1,
                     child: BlocBuilder<StockActivityBloc, StockActivityState>(
-                      builder: (context, state) {
+                      builder: (activityContext, state) {
                         if (state is StockActivityLoading) {
                           return ActivityTableSkeletonWidget(
                               colorScheme: colorScheme);
@@ -469,7 +480,7 @@ class _StockScreenState extends State<StockScreen> {
                             activities: state.activities,
                             hasReachedMax: state.hasReachedMax,
                             onActivityView: (title, activity) {
-                              _openSidePanel(
+                              activityContext.read<StockUiCubit>().openSidePanel(
                                   title,
                                   ActivityDetailPanelWidget(
                                     activity: activity,
@@ -478,7 +489,7 @@ class _StockScreenState extends State<StockScreen> {
                                     pdfExportService: _pdfExportService,
                                   ));
                             },
-                            onLoadMore: () => context
+                            onLoadMore: () => activityContext
                                 .read<StockActivityBloc>()
                                 .add(LoadMoreStockActivities()),
                           );
@@ -491,61 +502,72 @@ class _StockScreenState extends State<StockScreen> {
                 ],
               ),
             ),
-            if (_showSidePanel) ...[
-              const SizedBox(width: AppTokens.spacingMedium),
-              SizedBox(
-                width: sidePanelWidth,
-                child: Card(
-                  elevation: AppTokens.cardElevation,
-                  shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.cardBorderRadius)),
-                  child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.cardBorderRadius),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: AppTokens.spacingMedium,
-                              vertical: AppTokens
-                                  .spacingSmall), // ✅ compact desktop header
-                          color: colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.3),
-                          child: Row(
+            BlocBuilder<StockUiCubit, StockUiState>(
+              builder: (uiContext, uiState) {
+                if (!uiState.showSidePanel) return const SizedBox.shrink();
+                return Row(
+                  children: [
+                    const SizedBox(width: AppTokens.spacingMedium),
+                    SizedBox(
+                      width: sidePanelWidth,
+                      child: Card(
+                        elevation: AppTokens.cardElevation,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                AppTokens.cardBorderRadius)),
+                        child: ClipRRect(
+                          borderRadius:
+                              BorderRadius.circular(AppTokens.cardBorderRadius),
+                          child: Column(
                             children: [
-                              Expanded(
-                                child: Text(
-                                  _sidePanelTitle,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                  overflow: TextOverflow.ellipsis,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: AppTokens.spacingMedium,
+                                    vertical: AppTokens
+                                        .spacingSmall), // ✅ compact desktop header
+                                color: colorScheme.surfaceContainerHighest
+                                    .withValues(alpha: 0.3),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        uiState.sidePanelTitle,
+                                        style: Theme.of(uiContext)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(
+                                                fontWeight: FontWeight.bold),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.close),
+                                      onPressed: () => uiContext
+                                          .read<StockUiCubit>()
+                                          .closeSidePanel(),
+                                      iconSize: AppTokens.iconSizeMedium,
+                                      tooltip: loc.close, // ✅ localized tooltip
+                                    ),
+                                  ],
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: _closeSidePanel,
-                                iconSize: AppTokens.iconSizeMedium,
-                                tooltip: loc.close, // ✅ localized tooltip
-                              ),
+                              const Divider(height: 1),
+                              Expanded(
+                                  child: uiState.sidePanelContent ??
+                                      Center(child: Text(loc.noDataAvailable))),
                             ],
                           ),
                         ),
-                        const Divider(height: 1),
-                        Expanded(
-                            child: _sidePanelContent ??
-                                Center(child: Text(loc.noDataAvailable))),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ),
-            ],
+                  ],
+                );
+              },
+            ),
           ],
         );
       },
     );
   }
 }
+

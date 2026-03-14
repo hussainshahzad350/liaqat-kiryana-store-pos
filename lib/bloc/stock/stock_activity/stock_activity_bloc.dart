@@ -71,6 +71,7 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
       return;
     }
 
+    emit(StockActivityProcessing());
     try {
       await _itemsRepository.adjustStock(
         event.productId,
@@ -110,6 +111,7 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
       return;
     }
 
+    emit(StockActivityProcessing());
     try {
       if (event.activity.type == ActivityType.purchase) {
         await _purchaseRepository.cancelPurchase(
