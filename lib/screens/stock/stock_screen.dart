@@ -70,9 +70,10 @@ class _StockScreenState extends State<StockScreen> {
   void _openAdjustStockPanel(StockItemEntity item) {
     showDialog<void>(
       context: context,
-      builder: (_) => AdjustStockDialog(
+      builder: (dialogContext) => AdjustStockDialog(
         item: item,
         onSave: (adjustment, reason) {
+          Navigator.of(dialogContext).pop();
           if (!context.mounted) return;
           context.read<StockActivityBloc>().add(AdjustStock(
                 productId: item.id,
@@ -81,7 +82,7 @@ class _StockScreenState extends State<StockScreen> {
                 reference: AppLocalizations.of(context)!.adjustStock,
               ));
         },
-        onCancel: () => Navigator.of(context).pop(),
+        onCancel: () => Navigator.of(dialogContext).pop(),
       ),
     );
   }
@@ -92,66 +93,69 @@ class _StockScreenState extends State<StockScreen> {
 
   void _openCancelConfirmationPanel(StockActivityEntity activity) {
     final loc = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
-        ),
-        child: Container(
-          constraints: const BoxConstraints(minWidth: 380, maxWidth: 480),
-          padding: const EdgeInsets.all(AppTokens.spacingLarge),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(loc.confirmation, style: textTheme.titleLarge),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-              const Divider(height: AppTokens.spacingLarge),
-              Text(loc.confirmCancelInvoiceMessage, style: textTheme.bodyLarge),
-              const SizedBox(height: AppTokens.spacingLarge),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: Text(loc.no),
-                  ),
-                  const SizedBox(width: AppTokens.spacingMedium),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.error,
-                      foregroundColor: colorScheme.onError,
-                    ),
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop();
-                      context.read<StockActivityBloc>().add(
-                            CancelStockActivity(
-                              activity: activity,
-                              reason: loc.cancel,
-                            ),
-                          );
-                    },
-                    child: Text(loc.yes),
-                  ),
-                ],
-              ),
-            ],
+      builder: (dialogContext) {
+        final colorScheme = Theme.of(dialogContext).colorScheme;
+        final textTheme = Theme.of(dialogContext).textTheme;
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
           ),
-        ),
-      ),
+          child: Container(
+            constraints: const BoxConstraints(minWidth: 380, maxWidth: 480),
+            padding: const EdgeInsets.all(AppTokens.spacingLarge),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(loc.confirmation, style: textTheme.titleLarge),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const Divider(height: AppTokens.spacingLarge),
+                Text(loc.confirmCancelInvoiceMessage,
+                    style: textTheme.bodyLarge),
+                const SizedBox(height: AppTokens.spacingLarge),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: Text(loc.no),
+                    ),
+                    const SizedBox(width: AppTokens.spacingMedium),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.error,
+                        foregroundColor: colorScheme.onError,
+                      ),
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                        context.read<StockActivityBloc>().add(
+                              CancelStockActivity(
+                                activity: activity,
+                                reason: loc.cancel,
+                              ),
+                            );
+                      },
+                      child: Text(loc.yes),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -322,6 +326,8 @@ class _StockScreenState extends State<StockScreen> {
 
   Widget _buildKPICard(
       BuildContext context, String label, String value, Color color) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Card(
         elevation: AppTokens.cardElevation,
@@ -334,15 +340,15 @@ class _StockScreenState extends State<StockScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  style: textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant)),
               const SizedBox(height: AppTokens.spacingXSmall),
               Text(
                 value,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: color,
-                    ),
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ],
