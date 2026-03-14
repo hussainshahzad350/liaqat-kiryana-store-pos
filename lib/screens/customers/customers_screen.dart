@@ -1,6 +1,7 @@
 // lib/screens/master_data/customers_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../core/repositories/customers_repository.dart';
 import '../../core/repositories/invoice_repository.dart';
 import '../../services/ledger_export_service.dart';
@@ -18,8 +19,8 @@ class CustomersScreen extends StatefulWidget {
 }
 
 class _CustomersScreenState extends State<CustomersScreen> {
-  final CustomersRepository _customersRepository = CustomersRepository();
-  final InvoiceRepository _invoiceRepository = InvoiceRepository();
+  late final CustomersRepository _customersRepository;
+  late final InvoiceRepository _invoiceRepository;
   final LedgerExportService _ledgerExportService = LedgerExportService();
 
   // --- STATE VARIABLES ---
@@ -53,6 +54,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
   @override
   void initState() {
     super.initState();
+    _customersRepository = context.read<CustomersRepository>();
+    _invoiceRepository = context.read<InvoiceRepository>();
     _refreshData();
   }
 

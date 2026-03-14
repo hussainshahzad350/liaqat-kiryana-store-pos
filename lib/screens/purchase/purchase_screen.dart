@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:liaqat_store/core/res/app_tokens.dart';
 import '../../core/repositories/purchase_repository.dart';
@@ -17,9 +18,17 @@ class PurchaseScreen extends StatefulWidget {
 }
 
 class _PurchaseScreenState extends State<PurchaseScreen> {
-  final PurchaseRepository _purchaseRepo = PurchaseRepository();
-  final SuppliersRepository _suppliersRepo = SuppliersRepository();
-  final ItemsRepository _itemsRepo = ItemsRepository();
+  late final PurchaseRepository _purchaseRepo;
+  late final SuppliersRepository _suppliersRepo;
+  late final ItemsRepository _itemsRepo;
+
+  @override
+  void initState() {
+    super.initState();
+    _purchaseRepo = context.read<PurchaseRepository>();
+    _suppliersRepo = context.read<SuppliersRepository>();
+    _itemsRepo = context.read<ItemsRepository>();
+  }
 
   // Form State
   Map<String, dynamic>? _selectedSupplier;

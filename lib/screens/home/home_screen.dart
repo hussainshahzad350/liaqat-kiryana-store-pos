@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/repositories/invoice_repository.dart';
 import '../../core/repositories/customers_repository.dart';
@@ -59,9 +60,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _invoiceRepository = widget.invoiceRepository ?? InvoiceRepository();
-    _customersRepository = widget.customersRepository ?? CustomersRepository();
-    _itemsRepository = widget.itemsRepository ?? ItemsRepository();
+    _invoiceRepository = widget.invoiceRepository ?? context.read<InvoiceRepository>();
+    _customersRepository = widget.customersRepository ?? context.read<CustomersRepository>();
+    _itemsRepository = widget.itemsRepository ?? context.read<ItemsRepository>();
 
     dataTimer = Timer.periodic(const Duration(minutes: 5), (_) => _loadData());
     _loadData();

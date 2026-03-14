@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:liaqat_store/core/repositories/settings_repository.dart';
-import 'package:liaqat_store/bloc/stock/stock_bloc.dart';
 import 'sales_event.dart';
 import 'sales_state.dart';
 import '../../../../../core/repositories/invoice_repository.dart';
@@ -21,7 +20,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   final CustomersRepository _customersRepository;
   final SettingsRepository _settingsRepository;
   final ReceiptRepository _receiptRepository;
-  final StockBloc? _stockBloc;
   StreamSubscription? _stockSubscription;
 
   SalesBloc({
@@ -30,13 +28,11 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     required CustomersRepository customersRepository,
     required SettingsRepository settingsRepository,
     required ReceiptRepository receiptRepository,
-    StockBloc? stockBloc,
   })  : _invoiceRepository = invoiceRepository,
         _itemsRepository = itemsRepository,
         _customersRepository = customersRepository,
         _settingsRepository = settingsRepository,
         _receiptRepository = receiptRepository,
-        _stockBloc = stockBloc,
         super(const SalesState()) {
     on<SalesStarted>(_onStarted);
     on<ProductSearchChanged>(_onProductSearchChanged);
@@ -56,13 +52,12 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     on<ReceiptPrintRequested>(_onReceiptPrintRequested);
     on<ReceiptPdfSaveRequested>(_onReceiptPdfSaveRequested);
 
-    if (_stockBloc != null) {
-      _stockSubscription = _stockBloc!.stream.distinct().listen((stockState) {
-        if (stockState.stock.isNotEmpty) {
-          add(ProductsUpdated(stockState.stock));
-        }
-      });
-    }
+    _stockSubscription = _itemsRepository.stockChanged.listen((_) async {
+      final products = await _itemsRepository.getAllProducts();
+      if (!isClosed) {
+        add(ProductsUpdated(products));
+      }
+    });
   }
 
   @override
@@ -458,7 +453,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         notes: notes,
         customerData: customer?.toMap(),
         shopProfile: shopProfile,
-        stockBloc: _stockBloc,
       );
 
       final invoice = await _invoiceRepository.getInvoiceWithItems(invoiceId);
@@ -487,7 +481,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         invoiceId: event.invoiceId,
         cancelledBy: 'Cashier',
         reason: event.reason,
-        stockBloc: _stockBloc,
       );
       add(SalesStarted()); // Refresh
       emit(state.copyWith(

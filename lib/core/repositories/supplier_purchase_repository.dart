@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import '../../bloc/stock/stock_bloc.dart';
-import '../../bloc/stock/stock_event.dart';
+import 'items_repository.dart';
 import '../database/database_helper.dart';
 import '../../models/purchase_models.dart';
 import '../utils/logger.dart';
 
 class SupplierPurchaseRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final ItemsRepository _itemsRepository;
+
+  SupplierPurchaseRepository(this._itemsRepository);
 
   // ========================================
   // CREATE PURCHASE (Full Transaction)
@@ -18,7 +20,6 @@ class SupplierPurchaseRepository {
     String? notes,
     Map<String, dynamic>? shopProfile,
     Map<String, dynamic>? supplierData,
-    StockBloc? stockBloc,
   }) async {
     final db = await _dbHelper.database;
 
@@ -149,7 +150,7 @@ class SupplierPurchaseRepository {
       return purchaseId;
     });
 
-    stockBloc?.add(LoadStock());
+    _itemsRepository.notifyStockChanged();
     return purchaseId;
   }
 
@@ -160,7 +161,6 @@ class SupplierPurchaseRepository {
     required int purchaseId,
     required String cancelledBy,
     String? reason,
-    StockBloc? stockBloc,
   }) async {
     final db = await _dbHelper.database;
 
@@ -243,7 +243,7 @@ class SupplierPurchaseRepository {
           tag: 'PurchaseRepo');
     });
 
-    stockBloc?.add(LoadStock());
+    _itemsRepository.notifyStockChanged();
   }
 
   // ========================================

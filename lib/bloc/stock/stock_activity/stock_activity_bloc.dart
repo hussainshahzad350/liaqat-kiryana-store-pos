@@ -90,7 +90,7 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
     CancelStockActivity event,
     Emitter<StockActivityState> emit,
   ) async {
-    if (event.activity.status != 'COMPLETED') {
+    if (!event.activity.isCompleted) {
       emit(StockActivityActionError('Only completed activities can be cancelled'));
       return;
     }

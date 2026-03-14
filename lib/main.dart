@@ -10,7 +10,6 @@ import 'bloc/purchase/purchase_event.dart';
 import 'bloc/sales/sales_bloc.dart';
 import 'bloc/stock/stock_activity/stock_activity_bloc.dart';
 import 'bloc/stock/stock_activity/stock_activity_event.dart';
-import 'bloc/stock/stock_bloc.dart';
 import 'bloc/stock/stock_filter/stock_filter_bloc.dart';
 import 'bloc/stock/stock_filter/stock_filter_event.dart';
 import 'bloc/stock/stock_overview/stock_overview_bloc.dart';
@@ -86,19 +85,18 @@ void main() async {
         RepositoryProvider(create: (context) => settingsRepository),
         RepositoryProvider(create: (context) => ItemsRepository()),
         RepositoryProvider(create: (context) => CustomersRepository()),
-        RepositoryProvider(create: (context) => InvoiceRepository()),
+        RepositoryProvider(
+            create: (context) =>
+                InvoiceRepository(context.read<ItemsRepository>())),
         RepositoryProvider(create: (context) => ReceiptRepository()),
         RepositoryProvider(create: (context) => UnitsRepository()),
         RepositoryProvider(create: (context) => StockRepository()),
         RepositoryProvider(create: (context) => StockActivityRepository()),
-        RepositoryProvider(create: (context) => PurchaseRepository()),
+        RepositoryProvider(
+            create: (context) =>
+                PurchaseRepository(context.read<ItemsRepository>())),
         RepositoryProvider(create: (context) => SuppliersRepository()),
         RepositoryProvider(create: (context) => CategoriesRepository()),
-        BlocProvider(
-          create: (context) => StockBloc(
-            itemsRepository: context.read<ItemsRepository>(),
-          ),
-        ),
       ],
       child: LiaqatStoreApp(initialLanguage: languageCode),
     ),
@@ -179,7 +177,6 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                       customersRepository: context.read<CustomersRepository>(),
                       settingsRepository: context.read<SettingsRepository>(),
                       receiptRepository: context.read<ReceiptRepository>(),
-                      stockBloc: context.read<StockBloc>(), // Injected here
                     ),
                     child: const SalesScreen(),
                   ),

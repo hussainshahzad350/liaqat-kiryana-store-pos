@@ -1,4 +1,5 @@
 // lib/core/repositories/items_repository.dart
+import 'dart:async';
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
 import '../../models/product_model.dart';
@@ -6,6 +7,24 @@ import '../../models/stock_adjustment_model.dart';
 
 class ItemsRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+
+  // Stream that emits whenever stock levels change in the database.
+  // Repositories and BLoCs listen to this for stock update signals.
+  final StreamController<void> _stockChangedController =
+      StreamController<void>.broadcast();
+
+  Stream<void> get stockChanged => _stockChangedController.stream;
+
+  /// Call this after any database operation that modifies stock quantities.
+  void notifyStockChanged() {
+    if (!_stockChangedController.isClosed) {
+      _stockChangedController.add(null);
+    }
+  }
+
+  void dispose() {
+    _stockChangedController.close();
+  }
 
   // ========================================
   // PRODUCT CRUD OPERATIONS

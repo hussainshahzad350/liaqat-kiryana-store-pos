@@ -1,5 +1,4 @@
-import '../../bloc/stock/stock_bloc.dart';
-import '../../bloc/stock/stock_event.dart';
+import 'items_repository.dart';
 import '../database/database_helper.dart';
 import '../../models/purchase_models.dart';
 import '../utils/logger.dart';
@@ -7,6 +6,9 @@ import 'package:intl/intl.dart';
 
 class PurchaseRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final ItemsRepository _itemsRepository;
+
+  PurchaseRepository(this._itemsRepository);
 
   // ========================================
   // CREATE PURCHASE WITH TRANSACTION
@@ -17,7 +19,6 @@ class PurchaseRepository {
     int totalAmount = 0,
     String? invoiceNumber,
     String? notes,
-    StockBloc? stockBloc,
   }) async {
     final db = await _dbHelper.database;
 
@@ -106,8 +107,8 @@ class PurchaseRepository {
       return id;
     });
 
-    // Refresh stock in BLoC
-    stockBloc?.add(LoadStock());
+    // Refresh stock
+    _itemsRepository.notifyStockChanged();
 
     return purchaseId;
   }
@@ -119,7 +120,6 @@ class PurchaseRepository {
     int totalAmount = 0,
     String? invoiceNumber,
     String? notes,
-    StockBloc? stockBloc,
   }) {
     return createPurchaseWithTransaction(
       supplierId: supplierId,
@@ -127,7 +127,6 @@ class PurchaseRepository {
       totalAmount: totalAmount,
       invoiceNumber: invoiceNumber,
       notes: notes,
-      stockBloc: stockBloc,
     );
   }
 
@@ -138,7 +137,6 @@ class PurchaseRepository {
     required int purchaseId,
     required String cancelledBy,
     String? reason,
-    StockBloc? stockBloc,
   }) async {
     final db = await _dbHelper.database;
 
@@ -250,8 +248,8 @@ class PurchaseRepository {
       AppLogger.info('Purchase cancelled: ID $purchaseId', tag: 'PurchaseRepo');
     });
 
-    // Refresh stock in BLoC
-    stockBloc?.add(LoadStock());
+    // Refresh stock
+    _itemsRepository.notifyStockChanged();
   }
 
   // ========================================

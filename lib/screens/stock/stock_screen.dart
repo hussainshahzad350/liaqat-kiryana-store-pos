@@ -21,6 +21,7 @@ import '../../core/routes/app_routes.dart';
 import '../../core/res/app_tokens.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'dialogs/adjust_stock_dialog.dart';
+import 'dialogs/cancel_activity_dialog.dart';
 import 'widgets/stock_table_widget.dart';
 import 'widgets/activity_detail_panel_widget.dart';
 import 'widgets/recent_activities_table_widget.dart';
@@ -70,7 +71,7 @@ class _StockScreenState extends State<StockScreen> {
     );
   }
 
-  void _showQuickPurchaseDialog(BuildContext context, StockItemEntity item) {
+  void _navigateToPurchase(BuildContext context, StockItemEntity item) {
     Navigator.pushNamed(context, AppRoutes.purchase);
   }
 
@@ -78,67 +79,17 @@ class _StockScreenState extends State<StockScreen> {
     final loc = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
-      builder: (dialogContext) {
-        final colorScheme = Theme.of(dialogContext).colorScheme;
-        final textTheme = Theme.of(dialogContext).textTheme;
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
-          ),
-          child: Container(
-            constraints: const BoxConstraints(minWidth: 380, maxWidth: 480),
-            padding: const EdgeInsets.all(AppTokens.spacingLarge),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(loc.confirmation, style: textTheme.titleLarge),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
+      builder: (_) => CancelActivityDialog(
+        onConfirm: () {
+          if (!context.mounted) return;
+          context.read<StockActivityBloc>().add(
+                CancelStockActivity(
+                  activity: activity,
+                  reason: loc.cancel,
                 ),
-                const Divider(height: AppTokens.spacingLarge),
-                Text(loc.confirmCancelInvoiceMessage,
-                    style: textTheme.bodyLarge),
-                const SizedBox(height: AppTokens.spacingLarge),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: Text(loc.no),
-                    ),
-                    const SizedBox(width: AppTokens.spacingMedium),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.error,
-                        foregroundColor: colorScheme.onError,
-                      ),
-                      onPressed: () {
-                        Navigator.of(dialogContext).pop();
-                        context.read<StockActivityBloc>().add(
-                              CancelStockActivity(
-                                activity: activity,
-                                reason: loc.cancel,
-                              ),
-                            );
-                      },
-                      child: Text(loc.yes),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+              );
+        },
+      ),
     );
   }
 
@@ -193,7 +144,7 @@ class _StockScreenState extends State<StockScreen> {
             ),
             BlocListener<StockActivityBloc, StockActivityState>(
               listener: (context, state) {
-                if (!mounted) return;
+                if (!context.mounted) return;
                 if (state is StockActivityActionSuccess) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -448,7 +399,7 @@ class _StockScreenState extends State<StockScreen> {
                               isAscending: uiState.isAscending,
                               focusedIndex: uiState.focusedIndex,
                               onAdjustStock: _openAdjustStockPanel,
-                              onQuickPurchase: _showQuickPurchaseDialog,
+                              onQuickPurchase: _navigateToPurchase,
                                onViewHistory: (title, item) {
                                   _sidePanelContent = Center(
                                       child: Text(loc.noDataAvailable));
@@ -473,6 +424,10 @@ class _StockScreenState extends State<StockScreen> {
                   Expanded(
                     flex: 1,
                     child: BlocBuilder<StockActivityBloc, StockActivityState>(
+                      buildWhen: (previous, current) =>
+                          current is StockActivityLoading ||
+                          current is StockActivityLoaded ||
+                          current is StockActivityError,
                       builder: (activityContext, state) {
                         if (state is StockActivityLoading) {
                           return ActivityTableSkeletonWidget(
@@ -498,7 +453,6 @@ class _StockScreenState extends State<StockScreen> {
                                 .add(LoadMoreStockActivities()),
                           );
                         }
-                        // Handle action success/error by showing last known activities if needed or just letting it be
                         return const SizedBox.shrink();
                       },
                     ),

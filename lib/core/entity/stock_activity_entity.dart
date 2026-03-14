@@ -17,6 +17,7 @@ class StockActivityEntity {
   final String status; // COMPLETED, CANCELLED
 
   bool get isCancelled => status == 'CANCELLED';
+  bool get isCompleted => status == 'COMPLETED';
 
   const StockActivityEntity({
     required this.id,

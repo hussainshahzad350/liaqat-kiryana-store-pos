@@ -1,5 +1,4 @@
-import '../../bloc/stock/stock_bloc.dart';
-import '../../bloc/stock/stock_event.dart';
+import 'items_repository.dart';
 import '../database/database_helper.dart';
 import '../../models/invoice_model.dart';
 import '../../models/invoice_item_model.dart';
@@ -11,6 +10,9 @@ import '../../features/sales/domain/entities/sale_status.dart';
 
 class InvoiceRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final ItemsRepository _itemsRepository;
+
+  InvoiceRepository(this._itemsRepository);
 
   // ========================================
   // INVOICE CREATION (Full Transaction)
@@ -28,7 +30,6 @@ class InvoiceRepository {
     String? notes,
     Map<String, dynamic>? shopProfile,
     Map<String, dynamic>? customerData,
-    StockBloc? stockBloc,
   }) async {
     final db = await _dbHelper.database;
 
@@ -216,8 +217,8 @@ class InvoiceRepository {
       return invoiceId;
     });
 
-    // After transaction, trigger a stock refresh if BLoC is provided
-    stockBloc?.add(LoadStock());
+    // After transaction, trigger a stock refresh
+    _itemsRepository.notifyStockChanged();
 
     return invoiceId;
   }
@@ -231,7 +232,6 @@ class InvoiceRepository {
     required int invoiceId,
     required String cancelledBy,
     String? reason,
-    StockBloc? stockBloc,
   }) async {
     final db = await _dbHelper.database;
 
@@ -324,8 +324,8 @@ class InvoiceRepository {
       AppLogger.info('Invoice cancelled: #$invoiceNumber', tag: 'InvoiceRepo');
     });
 
-    // After transaction, trigger a stock refresh if BLoC is provided
-    stockBloc?.add(LoadStock());
+    // After transaction, trigger a stock refresh
+    _itemsRepository.notifyStockChanged();
   }
 
   // ========================================
