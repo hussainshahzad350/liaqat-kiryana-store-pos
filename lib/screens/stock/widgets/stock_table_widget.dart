@@ -52,6 +52,7 @@ class _StockTableWidgetState extends State<StockTableWidget> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     final sortedItems = StockSortUtil.sort(
       items: widget.items,
@@ -74,7 +75,7 @@ class _StockTableWidgetState extends State<StockTableWidget> {
             padding: const EdgeInsets.all(AppTokens.spacingMedium),
             child: Text(
               loc.stockDetails,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              style: textTheme.titleMedium?.copyWith(
                   color: colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
@@ -91,7 +92,7 @@ class _StockTableWidgetState extends State<StockTableWidget> {
                   headingRowColor:
                       WidgetStateProperty.all(colorScheme.primaryContainer),
                   headingTextStyle:
-                      Theme.of(context).textTheme.titleSmall?.copyWith(
+                      textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onPrimaryContainer,
                           ),
@@ -137,9 +138,7 @@ class _StockTableWidgetState extends State<StockTableWidget> {
                       }),
                       cells: [
                         DataCell(Text(item.nameEnglish,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: textTheme.bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w500))),
                         DataCell(Text(item.categoryName ?? '-')),
                         DataCell(Text(item.costPrice.formattedNoDecimal)),
@@ -164,8 +163,7 @@ class _StockTableWidgetState extends State<StockTableWidget> {
                               isOut
                                   ? loc.outOfStock
                                   : (isLow ? loc.lowStock : loc.ok),
-                              style: Theme.of(context)
-                                  .textTheme
+                              style: textTheme
                                   .labelSmall
                                   ?.copyWith(
                                     color: isOut

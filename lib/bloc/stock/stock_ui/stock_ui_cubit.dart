@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -24,10 +24,9 @@ class StockUiCubit extends Cubit<StockUiState> {
     }
   }
 
-  void openSidePanel(String title, Widget content) => emit(state.copyWith(
+  void openSidePanel(String title) => emit(state.copyWith(
         showSidePanel: true,
         sidePanelTitle: title,
-        sidePanelContent: content,
       ));
 
   void closeSidePanel() => emit(state.copyWith(showSidePanel: false));

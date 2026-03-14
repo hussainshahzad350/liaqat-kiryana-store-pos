@@ -48,6 +48,7 @@ class _StockScreenState extends State<StockScreen> {
 
   final PdfExportService _pdfExportService = PdfExportService();
   Timer? _searchDebounce;
+  Widget? _sidePanelContent; // content stays local — Widget cannot live in BLoC
 
   void _openAdjustStockPanel(StockItemEntity item) {
     showDialog<void>(
@@ -448,11 +449,13 @@ class _StockScreenState extends State<StockScreen> {
                               focusedIndex: uiState.focusedIndex,
                               onAdjustStock: _openAdjustStockPanel,
                               onQuickPurchase: _showQuickPurchaseDialog,
-                              onViewHistory: (title, item) => uiContext
-                                  .read<StockUiCubit>()
-                                  .openSidePanel(
-                                      title,
-                                      Center(child: Text(loc.noDataAvailable))),
+                               onViewHistory: (title, item) {
+                                  _sidePanelContent = Center(
+                                      child: Text(loc.noDataAvailable));
+                                  uiContext
+                                      .read<StockUiCubit>()
+                                      .openSidePanel(title);
+                                },
                               onSort: (index, asc) => uiContext
                                   .read<StockUiCubit>()
                                   .setSort(index, asc),
@@ -480,14 +483,15 @@ class _StockScreenState extends State<StockScreen> {
                             activities: state.activities,
                             hasReachedMax: state.hasReachedMax,
                             onActivityView: (title, activity) {
-                              activityContext.read<StockUiCubit>().openSidePanel(
-                                  title,
-                                  ActivityDetailPanelWidget(
-                                    activity: activity,
-                                    onCancel: () =>
-                                        _openCancelConfirmationPanel(activity),
-                                    pdfExportService: _pdfExportService,
-                                  ));
+                              _sidePanelContent = ActivityDetailPanelWidget(
+                                activity: activity,
+                                onCancel: () =>
+                                    _openCancelConfirmationPanel(activity),
+                                pdfExportService: _pdfExportService,
+                              );
+                              activityContext
+                                  .read<StockUiCubit>()
+                                  .openSidePanel(title);
                             },
                             onLoadMore: () => activityContext
                                 .read<StockActivityBloc>()
@@ -553,7 +557,7 @@ class _StockScreenState extends State<StockScreen> {
                               ),
                               const Divider(height: 1),
                               Expanded(
-                                  child: uiState.sidePanelContent ??
+                                  child: _sidePanelContent ??
                                       Center(child: Text(loc.noDataAvailable))),
                             ],
                           ),

@@ -6,7 +6,6 @@ class StockUiState extends Equatable {
   final int focusedIndex;
   final bool showSidePanel;
   final String sidePanelTitle;
-  final Widget? sidePanelContent;
 
   const StockUiState({
     this.sortColumnIndex = 0,
@@ -14,7 +13,6 @@ class StockUiState extends Equatable {
     this.focusedIndex = 0,
     this.showSidePanel = false,
     this.sidePanelTitle = '',
-    this.sidePanelContent,
   });
 
   StockUiState copyWith({
@@ -23,7 +21,6 @@ class StockUiState extends Equatable {
     int? focusedIndex,
     bool? showSidePanel,
     String? sidePanelTitle,
-    Widget? sidePanelContent,
   }) =>
       StockUiState(
         sortColumnIndex: sortColumnIndex ?? this.sortColumnIndex,
@@ -31,7 +28,6 @@ class StockUiState extends Equatable {
         focusedIndex: focusedIndex ?? this.focusedIndex,
         showSidePanel: showSidePanel ?? this.showSidePanel,
         sidePanelTitle: sidePanelTitle ?? this.sidePanelTitle,
-        sidePanelContent: sidePanelContent ?? this.sidePanelContent,
       );
 
   @override
@@ -41,6 +37,5 @@ class StockUiState extends Equatable {
         focusedIndex,
         showSidePanel,
         sidePanelTitle,
-        sidePanelContent,
       ];
 }
