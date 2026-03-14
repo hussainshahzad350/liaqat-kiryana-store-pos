@@ -46,7 +46,6 @@ class StockShortcuts {
   };
 
   static Map<Type, Action<Intent>> createActions({
-    required BuildContext context,
     required Function onRefresh,
     required Function onSearch,
     required Function onClosePanel,

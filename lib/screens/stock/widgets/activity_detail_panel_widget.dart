@@ -5,7 +5,7 @@ import '../../../core/entity/stock_activity_entity.dart';
 import '../../../core/res/app_tokens.dart';
 import '../../../services/pdf_export_service.dart';
 
-class ActivityDetailPanelWidget extends StatelessWidget {
+class ActivityDetailPanelWidget extends StatefulWidget {
   final StockActivityEntity activity;
   final VoidCallback onCancel;
   final PdfExportService pdfExportService;
@@ -18,10 +18,16 @@ class ActivityDetailPanelWidget extends StatelessWidget {
   });
 
   @override
+  State<ActivityDetailPanelWidget> createState() =>
+      _ActivityDetailPanelWidgetState();
+}
+
+class _ActivityDetailPanelWidgetState extends State<ActivityDetailPanelWidget> {
+  @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final isCancelled = activity.isCancelled;
+    final isCancelled = widget.activity.isCancelled;
 
     return Column(
       children: [
@@ -32,7 +38,7 @@ class ActivityDetailPanelWidget extends StatelessWidget {
           child: Column(
             children: [
               Icon(
-                _getActivityIcon(activity.type),
+                _getActivityIcon(widget.activity.type),
                 size: AppTokens.iconSizeXXLarge,
                 color: isCancelled
                     ? colorScheme.onSurface.withValues(alpha: 0.5)
@@ -40,7 +46,7 @@ class ActivityDetailPanelWidget extends StatelessWidget {
               ),
               const SizedBox(height: AppTokens.spacingSmall),
               Text(
-                activity.type.name.toUpperCase(),
+                widget.activity.type.name.toUpperCase(),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurface,
@@ -48,7 +54,7 @@ class ActivityDetailPanelWidget extends StatelessWidget {
                 ),
               ),
               Text(
-                activity.referenceNumber,
+                widget.activity.referenceNumber,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: AppTokens.spacingSmall),
@@ -64,7 +70,7 @@ class ActivityDetailPanelWidget extends StatelessWidget {
                       BorderRadius.circular(AppTokens.extraSmallBorderRadius),
                 ),
                 child: Text(
-                  activity.status,
+                  widget.activity.status,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: isCancelled
                         ? colorScheme.onErrorContainer
@@ -84,18 +90,18 @@ class ActivityDetailPanelWidget extends StatelessWidget {
             padding: const EdgeInsets.all(AppTokens.spacingMedium),
             children: [
               _buildDetailRow(context, loc.date,
-                  DateFormat('yyyy-MM-dd').format(activity.timestamp)),
+                  DateFormat('yyyy-MM-dd').format(widget.activity.timestamp)),
               _buildDetailRow(context, 
-                  loc.time, DateFormat('hh:mm a').format(activity.timestamp)),
-              _buildDetailRow(context, loc.customer, activity.user),
+                  loc.time, DateFormat('hh:mm a').format(widget.activity.timestamp)),
+              _buildDetailRow(context, loc.customer, widget.activity.user),
               const Divider(),
-              _buildDetailRow(context, loc.description, activity.description),
-              if (activity.quantityChange != 0)
+              _buildDetailRow(context, loc.description, widget.activity.description),
+              if (widget.activity.quantityChange != 0)
                 _buildDetailRow(context, loc.quantity,
-                    '${activity.quantityChange > 0 ? '+' : ''}${activity.quantityChange}'),
-              if (activity.financialImpact != null)
+                    '${widget.activity.quantityChange > 0 ? '+' : ''}${widget.activity.quantityChange}'),
+              if (widget.activity.financialImpact != null)
                 _buildDetailRow(context, 
-                    loc.amount, activity.financialImpact!.toString()),
+                    loc.amount, widget.activity.financialImpact!.toString()),
             ],
           ),
         ),
@@ -111,10 +117,10 @@ class ActivityDetailPanelWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (!isCancelled &&
-                  (activity.type == ActivityType.purchase ||
-                      activity.type == ActivityType.sale))
+                  (widget.activity.type == ActivityType.purchase ||
+                      widget.activity.type == ActivityType.sale))
                 OutlinedButton.icon(
-                  onPressed: onCancel,
+                  onPressed: widget.onCancel,
                   icon: const Icon(Icons.cancel),
                   label: Text(loc.cancel),
                   style: OutlinedButton.styleFrom(
@@ -125,7 +131,7 @@ class ActivityDetailPanelWidget extends StatelessWidget {
                 onPressed: () async {
                   final locale = Localizations.localeOf(context);
                   try {
-                    await pdfExportService.exportActivityPdf(activity,
+                    await widget.pdfExportService.exportActivityPdf(widget.activity,
                         languageCode: locale.languageCode);
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(

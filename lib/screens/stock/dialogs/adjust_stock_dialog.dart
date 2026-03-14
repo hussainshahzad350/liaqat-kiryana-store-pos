@@ -44,61 +44,102 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.all(AppTokens.spacingMedium),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-                '${loc.stock}: ${widget.item.currentStock} ${widget.item.unit}'),
-            const SizedBox(height: AppTokens.spacingMedium),
-            TextFormField(
-              controller: _quantityCtrl,
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: loc.quantity,
-                border: const OutlineInputBorder(),
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
+      ),
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 400, maxWidth: 480),
+        padding: const EdgeInsets.all(AppTokens.spacingLarge),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(loc.adjustStock, style: textTheme.titleLarge),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: widget.onCancel,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              validator: (value) {
-                if (value == null || value.isEmpty) return loc.required;
-                if (double.tryParse(value) == null) return loc.invalidAmount;
-                return null;
-              },
-            ),
-            const SizedBox(height: AppTokens.spacingMedium),
-            TextFormField(
-              controller: _reasonCtrl,
-              decoration: InputDecoration(
-                labelText: loc.description,
-                border: const OutlineInputBorder(),
+              const Divider(height: AppTokens.spacingLarge),
+              // Current stock info
+              Container(
+                padding: const EdgeInsets.all(AppTokens.spacingMedium),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.inventory_2_outlined,
+                        size: AppTokens.iconSizeMedium,
+                        color: colorScheme.primary),
+                    const SizedBox(width: AppTokens.spacingSmall),
+                    Text(
+                      '${loc.stock}: ${widget.item.currentStock} ${widget.item.unit}',
+                      style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
               ),
-              validator: (value) =>
-                  value == null || value.isEmpty ? loc.required : null,
-              onFieldSubmitted: (_) => _submit(),
-            ),
-            const SizedBox(height: AppTokens.spacingLarge),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
+              const SizedBox(height: AppTokens.spacingMedium),
+              // New quantity
+              TextFormField(
+                controller: _quantityCtrl,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: loc.quantity,
+                  border: const OutlineInputBorder(),
+                ),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return loc.required;
+                  if (double.tryParse(value) == null) return loc.invalidAmount;
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppTokens.spacingMedium),
+              TextFormField(
+                controller: _reasonCtrl,
+                decoration: InputDecoration(
+                  labelText: loc.description,
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? loc.required : null,
+                onFieldSubmitted: (_) => _submit(),
+              ),
+              const SizedBox(height: AppTokens.spacingLarge),
+              // Actions — right-aligned per gold standard
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
                     onPressed: widget.onCancel,
                     child: Text(loc.cancel),
                   ),
-                ),
-                const SizedBox(width: AppTokens.spacingMedium),
-                Expanded(
-                  child: ElevatedButton(
+                  const SizedBox(width: AppTokens.spacingMedium),
+                  ElevatedButton(
                     onPressed: _submit,
                     child: Text(loc.save),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

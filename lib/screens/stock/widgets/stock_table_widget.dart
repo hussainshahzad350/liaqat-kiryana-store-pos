@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/entity/stock_item_entity.dart';
 import '../../../core/res/app_tokens.dart';
+import '../utils/stock_sort_util.dart';
 
 typedef OnAdjustStock = Function(StockItemEntity item);
 typedef OnQuickPurchase = Function(BuildContext context, StockItemEntity item);
@@ -52,31 +53,11 @@ class _StockTableWidgetState extends State<StockTableWidget> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    final sortedItems = List<StockItemEntity>.from(widget.items);
-    sortedItems.sort((a, b) {
-      int result = 0;
-      switch (widget.sortColumnIndex) {
-        case 0:
-          result = a.nameEnglish.compareTo(b.nameEnglish);
-          break;
-        case 1:
-          result = (a.categoryName ?? '').compareTo(b.categoryName ?? '');
-          break;
-        case 2:
-          result = a.costPrice.paisas.compareTo(b.costPrice.paisas);
-          break;
-        case 3:
-          result = a.salePrice.paisas.compareTo(b.salePrice.paisas);
-          break;
-        case 4:
-          result = a.currentStock.compareTo(b.currentStock);
-          break;
-        case 5:
-          result = a.totalSalesValue.paisas.compareTo(b.totalSalesValue.paisas);
-          break;
-      }
-      return widget.isAscending ? result : -result;
-    });
+    final sortedItems = StockSortUtil.sort(
+      items: widget.items,
+      columnIndex: widget.sortColumnIndex,
+      ascending: widget.isAscending,
+    );
 
     return Card(
       margin: EdgeInsets.zero,

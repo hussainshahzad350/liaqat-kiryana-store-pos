@@ -15,6 +15,7 @@ class FilterPanelWidget extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final OnStatusFilterChanged onStatusFilterChanged;
   final OnSupplierFilterChanged onSupplierFilterChanged;
+  final OnSupplierFilterChanged onCategoryFilterChanged;
 
   const FilterPanelWidget({
     super.key,
@@ -27,6 +28,7 @@ class FilterPanelWidget extends StatelessWidget {
     required this.onSearchChanged,
     required this.onStatusFilterChanged,
     required this.onSupplierFilterChanged,
+    required this.onCategoryFilterChanged,
   });
 
   @override
@@ -65,36 +67,48 @@ class FilterPanelWidget extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: DropdownButton<int?>(
-                    isExpanded: true,
+                  child: DropdownButtonFormField<int?>(
                     value: selectedCategoryId,
                     hint: Text(loc.category),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.extraSmallBorderRadius),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppTokens.spacingMedium,
+                          vertical: AppTokens.spacingSmall),
+                    ),
                     items: [
-                      DropdownMenuItem(
-                          value: null, child: Text(loc.all)),
-                      ...availableCategories
-                          .map((c) => DropdownMenuItem(
-                                value: c['id'] as int,
-                                child: Text(c['name_english']),
-                              )),
+                      DropdownMenuItem(value: null, child: Text(loc.all)),
+                      ...availableCategories.map((c) => DropdownMenuItem(
+                            value: c['id'] as int,
+                            child: Text(c['name_english'] as String),
+                          )),
                     ],
-                    onChanged: (_) {},
+                    onChanged: (v) => onCategoryFilterChanged(v),
                   ),
                 ),
                 const SizedBox(width: AppTokens.spacingMedium),
                 Expanded(
-                  child: DropdownButton<int?>(
-                    isExpanded: true,
+                  child: DropdownButtonFormField<int?>(
                     value: selectedSupplierId,
                     hint: Text(loc.supplier),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.extraSmallBorderRadius),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppTokens.spacingMedium,
+                          vertical: AppTokens.spacingSmall),
+                    ),
                     items: [
-                      DropdownMenuItem(
-                          value: null, child: Text(loc.all)),
-                      ...availableSuppliers
-                          .map((s) => DropdownMenuItem(
-                                value: s['id'] as int,
-                                child: Text(s['name_english']),
-                              )),
+                      DropdownMenuItem(value: null, child: Text(loc.all)),
+                      ...availableSuppliers.map((s) => DropdownMenuItem(
+                            value: s['id'] as int,
+                            child: Text(s['name_english'] as String),
+                          )),
                     ],
                     onChanged: (v) => onSupplierFilterChanged(v),
                   ),

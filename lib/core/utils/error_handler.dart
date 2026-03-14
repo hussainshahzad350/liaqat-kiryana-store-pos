@@ -43,6 +43,8 @@ class ErrorHandler {
       'Stock limit reached': loc.stockLimitError,
       'Product sale price cannot be negative': loc.negativePriceError,
       'Item price cannot be negative': loc.itemNegativePriceError,
+      'Stock adjustment submitted': loc.stockUpdated,
+      'Transaction cancelled successfully': loc.invoiceCancelledSuccess,
     };
 
     return errorMap[errorMessage] ?? errorMessage;

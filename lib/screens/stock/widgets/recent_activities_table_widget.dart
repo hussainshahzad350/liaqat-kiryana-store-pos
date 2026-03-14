@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/entity/stock_activity_entity.dart';
 import '../../../core/res/app_tokens.dart';
@@ -74,10 +75,7 @@ class RecentActivitiesTableWidget extends StatelessWidget {
                   final qtyColor = qty > 0
                       ? colorScheme.secondary
                       : (qty < 0 ? colorScheme.error : colorScheme.onSurface);
-                  final dateStr = act.timestamp
-                      .toString()
-                      .substring(0, 16)
-                      .replaceFirst('T', ' ');
+                  final dateStr = DateFormat('yyyy-MM-dd HH:mm').format(act.timestamp);
 
                   return DataRow(
                     cells: [
