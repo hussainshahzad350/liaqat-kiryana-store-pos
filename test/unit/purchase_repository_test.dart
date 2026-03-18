@@ -16,8 +16,8 @@ void main() {
 
   setUp(() async {
     await DatabaseHelper.instance.resetDatabase();
-    purchaseRepo = PurchaseRepository();
     itemsRepo = ItemsRepository();
+    purchaseRepo = PurchaseRepository(itemsRepo);
   });
 
   group('PurchaseRepository.cancelPurchase', () {

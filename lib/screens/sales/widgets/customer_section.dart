@@ -60,7 +60,7 @@ class CustomerSection extends StatelessWidget {
                           borderRadius: BorderRadius.circular(
                               AppTokens.cardBorderRadius / 2)),
                       filled: true,
-                      fillColor: colorScheme.surfaceVariant,
+                      fillColor: colorScheme.surfaceContainerHighest,
                     ),
                     onChanged: onSearchChanged,
                     onTap: onSearchTap,

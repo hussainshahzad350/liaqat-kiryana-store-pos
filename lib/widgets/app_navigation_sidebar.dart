@@ -75,6 +75,13 @@ class AppNavigationSidebar extends StatelessWidget {
                   _buildMenuItem(
                     context,
                     isExpanded: isExpanded,
+                    icon: Icons.receipt_long,
+                    title: localizations.purchase,
+                    route: AppRoutes.purchase,
+                  ),
+                  _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
                     icon: Icons.inventory,
                     title: localizations.items,
                     route: AppRoutes.items,
@@ -203,11 +210,10 @@ class AppNavigationSidebar extends StatelessWidget {
                   horizontal: AppTokens.spacingMedium),
               child: Text(
                 localizations.appTitle,
-                style: TextStyle(
-                  fontSize: AppTokens.menuItemFontSize,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onPrimary,
-                ),
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onPrimary,
+                    ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -278,15 +284,14 @@ class AppNavigationSidebar extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: AppTokens.menuItemFontSize,
-                        fontWeight:
-                            isActive ? FontWeight.bold : FontWeight.normal,
-                        color: color ??
-                            (isActive
-                                ? colorScheme.primary
-                                : colorScheme.onSurface),
-                      ),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            fontWeight:
+                                isActive ? FontWeight.bold : FontWeight.normal,
+                            color: color ??
+                                (isActive
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface),
+                          ),
                     ),
                   ),
                 ],

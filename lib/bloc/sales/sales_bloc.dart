@@ -96,18 +96,19 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     }
   }
 
-  void _onProductSearchChanged(
-      ProductSearchChanged event, Emitter<SalesState> emit) {
-    final query = event.query.toLowerCase();
+  Future<void> _onProductSearchChanged(
+      ProductSearchChanged event, Emitter<SalesState> emit) async {
+    final query = event.query.trim();
     if (query.isEmpty) {
       emit(state.copyWith(filteredProducts: state.products));
-    } else {
-      final filtered = state.products.where((p) {
-        final nameEng = p.nameEnglish.toLowerCase();
-        final itemCode = (p.itemCode ?? '').toLowerCase();
-        return nameEng.contains(query) || itemCode.contains(query);
-      }).toList();
-      emit(state.copyWith(filteredProducts: filtered));
+      return;
+    }
+    try {
+      final results = await _itemsRepository.searchProducts(query);
+      emit(state.copyWith(filteredProducts: results));
+    } catch (e) {
+      // On search error, fall back to showing all products
+      emit(state.copyWith(filteredProducts: state.products));
     }
   }
 
@@ -271,11 +272,19 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
   }
 
   void _onDiscountChanged(DiscountChanged event, Emitter<SalesState> emit) {
-    Money money;
-    try {
-      money = Money.fromRupeesString(event.discountText);
-    } catch (_) {
-      money = Money.zero;
+    final money = Money.tryParse(event.discountText);
+    if (money == null) {
+      emit(state.copyWith(
+        status: SalesStatus.error,
+        errorMessage: 'Invalid discount amount',
+        clearCompletedInvoice: true,
+      ));
+      emit(state.copyWith(
+        status: SalesStatus.ready,
+        errorMessage: null,
+        clearCompletedInvoice: true,
+      ));
+      return;
     }
     _calculateTotals(emit, proposedDiscount: money);
   }

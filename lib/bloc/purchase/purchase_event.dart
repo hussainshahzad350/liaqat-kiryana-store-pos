@@ -18,6 +18,10 @@ class SelectPurchaseSupplier extends PurchaseEvent {
   List<Object?> get props => [supplierId];
 }
 
+class ClearPurchaseSupplier extends PurchaseEvent {
+  const ClearPurchaseSupplier();
+}
+
 class AddPurchaseItem extends PurchaseEvent {
   final PurchaseItemEntity item;
   const AddPurchaseItem(this.item);

@@ -1947,4 +1947,117 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get processing => 'Processing...';
+
+  @override
+  String get newPurchaseBill => 'New Purchase Bill';
+
+  @override
+  String get supplierInvoiceNumber => 'Supplier Invoice #';
+
+  @override
+  String get purchaseDate => 'Purchase Date';
+
+  @override
+  String get billItems => 'Bill items';
+
+  @override
+  String get addItemToBill => 'Add Item to Bill';
+
+  @override
+  String get costPrice => 'Cost Price';
+
+  @override
+  String get batchNumber => 'Batch Number';
+
+  @override
+  String get batchNumberOptional => 'Batch Number (Optional)';
+
+  @override
+  String get expiryDate => 'Expiry Date';
+
+  @override
+  String get totalPayable => 'Total payable';
+
+  @override
+  String get purchaseSavedSuccess => 'Purchase saved successfully';
+
+  @override
+  String get pleaseSelectSupplier => 'Please select a supplier';
+
+  @override
+  String get cartIsEmpty => 'Cart is empty';
+
+  @override
+  String get addItemsToStart => 'Click items on the left to add them';
+
+  @override
+  String get deadStock => 'Dead stock';
+
+  @override
+  String get deadStock90Days => 'Dead stock (90d)';
+
+  @override
+  String get expiringSoon => 'Expiring soon';
+
+  @override
+  String get expiringSoon30Days => 'Expiring ≤30 days';
+
+  @override
+  String get totalCostValue => 'Total cost value';
+
+  @override
+  String get exportCsv => 'CSV';
+
+  @override
+  String get exportExcel => 'Excel';
+
+  @override
+  String get exportPdf => 'PDF';
+
+  @override
+  String get exportStock => 'Export';
+
+  @override
+  String get bulkAdjustStock => 'Adjust stock';
+
+  @override
+  String get bulkExportSelected => 'Export selected';
+
+  @override
+  String get bulkOrderSelected => 'Order selected';
+
+  @override
+  String itemsSelected(int count) {
+    return '$count items selected';
+  }
+
+  @override
+  String get clearSelection => 'Clear selection';
+
+  @override
+  String get columnVisibility => 'Column visibility';
+
+  @override
+  String get backToStock => 'Back to stock';
+
+  @override
+  String get newSupplier => 'New Supplier';
+
+  @override
+  String get newItem => 'New Item';
+
+  @override
+  String get searchItems => 'Search items by name or code...';
+
+  @override
+  String get searchSuppliers => 'Search suppliers...';
+
+  @override
+  String get unitCost => 'Unit cost';
+
+  @override
+  String get lineTotal => 'Line total';
+
+  @override
+  String get purchaseScreenTitle => 'New Purchase Bill';
 }

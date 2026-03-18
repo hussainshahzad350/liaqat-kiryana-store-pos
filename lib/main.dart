@@ -212,7 +212,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                   ),
                 ),
             AppRoutes.purchase: (context) => MainLayout(
-                  currentRoute: AppRoutes.stock,
+                  currentRoute: AppRoutes.purchase,
                   child: BlocProvider(
                     create: (context) => PurchaseBloc(
                       purchaseRepository: context.read<PurchaseRepository>(),

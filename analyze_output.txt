@@ -1,0 +1,5 @@
+﻿Analyzing liaqat-kiryana-store-pos...                           
+
+  error - 1 positional argument expected by 'InvoiceRepository.new', but 0 found - test\integration\repository_test.dart:257:39 - not_enough_positional_arguments
+  error - 1 positional argument expected by 'PurchaseRepository.new', but 0 found - test\unit\purchase_repository_test.dart:19:39 - not_enough_positional_arguments
+

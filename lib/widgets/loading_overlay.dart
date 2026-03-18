@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/res/app_tokens.dart';
-import '../../../l10n/app_localizations.dart';
+import '../core/res/app_tokens.dart';
+import '../l10n/app_localizations.dart';
 
 class LoadingOverlay extends StatelessWidget {
   final String? message;
@@ -41,3 +41,4 @@ class LoadingOverlay extends StatelessWidget {
     );
   }
 }
+

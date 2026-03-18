@@ -80,7 +80,7 @@ class Invoice {
       status == SaleStatus.cancelled.dbValue;
 
   bool get isMathematicallyValid {
-    final sumItems = items.fold<int>(0, (sum, item) => sum + item.subtotal);
+    final sumItems = items.fold<int>(0, (sum, item) => sum + item.totalPrice);
     return (sumItems - discount) == totalAmount;
   }
 
@@ -117,6 +117,4 @@ class Invoice {
       customerName: map['customer_name'] as String?,
     );
   }
-
-  void operator [](String other) {}
 }

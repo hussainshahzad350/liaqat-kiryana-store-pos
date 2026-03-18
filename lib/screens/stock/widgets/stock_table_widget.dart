@@ -20,6 +20,13 @@ class StockTableWidget extends StatefulWidget {
   final OnViewHistory onViewHistory;
   final OnSort onSort;
   final VoidCallback onLoadMore;
+  final List<int> selectedIds;
+  final VoidCallback onSelectAll;
+  final VoidCallback onClearSelection;
+  final ValueChanged<int> onToggleSelection;
+  final VoidCallback? onBulkAdjustStock;
+  final VoidCallback? onBulkExportSelected;
+  final VoidCallback? onBulkOrderSelected;
 
   const StockTableWidget({
     super.key,
@@ -33,6 +40,13 @@ class StockTableWidget extends StatefulWidget {
     required this.onViewHistory,
     required this.onSort,
     required this.onLoadMore,
+    required this.selectedIds,
+    required this.onSelectAll,
+    required this.onClearSelection,
+    required this.onToggleSelection,
+    this.onBulkAdjustStock,
+    this.onBulkExportSelected,
+    this.onBulkOrderSelected,
   });
 
   @override
@@ -60,17 +74,31 @@ class _StockTableWidgetState extends State<StockTableWidget> {
       ascending: widget.isAscending,
     );
 
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: colorScheme.outlineVariant),
-        borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(AppTokens.cardBorderRadius)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.selectedIds.isNotEmpty)
+          _BulkActionBar(
+             selectedCount: widget.selectedIds.length,
+             onClearSelection: widget.onClearSelection,
+             onBulkAdjustStock: widget.onBulkAdjustStock,
+             onBulkExportSelected: widget.onBulkExportSelected,
+             onBulkOrderSelected: widget.onBulkOrderSelected,
+             loc: loc,
+             colorScheme: colorScheme,
+          ),
+        Expanded(
+          child: Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              side: BorderSide(color: colorScheme.outlineVariant),
+              borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppTokens.cardBorderRadius)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
           Padding(
             padding: const EdgeInsets.all(AppTokens.spacingMedium),
             child: Text(
@@ -97,6 +125,20 @@ class _StockTableWidgetState extends State<StockTableWidget> {
                             color: colorScheme.onPrimaryContainer,
                           ),
                   columns: [
+                    DataColumn(
+                      label: Checkbox(
+                        value: widget.items.isNotEmpty &&
+                               widget.items.every((i) => widget.selectedIds.contains(i.id)),
+                        tristate: true,
+                        onChanged: (val) {
+                          if (val == true) {
+                            widget.onSelectAll();
+                          } else {
+                            widget.onClearSelection();
+                          }
+                        },
+                      ),
+                    ),
                     DataColumn(label: Text(loc.item), onSort: widget.onSort),
                     DataColumn(label: Text(loc.category), onSort: widget.onSort),
                     DataColumn(
@@ -123,7 +165,7 @@ class _StockTableWidgetState extends State<StockTableWidget> {
                     final isSelected = index == widget.focusedIndex;
 
                     return DataRow(
-                      selected: isSelected,
+                      selected: isSelected || widget.selectedIds.contains(item.id),
                       onSelectChanged: (selected) {
                         if (selected == true) {
                           widget.onAdjustStock(item);
@@ -131,12 +173,23 @@ class _StockTableWidgetState extends State<StockTableWidget> {
                       },
                       color:
                           WidgetStateProperty.resolveWith<Color?>((states) {
+                        if (widget.selectedIds.contains(item.id)) {
+                          return colorScheme.primaryContainer.withValues(alpha: 0.3);
+                        }
                         if (isSelected) {
                           return colorScheme.primaryContainer.withValues(alpha: 0.3);
                         }
                         return null;
                       }),
                       cells: [
+                        DataCell(
+                          Checkbox(
+                            value: widget.selectedIds.contains(item.id),
+                            onChanged: (val) {
+                              widget.onToggleSelection(item.id);
+                            },
+                          ),
+                        ),
                         DataCell(Text(item.nameEnglish,
                             style: textTheme.bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w500))),
@@ -227,6 +280,77 @@ class _StockTableWidgetState extends State<StockTableWidget> {
                 child: Text(loc.loadMoreItems),
               ),
             ),
+        ],
+      ),
+      ),
+      ),
+      ],
+    );
+  }
+}
+
+class _BulkActionBar extends StatelessWidget {
+  final int selectedCount;
+  final VoidCallback onClearSelection;
+  final VoidCallback? onBulkAdjustStock;
+  final VoidCallback? onBulkExportSelected;
+  final VoidCallback? onBulkOrderSelected;
+  final AppLocalizations loc;
+  final ColorScheme colorScheme;
+
+  const _BulkActionBar({
+    required this.selectedCount,
+    required this.onClearSelection,
+    this.onBulkAdjustStock,
+    this.onBulkExportSelected,
+    this.onBulkOrderSelected,
+    required this.loc,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingMedium),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+      ),
+      child: Row(
+        children: [
+          Text(
+            loc.itemsSelected(selectedCount),
+            style: TextStyle(color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: AppTokens.spacingLarge),
+          if (onBulkAdjustStock != null)
+            TextButton.icon(
+              onPressed: onBulkAdjustStock,
+              icon: const Icon(Icons.tune, size: AppTokens.iconSizeSmall),
+              label: Text(loc.bulkAdjustStock),
+              style: TextButton.styleFrom(foregroundColor: colorScheme.onPrimaryContainer),
+            ),
+          if (onBulkExportSelected != null)
+            TextButton.icon(
+              onPressed: onBulkExportSelected,
+              icon: const Icon(Icons.download, size: AppTokens.iconSizeSmall),
+              label: Text(loc.bulkExportSelected),
+              style: TextButton.styleFrom(foregroundColor: colorScheme.onPrimaryContainer),
+            ),
+          if (onBulkOrderSelected != null)
+            TextButton.icon(
+              onPressed: onBulkOrderSelected,
+              icon: const Icon(Icons.shopping_cart, size: AppTokens.iconSizeSmall),
+              label: Text(loc.bulkOrderSelected),
+              style: TextButton.styleFrom(foregroundColor: colorScheme.onPrimaryContainer),
+            ),
+          const Spacer(),
+          TextButton.icon(
+            onPressed: onClearSelection,
+            icon: const Icon(Icons.close, size: AppTokens.iconSizeSmall),
+            label: Text(loc.clearSelection),
+            style: TextButton.styleFrom(foregroundColor: colorScheme.onPrimaryContainer),
+          ),
         ],
       ),
     );

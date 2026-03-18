@@ -450,7 +450,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                     fontWeight: FontWeight.bold,
                     color: enabled
                         ? colorScheme.onSurface
-                        : colorScheme.onSurfaceVariant),
+                        : colorScheme.onSurface.withValues(alpha: 0.38)),
                 onChanged: onChanged,
               ),
             ),

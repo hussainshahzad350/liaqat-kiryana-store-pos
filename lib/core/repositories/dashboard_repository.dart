@@ -249,12 +249,12 @@ class DashboardRepository {
           p.name_english,
           p.name_urdu,
           p.sale_price,
-          SUM(si.quantity_sold) as total_sold,
+          SUM(si.quantity) as total_sold,
           SUM(si.total_price) as total_revenue,
-          COUNT(DISTINCT si.sale_id) as sale_count
+          COUNT(DISTINCT si.invoice_id) as sale_count
         FROM products p
         JOIN invoice_items si ON p.id = si.product_id
-        JOIN invoices s ON si.sale_id = s.id
+        JOIN invoices s ON si.invoice_id = s.id
         WHERE s.status = 'COMPLETED'
       ''';
 
@@ -600,10 +600,10 @@ class DashboardRepository {
       String query = '''
         SELECT 
           SUM(si.total_price) as revenue,
-          SUM(si.quantity_sold * p.avg_cost_price) as cost
+          SUM(si.quantity * p.avg_cost_price) as cost
         FROM invoice_items si
         JOIN products p ON si.product_id = p.id
-        JOIN invoices s ON si.sale_id = s.id
+        JOIN invoices s ON si.invoice_id = s.id
         WHERE s.status = 'COMPLETED'
       ''';
       

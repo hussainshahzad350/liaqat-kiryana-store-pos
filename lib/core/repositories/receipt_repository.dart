@@ -199,7 +199,7 @@ class ReceiptRepository {
               ...invoice.items.map((item) => pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Expanded(child: pw.Text(item.itemNameSnapshot)),
+                  pw.Expanded(child: pw.Text(item.itemName)),
                   pw.Text('${item.quantity} x ${Money(item.unitPrice)}'),
                   pw.Text(Money(item.totalPrice).toString()),
                 ],

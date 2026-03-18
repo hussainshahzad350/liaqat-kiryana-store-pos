@@ -1,6 +1,3 @@
-// lib/screens/sales/sales_screen.dart
-// ignore_for_file: unnecessary_to_list_in_spreads
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -696,7 +693,7 @@ class _SalesScreenState extends State<SalesScreen> {
                                                       horizontal:
                                                           AppTokens
                                                               .spacingMedium),
-                                              color: colorScheme.surfaceVariant
+                                              color: colorScheme.surfaceContainerHighest
                                                   .withValues(alpha: 0.5),
                                               child: Row(
                                                 children: [

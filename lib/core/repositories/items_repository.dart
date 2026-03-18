@@ -134,7 +134,7 @@ class ItemsRepository {
   }) async {
     final db = await _dbHelper.database;
 
-    return await db.transaction((txn) async {
+    final result = await db.transaction((txn) async {
       // Get current stock
       final result = await txn.query(
         'products',
@@ -176,6 +176,8 @@ class ItemsRepository {
         whereArgs: [id],
       );
     });
+    notifyStockChanged();
+    return result;
   }
 
   /// Update average cost price (FIFO/Weighted Average)
@@ -225,17 +227,44 @@ class ItemsRepository {
   // ========================================
 
   /// Search products by name or item code
-  Future<List<Product>> searchProducts(String query) async {
+  Future<List<Product>> searchProducts(String query, {int limit = 100}) async {
+    if (query.trim().isEmpty) return [];
     final db = await _dbHelper.database;
-    final q = '%${query.toLowerCase()}%';
 
+    try {
+      // Fast path: FTS5 search
+      final ftsQuery = query
+          .trim()
+          .split(' ')
+          .where((w) => w.isNotEmpty)
+          .map((w) => '$w*')
+          .join(' ');
+
+      final ftsResult = await db.rawQuery('''
+        SELECT p.* FROM products p
+        INNER JOIN products_fts ON p.id = products_fts.rowid
+        WHERE products_fts MATCH ?
+        ORDER BY p.name_english ASC
+        LIMIT ?
+      ''', [ftsQuery, limit]);
+
+      if (ftsResult.isNotEmpty) {
+        return ftsResult.map((map) => Product.fromMap(map)).toList();
+      }
+    } catch (_) {
+      // FTS5 table may not exist yet — fall through to LIKE search
+    }
+
+    // Fallback: LIKE search
+    final q = '%${query.toLowerCase()}%';
     final result = await db.rawQuery('''
-      SELECT * FROM products 
-      WHERE LOWER(name_english) LIKE ? 
+      SELECT * FROM products
+      WHERE LOWER(name_english) LIKE ?
       OR LOWER(name_urdu) LIKE ?
       OR LOWER(item_code) LIKE ?
       ORDER BY name_english ASC
-    ''', [q, q, q]);
+      LIMIT ?
+    ''', [q, q, q, limit]);
 
     return result.map((map) => Product.fromMap(map)).toList();
   }
@@ -358,7 +387,7 @@ class ItemsRepository {
     final result = await db.rawQuery('''
       SELECT 
         COUNT(*) as sale_count,
-        SUM(si.quantity_sold) as total_sold,
+        SUM(si.quantity) as total_sold,
         SUM(si.total_price) as total_revenue,
         AVG(si.unit_price) as avg_price
         FROM invoice_items si
@@ -395,7 +424,7 @@ class ItemsRepository {
     String query = '''
       SELECT 
         p.*,
-        SUM(si.quantity_sold) as total_sold,
+        SUM(si.quantity) as total_sold,
         SUM(si.total_price) as total_revenue,
         COUNT(DISTINCT si.invoice_id) as sale_count
         FROM products p
@@ -438,7 +467,7 @@ class ItemsRepository {
     return await db.rawQuery('''
       SELECT 
         p.*,
-        COALESCE(SUM(si.quantity_sold), 0) as total_sold
+        COALESCE(SUM(si.quantity), 0) as total_sold
       FROM products p
       LEFT JOIN invoice_items si ON p.id = si.product_id
       LEFT JOIN invoices s ON si.invoice_id = s.id AND s.invoice_date >= ? AND s.status = 'COMPLETED'

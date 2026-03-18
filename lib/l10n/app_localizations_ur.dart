@@ -1943,4 +1943,117 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get processing => 'کارروائی جاری ہے...';
+
+  @override
+  String get newPurchaseBill => 'نئی خریداری بِل';
+
+  @override
+  String get supplierInvoiceNumber => 'سپلائر انوائس نمبر';
+
+  @override
+  String get purchaseDate => 'خریداری کی تاریخ';
+
+  @override
+  String get billItems => 'بل اشیاء';
+
+  @override
+  String get addItemToBill => 'بل میں شامل کریں';
+
+  @override
+  String get costPrice => 'خریداری قیمت';
+
+  @override
+  String get batchNumber => 'بیچ نمبر';
+
+  @override
+  String get batchNumberOptional => 'بیچ نمبر (اختیاری)';
+
+  @override
+  String get expiryDate => 'میعاد ختم ہونے کی تاریخ';
+
+  @override
+  String get totalPayable => 'کل ادائیگی';
+
+  @override
+  String get purchaseSavedSuccess => 'خریداری کامیابی سے محفوظ ہو گئی';
+
+  @override
+  String get pleaseSelectSupplier => 'براہ کرم سپلائر منتخب کریں';
+
+  @override
+  String get cartIsEmpty => 'کارٹ خالی ہے';
+
+  @override
+  String get addItemsToStart => 'شروع کرنے کے لیے بائیں طرف اشیاء پر کلک کریں';
+
+  @override
+  String get deadStock => 'غیر فعال اسٹاک';
+
+  @override
+  String get deadStock90Days => 'غیر فعال اسٹاک (90 دن)';
+
+  @override
+  String get expiringSoon => 'جلد میعاد ختم';
+
+  @override
+  String get expiringSoon30Days => 'میعاد ≤30 دن';
+
+  @override
+  String get totalCostValue => 'کل لاگت قدر';
+
+  @override
+  String get exportCsv => 'CSV';
+
+  @override
+  String get exportExcel => 'Excel';
+
+  @override
+  String get exportPdf => 'PDF';
+
+  @override
+  String get exportStock => 'برآمد کریں';
+
+  @override
+  String get bulkAdjustStock => 'اسٹاک ایڈجسٹ کریں';
+
+  @override
+  String get bulkExportSelected => 'منتخب برآمد کریں';
+
+  @override
+  String get bulkOrderSelected => 'منتخب آرڈر کریں';
+
+  @override
+  String itemsSelected(int count) {
+    return '$count اشیاء منتخب';
+  }
+
+  @override
+  String get clearSelection => 'انتخاب صاف کریں';
+
+  @override
+  String get columnVisibility => 'کالم مرئیت';
+
+  @override
+  String get backToStock => 'اسٹاک پر واپس';
+
+  @override
+  String get newSupplier => 'نیا سپلائر';
+
+  @override
+  String get newItem => 'نئی شے';
+
+  @override
+  String get searchItems => 'نام یا کوڈ سے اشیاء تلاش کریں...';
+
+  @override
+  String get searchSuppliers => 'سپلائر تلاش کریں...';
+
+  @override
+  String get unitCost => 'فی اکائی لاگت';
+
+  @override
+  String get lineTotal => 'لائن کل';
+
+  @override
+  String get purchaseScreenTitle => 'نئی خریداری بِل';
 }
