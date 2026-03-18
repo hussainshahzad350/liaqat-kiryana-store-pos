@@ -135,6 +135,15 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
 
   bool _isRapidDuplicate(String key) {
     final now = DateTime.now();
+
+    // Evict entries older than 10 seconds to prevent unbounded growth
+    if (_recentActionByKey.length > 100) {
+      _recentActionByKey.removeWhere(
+        (_, timestamp) =>
+            now.difference(timestamp) > const Duration(seconds: 10),
+      );
+    }
+
     final previous = _recentActionByKey[key];
     _recentActionByKey[key] = now;
     if (previous == null) return false;

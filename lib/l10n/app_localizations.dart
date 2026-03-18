@@ -3841,6 +3841,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Processing...'**
   String get processing;
+
+  /// No description provided for @newPurchaseBill.
+  ///
+  /// In en, this message translates to:
+  /// **'New Purchase Bill'**
+  String get newPurchaseBill;
+
+  /// No description provided for @supplierInvoiceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier Invoice #'**
+  String get supplierInvoiceNumber;
+
+  /// No description provided for @purchaseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Date'**
+  String get purchaseDate;
+
+  /// No description provided for @billItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill items'**
+  String get billItems;
+
+  /// No description provided for @addItemToBill.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Item to Bill'**
+  String get addItemToBill;
+
+  /// No description provided for @costPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost Price'**
+  String get costPrice;
+
+  /// No description provided for @batchNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch Number'**
+  String get batchNumber;
+
+  /// No description provided for @batchNumberOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch Number (Optional)'**
+  String get batchNumberOptional;
+
+  /// No description provided for @expiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry Date'**
+  String get expiryDate;
+
+  /// No description provided for @totalPayable.
+  ///
+  /// In en, this message translates to:
+  /// **'Total payable'**
+  String get totalPayable;
+
+  /// No description provided for @purchaseSavedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase saved successfully'**
+  String get purchaseSavedSuccess;
+
+  /// No description provided for @pleaseSelectSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a supplier'**
+  String get pleaseSelectSupplier;
+
+  /// No description provided for @cartIsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart is empty'**
+  String get cartIsEmpty;
+
+  /// No description provided for @addItemsToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Click items on the left to add them'**
+  String get addItemsToStart;
+
+  /// No description provided for @deadStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Dead stock'**
+  String get deadStock;
+
+  /// No description provided for @deadStock90Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Dead stock (90d)'**
+  String get deadStock90Days;
+
+  /// No description provided for @expiringSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring soon'**
+  String get expiringSoon;
+
+  /// No description provided for @expiringSoon30Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring ≤30 days'**
+  String get expiringSoon30Days;
+
+  /// No description provided for @totalCostValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Total cost value'**
+  String get totalCostValue;
+
+  /// No description provided for @exportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV'**
+  String get exportCsv;
+
+  /// No description provided for @exportExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel'**
+  String get exportExcel;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get exportPdf;
+
+  /// No description provided for @exportStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportStock;
+
+  /// No description provided for @bulkAdjustStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust stock'**
+  String get bulkAdjustStock;
+
+  /// No description provided for @bulkExportSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Export selected'**
+  String get bulkExportSelected;
+
+  /// No description provided for @bulkOrderSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Order selected'**
+  String get bulkOrderSelected;
+
+  /// No description provided for @itemsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items selected'**
+  String itemsSelected(int count);
+
+  /// No description provided for @clearSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear selection'**
+  String get clearSelection;
+
+  /// No description provided for @columnVisibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Column visibility'**
+  String get columnVisibility;
+
+  /// No description provided for @backToStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to stock'**
+  String get backToStock;
+
+  /// No description provided for @newSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'New Supplier'**
+  String get newSupplier;
+
+  /// No description provided for @newItem.
+  ///
+  /// In en, this message translates to:
+  /// **'New Item'**
+  String get newItem;
+
+  /// No description provided for @searchItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Search items by name or code...'**
+  String get searchItems;
+
+  /// No description provided for @searchSuppliers.
+  ///
+  /// In en, this message translates to:
+  /// **'Search suppliers...'**
+  String get searchSuppliers;
+
+  /// No description provided for @unitCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit cost'**
+  String get unitCost;
+
+  /// No description provided for @lineTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Line total'**
+  String get lineTotal;
+
+  /// No description provided for @purchaseScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New Purchase Bill'**
+  String get purchaseScreenTitle;
 }
 
 class _AppLocalizationsDelegate

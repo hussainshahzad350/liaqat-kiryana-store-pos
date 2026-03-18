@@ -22,7 +22,6 @@ class MainLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-    final isEnglish = localizations.localeName == 'en';
     final colorScheme = Theme.of(context).colorScheme;
 
     return Shortcuts(
@@ -57,7 +56,6 @@ class MainLayout extends StatelessWidget {
         child: FocusTraversalGroup(
           child: Scaffold(
             body: Row(
-              textDirection: isEnglish ? TextDirection.ltr : TextDirection.rtl,
               children: [
                 AppNavigationSidebar(
                   currentRoute: currentRoute,

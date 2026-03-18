@@ -36,155 +36,129 @@ class FilterPanelWidget extends StatelessWidget {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Card(
-      elevation: AppTokens.cardElevation,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.cardPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              loc.filters,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppTokens.spacingMedium),
-            TextField(
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.spacingMedium,
+        vertical: AppTokens.spacingSmall,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Search box — fixed 220px
+          SizedBox(
+            width: 220,
+            child: TextField(
               onChanged: onSearchChanged,
               decoration: InputDecoration(
-                labelText: loc.search,
-                prefixIcon: const Icon(Icons.search),
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                filled: true,
+                hintText: loc.search,
+                prefixIcon: const Icon(Icons.search, size: AppTokens.iconSizeMedium),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: AppTokens.spacingSmall,
+                  horizontal: AppTokens.spacingMedium,
+                ),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(AppTokens.extraSmallBorderRadius),
+                  borderRadius: BorderRadius.circular(AppTokens.extraSmallBorderRadius),
                 ),
               ),
             ),
-            const SizedBox(height: AppTokens.spacingMedium),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<int?>(
-                    value: selectedCategoryId,
-                    hint: Text(loc.category),
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.extraSmallBorderRadius),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: AppTokens.spacingMedium,
-                          vertical: AppTokens.spacingSmall),
-                    ),
-                    items: [
-                      DropdownMenuItem(value: null, child: Text(loc.all)),
-                      ...availableCategories.map((c) => DropdownMenuItem(
-                            value: c['id'] as int,
-                            child: Text(c['name_english'] as String),
-                          )),
-                    ],
-                    onChanged: (v) => onCategoryFilterChanged(v),
-                  ),
-                ),
-                const SizedBox(width: AppTokens.spacingMedium),
-                Expanded(
-                  child: DropdownButtonFormField<int?>(
-                    value: selectedSupplierId,
-                    hint: Text(loc.supplier),
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.extraSmallBorderRadius),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: AppTokens.spacingMedium,
-                          vertical: AppTokens.spacingSmall),
-                    ),
-                    items: [
-                      DropdownMenuItem(value: null, child: Text(loc.all)),
-                      ...availableSuppliers.map((s) => DropdownMenuItem(
-                            value: s['id'] as int,
-                            child: Text(s['name_english'] as String),
-                          )),
-                    ],
-                    onChanged: (v) => onSupplierFilterChanged(v),
-                  ),
-                ),
-              ],
+          ),
+          const SizedBox(width: AppTokens.spacingMedium),
+          // Status filter chips — horizontal scrollable
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildChip(context, loc.all, 'ALL'),
+                  _buildChip(context, loc.lowStock, 'LOW'),
+                  _buildChip(context, loc.outOfStock, 'OUT'),
+                  _buildChip(context, loc.expiringSoon, 'SOON'),
+                  _buildChip(context, loc.expired, 'EXPIRED'),
+                  _buildChip(context, loc.deadStock, 'DEAD'),
+                ],
+              ),
             ),
-            const SizedBox(height: AppTokens.spacingMedium),
-            Row(
-              children: [
-                Wrap(
-                  spacing: AppTokens.spacingMedium,
-                  children: [
-                    FilterChip(
-                      label: Text(loc.all),
-                      selected: statusFilter == 'ALL',
-                      onSelected: (v) => onStatusFilterChanged('ALL'),
-                    ),
-                    FilterChip(
-                      label: Text(loc.lowStock),
-                      selected: statusFilter == 'LOW',
-                      onSelected: (v) => onStatusFilterChanged('LOW'),
-                      backgroundColor:
-                          colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-                      selectedColor: colorScheme.tertiaryContainer,
-                      shape: StadiumBorder(
-                          side: BorderSide(
-                              color: statusFilter == 'LOW'
-                                  ? colorScheme.tertiary
-                                  : Colors.transparent)),
-                    ),
-                    FilterChip(
-                      label: Text(loc.outOfStock),
-                      selected: statusFilter == 'OUT',
-                      onSelected: (v) => onStatusFilterChanged('OUT'),
-                      backgroundColor:
-                          colorScheme.errorContainer.withValues(alpha: 0.3),
-                      selectedColor: colorScheme.errorContainer,
-                      shape: StadiumBorder(
-                          side: BorderSide(
-                              color: statusFilter == 'OUT'
-                                  ? colorScheme.error
-                                  : Colors.transparent)),
-                    ),
-                    FilterChip(
-                      label: Text(loc.expired),
-                      selected: statusFilter == 'EXPIRED',
-                      onSelected: (v) => onStatusFilterChanged('EXPIRED'),
-                      backgroundColor:
-                          colorScheme.onErrorContainer.withValues(alpha: 0.3),
-                      selectedColor: colorScheme.onErrorContainer,
-                      shape: StadiumBorder(
-                          side: BorderSide(
-                              color: statusFilter == 'EXPIRED'
-                                  ? colorScheme.onError
-                                  : Colors.transparent)),
-                    ),
-                    FilterChip(
-                      label: Text(loc.oldStock),
-                      selected: statusFilter == 'OLD',
-                      onSelected: (v) => onStatusFilterChanged('OLD'),
-                      backgroundColor:
-                          colorScheme.secondaryContainer.withValues(alpha: 0.3),
-                      selectedColor: colorScheme.secondaryContainer,
-                      shape: StadiumBorder(
-                          side: BorderSide(
-                              color: statusFilter == 'OLD'
-                                  ? colorScheme.secondary
-                                  : Colors.transparent)),
-                    ),
-                  ],
+          ),
+          const SizedBox(width: AppTokens.spacingMedium),
+          // Category dropdown — 140px
+          SizedBox(
+            width: 140, 
+            child: DropdownButtonFormField<int?>(
+              value: selectedCategoryId,
+              hint: Text(loc.category),
+              decoration: InputDecoration(
+                isDense: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTokens.extraSmallBorderRadius),
                 ),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.spacingMedium,
+                    vertical: AppTokens.spacingSmall),
+              ),
+              items: [
+                DropdownMenuItem(value: null, child: Text(loc.all)),
+                ...availableCategories.map((c) => DropdownMenuItem(
+                      value: c['id'] as int,
+                      child: Text(c['name_english'] as String),
+                    )),
               ],
+              onChanged: (v) => onCategoryFilterChanged(v),
             ),
-          ],
+          ),
+          const SizedBox(width: AppTokens.spacingSmall),
+          // Supplier dropdown — 140px
+          SizedBox(
+            width: 140, 
+            child: DropdownButtonFormField<int?>(
+              value: selectedSupplierId,
+              hint: Text(loc.supplier),
+              decoration: InputDecoration(
+                isDense: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTokens.extraSmallBorderRadius),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.spacingMedium,
+                    vertical: AppTokens.spacingSmall),
+              ),
+              items: [
+                DropdownMenuItem(value: null, child: Text(loc.all)),
+                ...availableSuppliers.map((s) => DropdownMenuItem(
+                      value: s['id'] as int,
+                      child: Text(s['name_english'] as String),
+                    )),
+              ],
+              onChanged: (v) => onSupplierFilterChanged(v),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip(BuildContext context, String label, String filterValue) {
+    final isActive = statusFilter == filterValue;
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Padding(
+      padding: const EdgeInsets.only(right: AppTokens.spacingSmall),
+      child: FilterChip(
+        label: Text(label),
+        selected: isActive,
+        onSelected: (_) => onStatusFilterChanged(filterValue),
+        selectedColor: colorScheme.primary,
+        showCheckmark: false,
+        labelStyle: TextStyle(
+          color: isActive ? colorScheme.onPrimary : colorScheme.onSurface,
         ),
       ),
     );
   }
 }
+

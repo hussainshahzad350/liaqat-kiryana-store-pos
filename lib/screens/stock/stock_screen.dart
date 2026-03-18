@@ -14,12 +14,10 @@ import '../../bloc/stock/stock_activity/stock_activity_state.dart';
 import '../../bloc/stock/stock_activity/stock_activity_event.dart';
 import '../../bloc/stock/stock_ui/stock_ui_cubit.dart';
 import '../../core/entity/stock_item_entity.dart';
-import '../../core/entity/stock_summary_entity.dart';
 import '../../core/entity/stock_activity_entity.dart';
 import '../../services/pdf_export_service.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/res/app_tokens.dart';
-import '../../widgets/skeleton_loader.dart';
 import 'dialogs/adjust_stock_dialog.dart';
 import 'dialogs/cancel_activity_dialog.dart';
 import 'widgets/stock_table_widget.dart';
@@ -28,7 +26,8 @@ import 'widgets/recent_activities_table_widget.dart';
 import 'widgets/filter_panel_widget.dart';
 import 'widgets/stock_table_skeleton_widget.dart';
 import 'widgets/activity_table_skeleton_widget.dart';
-import 'widgets/loading_overlay.dart';
+import '../../widgets/loading_overlay.dart';
+import 'widgets/kpi_strip_widget.dart';
 import 'utils/stock_shortcuts.dart';
 
 class StockScreen extends StatefulWidget {
@@ -188,7 +187,7 @@ class _StockScreenState extends State<StockScreen> {
                                 const EdgeInsets.all(AppTokens.spacingLarge),
                             child: Column(
                               children: [
-                                _buildKPISection(loc, colorScheme),
+                                const KpiStripWidget(),
                                 const SizedBox(height: AppTokens.spacingLarge),
                                 _buildFilterSection(),
                                 const SizedBox(height: AppTokens.spacingLarge),
@@ -232,97 +231,27 @@ class _StockScreenState extends State<StockScreen> {
               foregroundColor: colorScheme.onTertiaryContainer,
             ),
           ),
+          const SizedBox(width: AppTokens.spacingSmall),
+          OutlinedButton(
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(loc.exportCsv)),
+            ),
+            child: Text(loc.exportCsv),
+          ),
+          const SizedBox(width: AppTokens.spacingXSmall),
+          OutlinedButton(
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(loc.exportPdf)),
+            ),
+            child: Text(loc.exportPdf),
+          ),
           const SizedBox(width: AppTokens.spacingMedium),
         ],
       ),
     );
   }
 
-  Widget _buildKPISection(AppLocalizations loc, ColorScheme colorScheme) {
-    return BlocBuilder<StockOverviewBloc, StockOverviewState>(
-      builder: (context, state) {
-        if (state is StockOverviewLoaded) {
-          return _buildKPIStrip(context, loc, colorScheme, state.summary);
-        }
-        return _buildKPISkeleton(colorScheme);
-      },
-    );
-  }
 
-  Widget _buildKPIStrip(BuildContext context, AppLocalizations loc,
-      ColorScheme colorScheme, StockSummaryEntity summary) {
-    return Row(
-      children: [
-        _buildKPICard(context, loc.totalItems, '${summary.totalItemsCount}',
-            colorScheme.primary),
-        _buildKPICard(
-            context,
-            loc.stockValue,
-            summary.totalStockSalesValue.formattedNoDecimal,
-            colorScheme.secondary),
-        _buildKPICard(
-            context,
-            loc.totalCost,
-            summary.totalStockCost.formattedNoDecimal,
-            colorScheme.onSurfaceVariant),
-        _buildKPICard(context, loc.lowStock, '${summary.lowStockItemsCount}',
-            colorScheme.tertiary),
-        _buildKPICard(context, loc.outOfStock,
-            '${summary.outOfStockItemsCount}', colorScheme.error),
-        _buildKPICard(
-            context,
-            loc.expired,
-            '${summary.expiredOrNearExpiryCount}',
-            colorScheme.onErrorContainer),
-      ],
-    );
-  }
-
-  Widget _buildKPICard(
-      BuildContext context, String label, String value, Color color) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    return Expanded(
-      child: Card(
-        elevation: AppTokens.cardElevation,
-        margin: const EdgeInsets.symmetric(horizontal: AppTokens.spacingSmall),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
-        child: Padding(
-          padding: const EdgeInsets.all(AppTokens.cardPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style: textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant)),
-              const SizedBox(height: AppTokens.spacingXSmall),
-              Text(
-                value,
-                style: textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildKPISkeleton(ColorScheme colorScheme) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTokens.spacingMedium,
-          vertical: AppTokens.spacingSmall),
-      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      child: const Row(children: [
-        Expanded(child: SkeletonLoader(height: AppTokens.kpiHeight))
-      ]),
-    );
-  }
 
   Widget _buildFilterSection() {
     return BlocBuilder<StockFilterBloc, StockFilterState>(
@@ -413,6 +342,24 @@ class _StockScreenState extends State<StockScreen> {
                               onLoadMore: () => uiContext
                                   .read<StockOverviewBloc>()
                                   .add(LoadMoreStockOverview()),
+                              selectedIds: uiState.selectedIds,
+                              onToggleSelection: (id) => uiContext.read<StockUiCubit>().toggleSelection(id),
+                              onSelectAll: () => uiContext.read<StockUiCubit>().selectAll(
+                                state.items.map((i) => i.id).toList()
+                              ),
+                              onClearSelection: () => uiContext.read<StockUiCubit>().clearSelection(),
+                              onBulkAdjustStock: uiState.selectedIds.isEmpty ? null : () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(loc.bulkAdjustStock)),
+                                );
+                              },
+                              onBulkExportSelected: uiState.selectedIds.isEmpty ? null : () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(loc.bulkExportSelected)),
+                                );
+                              },
+                              onBulkOrderSelected: uiState.selectedIds.isEmpty ? null : () =>
+                                  Navigator.pushNamed(context, AppRoutes.purchase),
                             ),
                           );
                         }

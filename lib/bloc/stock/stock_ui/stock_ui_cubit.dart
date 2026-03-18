@@ -30,4 +30,21 @@ class StockUiCubit extends Cubit<StockUiState> {
       ));
 
   void closeSidePanel() => emit(state.copyWith(showSidePanel: false));
+
+  void toggleSelection(int itemId) {
+    final current = List<int>.from(state.selectedIds);
+    if (current.contains(itemId)) {
+      current.remove(itemId);
+    } else {
+      current.add(itemId);
+    }
+    emit(state.copyWith(selectedIds: current));
+  }
+
+  void selectAll(List<int> itemIds) =>
+      emit(state.copyWith(selectedIds: List<int>.from(itemIds)));
+
+  void clearSelection() => emit(state.copyWith(selectedIds: const []));
+
+  bool isSelected(int itemId) => state.selectedIds.contains(itemId);
 }

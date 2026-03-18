@@ -34,6 +34,17 @@ class StockRepository {
       whereClause += " AND p.expiry_date IS NOT NULL AND DATE(p.expiry_date) <= DATE('now', '+30 day')";
     } else if (status == 'OLD') {
       whereClause += " AND DATE(p.created_at) <= DATE('now', '-90 day')";
+    } else if (status == 'DEAD') {
+      whereClause += """ AND p.id NOT IN (
+      SELECT DISTINCT ii.product_id FROM invoice_items ii
+      JOIN invoices i ON ii.invoice_id = i.id
+      WHERE i.invoice_date >= date('now', '-90 day')
+      AND i.status = 'COMPLETED'
+    )""";
+    } else if (status == 'SOON') {
+      whereClause += """ AND p.expiry_date IS NOT NULL
+      AND DATE(p.expiry_date) > DATE('now')
+      AND DATE(p.expiry_date) <= DATE('now', '+30 day')""";
     }
 
     if (categoryId != null) {
@@ -108,18 +119,6 @@ class StockRepository {
     
     if (result.isEmpty) return null;
     return _mapToEntity(result.first);
-  }
-
-  /// Adjust stock manually (Audit safe wrapper)
-  /// Note: This updates the product table. A separate log entry should be created via StockActivityRepository.
-  Future<void> adjustStockQuantity(int productId, double newQuantity) async {
-    final db = await _dbHelper.database;
-    await db.update(
-      'products',
-      {'current_stock': newQuantity},
-      where: 'id = ?',
-      whereArgs: [productId],
-    );
   }
 
   // --- Mapper ---

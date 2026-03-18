@@ -11,7 +11,7 @@ class SetSearchQuery extends StockFilterEvent {
 }
 
 class SetStatusFilter extends StockFilterEvent {
-  final String status; // 'ALL', 'LOW', 'OUT', 'EXPIRED', 'OLD'
+  final String status; // 'ALL', 'LOW', 'OUT', 'SOON', 'EXPIRED', 'OLD', 'DEAD'
   SetStatusFilter(this.status);
 }
 

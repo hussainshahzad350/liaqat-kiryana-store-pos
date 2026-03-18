@@ -23,6 +23,9 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
     on<SelectPurchaseSupplier>((event, emit) {
       emit(state.copyWith(selectedSupplierId: event.supplierId));
     });
+    on<ClearPurchaseSupplier>((event, emit) {
+      emit(state.copyWith(clearSupplier: true));
+    });
     on<AddPurchaseItem>((event, emit) {
       final updatedCart = List<PurchaseItemEntity>.from(state.cartItems)
         ..add(event.item);
@@ -54,6 +57,7 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
       ));
     } catch (e) {
       emit(state.copyWith(status: PurchaseStatus.failure, error: e.toString()));
+      emit(state.copyWith(status: PurchaseStatus.ready, error: null));
     }
   }
 
@@ -62,10 +66,12 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
     if (state.selectedSupplierId == null) {
       emit(state.copyWith(
           status: PurchaseStatus.failure, error: 'Please select a supplier'));
+      emit(state.copyWith(status: PurchaseStatus.ready));
       return;
     }
     if (state.cartItems.isEmpty) {
-      emit(state.copyWith(error: 'Cart is empty'));
+      emit(state.copyWith(status: PurchaseStatus.failure, error: 'Cart is empty'));
+      emit(state.copyWith(status: PurchaseStatus.ready));
       return;
     }
 
@@ -91,8 +97,15 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
         notes: event.notes,
       );
       emit(state.copyWith(status: PurchaseStatus.success));
+      emit(state.copyWith(
+        status: PurchaseStatus.ready,
+        cartItems: [],
+        clearSupplier: true,
+      ));
+      add(InitializePurchase());
     } catch (e) {
       emit(state.copyWith(status: PurchaseStatus.failure, error: e.toString()));
+      emit(state.copyWith(status: PurchaseStatus.ready));
     }
   }
 }

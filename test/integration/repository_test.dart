@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:liaqat_store/core/database/database_helper.dart';
 import 'package:liaqat_store/core/repositories/customers_repository.dart';
 import 'package:liaqat_store/core/repositories/invoice_repository.dart';
+import 'package:liaqat_store/core/repositories/items_repository.dart';
 import 'package:liaqat_store/core/repositories/cash_repository.dart';
 import 'package:liaqat_store/core/repositories/stock_repository.dart';
 import 'package:liaqat_store/domain/entities/money.dart';
@@ -254,7 +255,7 @@ void main() {
     late InvoiceRepository invoiceRepo;
 
     setUp(() {
-      invoiceRepo = InvoiceRepository();
+      invoiceRepo = InvoiceRepository(ItemsRepository());
     });
 
     test('createSale stores grand_total as paisas', () async {

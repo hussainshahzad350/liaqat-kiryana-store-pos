@@ -16,3 +16,15 @@ class LoadSalesReport extends ReportsEvent {
   @override
   List<Object> get props => [startDate, endDate];
 }
+
+class LoadTodayReport extends ReportsEvent {
+  const LoadTodayReport();
+}
+
+class LoadWeekReport extends ReportsEvent {
+  const LoadWeekReport();
+}
+
+class LoadMonthReport extends ReportsEvent {
+  const LoadMonthReport();
+}

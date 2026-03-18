@@ -2031,7 +2031,7 @@ class _LedgerRowState extends State<_LedgerRow> {
                                           Padding(
                                             padding: const EdgeInsets.all(
                                                 AppTokens.spacingXSmall),
-                                            child: Text(item.itemNameSnapshot,
+                                            child: Text(item.itemName,
                                                 style: textTheme.bodySmall),
                                           ),
                                           Padding(
