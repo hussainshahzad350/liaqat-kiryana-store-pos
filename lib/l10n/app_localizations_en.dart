@@ -2028,6 +2028,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String itemsSelected(int count) {
+    if (count == 1) return '1 item selected';
     return '$count items selected';
   }
 
