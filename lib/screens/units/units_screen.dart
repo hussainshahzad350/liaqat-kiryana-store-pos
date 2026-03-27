@@ -178,7 +178,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                 decoration: BoxDecoration(
                                                   color: unit.isSystem
                                                       ? colorScheme
-                                                          .surfaceVariant
+                                                          .surfaceContainerHighest
                                                       : colorScheme
                                                           .primaryContainer,
                                                   borderRadius: BorderRadius
@@ -214,7 +214,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                                                           .spacingSmall),
                                                   decoration: BoxDecoration(
                                                     color: colorScheme
-                                                        .surfaceVariant,
+                                                        .surfaceContainerHighest,
                                                     borderRadius: BorderRadius
                                                         .circular(AppTokens
                                                             .borderRadiusSmall),
@@ -435,7 +435,7 @@ class _UnitDialogState extends State<UnitDialog> {
                 decoration: InputDecoration(
                     labelText: loc.name,
                     filled: true,
-                    fillColor: colorScheme.surfaceVariant,
+                    fillColor: colorScheme.surfaceContainerHighest,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
                             AppTokens.cardBorderRadius / 2))),
@@ -449,7 +449,7 @@ class _UnitDialogState extends State<UnitDialog> {
                 decoration: InputDecoration(
                     labelText: 'Code (e.g. KG)',
                     filled: true,
-                    fillColor: colorScheme.surfaceVariant,
+                    fillColor: colorScheme.surfaceContainerHighest,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(
                             AppTokens.cardBorderRadius / 2))),

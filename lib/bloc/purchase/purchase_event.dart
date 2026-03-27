@@ -50,9 +50,14 @@ class UpdatePurchaseItem extends PurchaseEvent {
 class SubmitPurchase extends PurchaseEvent {
   final String invoiceNumber;
   final String notes;
+  final String performedBy;
 
-  const SubmitPurchase({required this.invoiceNumber, required this.notes});
+  const SubmitPurchase({
+    required this.invoiceNumber, 
+    required this.notes,
+    this.performedBy = 'SYSTEM',
+  });
 
   @override
-  List<Object?> get props => [invoiceNumber, notes];
+  List<Object?> get props => [invoiceNumber, notes, performedBy];
 }

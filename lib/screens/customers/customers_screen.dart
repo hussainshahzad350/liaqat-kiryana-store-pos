@@ -1818,7 +1818,7 @@ class _LedgerRowState extends State<_LedgerRow> {
             ? colorScheme.primaryContainer.withValues(alpha: 0.05)
             : (widget.isEven
                 ? colorScheme.surface
-                : colorScheme.surfaceVariant));
+                : colorScheme.surfaceContainerHighest));
 
     return Column(
       children: [

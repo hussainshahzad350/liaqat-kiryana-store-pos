@@ -101,6 +101,25 @@ class StockRepository {
       "SELECT COUNT(*) as count FROM products WHERE expiry_date IS NOT NULL AND DATE(expiry_date) <= DATE('now', '+30 day')"
     );
 
+    // 5. Dead Stock Count
+    final deadStockRes = await db.rawQuery('''
+      SELECT COUNT(*) as count FROM products p 
+      WHERE p.id NOT IN (
+        SELECT DISTINCT ii.product_id FROM invoice_items ii
+        JOIN invoices i ON ii.invoice_id = i.id
+        WHERE i.invoice_date >= date('now', '-90 day')
+        AND i.status = 'COMPLETED'
+      )
+    ''');
+
+    // 6. Expiring Soon Count
+    final soonRes = await db.rawQuery('''
+      SELECT COUNT(*) as count FROM products 
+      WHERE expiry_date IS NOT NULL
+      AND DATE(expiry_date) > DATE('now')
+      AND DATE(expiry_date) <= DATE('now', '+30 day')
+    ''');
+
     return StockSummaryEntity(
       totalItemsCount: totalItems,
       totalStockCost: Money(totalCost),
@@ -108,6 +127,8 @@ class StockRepository {
       lowStockItemsCount: Sqflite.firstIntValue(lowStockRes) ?? 0,
       outOfStockItemsCount: Sqflite.firstIntValue(outStockRes) ?? 0,
       expiredOrNearExpiryCount: Sqflite.firstIntValue(expiryRes) ?? 0,
+      deadStockCount: Sqflite.firstIntValue(deadStockRes) ?? 0,
+      expiringSoonCount: Sqflite.firstIntValue(soonRes) ?? 0,
       lastUpdated: DateTime.now(),
     );
   }

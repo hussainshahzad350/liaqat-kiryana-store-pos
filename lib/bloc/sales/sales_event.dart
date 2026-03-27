@@ -86,9 +86,16 @@ class InvoiceProcessed extends SalesEvent {
 class InvoiceCancelled extends SalesEvent {
   final int invoiceId;
   final String reason;
-  const InvoiceCancelled({required this.invoiceId, required this.reason});
+  final String performedBy;
+  
+  const InvoiceCancelled({
+    required this.invoiceId, 
+    required this.reason,
+    this.performedBy = 'Cashier',
+  });
+  
   @override
-  List<Object?> get props => [invoiceId, reason];
+  List<Object?> get props => [invoiceId, reason, performedBy];
 }
 
 class ProductsUpdated extends SalesEvent {

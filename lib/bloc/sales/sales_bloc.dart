@@ -488,7 +488,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     try {
       await _invoiceRepository.cancelInvoice(
         invoiceId: event.invoiceId,
-        cancelledBy: 'Cashier',
+        cancelledBy: event.performedBy,
         reason: event.reason,
       );
       add(SalesStarted()); // Refresh

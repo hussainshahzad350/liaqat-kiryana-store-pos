@@ -1,6 +1,3 @@
-// lib/screens/master_data/items_screen.dart
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import '../../core/res/app_tokens.dart';
 import '../../core/repositories/categories_repository.dart';
@@ -483,6 +480,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     if (newProduct != null && mounted) {
       await _itemsRepository.addProduct(newProduct);
       _firstLoad();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(AppLocalizations.of(context)!.saveChangesSuccess),
           backgroundColor: Theme.of(context).colorScheme.primary));
@@ -502,6 +500,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     if (updatedProduct != null && mounted) {
       await _itemsRepository.updateProduct(item.id!, updatedProduct);
       _firstLoad();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(AppLocalizations.of(context)!.saveChangesSuccess),
           backgroundColor: Theme.of(context).colorScheme.primary));

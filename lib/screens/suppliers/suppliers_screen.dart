@@ -598,7 +598,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
       labelText: label,
       prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
       filled: true,
-      fillColor: colorScheme.surfaceVariant,
+      fillColor: colorScheme.surfaceContainerHighest,
       border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppTokens.formFieldBorderRadius),
           borderSide: BorderSide(color: colorScheme.outline)),
@@ -664,7 +664,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                               AppTokens.smallBorderRadius),
                           borderSide: BorderSide(color: colorScheme.outline)),
                       filled: true,
-                      fillColor: colorScheme.surfaceVariant.withValues(alpha: 0.5),
+                      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: AppTokens.spacingSmall,
                           vertical: AppTokens.spacingSmall),
@@ -985,7 +985,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppTokens.spacingMedium,
                       vertical: AppTokens.spacingSmall),
-                  color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                   child: Row(
                     children: [
                       OutlinedButton.icon(
@@ -1074,7 +1074,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   padding: const EdgeInsets.symmetric(
                       vertical: AppTokens.spacingStandard,
                       horizontal: AppTokens.spacingMedium),
-                  color: colorScheme.surfaceVariant.withValues(alpha: 0.5),
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                   child: Row(
                     children: [
                       const SizedBox(
@@ -1183,7 +1183,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                   });
                 }
               : null,
-          hoverColor: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+          hoverColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           child: Container(
             padding: const EdgeInsets.symmetric(
                 vertical: AppTokens.spacingStandard,
@@ -1245,7 +1245,7 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           curve: Curves.easeInOut,
           child: isExpanded
               ? Container(
-                  color: colorScheme.surfaceVariant.withValues(alpha: 0.1),
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
                   padding: const EdgeInsets.fromLTRB(
                       AppTokens.spacingXLarge,
                       AppTokens.spacingSmall,

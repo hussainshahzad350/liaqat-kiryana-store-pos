@@ -1,5 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/utils/error_handler.dart';
+import '../../l10n/app_localizations.dart';
+import '../../models/product_model.dart';
+import '../../bloc/purchase/purchase_bloc.dart';
+import '../../bloc/purchase/purchase_event.dart';
+import '../../bloc/purchase/purchase_state.dart';
+import '../../widgets/loading_overlay.dart';
+import 'widgets/purchase_item_list_widget.dart';
+import 'widgets/purchase_cart_widget.dart';
+import 'dialogs/add_purchase_item_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:liaqat_store/core/res/app_tokens.dart';
@@ -17,26 +28,9 @@ class PurchaseScreen extends StatefulWidget {
 }
 
 class _PurchaseScreenState extends State<PurchaseScreen> {
-  late final PurchaseRepository _purchaseRepo;
-  late final SuppliersRepository _suppliersRepo;
-  late final ItemsRepository _itemsRepo;
-
-  @override
-  void initState() {
-    super.initState();
-    _purchaseRepo = context.read<PurchaseRepository>();
-    _suppliersRepo = context.read<SuppliersRepository>();
-    _itemsRepo = context.read<ItemsRepository>();
-  }
-
-  // Form State
-  Map<String, dynamic>? _selectedSupplier;
   final TextEditingController _invoiceCtrl = TextEditingController();
   final TextEditingController _notesCtrl = TextEditingController();
   DateTime _purchaseDate = DateTime.now();
-
-  // Cart State
-  final List<Map<String, dynamic>> _cartItems = [];
 
   @override
   void dispose() {
@@ -45,255 +39,34 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
     super.dispose();
   }
 
-  double get _totalAmount =>
-      _cartItems.fold(0, (sum, item) => sum + (item['total_amount'] as int));
-
-  void _selectSupplier() async {
-    // Simple dialog to select supplier
-    final suppliers = await _suppliersRepo.getSuppliers();
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Supplier'),
-        content: SizedBox(
-          width: AppTokens.dialogWidth,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: suppliers.length,
-            itemBuilder: (context, index) {
-              final s = suppliers[index];
-              return ListTile(
-                title: Text(s['name_english']),
-                subtitle: Text(s['contact_primary'] ?? ''),
-                onTap: () {
-                  setState(() => _selectedSupplier = s);
-                  Navigator.pop(context);
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              // Navigate to Add Supplier Screen (Shortcut)
-              Navigator.pop(context);
-              Navigator.pushNamed(context, AppRoutes.suppliers);
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('New Supplier'),
-          ),
-        ],
-      ),
-    );
+  void _save() {
+    context.read<PurchaseBloc>().add(SubmitPurchase(
+      invoiceNumber: _invoiceCtrl.text,
+      notes: _notesCtrl.text,
+    ));
   }
 
-  void _addItem() async {
-    // Simple dialog to select item
-    final products = await _itemsRepo
-        .getAllProducts(); // Should use a search optimized method in real app
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Item'),
-        content: SizedBox(
-          width: AppTokens.dialogWidth,
-          height: AppTokens.dialogHeight,
-          child: Column(
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                    hintText: 'Search Item...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                            AppTokens.cardBorderRadius))),
-              ),
-              const SizedBox(height: AppTokens.spacingSmall),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: products.length,
-                  itemBuilder: (context, index) {
-                    final product = products[index];
-                    return ListTile(
-                      title: Text(product.nameEnglish),
-                      subtitle: Text('Stock: ${product.currentStock}'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showItemDetailsDialog(product.toMap());
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, AppRoutes.items);
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('New Item'),
-          ),
-        ],
-      ),
-    );
+  void _cancel() {
+    if (!context.mounted) return;
+    Navigator.maybePop(context);
   }
 
-  void _showItemDetailsDialog(Map<String, dynamic> item) {
-    final qtyCtrl = TextEditingController(text: '1');
-    final costCtrl = TextEditingController(
-        text: Money(item['avg_cost_price'] ?? 0).toInputString());
-    final batchCtrl = TextEditingController();
-    final expiryCtrl = TextEditingController();
-
+  void _onProductTapped(Product p) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Add: ${item['name_english']}'),
-        content: SingleChildScrollView(
-          child: SizedBox(
-            width: AppTokens.dialogWidth,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: qtyCtrl,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                      labelText: 'Quantity',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                              AppTokens.cardBorderRadius))),
-                ),
-                const SizedBox(height: AppTokens.spacingStandard),
-                TextField(
-                  controller: costCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                      labelText: 'Buy Price (Unit)',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                              AppTokens.cardBorderRadius)),
-                      prefixText: 'Rs '),
-                ),
-                const SizedBox(height: AppTokens.spacingStandard),
-                TextField(
-                  controller: batchCtrl,
-                  decoration: InputDecoration(
-                      labelText: 'Batch Number (Optional)',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                              AppTokens.cardBorderRadius))),
-                ),
-                const SizedBox(height: AppTokens.spacingStandard),
-                TextField(
-                  controller: expiryCtrl,
-                  decoration: InputDecoration(
-                      labelText: 'Expiry Date (YYYY-MM-DD)',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                              AppTokens.cardBorderRadius)),
-                      hintText: '2025-12-31'),
-                  onTap: () async {
-                    DateTime? picked = await showDatePicker(
-                      context: context,
-                      initialDate:
-                          DateTime.now().add(const Duration(days: 365)),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime(2100),
-                    );
-                    if (picked != null) {
-                      expiryCtrl.text = DateFormat('yyyy-MM-dd').format(picked);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.add_shopping_cart),
-            onPressed: () {
-              final qty = double.tryParse(qtyCtrl.text) ?? 0;
-              final cost = Money.fromRupeesString(costCtrl.text).paisas;
-
-              if (qty > 0 && cost >= 0) {
-                setState(() {
-                  _cartItems.add({
-                    'product_id': item['id'],
-                    'name': item['name_english'],
-                    'quantity': qty,
-                    'cost_price': cost,
-                    'total_amount': (qty * cost).toInt(),
-                    'batch_number': batchCtrl.text,
-                    'expiry_date': expiryCtrl.text,
-                  });
-                });
-                Navigator.pop(context);
-              }
-            },
-            label: const Text('Add to Bill'),
-          ),
-        ],
+      builder: (_) => AddPurchaseItemDialog(
+        product: p,
+        onConfirm: (item) {
+          if (!context.mounted) return;
+          context.read<PurchaseBloc>().add(AddPurchaseItem(item));
+        },
       ),
     );
-  }
-
-  void _savePurchase() async {
-    if (_selectedSupplier == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a supplier')));
-      return;
-    }
-    if (_cartItems.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Cart is empty')));
-      return;
-    }
-
-    try {
-      await _purchaseRepo.createPurchase(
-        supplierId: _selectedSupplier!['id'],
-        items: _cartItems,
-        totalAmount: _totalAmount.toInt(),
-        invoiceNumber: _invoiceCtrl.text.isEmpty
-            ? 'PUR-${DateTime.now().millisecondsSinceEpoch}'
-            : _invoiceCtrl.text,
-        notes: _notesCtrl.text,
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Purchase Saved Successfully')));
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Shortcuts(
@@ -521,10 +294,10 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
   }
 }
 
-class SavePurchaseIntent extends Intent {
-  const SavePurchaseIntent();
+class _SaveIntent extends Intent {
+  const _SaveIntent();
 }
 
-class AddItemIntent extends Intent {
-  const AddItemIntent();
+class _CancelIntent extends Intent {
+  const _CancelIntent();
 }
