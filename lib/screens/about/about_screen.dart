@@ -23,16 +23,15 @@ class AboutScreen extends StatelessWidget {
                   Card(
                     elevation: AppTokens.cardElevation,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppTokens.cardBorderRadius),
+                      borderRadius:
+                          BorderRadius.circular(AppTokens.cardBorderRadius),
                     ),
                     child: Padding(
-                      padding:
-                          const EdgeInsets.all(AppTokens.spacingXLarge),
+                      padding: const EdgeInsets.all(AppTokens.spacingXLarge),
                       child: Column(
                         children: [
                           Container(
-                            width: AppTokens.aboutLogoSize,  // ✅ Fixed
+                            width: AppTokens.aboutLogoSize, // ✅ Fixed
                             height: AppTokens.aboutLogoSize, // ✅ Fixed
                             decoration: BoxDecoration(
                               color: colorScheme.primaryContainer,
@@ -41,27 +40,24 @@ class AboutScreen extends StatelessWidget {
                             ),
                             child: Icon(
                               Icons.store,
-                              size: AppTokens.aboutIconScale,  // ✅ Fixed
+                              size: AppTokens.aboutIconScale, // ✅ Fixed
                               color: colorScheme.onPrimaryContainer,
                             ),
                           ),
-                          const SizedBox(
-                              height: AppTokens.spacingLarge),
+                          const SizedBox(height: AppTokens.spacingLarge),
                           Text(
                             loc.appTitle,
                             style: textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.onSurface),
                           ),
-                          const SizedBox(
-                              height: AppTokens.spacingSmall),
+                          const SizedBox(height: AppTokens.spacingSmall),
                           Text(
                             '${loc.version}: 1.0.0',
                             style: textTheme.bodyMedium
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
-                          const SizedBox(
-                              height: AppTokens.spacingSmall),
+                          const SizedBox(height: AppTokens.spacingSmall),
                           Text(
                             loc.appDescription,
                             textAlign: TextAlign.center,
@@ -75,14 +71,13 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(height: AppTokens.spacingLarge),
 
                   Card(
-                    elevation: AppTokens.cardElevation,  // ✅ Added
+                    elevation: AppTokens.cardElevation, // ✅ Added
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppTokens.cardBorderRadius),
+                      borderRadius:
+                          BorderRadius.circular(AppTokens.cardBorderRadius),
                     ),
                     child: Padding(
-                      padding:
-                          const EdgeInsets.all(AppTokens.spacingMedium),
+                      padding: const EdgeInsets.all(AppTokens.spacingMedium),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -92,8 +87,7 @@ class AboutScreen extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.onSurface),
                           ),
-                          const SizedBox(
-                              height: AppTokens.spacingXSmall),
+                          const SizedBox(height: AppTokens.spacingXSmall),
                           _buildTechItem(
                               context, loc.framework, 'Flutter 3.0+'),
                           _buildTechItem(
@@ -103,8 +97,7 @@ class AboutScreen extends StatelessWidget {
                           _buildTechItem(context, loc.stateManagement, 'Bloc'),
                           _buildTechItem(
                               context, loc.uiFramework, 'Material Design 3'),
-                          const SizedBox(
-                              height: AppTokens.spacingXSmall),
+                          const SizedBox(height: AppTokens.spacingXSmall),
                           Text(
                             loc.lastUpdated('December 2024'),
                             style: textTheme.bodySmall
@@ -117,14 +110,13 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(height: AppTokens.spacingLarge),
 
                   Card(
-                    elevation: AppTokens.cardElevation,  // ✅ Added
+                    elevation: AppTokens.cardElevation, // ✅ Added
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppTokens.cardBorderRadius),
+                      borderRadius:
+                          BorderRadius.circular(AppTokens.cardBorderRadius),
                     ),
                     child: Padding(
-                      padding:
-                          const EdgeInsets.all(AppTokens.spacingMedium),
+                      padding: const EdgeInsets.all(AppTokens.spacingMedium),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -134,8 +126,7 @@ class AboutScreen extends StatelessWidget {
                                 fontWeight: FontWeight.bold,
                                 color: colorScheme.onSurface),
                           ),
-                          const SizedBox(
-                              height: AppTokens.spacingMedium),
+                          const SizedBox(height: AppTokens.spacingMedium),
                           _buildFeatureItem(context, loc.featurePos),
                           _buildFeatureItem(
                               context, loc.featureStockManagement),
@@ -153,14 +144,13 @@ class AboutScreen extends StatelessWidget {
 
                   // ✅ Changed from Container to Card for consistency
                   Card(
-                    elevation: AppTokens.cardElevation,  // ✅ Added
+                    elevation: AppTokens.cardElevation, // ✅ Added
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppTokens.cardBorderRadius),
+                      borderRadius:
+                          BorderRadius.circular(AppTokens.cardBorderRadius),
                     ),
                     child: Padding(
-                      padding:
-                          const EdgeInsets.all(AppTokens.spacingMedium),
+                      padding: const EdgeInsets.all(AppTokens.spacingMedium),
                       child: Column(
                         children: [
                           Text(
@@ -193,8 +183,7 @@ class AboutScreen extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(vertical: AppTokens.spacingSmall),
+      padding: const EdgeInsets.symmetric(vertical: AppTokens.spacingSmall),
       child: Row(
         children: [
           SizedBox(
@@ -230,13 +219,11 @@ class AboutScreen extends StatelessWidget {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(vertical: AppTokens.spacingSmall),
+      padding: const EdgeInsets.symmetric(vertical: AppTokens.spacingSmall),
       child: Row(
         children: [
           Icon(Icons.check_circle,
-              color: colorScheme.primary,
-              size: AppTokens.kpiIconSize),
+              color: colorScheme.primary, size: AppTokens.kpiIconSize),
           const SizedBox(width: AppTokens.spacingMedium),
           Expanded(
               child: Text(

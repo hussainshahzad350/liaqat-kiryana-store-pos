@@ -51,7 +51,8 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
     if (currentState is StockActivityLoaded && !currentState.hasReachedMax) {
       try {
         final currentActivities = currentState.activities;
-        final moreActivities = await _repository.getActivities(limit: 20, offset: currentActivities.length);
+        final moreActivities = await _repository.getActivities(
+            limit: 20, offset: currentActivities.length);
         emit(StockActivityLoaded(
           activities: currentActivities + moreActivities,
           hasReachedMax: moreActivities.length < 20,
@@ -71,9 +72,11 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
     AdjustStock event,
     Emitter<StockActivityState> emit,
   ) async {
-    final dedupeKey = 'ADJUST:${event.productId}:${event.quantityChange}:${event.reason}';
+    final dedupeKey =
+        'ADJUST:${event.productId}:${event.quantityChange}:${event.reason}';
     if (_isRapidDuplicate(dedupeKey)) {
-      emit(StockActivityActionError('Duplicate stock adjustment request blocked'));
+      emit(StockActivityActionError(
+          'Duplicate stock adjustment request blocked'));
       return;
     }
 
@@ -87,7 +90,7 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
         user: event.performedBy ?? 'SYSTEM',
       );
       emit(StockActivityActionSuccess('Stock adjustment submitted'));
-      add(LoadStockActivities());
+      add(const LoadStockActivities());
     } catch (e) {
       emit(StockActivityActionError(e.toString()));
     }
@@ -98,12 +101,15 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
     Emitter<StockActivityState> emit,
   ) async {
     if (!event.activity.isCompleted) {
-      emit(StockActivityActionError('Only completed activities can be cancelled'));
+      emit(StockActivityActionError(
+          'Only completed activities can be cancelled'));
       return;
     }
 
-    if (event.activity.type != ActivityType.purchase && event.activity.type != ActivityType.sale) {
-      emit(StockActivityActionError('Only sale and purchase activities are cancellable'));
+    if (event.activity.type != ActivityType.purchase &&
+        event.activity.type != ActivityType.sale) {
+      emit(StockActivityActionError(
+          'Only sale and purchase activities are cancellable'));
       return;
     }
 
@@ -134,7 +140,7 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
         );
       }
       emit(StockActivityActionSuccess('Transaction cancelled successfully'));
-      add(LoadStockActivities());
+      add(const LoadStockActivities());
     } catch (e) {
       emit(StockActivityActionError(e.toString()));
     }
@@ -156,5 +162,4 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
     if (previous == null) return false;
     return now.difference(previous) < const Duration(seconds: 2);
   }
-
 }

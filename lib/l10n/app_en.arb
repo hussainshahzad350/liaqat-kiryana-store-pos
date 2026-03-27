@@ -703,28 +703,14 @@
   "loadMore": "Load More",
   "errorWithDetails": "Error: {details}",
   "@errorWithDetails": {
-    "description": "Error message with details",
     "placeholders": {
       "details": {
-        "type": "String",
-        "example": "File not found"
+        "type": "String"
       }
     }
   },
-  "all": "All",
-  "ok": "OK",
   "filters": "Filters",
-  "category": "Category",
   "supplier": "Supplier",
-  "actions": "Actions",
-  "recentActivities": "Recent Activities",
-  "noDataAvailable": "No data available",
-  "date": "Date",
-  "time": "Time",
-  "activityType": "Activity Type",
-  "saveAsPdf": "Save as PDF",
-  "stockUpdated": "Stock updated successfully",
-  "invoiceCancelledSuccess": "Invoice cancelled successfully",
   "unknownError": "An unknown error occurred",
   "fieldRequired": "{field} is required",
   "@fieldRequired": { "placeholders": { "field": { "type": "String" } } },

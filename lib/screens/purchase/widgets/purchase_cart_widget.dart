@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import '../../../../l10n/app_localizations.dart';
-import '../../../../bloc/purchase/purchase_bloc.dart';
-import '../../../../bloc/purchase/purchase_event.dart';
-import '../../../../bloc/purchase/purchase_state.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../bloc/purchase/purchase_bloc.dart';
+import '../../../bloc/purchase/purchase_event.dart';
+import '../../../bloc/purchase/purchase_state.dart';
 import '../dialogs/supplier_selector_dialog.dart';
 
 class PurchaseCartWidget extends StatefulWidget {

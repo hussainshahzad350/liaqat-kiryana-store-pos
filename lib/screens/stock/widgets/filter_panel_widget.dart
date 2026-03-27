@@ -56,14 +56,16 @@ class FilterPanelWidget extends StatelessWidget {
               onChanged: onSearchChanged,
               decoration: InputDecoration(
                 hintText: loc.search,
-                prefixIcon: const Icon(Icons.search, size: AppTokens.iconSizeMedium),
+                prefixIcon:
+                    const Icon(Icons.search, size: AppTokens.iconSizeMedium),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(
                   vertical: AppTokens.spacingSmall,
                   horizontal: AppTokens.spacingMedium,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTokens.extraSmallBorderRadius),
+                  borderRadius:
+                      BorderRadius.circular(AppTokens.extraSmallBorderRadius),
                 ),
               ),
             ),
@@ -88,14 +90,16 @@ class FilterPanelWidget extends StatelessWidget {
           const SizedBox(width: AppTokens.spacingMedium),
           // Category dropdown — 140px
           SizedBox(
-            width: 140, 
+            width: 140,
             child: DropdownButtonFormField<int?>(
               value: selectedCategoryId,
+              isExpanded: true,
               hint: Text(loc.category),
               decoration: InputDecoration(
                 isDense: true,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTokens.extraSmallBorderRadius),
+                  borderRadius:
+                      BorderRadius.circular(AppTokens.extraSmallBorderRadius),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppTokens.spacingMedium,
@@ -114,14 +118,16 @@ class FilterPanelWidget extends StatelessWidget {
           const SizedBox(width: AppTokens.spacingSmall),
           // Supplier dropdown — 140px
           SizedBox(
-            width: 140, 
+            width: 140,
             child: DropdownButtonFormField<int?>(
               value: selectedSupplierId,
+              isExpanded: true,
               hint: Text(loc.supplier),
               decoration: InputDecoration(
                 isDense: true,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppTokens.extraSmallBorderRadius),
+                  borderRadius:
+                      BorderRadius.circular(AppTokens.extraSmallBorderRadius),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppTokens.spacingMedium,
@@ -145,7 +151,7 @@ class FilterPanelWidget extends StatelessWidget {
   Widget _buildChip(BuildContext context, String label, String filterValue) {
     final isActive = statusFilter == filterValue;
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Padding(
       padding: const EdgeInsets.only(right: AppTokens.spacingSmall),
       child: FilterChip(
@@ -161,4 +167,3 @@ class FilterPanelWidget extends StatelessWidget {
     );
   }
 }
-

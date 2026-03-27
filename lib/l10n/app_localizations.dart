@@ -2879,7 +2879,7 @@ abstract class AppLocalizations {
   /// No description provided for @stockUpdated.
   ///
   /// In en, this message translates to:
-  /// **'Stock updated successfully'**
+  /// **'Stock updated'**
   String get stockUpdated;
 
   /// No description provided for @pendingCredits.
@@ -2957,7 +2957,7 @@ abstract class AppLocalizations {
   /// No description provided for @activityType.
   ///
   /// In en, this message translates to:
-  /// **'Activity Type'**
+  /// **'Activity'**
   String get activityType;
 
   /// No description provided for @status.
@@ -3095,7 +3095,7 @@ abstract class AppLocalizations {
   /// No description provided for @noDataAvailable.
   ///
   /// In en, this message translates to:
-  /// **'No data available'**
+  /// **'No Data Available'**
   String get noDataAvailable;
 
   /// No description provided for @refreshingData.
@@ -3806,7 +3806,7 @@ abstract class AppLocalizations {
   /// **'Load More'**
   String get loadMore;
 
-  /// Error message with details
+  /// No description provided for @errorWithDetails.
   ///
   /// In en, this message translates to:
   /// **'Error: {details}'**

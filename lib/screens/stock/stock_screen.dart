@@ -103,7 +103,7 @@ class _StockScreenState extends State<StockScreen> {
         actions: StockShortcuts.createActions(
           onRefresh: () {
             context.read<StockOverviewBloc>().add(const LoadStockOverview());
-            context.read<StockActivityBloc>().add(LoadStockActivities());
+            context.read<StockActivityBloc>().add(const LoadStockActivities());
           },
           onSearch: () {
             // Search focus handling would require a way to reach FilterPanelWidget's focus node
@@ -251,8 +251,6 @@ class _StockScreenState extends State<StockScreen> {
     );
   }
 
-
-
   Widget _buildFilterSection() {
     return BlocBuilder<StockFilterBloc, StockFilterState>(
       builder: (context, state) {
@@ -329,13 +327,13 @@ class _StockScreenState extends State<StockScreen> {
                               focusedIndex: uiState.focusedIndex,
                               onAdjustStock: _openAdjustStockPanel,
                               onQuickPurchase: _navigateToPurchase,
-                               onViewHistory: (title, item) {
-                                  _sidePanelContent = Center(
-                                      child: Text(loc.noDataAvailable));
-                                  uiContext
-                                      .read<StockUiCubit>()
-                                      .openSidePanel(title);
-                                },
+                              onViewHistory: (title, item) {
+                                _sidePanelContent =
+                                    Center(child: Text(loc.noDataAvailable));
+                                uiContext
+                                    .read<StockUiCubit>()
+                                    .openSidePanel(title);
+                              },
                               onSort: (index, asc) => uiContext
                                   .read<StockUiCubit>()
                                   .setSort(index, asc),
@@ -343,23 +341,39 @@ class _StockScreenState extends State<StockScreen> {
                                   .read<StockOverviewBloc>()
                                   .add(LoadMoreStockOverview()),
                               selectedIds: uiState.selectedIds,
-                              onToggleSelection: (id) => uiContext.read<StockUiCubit>().toggleSelection(id),
-                              onSelectAll: () => uiContext.read<StockUiCubit>().selectAll(
-                                state.items.map((i) => i.id).toList()
-                              ),
-                              onClearSelection: () => uiContext.read<StockUiCubit>().clearSelection(),
-                              onBulkAdjustStock: uiState.selectedIds.isEmpty ? null : () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(loc.bulkAdjustStock)),
-                                );
-                              },
-                              onBulkExportSelected: uiState.selectedIds.isEmpty ? null : () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(loc.bulkExportSelected)),
-                                );
-                              },
-                              onBulkOrderSelected: uiState.selectedIds.isEmpty ? null : () =>
-                                  Navigator.pushNamed(context, AppRoutes.purchase),
+                              onToggleSelection: (id) => uiContext
+                                  .read<StockUiCubit>()
+                                  .toggleSelection(id),
+                              onSelectAll: () => uiContext
+                                  .read<StockUiCubit>()
+                                  .selectAll(
+                                      state.items.map((i) => i.id).toList()),
+                              onClearSelection: () => uiContext
+                                  .read<StockUiCubit>()
+                                  .clearSelection(),
+                              onBulkAdjustStock: uiState.selectedIds.isEmpty
+                                  ? null
+                                  : () {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(loc.bulkAdjustStock)),
+                                      );
+                                    },
+                              onBulkExportSelected: uiState.selectedIds.isEmpty
+                                  ? null
+                                  : () {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content:
+                                                Text(loc.bulkExportSelected)),
+                                      );
+                                    },
+                              onBulkOrderSelected: uiState.selectedIds.isEmpty
+                                  ? null
+                                  : () => Navigator.pushNamed(
+                                      context, AppRoutes.purchase),
                             ),
                           );
                         }
@@ -397,7 +411,7 @@ class _StockScreenState extends State<StockScreen> {
                             },
                             onLoadMore: () => activityContext
                                 .read<StockActivityBloc>()
-                                .add(LoadMoreStockActivities()),
+                                .add(const LoadMoreStockActivities()),
                           );
                         }
                         return const SizedBox.shrink();
@@ -475,4 +489,3 @@ class _StockScreenState extends State<StockScreen> {
     );
   }
 }
-

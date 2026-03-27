@@ -443,6 +443,7 @@ class _SalesScreenState extends State<SalesScreen> {
                         backgroundColor: colorScheme.error,
                       ),
                     );
+                    context.read<SalesBloc>().add(ClearSalesError());
                   }
                 }
               },

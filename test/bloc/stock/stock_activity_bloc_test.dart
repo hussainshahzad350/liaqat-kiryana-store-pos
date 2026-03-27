@@ -57,7 +57,7 @@ void main() {
         return buildBloc();
       },
       act: (bloc) => bloc.add(
-        AdjustStock(
+        const AdjustStock(
           productId: 10,
           quantityChange: 2,
           reason: 'manual',
@@ -93,7 +93,7 @@ void main() {
         return buildBloc();
       },
       act: (bloc) => bloc.add(
-        AdjustStock(
+        const AdjustStock(
           productId: 10,
           quantityChange: -999,
           reason: 'manual',

@@ -829,7 +829,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get customerRestored => 'گاہک بحال ہو گیا';
 
   @override
-  String get actions => 'اقدامات';
+  String get actions => 'اعمال';
 
   @override
   String get restoreConfirmMsg =>
@@ -928,7 +928,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get cannotPrintCancelled => 'منسوخ شدہ بل پرنٹ نہیں کیا جا سکتا۔';
 
   @override
-  String get saveAsPdf => 'پی ڈی ایف کے طور پر محفوظ کریں';
+  String get saveAsPdf => 'PDF محفوظ کریں';
 
   @override
   String get startNewSale => 'نیا بل شروع کریں';
@@ -1423,7 +1423,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get newCustomerAdded => 'نیا گاہک شامل کیا گیا';
 
   @override
-  String get stockUpdated => 'سٹاک کامیابی سے اپ ڈیٹ ہو گیا';
+  String get stockUpdated => 'اسٹاک اپ ڈیٹ ہوا';
 
   @override
   String get pendingCredits => 'باقی رقم';
@@ -1464,7 +1464,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get todaysCustomers => 'Today\'s Customers';
 
   @override
-  String get activityType => 'سرگرمی کی قسم';
+  String get activityType => 'سرگرمی';
 
   @override
   String get status => 'حیثیت';
@@ -1535,7 +1535,7 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get noDataAvailable => 'ڈیٹا دستیاب نہیں ہے';
+  String get noDataAvailable => 'کوئی ڈیٹا موجود نہیں';
 
   @override
   String get refreshingData => 'ڈیٹا ریفریش ہو رہا ہے...';
@@ -1559,7 +1559,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get brand => 'برانڈ';
 
   @override
-  String get category => 'کٹیگری';
+  String get category => 'کیٹیگری';
 
   @override
   String get baseUnit => 'Base Unit';
@@ -1610,7 +1610,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get deleteItem => 'آئٹم حذف کریں';
 
   @override
-  String get all => 'تمام';
+  String get all => 'سب';
 
   @override
   String get yes => 'ہاں';
@@ -1811,7 +1811,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get yesCancelButton => 'ہاں، منسوخ کریں';
 
   @override
-  String get invoiceCancelledSuccess => 'انوائس کامیابی سے منسوخ کر دی گئی';
+  String get invoiceCancelledSuccess => 'انوائس کامیابی سے منسوخ ہو گئی';
 
   @override
   String errorMessage(Object error) {

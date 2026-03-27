@@ -542,12 +542,32 @@ class ItemsRepository {
   /// Update product barcode
   Future<int> updateProductBarcode(int id, String barcode) async {
     final db = await _dbHelper.database;
-    return await db.update(
+    
+    // Fetch product first to preserve itemCode in cache
+    final product = await getProductById(id);
+    
+    final result = await db.update(
       'products',
       {'barcode': barcode},
       where: 'id = ?',
       whereArgs: [id],
     );
+
+    if (result > 0) {
+      // Sync barcode index
+      _barcodeIndex.removeWhere((key, value) => value == id);
+      
+      // Re-add itemCode if it exists
+      if (product?.itemCode != null && product!.itemCode!.isNotEmpty) {
+        _barcodeIndex[product.itemCode!] = id;
+      }
+      
+      // Add new barcode
+      if (barcode.trim().isNotEmpty) {
+        _barcodeIndex[barcode.trim()] = id;
+      }
+    }
+    return result;
   }
 
   /// Check if barcode exists

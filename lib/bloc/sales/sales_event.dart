@@ -139,6 +139,8 @@ class CustomerCreditLimitUpdateRequested extends SalesEvent {
   List<Object?> get props => [customerId, newLimitPaisas];
 }
 
+class ClearSalesError extends SalesEvent {}
+
 class ReceiptPrintRequested extends SalesEvent {
   final Invoice invoice;
 

@@ -93,8 +93,8 @@ class ProductCard extends StatelessWidget {
                   color: product.isLowStock
                       ? colorScheme.errorContainer
                       : colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(
-                      AppTokens.smallBorderRadius),
+                  borderRadius:
+                      BorderRadius.circular(AppTokens.smallBorderRadius),
                 ),
                 child: Text(
                   '${product.currentStock}',
@@ -102,7 +102,7 @@ class ProductCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: product.isLowStock
                         ? colorScheme.onErrorContainer
-                        : colorScheme.onSurfaceVariant,
+                        : colorScheme.surfaceContainerHighest,
                   ),
                 ),
               ),

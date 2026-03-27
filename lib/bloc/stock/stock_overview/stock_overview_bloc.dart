@@ -72,7 +72,7 @@ class StockOverviewBloc extends Bloc<StockOverviewEvent, StockOverviewState> {
 
         emit(currentState.copyWith(
           items: currentState.items + moreItems,
-          hasReachedMax: moreItems.isEmpty,
+          hasReachedMax: moreItems.length < _pageLimit,
         ));
       } catch (e) {
         // Ignore error on pagination or handle gracefully

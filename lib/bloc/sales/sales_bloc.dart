@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:liaqat_store/core/repositories/settings_repository.dart';
 import 'sales_event.dart';
 import 'sales_state.dart';
@@ -35,8 +36,8 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         _receiptRepository = receiptRepository,
         super(const SalesState()) {
     on<SalesStarted>(_onStarted);
-    on<ProductSearchChanged>(_onProductSearchChanged);
-    on<CustomerSearchChanged>(_onCustomerSearchChanged);
+    on<ProductSearchChanged>(_onProductSearchChanged, transformer: restartable());
+    on<CustomerSearchChanged>(_onCustomerSearchChanged, transformer: restartable());
     on<CustomerSelected>(_onCustomerSelected);
     on<ProductAddedToCart>(_onProductAddedToCart);
     on<CartItemUpdated>(_onCartItemUpdated);
@@ -51,6 +52,9 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         _onCustomerCreditLimitUpdateRequested);
     on<ReceiptPrintRequested>(_onReceiptPrintRequested);
     on<ReceiptPdfSaveRequested>(_onReceiptPdfSaveRequested);
+    on<ClearSalesError>((event, emit) {
+      emit(state.copyWith(status: SalesStatus.ready, errorMessage: null));
+    });
 
     _stockSubscription = _itemsRepository.stockChanged.listen((_) async {
       final products = await _itemsRepository.getAllProducts();
@@ -147,19 +151,15 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     if (index != -1) {
       final currentQty = updatedCart[index].quantity;
       final newQty = currentQty + event.quantity;
-
+ 
       if (newQty > availableStock) {
         emit(state.copyWith(
             status: SalesStatus.error,
             errorMessage: 'Insufficient stock',
             clearCompletedInvoice: true));
-        emit(state.copyWith(
-            status: SalesStatus.ready,
-            errorMessage: null,
-            clearCompletedInvoice: true)); // Reset error
         return;
       }
-
+ 
       updatedCart[index] = updatedCart[index].copyWith(
         quantity: newQty,
         total: Money((newQty * updatedCart[index].unitPrice.paisas).round()),
@@ -170,10 +170,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
             status: SalesStatus.error,
             errorMessage: 'Out of stock',
             clearCompletedInvoice: true));
-        emit(state.copyWith(
-            status: SalesStatus.ready,
-            errorMessage: null,
-            clearCompletedInvoice: true));
         return;
       }
 
@@ -183,13 +179,9 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
             status: SalesStatus.error,
             errorMessage: 'Product sale price cannot be negative',
             clearCompletedInvoice: true));
-        emit(state.copyWith(
-            status: SalesStatus.ready,
-            errorMessage: null,
-            clearCompletedInvoice: true)); // Reset error
         return;
       }
-
+ 
       updatedCart.add(CartItem(
         id: event.product.id ?? 0,
         nameUrdu: event.product.nameUrdu ?? '',
@@ -221,10 +213,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
           status: SalesStatus.error,
           errorMessage: 'Stock limit reached',
           clearCompletedInvoice: true));
-      emit(state.copyWith(
-          status: SalesStatus.ready,
-          errorMessage: null,
-          clearCompletedInvoice: true));
     }
 
     // Validate unit price
@@ -233,10 +221,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
           status: SalesStatus.error,
           errorMessage: 'Item price cannot be negative',
           clearCompletedInvoice: true));
-      emit(state.copyWith(
-          status: SalesStatus.ready,
-          errorMessage: null,
-          clearCompletedInvoice: true)); // Reset error
       return;
     }
 
@@ -279,11 +263,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         errorMessage: 'Invalid discount amount',
         clearCompletedInvoice: true,
       ));
-      emit(state.copyWith(
-        status: SalesStatus.ready,
-        errorMessage: null,
-        clearCompletedInvoice: true,
-      ));
       return;
     }
     _calculateTotals(emit, proposedDiscount: money);
@@ -308,10 +287,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
           status: SalesStatus.error,
           errorMessage: 'Calculated grand total cannot be negative',
           clearCompletedInvoice: true));
-      emit(state.copyWith(
-          status: SalesStatus.ready,
-          errorMessage: null,
-          clearCompletedInvoice: true)); // Reset error
       return;
     }
 
@@ -352,10 +327,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
           status: SalesStatus.error,
           errorMessage: 'Payment amounts cannot be negative',
           clearCompletedInvoice: true));
-      emit(state.copyWith(
-          status: SalesStatus.ready,
-          errorMessage: null,
-          clearCompletedInvoice: true));
       return;
     }
 
@@ -368,10 +339,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       emit(state.copyWith(
           status: SalesStatus.error,
           errorMessage: 'Walk-in customers cannot use credit',
-          clearCompletedInvoice: true));
-      emit(state.copyWith(
-          status: SalesStatus.ready,
-          errorMessage: null,
           clearCompletedInvoice: true));
       return;
     }
@@ -389,10 +356,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
             errorMessage:
                 'Walk-in payment (cash + bank) must cover the bill total',
             clearCompletedInvoice: true));
-        emit(state.copyWith(
-            status: SalesStatus.ready,
-            errorMessage: null,
-            clearCompletedInvoice: true));
         return;
       }
     } else {
@@ -401,10 +364,6 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         emit(state.copyWith(
             status: SalesStatus.error,
             errorMessage: 'Payment total must exactly match bill total',
-            clearCompletedInvoice: true));
-        emit(state.copyWith(
-            status: SalesStatus.ready,
-            errorMessage: null,
             clearCompletedInvoice: true));
         return;
       }

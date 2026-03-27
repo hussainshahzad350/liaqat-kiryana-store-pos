@@ -1,11 +1,20 @@
-import 'package:flutter/foundation.dart';
+import 'package:equatable/equatable.dart';
 import '../../../core/entity/stock_activity_entity.dart';
 
-@immutable
-abstract class StockActivityEvent {}
+abstract class StockActivityEvent extends Equatable {
+  const StockActivityEvent();
 
-class LoadStockActivities extends StockActivityEvent {}
-class LoadMoreStockActivities extends StockActivityEvent {}
+  @override
+  List<Object?> get props => [];
+}
+
+class LoadStockActivities extends StockActivityEvent {
+  const LoadStockActivities();
+}
+
+class LoadMoreStockActivities extends StockActivityEvent {
+  const LoadMoreStockActivities();
+}
 
 class AdjustStock extends StockActivityEvent {
   final int productId;
@@ -14,7 +23,7 @@ class AdjustStock extends StockActivityEvent {
   final String? reference;
   final String? performedBy;
 
-  AdjustStock({
+  const AdjustStock({
     required this.productId,
     required this.quantityChange,
     required this.reason,
@@ -22,6 +31,7 @@ class AdjustStock extends StockActivityEvent {
     this.performedBy,
   });
 
+  @override
   List<Object?> get props => [productId, quantityChange, reason, reference, performedBy];
 }
 
@@ -29,5 +39,8 @@ class CancelStockActivity extends StockActivityEvent {
   final StockActivityEntity activity;
   final String reason;
 
-  CancelStockActivity({required this.activity, required this.reason});
+  const CancelStockActivity({required this.activity, required this.reason});
+
+  @override
+  List<Object?> get props => [activity, reason];
 }

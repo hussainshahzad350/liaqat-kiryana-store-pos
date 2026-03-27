@@ -1426,7 +1426,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newCustomerAdded => 'New customer added';
 
   @override
-  String get stockUpdated => 'Stock updated successfully';
+  String get stockUpdated => 'Stock updated';
 
   @override
   String get pendingCredits => 'Pending Credits';
@@ -1467,7 +1467,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get todaysCustomers => 'Today\'s Customers';
 
   @override
-  String get activityType => 'Activity Type';
+  String get activityType => 'Activity';
 
   @override
   String get status => 'Status';
@@ -1539,7 +1539,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get noDataAvailable => 'No data available';
+  String get noDataAvailable => 'No Data Available';
 
   @override
   String get refreshingData => 'Refreshing Data';

@@ -205,7 +205,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
                           context.read<ItemsRepository>(),
                           context.read<PurchaseRepository>(),
                           context.read<InvoiceRepository>(),
-                        )..add(LoadStockActivities()),
+                        )..add(const LoadStockActivities()),
                       ),
                     ],
                     child: const StockScreen(),

@@ -55,7 +55,7 @@ class KpiStripWidget extends StatelessWidget {
                   ),
                   _KpiCard(
                     label: loc.expiringSoon30Days,
-                    value: '-',
+                    value: '${summary.expiringSoonCount}',
                     statusFilter: 'SOON',
                     accentColor: colorScheme.secondary,
                     isActive: currentFilter == 'SOON',
@@ -69,7 +69,7 @@ class KpiStripWidget extends StatelessWidget {
                   ),
                   _KpiCard(
                     label: loc.deadStock90Days,
-                    value: '-',
+                    value: '${summary.deadStockCount}',
                     statusFilter: 'DEAD',
                     accentColor: colorScheme.onSurfaceVariant,
                     isActive: currentFilter == 'DEAD',

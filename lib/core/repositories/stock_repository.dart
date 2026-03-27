@@ -31,7 +31,7 @@ class StockRepository {
     } else if (status == 'OUT') {
       whereClause += ' AND p.current_stock <= 0';
     } else if (status == 'EXPIRED') {
-      whereClause += " AND p.expiry_date IS NOT NULL AND DATE(p.expiry_date) <= DATE('now', '+30 day')";
+      whereClause += " AND p.expiry_date IS NOT NULL AND DATE(p.expiry_date) <= DATE('now')";
     } else if (status == 'OLD') {
       whereClause += " AND DATE(p.created_at) <= DATE('now', '-90 day')";
     } else if (status == 'DEAD') {
@@ -98,7 +98,7 @@ class StockRepository {
 
     // 4. Expiry Count
     final expiryRes = await db.rawQuery(
-      "SELECT COUNT(*) as count FROM products WHERE expiry_date IS NOT NULL AND DATE(expiry_date) <= DATE('now', '+30 day')"
+      "SELECT COUNT(*) as count FROM products WHERE expiry_date IS NOT NULL AND DATE(expiry_date) <= DATE('now')"
     );
 
     // 5. Dead Stock Count
