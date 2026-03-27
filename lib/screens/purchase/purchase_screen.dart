@@ -11,6 +11,14 @@ import '../../widgets/loading_overlay.dart';
 import 'widgets/purchase_item_list_widget.dart';
 import 'widgets/purchase_cart_widget.dart';
 import 'dialogs/add_purchase_item_dialog.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:liaqat_store/core/res/app_tokens.dart';
+import '../../core/repositories/purchase_repository.dart';
+import '../../core/repositories/suppliers_repository.dart';
+import '../../core/repositories/items_repository.dart';
+import '../../domain/entities/money.dart';
+import '../../core/routes/app_routes.dart';
 
 class PurchaseScreen extends StatefulWidget {
   const PurchaseScreen({super.key});
@@ -63,133 +71,223 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
 
     return Shortcuts(
       shortcuts: const <ShortcutActivator, Intent>{
-        SingleActivator(LogicalKeyboardKey.keyS, control: true): _SaveIntent(),
-        SingleActivator(LogicalKeyboardKey.escape): _CancelIntent(),
+        SingleActivator(LogicalKeyboardKey.keyS, control: true):
+            SavePurchaseIntent(),
+        SingleActivator(LogicalKeyboardKey.keyI, control: true): AddItemIntent(),
       },
       child: Actions(
         actions: <Type, Action<Intent>>{
-          _SaveIntent: CallbackAction<_SaveIntent>(onInvoke: (_) {
-            _save();
+          SavePurchaseIntent: CallbackAction<SavePurchaseIntent>(onInvoke: (_) {
+            _savePurchase();
             return null;
           }),
-          _CancelIntent: CallbackAction<_CancelIntent>(onInvoke: (_) {
-            _cancel();
+          AddItemIntent: CallbackAction<AddItemIntent>(onInvoke: (_) {
+            _addItem();
             return null;
           }),
         },
-        child: Focus(
-          autofocus: true,
-          child: BlocListener<PurchaseBloc, PurchaseState>(
-            listenWhen: (prev, curr) => prev.status != curr.status,
-            listener: (context, state) {
-              if (state.status == PurchaseStatus.success) {
-                _invoiceCtrl.clear();
-                _notesCtrl.clear();
-                setState(() {
-                  _purchaseDate = DateTime.now();
-                });
-                
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(loc.purchaseSavedSuccess),
-                    backgroundColor: colorScheme.primary,
-                  ),
-                );
-              } else if (state.status == PurchaseStatus.failure) {
-                if (!context.mounted) return;
-                final msg = state.error != null
-                    ? ErrorHandler.getLocalizedMessage(state.error!, loc)
-                    : loc.unknownError;
-                
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(msg),
-                    backgroundColor: colorScheme.error,
-                  ),
-                );
-              }
-            },
-            child: BlocBuilder<PurchaseBloc, PurchaseState>(
-              builder: (context, state) {
-                return Stack(
-                  children: [
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        double rightPanelWidth = 340;
-                        if (constraints.maxWidth >= 2560) {
-                          rightPanelWidth = 500;
-                        } else if (constraints.maxWidth >= 1920) {
-                          rightPanelWidth = 440;
-                        } else if (constraints.maxWidth >= 1366) {
-                          rightPanelWidth = 380;
-                        }
-
-                        return Row(
-                          children: [
-                            // LEFT PANEL
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // Toolbar equivalent
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.surface,
-                                      border: Border(
-                                        bottom: BorderSide(color: colorScheme.outlineVariant),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      loc.purchaseScreenTitle,
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: PurchaseItemListWidget(
-                                      cartItemIds: state.cartItems.map((e) => e.productId).toList(),
-                                      onProductTapped: _onProductTapped,
-                                    ),
-                                  ),
-                                ],
-                              ),
+        child: Column(
+          children: [
+            // Header Section
+            Container(
+              padding: const EdgeInsets.all(AppTokens.spacingMedium),
+              color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: _selectSupplier,
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Supplier',
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.cardBorderRadius)),
+                              prefixIcon: const Icon(Icons.store),
                             ),
-
-                            // DIVIDER
-                            Container(width: 0.5, color: colorScheme.outlineVariant),
-
-                            // RIGHT PANEL
-                            SizedBox(
-                              width: rightPanelWidth,
-                              child: Container(
-                                color: colorScheme.surface,
-                                child: PurchaseCartWidget(
-                                  invoiceCtrl: _invoiceCtrl,
-                                  notesCtrl: _notesCtrl,
-                                  purchaseDate: _purchaseDate,
-                                  onDateChanged: (val) {
-                                    setState(() {
-                                      _purchaseDate = val;
-                                    });
-                                  },
-                                  onSave: _save,
-                                ),
-                              ),
+                            child: Text(
+                              _selectedSupplier?['name_english'] ??
+                                  'Select Supplier',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
+                                    color: _selectedSupplier == null
+                                        ? colorScheme.onSurface
+                                            .withValues(alpha: 0.5)
+                                        : colorScheme.onSurface,
+                                  ),
                             ),
-                          ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppTokens.spacingMedium),
+                      Expanded(
+                        child: TextField(
+                          controller: _invoiceCtrl,
+                          decoration: InputDecoration(
+                            labelText: 'Supplier Invoice #',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.cardBorderRadius)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppTokens.spacingStandard),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _purchaseDate,
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime.now(),
+                            );
+                            if (picked != null) {
+                              setState(() => _purchaseDate = picked);
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'Purchase Date',
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.cardBorderRadius)),
+                              prefixIcon: const Icon(Icons.calendar_today),
+                            ),
+                            child: Text(
+                                DateFormat('yyyy-MM-dd').format(_purchaseDate)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppTokens.spacingMedium),
+                      Expanded(
+                        child: TextField(
+                          controller: _notesCtrl,
+                          decoration: InputDecoration(
+                            labelText: 'Notes',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.cardBorderRadius)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Items List
+            Expanded(
+              child: _cartItems.isEmpty
+                  ? Center(
+                      child: TextButton.icon(
+                        onPressed: _addItem,
+                        icon: Icon(Icons.add_circle_outline,
+                            size: AppTokens.iconSizeXXLarge,
+                            color: colorScheme.primary),
+                        label: Text('Add Items',
+                            style: Theme.of(context).textTheme.headlineSmall),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(AppTokens.spacingMedium),
+                      itemCount: _cartItems.length,
+                      separatorBuilder: (_, __) =>
+                          Divider(color: colorScheme.outlineVariant),
+                      itemBuilder: (context, index) {
+                        final item = _cartItems[index];
+                        return ListTile(
+                          title: Text(item['name'],
+                              style: Theme.of(context).textTheme.bodyLarge),
+                          subtitle: Text(
+                            'Qty: ${item['quantity']} | Batch: ${item['batch_number'] ?? '-'} | Exp: ${item['expiry_date'] ?? '-'}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                Money(item['total_amount']).formattedNoDecimal,
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete, color: colorScheme.error),
+                                onPressed: () => setState(
+                                    () => _cartItems.removeAt(index)),
+                              ),
+                            ],
+                          ),
                         );
                       },
                     ),
-
-                    if (state.status == PurchaseStatus.submitting) const LoadingOverlay(),
-                  ],
-                );
-              },
             ),
-          ),
+
+            // Footer Actions
+            Container(
+              padding: const EdgeInsets.all(AppTokens.spacingMedium),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                boxShadow: [
+                  BoxShadow(
+                      color: colorScheme.shadow.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, -2))
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _addItem,
+                    icon: const Icon(Icons.add, size: AppTokens.iconSizeLarge),
+                    label: const Text('Add Item'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(0, AppTokens.buttonHeight),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppTokens.spacingMedium),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.buttonBorderRadius),
+                      ),
+                      textStyle: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _savePurchase,
+                    icon: const Icon(Icons.save, size: AppTokens.iconSizeLarge),
+                    label: const Text('SAVE'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      minimumSize: const Size(0, AppTokens.buttonHeight),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppTokens.spacingMedium),
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.buttonBorderRadius),
+                      ),
+                      textStyle: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                  Text(
+                    'Total: ${Money(_totalAmount.toInt()).formattedNoDecimal}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall
+                        ?.copyWith(color: colorScheme.primary),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

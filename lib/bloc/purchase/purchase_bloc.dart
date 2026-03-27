@@ -58,6 +58,7 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
     } catch (e) {
       emit(state.copyWith(status: PurchaseStatus.failure, error: e.toString()));
       emit(state.copyWith(status: PurchaseStatus.ready, clearError: true));
+      emit(state.copyWith(status: PurchaseStatus.ready, error: null));
     }
   }
 
@@ -67,11 +68,13 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
       emit(state.copyWith(
           status: PurchaseStatus.failure, error: 'Please select a supplier'));
       emit(state.copyWith(status: PurchaseStatus.ready, clearError: true));
+      emit(state.copyWith(status: PurchaseStatus.ready));
       return;
     }
     if (state.cartItems.isEmpty) {
       emit(state.copyWith(status: PurchaseStatus.failure, error: 'Cart is empty'));
       emit(state.copyWith(status: PurchaseStatus.ready, clearError: true));
+      emit(state.copyWith(status: PurchaseStatus.ready));
       return;
     }
 
@@ -106,6 +109,7 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
     } catch (e) {
       emit(state.copyWith(status: PurchaseStatus.failure, error: e.toString()));
       emit(state.copyWith(status: PurchaseStatus.ready, clearError: true));
+      emit(state.copyWith(status: PurchaseStatus.ready));
     }
   }
 }
