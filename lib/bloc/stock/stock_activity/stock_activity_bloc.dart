@@ -1,3 +1,4 @@
+import '../../../core/utils/logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/repositories/stock_activity_repository.dart';
 import '../../../core/repositories/items_repository.dart';
@@ -58,6 +59,11 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
       } catch (e) {
         emit(StockActivityActionError(e.toString()));
       }
+    } else {
+      AppLogger.info(
+        'LoadMoreStockActivities ignored — current state: ${state.runtimeType}',
+        tag: 'StockActivityBloc',
+      );
     }
   }
 
@@ -78,6 +84,7 @@ class StockActivityBloc extends Bloc<StockActivityEvent, StockActivityState> {
         event.quantityChange,
         reason: event.reason,
         reference: event.reference,
+        user: event.performedBy ?? 'SYSTEM',
       );
       emit(StockActivityActionSuccess('Stock adjustment submitted'));
       add(LoadStockActivities());

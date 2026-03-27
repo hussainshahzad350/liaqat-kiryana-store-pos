@@ -92,7 +92,7 @@ class ProductCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: product.isLowStock
                       ? colorScheme.errorContainer
-                      : colorScheme.surfaceVariant,
+                      : colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(
                       AppTokens.smallBorderRadius),
                 ),

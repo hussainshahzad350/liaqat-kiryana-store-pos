@@ -9,6 +9,8 @@ class StockSummaryEntity {
   final int lowStockItemsCount;
   final int outOfStockItemsCount;
   final int expiredOrNearExpiryCount;
+  final int deadStockCount;
+  final int expiringSoonCount;
   final DateTime lastUpdated;
 
   const StockSummaryEntity({
@@ -18,6 +20,8 @@ class StockSummaryEntity {
     required this.lowStockItemsCount,
     required this.outOfStockItemsCount,
     required this.expiredOrNearExpiryCount,
+    required this.deadStockCount,
+    required this.expiringSoonCount,
     required this.lastUpdated,
   });
 }

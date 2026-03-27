@@ -12,8 +12,17 @@ class AdjustStock extends StockActivityEvent {
   final double quantityChange;
   final String reason;
   final String? reference;
+  final String? performedBy;
 
-  AdjustStock({required this.productId, required this.quantityChange, required this.reason, this.reference});
+  AdjustStock({
+    required this.productId,
+    required this.quantityChange,
+    required this.reason,
+    this.reference,
+    this.performedBy,
+  });
+
+  List<Object?> get props => [productId, quantityChange, reason, reference, performedBy];
 }
 
 class CancelStockActivity extends StockActivityEvent {

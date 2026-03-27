@@ -5,6 +5,7 @@ import '../../../../bloc/stock/stock_overview/stock_overview_state.dart';
 
 class StockOverviewBloc extends Bloc<StockOverviewEvent, StockOverviewState> {
   final StockRepository _stockRepository;
+  static const int _pageLimit = 100;
 
   // Track current filters for pagination
   String? _currentQuery;
@@ -47,7 +48,7 @@ class StockOverviewBloc extends Bloc<StockOverviewEvent, StockOverviewState> {
       emit(StockOverviewLoaded(
         items: items,
         summary: summary,
-        hasReachedMax: items.length < 100, // Assuming default limit is 100 in Repo
+        hasReachedMax: items.length < _pageLimit,
       ));
     } catch (e) {
       emit(StockOverviewError(e.toString()));

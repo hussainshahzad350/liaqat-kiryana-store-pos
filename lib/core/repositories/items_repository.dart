@@ -8,6 +8,8 @@ import '../../models/stock_adjustment_model.dart';
 class ItemsRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
+  final Map<String, int> _barcodeIndex = {};
+
   // Stream that emits whenever stock levels change in the database.
   // Repositories and BLoCs listen to this for stock update signals.
   final StreamController<void> _stockChangedController =
@@ -34,7 +36,26 @@ class ItemsRepository {
   Future<List<Product>> getAllProducts() async {
     final db = await _dbHelper.database;
     final result = await db.query('products', orderBy: 'name_english ASC');
-    return result.map((map) => Product.fromMap(map)).toList();
+    
+    final products = result.map((map) => Product.fromMap(map)).toList();
+
+    _barcodeIndex.clear();
+    for (final product in products) {
+      if (product.id != null && product.itemCode != null && product.itemCode!.isNotEmpty) {
+        _barcodeIndex[product.itemCode!] = product.id!;
+      }
+    }
+    
+    for (final row in result) {
+      if (row['id'] != null && row['barcode'] != null) {
+        final code = row['barcode'].toString().trim();
+        if (code.isNotEmpty) {
+          _barcodeIndex[code] = row['id'] as int;
+        }
+      }
+    }
+
+    return products;
   }
 
   /// Get product by ID
@@ -68,28 +89,41 @@ class ItemsRepository {
   /// Add new product
   Future<int> addProduct(Product product) async {
     final db = await _dbHelper.database;
-    return await db.insert('products', product.toMap());
+    final id = await db.insert('products', product.toMap());
+    
+    if (product.itemCode != null && product.itemCode!.isNotEmpty) {
+      _barcodeIndex[product.itemCode!] = id;
+    }
+    return id;
   }
 
   /// Update product
   Future<int> updateProduct(int id, Product product) async {
     final db = await _dbHelper.database;
-    return await db.update(
+    final result = await db.update(
       'products',
       product.toMap(),
       where: 'id = ?',
       whereArgs: [id],
     );
+    
+    _barcodeIndex.removeWhere((key, value) => value == id);
+    if (product.itemCode != null && product.itemCode!.isNotEmpty) {
+      _barcodeIndex[product.itemCode!] = id;
+    }
+    return result;
   }
 
   /// Delete product
   Future<int> deleteProduct(int id) async {
     final db = await _dbHelper.database;
-    return await db.delete(
+    final result = await db.delete(
       'products',
       where: 'id = ?',
       whereArgs: [id],
     );
+    _barcodeIndex.removeWhere((key, value) => value == id);
+    return result;
   }
 
   // ========================================
@@ -481,6 +515,15 @@ class ItemsRepository {
   // ========================================
   // BARCODE MANAGEMENT
   // ========================================
+
+  Future<int?> getProductIdByBarcode(String barcode) async {
+    if (_barcodeIndex.isNotEmpty && _barcodeIndex.containsKey(barcode)) {
+      return _barcodeIndex[barcode];
+    }
+    // Fallback to DB if index not yet populated
+    final product = await getProductByBarcode(barcode);
+    return product?['id'] as int?;
+  }
 
   /// Get product by barcode
   Future<Map<String, dynamic>?> getProductByBarcode(String barcode) async {

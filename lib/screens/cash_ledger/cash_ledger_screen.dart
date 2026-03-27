@@ -1,6 +1,3 @@
-// lib/screens/cash_ledger/cash_ledger_screen.dart
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:liaqat_store/core/repositories/cash_repository.dart';
@@ -156,7 +153,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                     decoration: BoxDecoration(
                                       color: selectedType == 'IN'
                                           ? colorScheme.primaryContainer
-                                          : colorScheme.surfaceVariant,
+                                          : colorScheme.surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(
                                           AppTokens.buttonBorderRadius),
                                       border: Border.all(
@@ -187,7 +184,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                                     decoration: BoxDecoration(
                                       color: selectedType == 'OUT'
                                           ? colorScheme.errorContainer
-                                          : colorScheme.surfaceVariant,
+                                          : colorScheme.surfaceContainerHighest,
                                       borderRadius: BorderRadius.circular(
                                           AppTokens.buttonBorderRadius),
                                       border: Border.all(
@@ -264,7 +261,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                             decoration: InputDecoration(
                                 labelText: loc.amount,
                                 filled: true,
-                                fillColor: colorScheme.surfaceVariant,
+                                fillColor: colorScheme.surfaceContainerHighest,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
                                         AppTokens.buttonBorderRadius))),
@@ -279,7 +276,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                             decoration: InputDecoration(
                                 labelText: loc.description,
                                 filled: true,
-                                fillColor: colorScheme.surfaceVariant,
+                                fillColor: colorScheme.surfaceContainerHighest,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
                                         AppTokens.buttonBorderRadius))),
@@ -293,7 +290,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                             decoration: InputDecoration(
                                 labelText: loc.remarks,
                                 filled: true,
-                                fillColor: colorScheme.surfaceVariant,
+                                fillColor: colorScheme.surfaceContainerHighest,
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
                                         AppTokens.buttonBorderRadius))),

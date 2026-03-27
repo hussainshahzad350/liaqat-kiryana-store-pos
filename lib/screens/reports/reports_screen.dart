@@ -199,7 +199,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                                         color: colorScheme.primary)),
                                 filled: true,
                                 fillColor:
-                                    colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                               ),
                               onTap: () => _selectDate(context, true),
                             ),
@@ -238,7 +238,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                                         color: colorScheme.primary)),
                                 filled: true,
                                 fillColor:
-                                    colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                               ),
                               onTap: () => _selectDate(context, false),
                             ),
@@ -338,7 +338,7 @@ class _SalesReportTabState extends State<SalesReportTab> {
                             columnSpacing: AppTokens.spacingMedium,
                             horizontalMargin: AppTokens.spacingMedium,
                             headingRowColor:
-                                MaterialStateProperty.all(colorScheme.primaryContainer),
+                                WidgetStateProperty.all(colorScheme.primaryContainer),
                             headingTextStyle: TextStyle(
                                 color: colorScheme.onPrimaryContainer,
                                 fontSize: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
@@ -955,7 +955,7 @@ class ExpenseItem extends StatelessWidget {
                 horizontal: AppTokens.spacingMedium,
                 vertical: AppTokens.spacingSmall),
             decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius:
                     BorderRadius.circular(AppTokens.spacingSmall)),
             child: Text(percentage),
@@ -1112,7 +1112,7 @@ class StockCategoryItem extends StatelessWidget {
                 horizontal: AppTokens.spacingMedium,
                 vertical: AppTokens.spacingSmall),
             decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius:
                     BorderRadius.circular(AppTokens.spacingSmall)),
             child: Text(percentage),

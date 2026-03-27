@@ -27,7 +27,7 @@ import 'widgets/recent_sales_section.dart';
 import 'widgets/customer_section.dart';
 import 'widgets/sales_totals_section.dart';
 import 'widgets/cart_item_row.dart';
-import 'widgets/loading_overlay.dart';
+import '../../widgets/loading_overlay.dart';
 import 'utils/receipt_printer.dart';
 import 'utils/sales_shortcuts.dart';
 import '../../core/utils/rtl_helper.dart';
