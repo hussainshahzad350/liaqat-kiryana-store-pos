@@ -3584,6 +3584,12 @@ abstract class AppLocalizations {
   /// **'Notes (optional)'**
   String get notesOptionalLabel;
 
+  /// No description provided for @notesOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get notesOptional;
+
   /// No description provided for @failedToLoadDetails.
   ///
   /// In en, this message translates to:

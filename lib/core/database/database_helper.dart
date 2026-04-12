@@ -26,6 +26,11 @@ class DatabaseHelper {
       version: 1,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
+      onOpen: (db) async {
+        try {
+          await db.execute('ALTER TABLE cash_ledger ADD COLUMN payment_mode TEXT DEFAULT "CASH"');
+        } catch (_) {}
+      },
     );
   }
 
@@ -190,7 +195,8 @@ class DatabaseHelper {
         type TEXT NOT NULL,
         amount INTEGER NOT NULL,
         balance_after INTEGER,
-        remarks TEXT
+        remarks TEXT,
+        payment_mode TEXT DEFAULT 'CASH'
       )
     ''');
 

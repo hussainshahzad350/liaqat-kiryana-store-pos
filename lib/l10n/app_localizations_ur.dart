@@ -1798,6 +1798,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get notesOptionalLabel => 'نوٹس (اختیاری)';
 
   @override
+  String get notesOptional => 'نوٹس (اختیاری)';
+
+  @override
   String get failedToLoadDetails => 'تفصیلات لوڈ کرنے میں ناکام';
 
   @override

@@ -103,6 +103,33 @@ class PurchaseRepository {
         'created_at': DateTime.now().toIso8601String(),
       });
 
+      // 4. Update the actual Supplier table's outstanding_balance
+      await txn.rawUpdate(
+        'UPDATE suppliers SET outstanding_balance = outstanding_balance + ? WHERE id = ?',
+        [totalAmount, supplierId],
+      );
+
+      // 5. Auto-record in Cash Ledger (Cash OUT for purchase)
+      if (totalAmount > 0) {
+        final dateStr = DateFormat('yyyy-MM-dd').format(now);
+        final timeStr = DateFormat('hh:mm a').format(now);
+        final res = await txn.rawQuery(
+            'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+        int currentCashBalance =
+            res.isNotEmpty ? (res.first['balance_after'] as num).toInt() : 0;
+
+        await txn.insert('cash_ledger', {
+          'transaction_date': dateStr,
+          'transaction_time': timeStr,
+          'description': 'Purchase #$id from Supplier',
+          'type': 'OUT',
+          'amount': totalAmount,
+          'balance_after': currentCashBalance - totalAmount,
+          'remarks': notes ?? '',
+          'payment_mode': 'CASH',
+        });
+      }
+
       AppLogger.info('Purchase created: ID $id', tag: 'PurchaseRepo');
       return id;
     });
@@ -244,6 +271,48 @@ class PurchaseRepository {
         'balance': newBalance,
         'created_at': DateTime.now().toIso8601String(),
       });
+
+      // 5. Reverse Supplier outstanding_balance
+      await txn.rawUpdate(
+        'UPDATE suppliers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
+        [purchase['total_amount'], supplierId],
+      );
+
+      // 6. Reverse Cash Ledger Entries
+      final cashEntries = await txn.query(
+        'cash_ledger',
+        where: 'description LIKE ?',
+        whereArgs: ['%Purchase #$purchaseId%'],
+      );
+
+      for (var entry in cashEntries) {
+        final entryAmount = (entry['amount'] as num).toInt();
+        final entryType = entry['type'] as String;
+        final entryMode = (entry['payment_mode'] as String?) ?? 'CASH';
+
+        // Reversal: OUT becomes IN, IN becomes OUT
+        final reversalType = entryType == 'IN' ? 'OUT' : 'IN';
+        
+        final res = await txn.rawQuery(
+          'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
+        );
+        int currentCashBalance = res.isNotEmpty 
+            ? (res.first['balance_after'] as num).toInt() 
+            : 0;
+
+        await txn.insert('cash_ledger', {
+          'transaction_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          'transaction_time': DateFormat('hh:mm a').format(DateTime.now()),
+          'description': 'Reversal: Purchase #$purchaseId cancelled',
+          'type': reversalType,
+          'amount': entryAmount,
+          'balance_after': reversalType == 'IN' 
+              ? currentCashBalance + entryAmount 
+              : currentCashBalance - entryAmount,
+          'remarks': 'Auto-reversal for cancelled purchase',
+          'payment_mode': entryMode,
+        });
+      }
 
       AppLogger.info('Purchase cancelled: ID $purchaseId', tag: 'PurchaseRepo');
     });

@@ -606,6 +606,7 @@
   "balanceHeader": "بیلنس",
   "receivePaymentTitle": "ادائیگی وصول کریں",
   "notesOptionalLabel": "نوٹس (اختیاری)",
+  "notesOptional": "نوٹس (اختیاری)",
   "failedToLoadDetails": "تفصیلات لوڈ کرنے میں ناکام",
   "confirmCancellationTitle": "منسوخی کی تصدیق کریں",
   "confirmCancelInvoiceMessage": "کیا آپ واقعی اس انوائس کو منسوخ کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جا سکتا۔",

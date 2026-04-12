@@ -621,6 +621,7 @@
   "balanceHeader": "Balance",
   "receivePaymentTitle": "Receive Payment",
   "notesOptionalLabel": "Notes (optional)",
+  "notesOptional": "Notes (optional)",
   "failedToLoadDetails": "Failed to load details",
   "confirmCancellationTitle": "Confirm Cancellation",
   "confirmCancelInvoiceMessage": "Are you sure you want to cancel this invoice? This action cannot be undone.",

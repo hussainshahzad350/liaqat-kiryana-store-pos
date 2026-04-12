@@ -1802,6 +1802,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notesOptionalLabel => 'Notes (optional)';
 
   @override
+  String get notesOptional => 'Notes (optional)';
+
+  @override
   String get failedToLoadDetails => 'Failed to load details';
 
   @override

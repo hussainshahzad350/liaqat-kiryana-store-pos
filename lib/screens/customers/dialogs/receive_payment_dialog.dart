@@ -133,8 +133,8 @@ class _ReceivePaymentDialogState extends State<ReceivePaymentDialog> {
                   ),
                   const Spacer(),
                   Text(
-                    '${loc.balanceShort}: ${Money(widget.customer.outstandingBalance)}',
-                    style: textTheme.bodySmall?.copyWith(
+                    loc.balanceShort(Money(widget.customer.outstandingBalance)),
+                    style: textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onPrimaryContainer,
                     ),
                   ),

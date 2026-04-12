@@ -1,5 +1,99 @@
-﻿Analyzing liaqat-kiryana-store-pos...                           
+﻿flutter : Package file_picker:linux references file_picker:linux 
+as the default plugin, but it does not provide an inline 
+implementation.
+At line:1 char:1
++ flutter analyze 2>&1 | Out-File -FilePath analyze_output.txt 
+-Encodin ...
++ ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Package file_pi...i 
+   mplementation.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: linux: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: linux:` `pluginClass` or `dartPluginClass`.
 
-  error - 1 positional argument expected by 'InvoiceRepository.new', but 0 found - test\integration\repository_test.dart:257:39 - not_enough_positional_arguments
-  error - 1 positional argument expected by 'PurchaseRepository.new', but 0 found - test\unit\purchase_repository_test.dart:19:39 - not_enough_positional_arguments
+Package file_picker:macos references file_picker:macos as the 
+default plugin, but it does not provide an inline implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: macos: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: macos:` `pluginClass` or `dartPluginClass`.
 
+Package file_picker:windows references file_picker:windows as 
+the default plugin, but it does not provide an inline 
+implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: windows: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: windows:` `pluginClass` or `dartPluginClass`.
+
+Package file_picker:linux references file_picker:linux as the 
+default plugin, but it does not provide an inline implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: linux: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: linux:` `pluginClass` or `dartPluginClass`.
+
+Package file_picker:macos references file_picker:macos as the 
+default plugin, but it does not provide an inline implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: macos: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: macos:` `pluginClass` or `dartPluginClass`.
+
+Package file_picker:windows references file_picker:windows as 
+the default plugin, but it does not provide an inline 
+implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: windows: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: windows:` `pluginClass` or `dartPluginClass`.
+
+Package file_picker:linux references file_picker:linux as the 
+default plugin, but it does not provide an inline implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: linux: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: linux:` `pluginClass` or `dartPluginClass`.
+
+Package file_picker:macos references file_picker:macos as the 
+default plugin, but it does not provide an inline implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: macos: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: macos:` `pluginClass` or `dartPluginClass`.
+
+Package file_picker:windows references file_picker:windows as 
+the default plugin, but it does not provide an inline 
+implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: windows: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: windows:` `pluginClass` or `dartPluginClass`.
+
+Package file_picker:linux references file_picker:linux as the 
+default plugin, but it does not provide an inline implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: linux: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: linux:` `pluginClass` or `dartPluginClass`.
+
+Package file_picker:macos references file_picker:macos as the 
+default plugin, but it does not provide an inline implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: macos: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: macos:` `pluginClass` or `dartPluginClass`.
+
+Package file_picker:windows references file_picker:windows as 
+the default plugin, but it does not provide an inline 
+implementation.
+Ask the maintainers of file_picker to either avoid referencing a 
+default implementation via `platforms: windows: default_package: 
+file_picker` or add an inline implementation to file_picker via 
+`platforms: windows:` `pluginClass` or `dartPluginClass`.
+
+Analyzing liaqat-kiryana-store-pos...                           
+No issues found! (ran in 7.9s)

@@ -19,8 +19,7 @@ class CashRepository {
   // CASH BALANCE
   // ========================================
 
-  /// Get current cash balance
-  /// Moved from DatabaseHelper.getCurrentCashBalance()
+  /// Get current TOTAL balance (Cash + Digital)
   Future<Money> getCurrentCashBalance() async {
     try {
       final db = await _dbHelper.database;
@@ -31,7 +30,27 @@ class CashRepository {
       }
       return Money.zero;
     } catch (e) {
-      AppLogger.error('Error getting cash balance: $e', tag: 'CashRepo');
+      AppLogger.error('Error getting total cash balance: $e', tag: 'CashRepo');
+      return Money.zero;
+    }
+  }
+
+  /// Get current PHYSICAL cash balance (CASH only)
+  Future<Money> getPhysicalCashBalance() async {
+    try {
+      final db = await _dbHelper.database;
+      final res = await db.rawQuery('''
+        SELECT 
+          SUM(CASE WHEN type = 'IN' THEN amount ELSE -amount END) as balance 
+        FROM cash_ledger 
+        WHERE payment_mode = 'CASH'
+      ''');
+      if (res.isNotEmpty && res.first['balance'] != null) {
+        return Money.fromPaisas((res.first['balance'] as num).toInt());
+      }
+      return Money.zero;
+    } catch (e) {
+      AppLogger.error('Error getting physical cash balance: $e', tag: 'CashRepo');
       return Money.zero;
     }
   }
@@ -69,8 +88,9 @@ class CashRepository {
     String description,
     String type,
     Money amount,
-    String remarks,
-  ) async {
+    String remarks, {
+    String paymentMode = 'CASH',
+  }) async {
     final db = await _dbHelper.database;
     final now = DateTime.now();
 
@@ -103,6 +123,7 @@ class CashRepository {
         'amount': amount.paisas,
         'balance_after': newBalance.paisas,
         'remarks': remarks,
+        'payment_mode': paymentMode,
       });
     });
   }
@@ -112,8 +133,9 @@ class CashRepository {
     String description,
     Money amount, {
     String? remarks,
+    String paymentMode = 'CASH',
   }) async {
-    await addCashEntry(description, 'IN', amount, remarks ?? '');
+    await addCashEntry(description, 'IN', amount, remarks ?? '', paymentMode: paymentMode);
   }
 
   /// Add cash OUT entry (shorthand)
@@ -121,8 +143,9 @@ class CashRepository {
     String description,
     Money amount, {
     String? remarks,
+    String paymentMode = 'CASH',
   }) async {
-    await addCashEntry(description, 'OUT', amount, remarks ?? '');
+    await addCashEntry(description, 'OUT', amount, remarks ?? '', paymentMode: paymentMode);
   }
 
   // ========================================
@@ -442,7 +465,7 @@ class CashRepository {
     final result = await db.rawQuery('''
       SELECT SUM(amount) as total 
       FROM cash_ledger 
-      WHERE type = 'IN' AND transaction_date BETWEEN ? AND ?
+      WHERE type = 'IN' AND payment_mode = 'CASH' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
 
     return _moneyFromDb(result.first, 'total');
@@ -454,7 +477,7 @@ class CashRepository {
     final result = await db.rawQuery('''
       SELECT SUM(amount) as total 
       FROM cash_ledger 
-      WHERE type = 'OUT' AND transaction_date BETWEEN ? AND ?
+      WHERE type = 'OUT' AND payment_mode = 'CASH' AND transaction_date BETWEEN ? AND ?
     ''', [startDate, endDate]);
 
     return _moneyFromDb(result.first, 'total');

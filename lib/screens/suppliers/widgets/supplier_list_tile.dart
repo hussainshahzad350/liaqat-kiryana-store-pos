@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import '../../../domain/entities/money.dart';
-import '../../../l10n/app_localizations.dart';
-import '../../../models/customer_model.dart';
-import '../../../core/res/app_tokens.dart';
+import '../../../../domain/entities/money.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../models/supplier_model.dart';
+import '../../../../core/res/app_tokens.dart';
 
-class CustomerListTile extends StatelessWidget {
-  final Customer customer;
+class SupplierListTile extends StatelessWidget {
+  final Supplier supplier;
   final VoidCallback onLedger;
   final VoidCallback onEdit;
   final VoidCallback onArchive;
   final VoidCallback onDelete;
 
-  const CustomerListTile({
+  const SupplierListTile({
     super.key,
-    required this.customer,
+    required this.supplier,
     required this.onLedger,
     required this.onEdit,
     required this.onArchive,
@@ -27,10 +27,10 @@ class CustomerListTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
 
-    final balance = Money(customer.outstandingBalance);
-    final name = isUrdu && (customer.nameUrdu?.isNotEmpty ?? false)
-        ? customer.nameUrdu!
-        : customer.nameEnglish;
+    final balance = Money(supplier.outstandingBalance);
+    final name = isUrdu && (supplier.nameUrdu?.isNotEmpty ?? false)
+        ? supplier.nameUrdu!
+        : supplier.nameEnglish;
 
     return Card(
       elevation: AppTokens.cardElevation,
@@ -74,13 +74,13 @@ class CustomerListTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              customer.contactPrimary ?? '',
+              supplier.contactPrimary ?? '',
               style: textTheme.bodySmall
                   ?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
-            if (customer.creditLimit > 0)
+            if (supplier.supplierType?.isNotEmpty == true)
               Text(
-                '${loc.creditLimit}: ${Money(customer.creditLimit)}',
+                supplier.supplierType!, // Using Supplier Type instead of missing creditLimit
                 style:
                     textTheme.bodySmall?.copyWith(color: colorScheme.secondary),
               ),
@@ -89,7 +89,6 @@ class CustomerListTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (balance != Money.zero)
               Container(
                 margin: const EdgeInsets.symmetric(
                     horizontal: AppTokens.spacingSmall),

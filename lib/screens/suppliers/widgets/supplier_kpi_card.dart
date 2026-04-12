@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
-import '../../../domain/entities/money.dart';
-import '../../../l10n/app_localizations.dart';
-import '../../../core/res/app_tokens.dart';
+import '../../../../domain/entities/money.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../core/res/app_tokens.dart';
 
-class CustomerKpiCard extends StatelessWidget {
+class SupplierKpiCard extends StatelessWidget {
   final String title;
   final int count;
   final Money balance;
   final VoidCallback? onTap;
-  final bool isTertiary;
 
-  const CustomerKpiCard({
+  const SupplierKpiCard({
     super.key,
     required this.title,
     required this.count,
     required this.balance,
     this.onTap,
-    this.isTertiary = false,
   });
 
   @override
@@ -55,7 +53,7 @@ class CustomerKpiCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.people,
+                  Icon(Icons.business,
                       size: AppTokens.iconSizeLarge, color: contentColor),
                   Flexible(
                     child: Text(

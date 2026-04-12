@@ -7,6 +7,7 @@ class CashLedger {
   final int amount;
   final int? balanceAfter;
   final String? remarks;
+  final String paymentMode; // 'CASH', 'CARD', 'BANK', 'EAWAYPAISA', etc.
 
   CashLedger({
     this.id,
@@ -17,6 +18,7 @@ class CashLedger {
     required this.amount,
     this.balanceAfter,
     this.remarks,
+    this.paymentMode = 'CASH',
   });
 
   /// Create a CashLedger from database map
@@ -32,6 +34,7 @@ class CashLedger {
       amount: (map['amount'] ?? 0) as int,
       balanceAfter: map['balance_after'] as int?,
       remarks: map['remarks'] as String?,
+      paymentMode: map['payment_mode'] as String? ?? 'CASH',
     );
   }
 
@@ -46,6 +49,7 @@ class CashLedger {
       'amount': amount,
       'balance_after': balanceAfter,
       'remarks': remarks,
+      'payment_mode': paymentMode,
     };
   }
 
@@ -59,6 +63,7 @@ class CashLedger {
     int? amount,
     int? balanceAfter,
     String? remarks,
+    String? paymentMode,
   }) {
     return CashLedger(
       id: id ?? this.id,
@@ -69,6 +74,7 @@ class CashLedger {
       amount: amount ?? this.amount,
       balanceAfter: balanceAfter ?? this.balanceAfter,
       remarks: remarks ?? this.remarks,
+      paymentMode: paymentMode ?? this.paymentMode,
     );
   }
 
