@@ -48,14 +48,32 @@ class _CategoryDialogState extends State<CategoryDialog> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _selectedDeptId == null) return;
 
+    final selectedDeptId = _selectedDeptId!;
+    final nameEn = _nameEnController.text.trim();
     setState(() => _isValidating = true);
     final loc = AppLocalizations.of(context)!;
-    
-    final nameEn = _nameEnController.text.trim();
-    final exists = await widget.onValidate(_selectedDeptId!, nameEn, excludeId: widget.category?.id);
-    
+
+    bool exists;
+    try {
+      exists = await widget.onValidate(
+        selectedDeptId,
+        nameEn,
+        excludeId: widget.category?.id,
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.error),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    } finally {
+      if (mounted) setState(() => _isValidating = false);
+    }
+
     if (!mounted) return;
-    setState(() => _isValidating = false);
 
     if (exists) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,7 +84,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
 
     final cat = Category(
       id: widget.category?.id,
-      departmentId: _selectedDeptId,
+      departmentId: selectedDeptId,
       nameEn: nameEn,
       nameUr: _nameUrController.text.trim(),
       isActive: widget.category?.isActive ?? true,
