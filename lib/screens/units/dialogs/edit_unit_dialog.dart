@@ -129,15 +129,20 @@ class _EditUnitDialogState extends State<EditUnitDialog> {
                   )
                 else
                   TextFormField(
+                  TextFormField(
                     controller: _multiplierCtrl,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       labelText: 'Multiplier (Conversion to Base)',
                       prefixText: '1 ${_codeCtrl.text} = ',
                       suffixText: _baseUnit?.code ?? '',
                     ),
-                    validator: UnitValidator.validatePositiveWholeMultiplier,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Required';
+                      final val = int.tryParse(v);
+                      if (val == null || val <= 0) return 'Must be > 0';
+                      return null;
+                    },
                   ),
               ],
             ),
@@ -145,31 +150,26 @@ class _EditUnitDialogState extends State<EditUnitDialog> {
         ),
       ),
       actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              final multiplier = _isBase
-                  ? 1
-                  : UnitValidator.parsePositiveWholeMultiplier(
-                      _multiplierCtrl.text);
-              if (!_isBase && multiplier == null) {
-                return;
-              }
-
               final unit = widget.unit.copyWith(
                 name: _nameCtrl.text,
                 code: _codeCtrl.text,
               );
-
+              // Note: multiplier/baseUnitId change during edit might be restricted in some systems, 
+              // but here we allow it if the current model supports it via copyWith.
+              // However, copyWith in unit_model.dart doesn't have multiplier/baseUnitId yet.
+              // I'll update the model later if needed, but for now I'll just use the constructor.
+              
               final updatedUnit = Unit(
                 id: unit.id,
                 name: _nameCtrl.text,
                 code: _codeCtrl.text,
                 category: unit.category,
-                baseUnitId: unit.baseUnitId,
-                multiplier: multiplier!,
+                baseUnitId: unit.baseUnitId, // Usually fixed on edit for simplicity
+                multiplier: _isBase ? 1 : int.parse(_multiplierCtrl.text.trim()),
                 isSystem: unit.isSystem,
                 isActive: unit.isActive,
               );
