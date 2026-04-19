@@ -81,7 +81,7 @@ class UnitsRepository {
     // 2. Check legacy Usage in Products (using unit_type code)
     final legacyProductCount = (legacyCode != null && legacyCode.isNotEmpty)
         ? Sqflite.firstIntValue(await db.rawQuery(
-            'SELECT COUNT(*) FROM products WHERE unit_type = ?',
+            'SELECT COUNT(*) FROM products WHERE UPPER(unit_type) = UPPER(?)',
             [legacyCode],
           ))
         : 0;
