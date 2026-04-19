@@ -119,7 +119,8 @@ class _CategoryDialogState extends State<CategoryDialog> {
                   border: const OutlineInputBorder(),
                   isDense: true,
                 ),
-                validator: (val) => (val == null || val.isEmpty) ? loc.required : null,
+                validator: (val) =>
+                    (val == null || val.trim().isEmpty) ? loc.required : null,
               ),
               const SizedBox(height: AppTokens.spacingMedium),
               TextFormField(
