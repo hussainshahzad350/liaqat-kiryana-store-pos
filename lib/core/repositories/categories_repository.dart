@@ -18,21 +18,29 @@ class CategoriesRepository {
 
   Future<int> updateDepartment(Department dept) async {
     final db = await _dbHelper.database;
-    return await db.update('departments', dept.toMap(), where: 'id = ?', whereArgs: [dept.id]);
+    return await db.update('departments', dept.toMap(),
+        where: 'id = ?', whereArgs: [dept.id]);
   }
 
   Future<int> deleteDepartment(int id) async {
     final db = await _dbHelper.database;
+    final inUseCount = await getProductCountByDepartment(id);
+    if (inUseCount > 0) {
+      throw Exception('DEPARTMENT_IN_USE:$inUseCount');
+    }
     return await db.delete('departments', where: 'id = ?', whereArgs: [id]);
   }
 
   // --- Categories ---
   Future<List<Category>> getCategoriesByDepartment(int departmentId) async {
     final db = await _dbHelper.database;
-    final result = await db.query('categories', where: 'department_id = ?', whereArgs: [departmentId], orderBy: 'name_english');
+    final result = await db.query('categories',
+        where: 'department_id = ?',
+        whereArgs: [departmentId],
+        orderBy: 'name_english');
     return result.map((e) => Category.fromMap(e)).toList();
   }
-  
+
   Future<List<Category>> getAllCategories() async {
     final db = await _dbHelper.database;
     final result = await db.query('categories', orderBy: 'name_english');
@@ -46,11 +54,21 @@ class CategoriesRepository {
 
   Future<int> updateCategory(Category cat) async {
     final db = await _dbHelper.database;
-    return await db.update('categories', cat.toMap(), where: 'id = ?', whereArgs: [cat.id]);
+    return await db.update('categories', cat.toMap(),
+        where: 'id = ?', whereArgs: [cat.id]);
   }
 
   Future<int> deleteCategory(int id) async {
     final db = await _dbHelper.database;
+    final inUseCount = (await db.rawQuery(
+      'SELECT COUNT(*) as count FROM products WHERE category_id = ?',
+      [id],
+    ))
+        .first['count'] as num;
+    if (inUseCount > 0) {
+      throw Exception('CATEGORY_IN_USE:${inUseCount.toInt()}');
+    }
+
     return await db.delete('categories', where: 'id = ?', whereArgs: [id]);
   }
 
@@ -63,7 +81,10 @@ class CategoriesRepository {
 
   Future<List<SubCategory>> getSubCategoriesByCategory(int categoryId) async {
     final db = await _dbHelper.database;
-    final result = await db.query('subcategories', where: 'category_id = ?', whereArgs: [categoryId], orderBy: 'name_english');
+    final result = await db.query('subcategories',
+        where: 'category_id = ?',
+        whereArgs: [categoryId],
+        orderBy: 'name_english');
     return result.map((e) => SubCategory.fromMap(e)).toList();
   }
 
@@ -74,11 +95,21 @@ class CategoriesRepository {
 
   Future<int> updateSubCategory(SubCategory sub) async {
     final db = await _dbHelper.database;
-    return await db.update('subcategories', sub.toMap(), where: 'id = ?', whereArgs: [sub.id]);
+    return await db.update('subcategories', sub.toMap(),
+        where: 'id = ?', whereArgs: [sub.id]);
   }
 
   Future<int> deleteSubCategory(int id) async {
     final db = await _dbHelper.database;
+    final inUseCount = (await db.rawQuery(
+      'SELECT COUNT(*) as count FROM products WHERE sub_category_id = ?',
+      [id],
+    ))
+        .first['count'] as num;
+    if (inUseCount > 0) {
+      throw Exception('SUBCATEGORY_IN_USE:${inUseCount.toInt()}');
+    }
+
     return await db.delete('subcategories', where: 'id = ?', whereArgs: [id]);
   }
 
@@ -92,9 +123,10 @@ class CategoriesRepository {
       SELECT id, category_id FROM subcategories 
       WHERE LOWER(name_english) LIKE ? OR LOWER(name_urdu) LIKE ?
     ''', [q, q]);
-    
+
     final matchingSubIds = subResults.map((e) => e['id'] as int).toSet();
-    final parentCatIdsFromSubs = subResults.map((e) => e['category_id'] as int).toSet();
+    final parentCatIdsFromSubs =
+        subResults.map((e) => e['category_id'] as int).toSet();
 
     // 2. Search Categories
     final catResults = await db.rawQuery('''
@@ -103,7 +135,8 @@ class CategoriesRepository {
     ''', [q, q]);
 
     final matchingCatIds = catResults.map((e) => e['id'] as int).toSet();
-    final parentDeptIdsFromCats = catResults.map((e) => e['department_id'] as int).toSet();
+    final parentDeptIdsFromCats =
+        catResults.map((e) => e['department_id'] as int).toSet();
 
     // 3. Search Departments
     final deptResults = await db.rawQuery('''
@@ -116,19 +149,21 @@ class CategoriesRepository {
     // 4. Resolve indirect parents (Departments of categories found via subcategories)
     Set<int> parentDeptIdsFromSubParents = {};
     if (parentCatIdsFromSubs.isNotEmpty) {
-       final placeholders = List.filled(parentCatIdsFromSubs.length, '?').join(',');
-       final extraCats = await db.rawQuery(
-         'SELECT department_id FROM categories WHERE id IN ($placeholders)',
-         parentCatIdsFromSubs.toList()
-       );
-       parentDeptIdsFromSubParents = extraCats
-           .where((e) => e['department_id'] != null)
-           .map((e) => e['department_id'] as int)
-           .toSet();
+      final placeholders =
+          List.filled(parentCatIdsFromSubs.length, '?').join(',');
+      final extraCats = await db.rawQuery(
+          'SELECT department_id FROM categories WHERE id IN ($placeholders)',
+          parentCatIdsFromSubs.toList());
+      parentDeptIdsFromSubParents = extraCats
+          .where((e) => e['department_id'] != null)
+          .map((e) => e['department_id'] as int)
+          .toSet();
     }
 
     return {
-      'departments': matchingDeptIds..addAll(parentDeptIdsFromCats)..addAll(parentDeptIdsFromSubParents),
+      'departments': matchingDeptIds
+        ..addAll(parentDeptIdsFromCats)
+        ..addAll(parentDeptIdsFromSubParents),
       'categories': matchingCatIds..addAll(parentCatIdsFromSubs),
       'subcategories': matchingSubIds,
     };
@@ -137,19 +172,25 @@ class CategoriesRepository {
   // --- Counts & Validation ---
   Future<int> getCategoryCount(int deptId) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM categories WHERE department_id = ?', [deptId]);
+    final result = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM categories WHERE department_id = ?',
+        [deptId]);
     return (result.first['count'] as num?)?.toInt() ?? 0;
   }
 
   Future<int> getSubCategoryCount(int catId) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM subcategories WHERE category_id = ?', [catId]);
+    final result = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM subcategories WHERE category_id = ?',
+        [catId]);
     return (result.first['count'] as num?)?.toInt() ?? 0;
   }
 
   Future<int> getProductCountByCategory(int catId) async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM products WHERE category_id = ?', [catId]);
+    final result = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM products WHERE category_id = ?',
+        [catId]);
     return (result.first['count'] as num?)?.toInt() ?? 0;
   }
 
@@ -166,37 +207,40 @@ class CategoriesRepository {
   // --- Validation ---
   Future<bool> departmentExists(String nameEn, {int? excludeId}) async {
     final db = await _dbHelper.database;
-    final where = excludeId != null 
-        ? 'LOWER(name_english) = ? AND id != ?' 
+    final where = excludeId != null
+        ? 'LOWER(name_english) = ? AND id != ?'
         : 'LOWER(name_english) = ?';
-    final args = excludeId != null 
-        ? [nameEn.toLowerCase(), excludeId] 
+    final args = excludeId != null
+        ? [nameEn.toLowerCase(), excludeId]
         : [nameEn.toLowerCase()];
     final result = await db.query('departments', where: where, whereArgs: args);
     return result.isNotEmpty;
   }
 
-  Future<bool> categoryExists(int deptId, String nameEn, {int? excludeId}) async {
+  Future<bool> categoryExists(int deptId, String nameEn,
+      {int? excludeId}) async {
     final db = await _dbHelper.database;
-    final where = excludeId != null 
-        ? 'department_id = ? AND LOWER(name_english) = ? AND id != ?' 
+    final where = excludeId != null
+        ? 'department_id = ? AND LOWER(name_english) = ? AND id != ?'
         : 'department_id = ? AND LOWER(name_english) = ?';
-    final args = excludeId != null 
-        ? [deptId, nameEn.toLowerCase(), excludeId] 
+    final args = excludeId != null
+        ? [deptId, nameEn.toLowerCase(), excludeId]
         : [deptId, nameEn.toLowerCase()];
     final result = await db.query('categories', where: where, whereArgs: args);
     return result.isNotEmpty;
   }
 
-  Future<bool> subCategoryExists(int catId, String nameEn, {int? excludeId}) async {
+  Future<bool> subCategoryExists(int catId, String nameEn,
+      {int? excludeId}) async {
     final db = await _dbHelper.database;
-    final where = excludeId != null 
-        ? 'category_id = ? AND LOWER(name_english) = ? AND id != ?' 
+    final where = excludeId != null
+        ? 'category_id = ? AND LOWER(name_english) = ? AND id != ?'
         : 'category_id = ? AND LOWER(name_english) = ?';
-    final args = excludeId != null 
-        ? [catId, nameEn.toLowerCase(), excludeId] 
+    final args = excludeId != null
+        ? [catId, nameEn.toLowerCase(), excludeId]
         : [catId, nameEn.toLowerCase()];
-    final result = await db.query('subcategories', where: where, whereArgs: args);
+    final result =
+        await db.query('subcategories', where: where, whereArgs: args);
     return result.isNotEmpty;
   }
 }

@@ -155,7 +155,7 @@ class PurchaseRepository {
         limit: 1,
       );
       if (purchaseRes.isEmpty) {
-        throw Exception('Purchase not found or already cancelled');
+        throw Exception('PURCHASE_NOT_FOUND');
       }
 
       final purchase = purchaseRes.first;
@@ -189,26 +189,32 @@ class PurchaseRepository {
         final expiryDate =
             expiryRaw != null ? DateTime.tryParse(expiryRaw) : null;
 
-        // Fetch product details for better error message
+        // Verify product exists and has sufficient stock
         final productRes = await txn.query(
           'products',
-          columns: ['name_english', 'current_stock'],
+          columns: ['current_stock'],
           where: 'id = ?',
           whereArgs: [productId],
           limit: 1,
         );
 
         if (productRes.isEmpty) {
-          throw Exception('Product $productId not found');
+          AppLogger.error(
+            'Cancel purchase failed: product not found (purchaseId=$purchaseId, productId=$productId)',
+            tag: 'PurchaseRepository',
+          );
+          throw Exception('PRODUCT_NOT_FOUND');
         }
 
-        final productName = productRes.first['name_english'] as String;
-        final currentStock = (productRes.first['current_stock'] as num).toDouble();
+        final currentStock =
+            (productRes.first['current_stock'] as num).toDouble();
 
         if (currentStock < quantity) {
-          throw Exception(
-              'Cannot cancel purchase: insufficient stock for product $productName. '
-              'Current stock: $currentStock, required to subtract: $quantity');
+          AppLogger.error(
+            'Cancel purchase failed: insufficient stock (purchaseId=$purchaseId, productId=$productId, available=$currentStock, required=$quantity)',
+            tag: 'PurchaseRepository',
+          );
+          throw Exception('INSUFFICIENT_STOCK_FOR_CANCELLATION');
         }
 
         // Reduce total stock
@@ -288,11 +294,10 @@ class PurchaseRepository {
 
         // Reversal: OUT becomes IN, IN becomes OUT
         final reversalType = entryType == 'IN' ? 'OUT' : 'IN';
-        
+
         final res = await txn.rawQuery(
-          'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
-        );
-        int currentCashBalance = res.isNotEmpty 
+            'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+        int currentCashBalance = res.isNotEmpty
             ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
             : 0;
 
@@ -302,8 +307,8 @@ class PurchaseRepository {
           'description': 'Reversal: Purchase #$purchaseId cancelled',
           'type': reversalType,
           'amount': entryAmount,
-          'balance_after': reversalType == 'IN' 
-              ? currentCashBalance + entryAmount 
+          'balance_after': reversalType == 'IN'
+              ? currentCashBalance + entryAmount
               : currentCashBalance - entryAmount,
           'remarks': 'Auto-reversal for cancelled purchase',
           'payment_mode': entryMode,

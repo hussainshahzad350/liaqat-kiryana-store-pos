@@ -1,13 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../l10n/app_localizations.dart';
-import '../../models/category_models.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../bloc/categories/categories_bloc.dart';
+import '../../bloc/categories/categories_event.dart';
+import '../../bloc/categories/categories_state.dart';
 import '../../core/repositories/categories_repository.dart';
 import '../../core/res/app_tokens.dart';
-
-// ==========================================
-// SCREEN IMPLEMENTATION
-// ==========================================
+import '../../core/utils/error_handler.dart';
+import '../../l10n/app_localizations.dart';
+import '../../models/category_models.dart';
+import 'dialogs/category_dialog.dart';
+import 'dialogs/department_dialog.dart';
+import 'dialogs/sub_category_dialog.dart';
+import 'widgets/category_tree_widget.dart';
+import 'widgets/department_list_widget.dart';
+import 'widgets/details_panel_widget.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -17,436 +24,32 @@ class CategoriesScreen extends StatefulWidget {
 }
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
-  final CategoriesRepository _repository = CategoriesRepository();
-  // --- State Variables ---
-  Department? _selectedDepartment;
-  Category? _selectedCategory;
-  SubCategory? _selectedSubCategory;
-
-  // Selection Mode to determine what to show in Right Pane
-  // 0: None, 1: Department, 2: Category, 3: SubCategory
-  int _selectionLevel = 0;
-
-  // --- Data Store ---
-  List<Department> _departments = [];
-  List<Category> _categories = [];
-  // Cache for lazy loaded subcategories: categoryId -> List<SubCategory>
-  final Map<int, List<SubCategory>> _subCategoryCache = {};
-  bool _isLoading = true;
-  bool _isLoadingCategories = false;
-
-  // --- Search ---
   final TextEditingController _searchController = TextEditingController();
-  Timer? _debounceTimer;
-  Map<String, Set<int>>? _searchResults;
-
-  // --- Details Pane Data ---
-  int _detailsItemCount = 0; // Products count
-  int _detailsSubCount = 0; // Sub-entities count (Cats or SubCats)
+  Timer? _searchDebounce;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _searchController.addListener(_onSearchControllerChanged);
+  }
+
+  void _onSearchControllerChanged() {
+    setState(() {});
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchControllerChanged);
     _searchController.dispose();
-    _debounceTimer?.cancel();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    if (!mounted) return;
-    setState(() => _isLoading = true);
-    final depts = await _repository.getAllDepartments();
-
-    if (!mounted) return;
-    setState(() {
-      _departments = depts;
-      _isLoading = false;
-
-      // Maintain selection if possible, else reset
-      if (_selectedDepartment != null) {
-        if (!_departments.any((d) => d.id == _selectedDepartment!.id)) {
-          _resetSelection();
-        } else {
-          // Reload categories for the selected department
-          _loadCategories(_selectedDepartment!.id!);
-        }
-      } else if (_departments.isNotEmpty) {
-        // Default select first department
-        _onDepartmentSelected(_departments.first);
-      }
+  void _onSearch(BuildContext context, String query) {
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 200), () {
+      context.read<CategoriesBloc>().add(SearchCategories(query));
     });
-  }
-
-  void _resetSelection() {
-    _selectedDepartment = null;
-    _selectedCategory = null;
-    _selectedSubCategory = null;
-    _selectionLevel = 0;
-    _categories = [];
-    _subCategoryCache.clear();
-  }
-
-  Future<void> _loadCategories(int deptId) async {
-    if (!mounted) return;
-    setState(() => _isLoadingCategories = true);
-    final cats = await _repository.getCategoriesByDepartment(deptId);
-    if (mounted) {
-      setState(() {
-        _categories = cats;
-        _isLoadingCategories = false;
-      });
-    }
-  }
-
-  Future<void> _loadSubCategories(int catId) async {
-    if (_subCategoryCache.containsKey(catId)) return;
-
-    final subs = await _repository.getSubCategoriesByCategory(catId);
-    if (mounted) {
-      setState(() {
-        _subCategoryCache[catId] = subs;
-      });
-      _updateDetails();
-    }
-  }
-
-  void _onDepartmentSelected(Department dept) {
-    if (_selectedDepartment?.id == dept.id) return;
-
-    setState(() {
-      _selectedDepartment = dept;
-      _selectedCategory = null;
-      _selectedSubCategory = null;
-      _selectionLevel = 1;
-      _categories = [];
-      _subCategoryCache.clear();
-    });
-    _loadCategories(dept.id!);
-    _updateDetails();
-  }
-
-  Future<void> _updateDetails() async {
-    int items = 0;
-    int subs = 0;
-
-    if (_selectionLevel == 1 && _selectedDepartment != null) {
-      subs = await _repository.getCategoryCount(_selectedDepartment!.id!);
-      items = await _repository
-          .getProductCountByDepartment(_selectedDepartment!.id!);
-    } else if (_selectionLevel == 2 && _selectedCategory != null) {
-      subs = await _repository.getSubCategoryCount(_selectedCategory!.id!);
-      items =
-          await _repository.getProductCountByCategory(_selectedCategory!.id!);
-    }
-    // Subcategories (Level 3) don't have children or direct product links in this schema
-
-    if (mounted) {
-      setState(() {
-        _detailsItemCount = items;
-        _detailsSubCount = subs;
-      });
-    }
-  }
-
-  void _onSearchChanged(String query) {
-    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
-
-    if (query.isEmpty) {
-      setState(() {
-        _searchResults = null;
-      });
-      return;
-    }
-
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
-      final results = await _repository.searchHierarchy(query);
-      if (mounted) {
-        setState(() {
-          _searchResults = results;
-        });
-      }
-    });
-  }
-
-  // --- CRUD Dialogs ---
-
-  void _showErrorDialog(String message) {
-    final loc = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(loc.error),
-        content: Text(message),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context), child: Text(loc.ok)),
-        ],
-      ),
-    );
-  }
-
-  void _showDepartmentDialog({Department? department}) {
-    final loc = AppLocalizations.of(context)!;
-    final nameEnController = TextEditingController(text: department?.nameEn);
-    final nameUrController = TextEditingController(text: department?.nameUr);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title:
-            Text(department == null ? loc.addDepartment : loc.editDepartment),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppTokens.spacingMedium),
-              child: TextField(
-                controller: nameEnController,
-                decoration: InputDecoration(labelText: loc.nameEnglishLabel),
-              ),
-            ),
-            TextField(
-              controller: nameUrController,
-              decoration: InputDecoration(labelText: loc.nameUrduLabel),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameEnController.text.isEmpty) return;
-
-              final exists = await _repository.departmentExists(
-                  nameEnController.text.trim(),
-                  excludeId: department?.id);
-              if (exists) {
-                if (context.mounted) {
-                  _showErrorDialog(loc.departmentExistsError);
-                }
-                return;
-              }
-
-              final dept = Department(
-                id: department?.id,
-                nameEn: nameEnController.text.trim(),
-                nameUr: nameUrController.text,
-                isActive: department?.isActive ?? true,
-                isVisibleInPOS: department?.isVisibleInPOS ?? true,
-              );
-              if (department == null) {
-                await _repository.addDepartment(dept);
-              } else {
-                await _repository.updateDepartment(dept);
-              }
-              _loadData();
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: Text(loc.save),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCategoryDialog({Category? category, int? parentDeptId}) {
-    final loc = AppLocalizations.of(context)!;
-    final nameEnController = TextEditingController(text: category?.nameEn);
-    final nameUrController = TextEditingController(text: category?.nameUr);
-    int? selectedDeptId = category?.departmentId ?? parentDeptId;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(category == null ? loc.addCategory : loc.editCategory),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<int>(
-                value: selectedDeptId,
-                decoration: InputDecoration(labelText: loc.departmentLabel),
-                items: _departments
-                    .map((d) =>
-                        DropdownMenuItem(value: d.id, child: Text(d.nameEn)))
-                    .toList(),
-                onChanged: (val) => setState(() => selectedDeptId = val),
-              ),
-              TextField(
-                  controller: nameEnController,
-                  decoration: InputDecoration(labelText: loc.nameEnglishLabel)),
-              TextField(
-                  controller: nameUrController,
-                  decoration: InputDecoration(labelText: loc.nameUrduLabel)),
-            ],
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(loc.cancel)),
-            ElevatedButton(
-              onPressed: () async {
-                if (nameEnController.text.isEmpty || selectedDeptId == null) {
-                  return;
-                }
-
-                final exists = await _repository.categoryExists(
-                    selectedDeptId!, nameEnController.text.trim(),
-                    excludeId: category?.id);
-                if (exists) {
-                  if (context.mounted) {
-                    _showErrorDialog(loc.categoryExistsError);
-                  }
-                  return;
-                }
-
-                final cat = Category(
-                  id: category?.id,
-                  departmentId: selectedDeptId,
-                  nameEn: nameEnController.text.trim(),
-                  nameUr: nameUrController.text,
-                  isActive: category?.isActive ?? true,
-                  isVisibleInPOS: category?.isVisibleInPOS ?? true,
-                );
-                if (category == null) {
-                  await _repository.addCategory(cat);
-                } else {
-                  await _repository.updateCategory(cat);
-                }
-                _loadData();
-                if (context.mounted) Navigator.pop(context);
-              },
-              child: Text(loc.save),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showSubCategoryDialog({SubCategory? subCategory, int? parentCatId}) {
-    final loc = AppLocalizations.of(context)!;
-    final nameEnController = TextEditingController(text: subCategory?.nameEn);
-    final nameUrController = TextEditingController(text: subCategory?.nameUr);
-    int? selectedCatId = subCategory?.categoryId ?? parentCatId;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(
-              subCategory == null ? loc.addSubcategory : loc.editSubcategory),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<int>(
-                value: selectedCatId,
-                decoration: InputDecoration(labelText: loc.category),
-                items: _categories
-                    .map((c) =>
-                        DropdownMenuItem(value: c.id, child: Text(c.nameEn)))
-                    .toList(),
-                onChanged: (val) => setState(() => selectedCatId = val),
-              ),
-              TextField(
-                  controller: nameEnController,
-                  decoration: InputDecoration(labelText: loc.nameEnglishLabel)),
-              TextField(
-                  controller: nameUrController,
-                  decoration: InputDecoration(labelText: loc.nameUrduLabel)),
-            ],
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(loc.cancel)),
-            ElevatedButton(
-              onPressed: () async {
-                if (nameEnController.text.isEmpty || selectedCatId == null) {
-                  return;
-                }
-
-                final exists = await _repository.subCategoryExists(
-                    selectedCatId!, nameEnController.text.trim(),
-                    excludeId: subCategory?.id);
-                if (exists) {
-                  if (context.mounted) {
-                    _showErrorDialog(loc.subcategoryExistsError);
-                  }
-                  return;
-                }
-
-                final sub = SubCategory(
-                  id: subCategory?.id,
-                  categoryId: selectedCatId!,
-                  nameEn: nameEnController.text.trim(),
-                  nameUr: nameUrController.text,
-                  isActive: subCategory?.isActive ?? true,
-                  isVisibleInPOS: subCategory?.isVisibleInPOS ?? true,
-                );
-                if (subCategory == null) {
-                  await _repository.addSubCategory(sub);
-                } else {
-                  await _repository.updateSubCategory(sub);
-                }
-                _loadData();
-                if (context.mounted) Navigator.pop(context);
-              },
-              child: Text(loc.save),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _deleteItem() async {
-    if (_selectionLevel == 0) return;
-    final loc = AppLocalizations.of(context)!;
-
-    final bool confirm = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(loc.confirmDeleteTitle),
-            content: Text(loc.confirmDeleteMessage),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text(loc.no)),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.error),
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(loc.yesDelete,
-                    style: TextStyle(
-                        color: Theme.of(context).colorScheme.onError)),
-              ),
-            ],
-          ),
-        ) ??
-        false;
-
-    if (!confirm) return;
-
-    if (_selectionLevel == 1 && _selectedDepartment != null) {
-      await _repository.deleteDepartment(_selectedDepartment!.id!);
-      _selectedDepartment = null;
-    } else if (_selectionLevel == 2 && _selectedCategory != null) {
-      await _repository.deleteCategory(_selectedCategory!.id!);
-      _selectedCategory = null;
-    } else if (_selectionLevel == 3 && _selectedSubCategory != null) {
-      await _repository.deleteSubCategory(_selectedSubCategory!.id!);
-      _selectedSubCategory = null;
-    }
-
-    _selectionLevel = 0;
-    _loadData();
   }
 
   @override
@@ -454,741 +57,301 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    return Padding(
-      padding: const EdgeInsets.all(AppTokens.spacingLarge),
-      child: Column(
-        children: [
-          Card(
-            elevation: AppTokens.cardElevation,
-            shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(AppTokens.cardBorderRadius)),
-            child: Padding(
-              padding: const EdgeInsets.all(AppTokens.cardPadding),
-              child: TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                decoration: InputDecoration(
-                  hintText: loc.searchDepartmentsCategoriesHint,
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            _onSearchChanged('');
-                          },
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppTokens.radius6),
-                    borderSide: BorderSide(color: colorScheme.outline),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppTokens.spacingStandard,
-                      vertical: AppTokens.spacingStandard),
-                  isDense: true,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppTokens.spacingMedium),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+    return BlocProvider(
+      create: (context) => CategoriesBloc(context.read<CategoriesRepository>())
+        ..add(LoadCategories()),
+      child: BlocConsumer<CategoriesBloc, CategoriesState>(
+        listener: (context, state) {
+          if (state is CategoriesFailure) {
+            ErrorHandler.handleError(
+              context,
+              state.errorMessage,
+              tag: 'Categories',
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is CategoriesLoading || state is CategoriesInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is! CategoriesReady) {
+            return Center(child: Text(loc.error));
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(AppTokens.spacingLarge),
+            child: Column(
               children: [
-                SizedBox(
-                  width: AppTokens.sidebarWidthSmall,
-                  child: Card(
-                    elevation: AppTokens.cardElevation,
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.cardBorderRadius)),
-                    child: ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.cardBorderRadius),
-                        child: _buildDepartmentsPane(loc, colorScheme)),
-                  ),
-                ),
-                const SizedBox(width: AppTokens.spacingMedium),
+                // Top Search Bar
+                _buildSearchBar(context, state, loc, colorScheme),
+                const SizedBox(height: AppTokens.spacingMedium),
+
+                // Main Content Area
                 Expanded(
-                  flex: 3,
-                  child: Card(
-                    elevation: AppTokens.cardElevation,
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.cardBorderRadius)),
-                    child: ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.cardBorderRadius),
-                        child: _buildTaxonomyPane(loc, colorScheme)),
-                  ),
-                ),
-                const SizedBox(width: AppTokens.spacingMedium),
-                Expanded(
-                  flex: 2,
-                  child: Card(
-                    elevation: AppTokens.cardElevation,
-                    shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.cardBorderRadius)),
-                    child: ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.cardBorderRadius),
-                        child: _buildDetailsPane(loc, colorScheme)),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Pane 1: Departments
+                      SizedBox(
+                        width: AppTokens.sidebarWidthSmall,
+                        child: Card(
+                          elevation: AppTokens.cardElevation,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppTokens.cardBorderRadius)),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                                AppTokens.cardBorderRadius),
+                            child: DepartmentListWidget(
+                              departments: state.departments,
+                              selectedDepartment: state.selectedDepartment,
+                              searchResults: state.searchResults,
+                              searchQuery: state.searchQuery,
+                              onSelect: (dept) => context
+                                  .read<CategoriesBloc>()
+                                  .add(SelectDepartment(dept)),
+                              onAdd: () => _showAddDepartment(context),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppTokens.spacingMedium),
+
+                      // Pane 2: Taxonomy (Categories & Subcategories)
+                      Expanded(
+                        flex: 3,
+                        child: Card(
+                          elevation: AppTokens.cardElevation,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppTokens.cardBorderRadius)),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                                AppTokens.cardBorderRadius),
+                            child: CategoryTreeWidget(
+                              categories: state.categories,
+                              selectedDepartment: state.selectedDepartment,
+                              selectedCategory: state.selectedCategory,
+                              selectedSubCategory: state.selectedSubCategory,
+                              subCategoryCache: state.subCategoryCache,
+                              searchResults: state.searchResults,
+                              searchQuery: state.searchQuery,
+                              onCategorySelect: (cat) => context
+                                  .read<CategoriesBloc>()
+                                  .add(SelectCategory(cat)),
+                              onPreloadSubCategories: (categoryId) => context
+                                  .read<CategoriesBloc>()
+                                  .add(
+                                      PreloadCategorySubCategories(categoryId)),
+                              onSubCategorySelect: (sub) => context
+                                  .read<CategoriesBloc>()
+                                  .add(SelectSubCategory(sub)),
+                              onAddCategory: () =>
+                                  _showAddCategory(context, state),
+                              onAddSubCategory: (cat) =>
+                                  _showAddSubCategory(context, state, cat),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppTokens.spacingMedium),
+
+                      // Pane 3: Details & Management
+                      Expanded(
+                        flex: 2,
+                        child: Card(
+                          elevation: AppTokens.cardElevation,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppTokens.cardBorderRadius)),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                                AppTokens.cardBorderRadius),
+                            child: DetailsPanelWidget(
+                              selectionLevel: state.selectionLevel,
+                              selectedDepartment: state.selectedDepartment,
+                              selectedCategory: state.selectedCategory,
+                              selectedSubCategory: state.selectedSubCategory,
+                              detailsItemCount: state.detailsItemCount,
+                              detailsSubCount: state.detailsSubCount,
+                              onEdit: () => _showEditDialog(context, state),
+                              onDelete: () => _confirmDelete(context, state),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  // ==========================================
-  // WIDGETS: PANE 1 (DEPARTMENTS)
-  // ==========================================
-
-  Widget _buildDepartmentsPane(AppLocalizations loc, ColorScheme colorScheme) {
-    final textTheme = Theme.of(context).textTheme;
-    final filteredDepts = _searchResults == null
-        ? _departments
-        : _departments
-            .where((d) => _searchResults!['departments']!.contains(d.id))
-            .toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppTokens.spacingStandard),
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                loc.departmentsHeader,
-                style: textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: 1,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline,
-                    size: AppTokens.iconSizeMedium),
-                onPressed: () {
-                  _showDepartmentDialog();
-                },
-                tooltip: loc.addDepartment,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: filteredDepts.length,
-            itemBuilder: (context, index) {
-              final dept = filteredDepts[index];
-              final isSelected = _selectedDepartment?.id == dept.id;
-
-              return ListTile(
-                selected: isSelected,
-                selectedTileColor:
-                    colorScheme.primaryContainer.withValues(alpha: 0.4),
-                onTap: () => _onDepartmentSelected(dept),
-                leading: Container(
-                  width: 4,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color:
-                        isSelected ? colorScheme.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(AppTokens.radius8),
-                  ),
-                ),
-                title: _buildHighlightedText(
-                  dept.nameEn,
-                  textTheme.bodyMedium!.copyWith(
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: colorScheme.onSurface,
-                  ),
-                  colorScheme.primaryContainer,
-                ),
-                subtitle: _buildHighlightedText(
-                  dept.nameUr,
-                  textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontFamily: 'NooriNastaleeq'),
-                  colorScheme.primaryContainer,
-                ),
-                trailing: !dept.isActive
-                    ? Icon(Icons.visibility_off,
-                        size: 14, color: colorScheme.outline)
-                    : null,
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ==========================================
-  // WIDGETS: PANE 2 (TAXONOMY TREE)
-  // ==========================================
-
-  Widget _buildTaxonomyPane(AppLocalizations loc, ColorScheme colorScheme) {
-    final textTheme = Theme.of(context).textTheme;
-    if (_selectedDepartment == null) {
-      return Center(
-          child: Text(loc.selectDepartmentInstruction,
-              style: TextStyle(color: colorScheme.outline)));
-    }
-
-    final filteredCats = _searchResults == null
-        ? _categories
-        : _categories
-            .where((c) => _searchResults!['categories']!.contains(c.id))
-            .toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppTokens.spacingStandard),
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                loc.categoriesSubcategoriesHeader,
-                style: textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: 1,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add, size: AppTokens.iconSizeMedium),
-                onPressed: () {
-                  _showCategoryDialog(parentDeptId: _selectedDepartment!.id);
-                },
-                tooltip: loc.addCategoryToTooltip(_selectedDepartment!.nameEn),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-              ),
-            ],
-          ),
-        ),
-        if (_isLoadingCategories)
-          const Expanded(child: Center(child: CircularProgressIndicator()))
-        else
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(AppTokens.spacingMedium),
-              itemCount: filteredCats.length,
-              itemBuilder: (context, index) {
-                final cat = filteredCats[index];
-                final subCats = _subCategoryCache[cat.id] ?? [];
-                final bool isLoaded = _subCategoryCache.containsKey(cat.id);
-                final isCatSelected =
-                    _selectedCategory?.id == cat.id && _selectionLevel == 2;
-
-                final filteredSubs = _searchResults == null
-                    ? subCats
-                    : subCats
-                        .where((s) =>
-                            _searchResults!['subcategories']!.contains(s.id))
-                        .toList();
-
-                return Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      color: isCatSelected
-                          ? colorScheme.primary
-                          : colorScheme.outlineVariant,
-                      width: isCatSelected ? 2 : 1,
-                    ),
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.cardBorderRadius),
-                  ),
-                  margin:
-                      const EdgeInsets.only(bottom: AppTokens.spacingStandard),
-                  child: Theme(
-                    data: Theme.of(context)
-                        .copyWith(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      key: PageStorageKey('cat_${cat.id}'),
-                      initiallyExpanded:
-                          _searchResults != null, // Auto expand on search
-                      onExpansionChanged: (expanded) {
-                        if (expanded) _loadSubCategories(cat.id!);
-                      },
-                      backgroundColor: Colors.transparent,
-                      collapsedBackgroundColor: Colors.transparent,
-                      leading: Icon(Icons.folder, color: colorScheme.secondary),
-                      title: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _selectedCategory = cat;
-                            _selectedSubCategory = null;
-                            _selectionLevel = 2;
-                            _updateDetails();
-                          });
-                        },
-                        child: Row(
-                          children: [
-                            _buildHighlightedText(
-                                cat.nameEn,
-                                textTheme.bodyMedium!
-                                    .copyWith(fontWeight: FontWeight.bold),
-                                colorScheme.primaryContainer),
-                            const SizedBox(width: AppTokens.spacingMedium),
-                            _buildHighlightedText(
-                                cat.nameUr,
-                                textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                    fontFamily: 'NooriNastaleeq'),
-                                colorScheme.primaryContainer),
-                          ],
-                        ),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.add,
-                            size: AppTokens.iconSizeMedium),
-                        onPressed: () {
-                          _showSubCategoryDialog(parentCatId: cat.id);
-                        },
-                        tooltip: loc.addSubcategoryTooltip,
-                      ),
-                      children: [
-                        if (!isLoaded)
-                          const Padding(
-                            padding: EdgeInsets.all(AppTokens.spacingLarge),
-                            child: Center(
-                                child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2))),
-                          )
-                        else if (filteredSubs.isEmpty)
-                          Padding(
-                            padding:
-                                const EdgeInsets.all(AppTokens.spacingLarge),
-                            child: Text(
-                              loc.noSubcategories,
-                              style: TextStyle(
-                                  fontSize: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.fontSize ??
-                                      12.0,
-                                  color: colorScheme.outline),
-                            ),
-                          ),
-                        if (isLoaded)
-                          ...filteredSubs.map((sub) {
-                            final isSubSelected =
-                                _selectedSubCategory?.id == sub.id;
-                            return ListTile(
-                              contentPadding: const EdgeInsets.only(
-                                  left: AppTokens.spacingXXLarge,
-                                  right: AppTokens.spacingLarge),
-                              selected: isSubSelected,
-                              selectedTileColor: colorScheme.primaryContainer
-                                  .withValues(alpha: 0.5),
-                              onTap: () {
-                                setState(() {
-                                  _selectedCategory =
-                                      cat; // Ensure parent is selected contextually
-                                  _selectedSubCategory = sub;
-                                  _selectionLevel = 3;
-                                  _updateDetails();
-                                });
-                              },
-                              leading: Icon(Icons.subdirectory_arrow_right,
-                                  size: 16, color: colorScheme.outline),
-                              title: _buildHighlightedText(
-                                  sub.nameEn,
-                                  textTheme.bodyMedium!,
-                                  colorScheme.primaryContainer),
-                              subtitle: _buildHighlightedText(
-                                  sub.nameUr,
-                                  textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                      fontFamily: 'NooriNastaleeq'),
-                                  colorScheme.primaryContainer),
-                            );
-                          }),
-                      ],
-                    ),
-                  ),
-                );
-              },
+  Widget _buildSearchBar(BuildContext context, CategoriesReady state,
+      AppLocalizations loc, ColorScheme colorScheme) {
+    return Card(
+      elevation: AppTokens.cardElevation,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTokens.cardPadding),
+        child: TextField(
+          controller: _searchController,
+          onChanged: (val) => _onSearch(context, val),
+          decoration: InputDecoration(
+            hintText: loc.searchDepartmentsCategoriesHint,
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _searchController.clear();
+                      _onSearch(context, '');
+                    },
+                  )
+                : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppTokens.radius6),
+              borderSide: BorderSide(color: colorScheme.outline),
             ),
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.spacingStandard,
+                vertical: AppTokens.spacingStandard),
+            isDense: true,
           ),
-      ],
+        ),
+      ),
     );
   }
 
-  // ==========================================
-  // WIDGETS: PANE 3 (DETAILS & MANAGEMENT)
-  // ==========================================
+  // Dialog Helpers
 
-  Widget _buildDetailsPane(AppLocalizations loc, ColorScheme colorScheme) {
-    final textTheme = Theme.of(context).textTheme;
-    if (_selectionLevel == 0) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.touch_app, size: 48, color: colorScheme.outlineVariant),
-            const SizedBox(height: AppTokens.spacingLarge),
-            Text(loc.selectItemToManageInstruction,
-                style: TextStyle(color: colorScheme.onSurfaceVariant)),
-          ],
+  void _showAddDepartment(BuildContext context) {
+    final bloc = context.read<CategoriesBloc>();
+    final repo = context.read<CategoriesRepository>();
+    showDialog(
+      context: context,
+      builder: (ctx) => DepartmentDialog(
+        onValidate: (name, {excludeId}) =>
+            repo.departmentExists(name, excludeId: excludeId),
+        onSave: (dept) => bloc.add(AddDepartment(dept)),
+      ),
+    );
+  }
+
+  void _showAddCategory(BuildContext context, CategoriesReady state) {
+    final bloc = context.read<CategoriesBloc>();
+    final repo = context.read<CategoriesRepository>();
+    showDialog(
+      context: context,
+      builder: (ctx) => CategoryDialog(
+        parentDeptId: state.selectedDepartment?.id,
+        departments: state.departments,
+        onValidate: (deptId, name, {excludeId}) =>
+            repo.categoryExists(deptId, name, excludeId: excludeId),
+        onSave: (cat) => bloc.add(AddCategory(cat)),
+      ),
+    );
+  }
+
+  void _showAddSubCategory(
+      BuildContext context, CategoriesReady state, Category category) {
+    final bloc = context.read<CategoriesBloc>();
+    final repo = context.read<CategoriesRepository>();
+    showDialog(
+      context: context,
+      builder: (ctx) => SubCategoryDialog(
+        parentCatId: category.id,
+        categories: state.categories,
+        onValidate: (catId, name, {excludeId}) =>
+            repo.subCategoryExists(catId, name, excludeId: excludeId),
+        onSave: (sub) => bloc.add(AddSubCategory(sub)),
+      ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context, CategoriesReady state) {
+    final bloc = context.read<CategoriesBloc>();
+    final repo = context.read<CategoriesRepository>();
+    if (state.selectionLevel == 1 && state.selectedDepartment != null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => DepartmentDialog(
+          department: state.selectedDepartment,
+          onValidate: (name, {excludeId}) =>
+              repo.departmentExists(name, excludeId: excludeId),
+          onSave: (dept) => bloc.add(UpdateDepartment(dept)),
+        ),
+      );
+    } else if (state.selectionLevel == 2 && state.selectedCategory != null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => CategoryDialog(
+          category: state.selectedCategory,
+          departments: state.departments,
+          onValidate: (deptId, name, {excludeId}) =>
+              repo.categoryExists(deptId, name, excludeId: excludeId),
+          onSave: (cat) => bloc.add(UpdateCategory(cat)),
+        ),
+      );
+    } else if (state.selectionLevel == 3 && state.selectedSubCategory != null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => SubCategoryDialog(
+          subCategory: state.selectedSubCategory,
+          categories: state.categories,
+          onValidate: (catId, name, {excludeId}) =>
+              repo.subCategoryExists(catId, name, excludeId: excludeId),
+          onSave: (sub) => bloc.add(UpdateSubCategory(sub)),
         ),
       );
     }
+  }
 
-    String titleEn = '';
-    String titleUr = '';
-    String typeLabel = '';
-    bool isActive = true;
-    bool isVisibleInPOS = true;
-
-    if (_selectionLevel == 1 && _selectedDepartment != null) {
-      titleEn = _selectedDepartment!.nameEn;
-      titleUr = _selectedDepartment!.nameUr;
-      typeLabel = loc.typeDepartment;
-      isActive = _selectedDepartment!.isActive;
-      isVisibleInPOS = _selectedDepartment!.isVisibleInPOS;
-    } else if (_selectionLevel == 2 && _selectedCategory != null) {
-      titleEn = _selectedCategory!.nameEn;
-      titleUr = _selectedCategory!.nameUr;
-      typeLabel = loc.typeCategory;
-      isActive = _selectedCategory!.isActive;
-      isVisibleInPOS = _selectedCategory!.isVisibleInPOS;
-    } else if (_selectionLevel == 3 && _selectedSubCategory != null) {
-      titleEn = _selectedSubCategory!.nameEn;
-      titleUr = _selectedSubCategory!.nameUr;
-      typeLabel = loc.typeSubcategory;
-      isActive = _selectedSubCategory!.isActive;
-      isVisibleInPOS = _selectedSubCategory!.isVisibleInPOS;
-    }
-
-    return Container(
-      color: colorScheme.surface,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Details Header
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppTokens.spacingXXLarge,
-              vertical: AppTokens.spacingXLarge,
-            ),
-            decoration: BoxDecoration(
-              border:
-                  Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppTokens.spacingMedium,
-                          vertical: AppTokens.spacingSmall),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary,
-                        borderRadius:
-                            BorderRadius.circular(AppTokens.spacingSmall),
-                      ),
-                      child: Text(
-                        typeLabel.toUpperCase(),
-                        style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppTokens.spacingLarge),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(titleEn,
-                              style: textTheme.headlineSmall
-                                  ?.copyWith(fontWeight: FontWeight.bold)),
-                          Text(titleUr,
-                              style: textTheme.bodyMedium
-                                  ?.copyWith(fontFamily: 'NooriNastaleeq')),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppTokens.spacingMedium),
-                // Breadcrumbs
-                _buildBreadcrumbs(loc, colorScheme),
-
-                const SizedBox(height: AppTokens.spacingXXLarge),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          if (_selectionLevel == 1) {
-                            _showDepartmentDialog(
-                                department: _selectedDepartment);
-                          }
-                          if (_selectionLevel == 2) {
-                            _showCategoryDialog(category: _selectedCategory);
-                          }
-                          if (_selectionLevel == 3) {
-                            _showSubCategoryDialog(
-                                subCategory: _selectedSubCategory);
-                          }
-                        },
-                        icon: const Icon(Icons.edit, size: 18),
-                        label: Text(loc.editDetails),
-                      ),
-                    ),
-                    const SizedBox(width: AppTokens.spacingStandard),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _deleteItem,
-                        icon: const Icon(Icons.delete, size: 18),
-                        label: Text(loc.delete),
-                        style: OutlinedButton.styleFrom(
-                            foregroundColor: colorScheme.error),
-                      ),
-                    ),
-                  ],
+  Future<void> _confirmDelete(
+      BuildContext context, CategoriesReady state) async {
+    final bool confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) {
+            final loc = AppLocalizations.of(ctx)!;
+            return AlertDialog(
+              title: Text(loc.confirmDeleteTitle),
+              content: Text(loc.confirmDeleteMessage),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(loc.no)),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(ctx).colorScheme.error),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(loc.yesDelete,
+                      style:
+                          TextStyle(color: Theme.of(ctx).colorScheme.onError)),
                 ),
               ],
-            ),
-          ),
+            );
+          },
+        ) ??
+        false;
 
-          // Specific Content based on selection
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppTokens.spacingLarge),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Status Section
-                  Text(
-                    loc.statusVisibilityHeader,
-                    style: textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurfaceVariant,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: AppTokens.spacingMedium),
-                  SwitchListTile(
-                    title: Text(loc.active),
-                    subtitle: Text(loc.activeSubtitle),
-                    value: isActive,
-                    onChanged: (val) async {
-                      await _updateStatus(
-                          isActive: val, isVisible: isVisibleInPOS);
-                    },
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppTokens.spacingMedium,
-                        vertical: AppTokens.spacingSmall),
-                  ),
-                  SwitchListTile(
-                    title: Text(loc.visibleInPOS),
-                    subtitle: Text(loc.visibleInPOSSubtitle),
-                    value: isVisibleInPOS,
-                    onChanged: (val) async {
-                      await _updateStatus(isActive: isActive, isVisible: val);
-                    },
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppTokens.spacingMedium,
-                        vertical: AppTokens.spacingSmall),
-                  ),
-                  const Divider(height: AppTokens.spacingXXLarge),
+    if (!context.mounted) return;
 
-                  // Stats for all levels
-                  _buildStats(loc, colorScheme, typeLabel),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    final bloc = context.read<CategoriesBloc>();
 
-  Widget _buildBreadcrumbs(AppLocalizations loc, ColorScheme colorScheme) {
-    final textTheme = Theme.of(context).textTheme;
-    List<String> parts = [loc.home];
-    if (_selectedDepartment != null) parts.add(_selectedDepartment!.nameEn);
-    if (_selectionLevel >= 2 && _selectedCategory != null) {
-      parts.add(_selectedCategory!.nameEn);
+    if (!confirm) return;
+
+    if (state.selectionLevel == 1 && state.selectedDepartment?.id != null) {
+      bloc.add(DeleteDepartment(state.selectedDepartment!.id!));
+    } else if (state.selectionLevel == 2 && state.selectedCategory?.id != null) {
+      bloc.add(DeleteCategory(state.selectedCategory!.id!));
+    } else if (state.selectionLevel == 3 && state.selectedSubCategory?.id != null) {
+      bloc.add(DeleteSubCategory(state.selectedSubCategory!.id!));
     }
-    if (_selectionLevel >= 3 && _selectedSubCategory != null) {
-      parts.add(_selectedSubCategory!.nameEn);
-    }
-
-    return Wrap(
-      children: parts.asMap().entries.map((entry) {
-        final isLast = entry.key == parts.length - 1;
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(entry.value,
-                style: textTheme.bodySmall?.copyWith(
-                    color:
-                        isLast ? colorScheme.onSurface : colorScheme.outline)),
-            if (!isLast)
-              Icon(Icons.chevron_right, size: 16, color: colorScheme.outline),
-          ],
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildStats(
-      AppLocalizations loc, ColorScheme colorScheme, String type) {
-    final textTheme = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          loc.statisticsHeader,
-          style: textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurfaceVariant,
-            letterSpacing: 1,
-          ),
-        ),
-        const SizedBox(height: AppTokens.spacingMedium),
-        if (_selectionLevel == 1)
-          _buildStatRow(loc.categories, _detailsSubCount.toString(),
-              Icons.folder, colorScheme),
-        if (_selectionLevel == 2)
-          _buildStatRow(loc.subcategories, _detailsSubCount.toString(),
-              Icons.subdirectory_arrow_right, colorScheme),
-
-        // Items count (Products)
-        _buildStatRow(loc.totalItems, _detailsItemCount.toString(),
-            Icons.inventory_2, colorScheme),
-      ],
-    );
-  }
-
-  Widget _buildStatRow(
-      String label, String value, IconData icon, ColorScheme colorScheme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppTokens.spacingStandard),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppTokens.spacingSmall),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius:
-                  BorderRadius.circular(AppTokens.cardBorderRadius / 2),
-            ),
-            child: Icon(icon,
-                size: AppTokens.kpiIconSize, color: colorScheme.primary),
-          ),
-          const SizedBox(width: AppTokens.spacingMedium),
-          Text(label, style: TextStyle(color: colorScheme.onSurface)),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _updateStatus(
-      {required bool isActive, required bool isVisible}) async {
-    if (_selectionLevel == 1) {
-      final updated = Department(
-          id: _selectedDepartment!.id,
-          nameEn: _selectedDepartment!.nameEn,
-          nameUr: _selectedDepartment!.nameUr,
-          isActive: isActive,
-          isVisibleInPOS: isVisible);
-      await _repository.updateDepartment(updated);
-    } else if (_selectionLevel == 2) {
-      final updated = Category(
-          id: _selectedCategory!.id,
-          departmentId: _selectedCategory!.departmentId,
-          nameEn: _selectedCategory!.nameEn,
-          nameUr: _selectedCategory!.nameUr,
-          isActive: isActive,
-          isVisibleInPOS: isVisible);
-      await _repository.updateCategory(updated);
-    } else if (_selectionLevel == 3) {
-      final updated = SubCategory(
-          id: _selectedSubCategory!.id,
-          categoryId: _selectedSubCategory!.categoryId,
-          nameEn: _selectedSubCategory!.nameEn,
-          nameUr: _selectedSubCategory!.nameUr,
-          isActive: isActive,
-          isVisibleInPOS: isVisible);
-      await _repository.updateSubCategory(updated);
-    }
-    _loadData();
-  }
-
-  Widget _buildHighlightedText(
-      String text, TextStyle? baseStyle, Color highlightColor) {
-    final textTheme = Theme.of(context).textTheme;
-    baseStyle ??= textTheme.bodyMedium!;
-    final query = _searchController.text;
-    if (query.isEmpty) return Text(text, style: baseStyle);
-
-    final matches = query.toLowerCase().allMatches(text.toLowerCase());
-    if (matches.isEmpty) return Text(text, style: baseStyle);
-
-    final spans = <InlineSpan>[];
-    int start = 0;
-    for (final match in matches) {
-      if (match.start > start) {
-        spans.add(TextSpan(text: text.substring(start, match.start)));
-      }
-      spans.add(TextSpan(
-        text: text.substring(match.start, match.end),
-        style: baseStyle.copyWith(
-            backgroundColor: highlightColor, fontWeight: FontWeight.bold),
-      ));
-      start = match.end;
-    }
-    if (start < text.length) {
-      spans.add(TextSpan(text: text.substring(start)));
-    }
-
-    return RichText(
-      text: TextSpan(style: baseStyle, children: spans),
-    );
   }
 }

@@ -33,9 +33,11 @@
   "suppliers": "سپلائرز",
   "categories": "کیٹیگریز",
   "units": "یونٹس",
+  "unitsManagement": "یونٹس مینجمنٹ",
   "itemsManagement": "اشیا کا انتظام",
   "searchItem": "اشیا تلاش کریں",
   "noItemsFound": "کوئی آئٹم نہیں ملا",
+  "noCategoriesFound": "کوئی کیٹیگری نہیں ملی۔",
   "addNewItem": "نیا آئٹم شامل کریں",
   "englishName": "انگریزی نام",
   "urduName": "اردو نام",
@@ -430,7 +432,18 @@
   "cancelled": "منسوخ شدہ",
   "invalidPrice": "قیمت صفر سے زیادہ ہونی چاہیے",
   "invalidQuantity": "مقدار صفر سے زیادہ ہونی چاہیے",
+  "invoiceEmpty": "انوائس میں کم از کم ایک آئٹم ہونا ضروری ہے",
+  "paymentNegative": "ادائیگی کی رقوم منفی نہیں ہو سکتیں",
+  "paymentSplitMismatch": "ادائیگی کی تقسیم گرینڈ ٹوٹل کے برابر ہونی چاہیے",
   "insufficientStock": "ناکافی اسٹاک",
+  "insufficientStockForItem": "{item} کے لیے اسٹاک ناکافی ہے",
+  "@insufficientStockForItem": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "outOfStock": "اسٹاک ختم",
   "productNotFound": "پروڈکٹ نہیں ملا",
   "creditLimitExceeded": "کریڈٹ حد سے تجاوز",
@@ -555,12 +568,37 @@
   "departmentExistsError": "اس نام کا ڈپارٹمنٹ پہلے سے موجود ہے۔",
   "categoryExistsError": "اس نام کی کیٹیگری منتخب ڈپارٹمنٹ میں پہلے سے موجود ہے۔",
   "subcategoryExistsError": "اس نام کی ذیلی کیٹیگری منتخب کیٹیگری میں پہلے سے موجود ہے۔",
+  "departmentInUseDeleteError": "ڈپارٹمنٹ حذف نہیں کیا جا سکتا کیونکہ یہ {count} آئٹم میں استعمال ہو رہا ہے۔",
+  "@departmentInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryInUseDeleteError": "کیٹیگری حذف نہیں کی جا سکتی کیونکہ یہ {count} آئٹم میں استعمال ہو رہی ہے۔",
+  "@categoryInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subCategoryInUseDeleteError": "ذیلی کیٹیگری حذف نہیں کی جا سکتی کیونکہ یہ {count} آئٹم میں استعمال ہو رہی ہے۔",
+  "@subCategoryInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "editDetails": "تفصیلات میں ترمیم کریں",
   "nameEnglishLabel": "نام (انگریزی)",
   "nameUrduLabel": "نام (اردو)",
   "departmentLabel": "ڈپارٹمنٹ",
   "searchDepartmentsCategoriesHint": "ڈپارٹمنٹس، کیٹیگریز تلاش کریں...",
   "departmentsHeader": "ڈپارٹمنٹس",
+  "detailsHeader": "تفصیلات",
   "categoriesSubcategoriesHeader": "کیٹیگریز اور ذیلی کیٹیگریز",
   "statusVisibilityHeader": "اسٹیٹس اور مرئیت",
   "statisticsHeader": "شماریات",
@@ -748,5 +786,86 @@
   "searchSuppliers": "سپلائر تلاش کریں...",
   "unitCost": "فی اکائی لاگت",
   "lineTotal": "لائن کل",
-  "purchaseScreenTitle": "نئی خریداری بِل"
+  "purchaseScreenTitle": "نئی خریداری بِل",
+  "unitManagement": "یونٹ مینیجمنٹ",
+  "base": "بنیادی",
+  "baseUnit": "بنیادی یونٹ",
+  "derivedUnit": "ماخوذ یونٹ",
+  "conversionFormula": "تبدیلی کا فارمولا",
+  "multiplier": "ضرب کنندہ",
+  "noBaseUnitSet": "اس زمرے کے لیے کوئی بنیادی یونٹ سیٹ نہیں ہے",
+  "unitCodeFallback": "یونٹ",
+  "isBaseUnitTitle": "کیا یہ بنیادی یونٹ ہے؟",
+  "isBaseUnitPrimarySubtitle": "یہ اس زمرے کے لیے بنیادی پیمائش ہوگی۔",
+  "isBaseUnitDerivedSubtitle": "یہ ماخوذ یونٹ ہے (بنیادی یونٹ سے حساب کیا جاتا ہے)۔",
+  "conversionFromBaseUnit": "بنیادی یونٹ ({baseCode}) سے تبدیلی",
+  "@conversionFromBaseUnit": {
+    "placeholders": {
+      "baseCode": {}
+    }
+  },
+  "conversionPrefix": "1 {unitCode} = ",
+  "@conversionPrefix": {
+    "placeholders": {
+      "unitCode": {}
+    }
+  },
+  "multiplierHint": "اشارہ: اگر 1 {unitCode} = 1000 {baseCode} ہو، تو ضرب کنندہ 1000 ہے۔",
+  "@multiplierHint": {
+    "placeholders": {
+      "unitCode": {},
+      "baseCode": {}
+    }
+  },
+  "systemUnitWarning": "سسٹم یونٹس میں ترمیم نہیں کی جا سکتی",
+  "unitInUseWarning": "یہ یونٹ {count} مصنوعات اور منحصر یونٹس میں استعمال ہو رہا ہے",
+  "categoryWeight": "وزن",
+  "categoryVolume": "حجم",
+  "categoryCount": "تعداد",
+  "categoryLength": "لمبائی",
+  "purchaseNotFound": "خریداری نہیں ملی یا پہلے سے منسوخ ہے",
+  "invoiceNotFound": "رسید نہیں ملی یا پہلے سے منسوخ ہے",
+  "supplierNotFound": "سپلائر نہیں ملا",
+  "insufficientStockForCancellation": "خریداری منسوخ نہیں کی جا سکی: پروڈکٹ کے لیے ناکافی اسٹاک۔ براہ کرم اسٹاک کی سطح کی تصدیق کریں۔",
+  "negativeStockError": "اسٹاک منفی نہیں ہو سکتا",
+  "invalidPriceAdjustment": "غلط قیمت میں ترمیم: فیصد یا مقررہ اضافہ فراہم کرنا ضروری ہے",
+  "invoiceMathError": "رسید کی گنتی میں خرابی: براہ کرم اشیاء اور ڈسکاؤنٹ کی رقوم کی تصدیق کریں",
+  "paymentFailed": "ادائیگی کی کارروائی ناکام ہوگئی۔ براہ کرم دوبارہ کوشش کریں یا معاونت سے رابطہ کریں۔",
+  "edit": "ترمیم کریں",
+  "code": "کوڈ",
+  "isBaseUnitFor": "یہ {category} کی بنیادی اکائی ہے۔",
+  "@isBaseUnitFor": {
+    "placeholders": {
+      "category": { "type": "String" }
+    }
+  },
+  "multiplierConversionLabel": "ضرب کار (بنیادی میں تبدیلی)",
+  "baseUnitSubtitle": "بنیادی: {name} ({code})",
+  "@baseUnitSubtitle": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "code": { "type": "String" }
+    }
+  },
+  "noBaseUnitSet": "کوئی بنیادی اکائی مقرر نہیں",
+  "noUnitsInCategory": "اس زمرے میں کوئی اکائی متعین نہیں",
+  "softDeleteWarning": "نرم خاتمہ انتباہ",
+  "unitInUseMessage": "یونٹ \"{name}\" ({code}) کو {count} مصنوعات یا دیگر یونٹس استعمال کر رہے ہیں۔",
+  "@unitInUseMessage": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "code": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "confirmDeleteUnit": "کیا آپ واقعی \"{name}\" ({code}) کو حذف کرنا چاہتے ہیں؟",
+  "@confirmDeleteUnit": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "code": { "type": "String" }
+    }
+  },
+  "unitArchiveNote": "موجودہ مصنوعات کا ڈیٹا محفوظ رکھنے کے لیے اسے حذف کی بجاے ا۹ائیو کیا جائے گا۔",
+  "actionCannotBeUndone": "یہ عمل واپس نہیں ہو سکتا۔",
+  "archive": "ا۹ائیو کریں"
 }

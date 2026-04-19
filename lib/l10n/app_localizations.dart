@@ -296,6 +296,12 @@ abstract class AppLocalizations {
   /// **'Units'**
   String get units;
 
+  /// No description provided for @unitsManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Units Management'**
+  String get unitsManagement;
+
   /// No description provided for @itemsManagement.
   ///
   /// In en, this message translates to:
@@ -313,6 +319,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No items found'**
   String get noItemsFound;
+
+  /// No description provided for @noCategoriesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories found.'**
+  String get noCategoriesFound;
 
   /// No description provided for @addNewItem.
   ///
@@ -2618,11 +2630,35 @@ abstract class AppLocalizations {
   /// **'Quantity must be greater than zero'**
   String get invalidQuantity;
 
+  /// No description provided for @invoiceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice must have at least one item'**
+  String get invoiceEmpty;
+
+  /// No description provided for @paymentNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment amounts cannot be negative'**
+  String get paymentNegative;
+
+  /// No description provided for @paymentSplitMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment split must equal grand total'**
+  String get paymentSplitMismatch;
+
   /// No description provided for @insufficientStock.
   ///
   /// In en, this message translates to:
   /// **'Insufficient stock'**
   String get insufficientStock;
+
+  /// No description provided for @insufficientStockForItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient stock for {item}'**
+  String insufficientStockForItem(String item);
 
   /// No description provided for @outOfStock.
   ///
@@ -3200,6 +3236,12 @@ abstract class AppLocalizations {
   /// **'Category'**
   String get category;
 
+  /// No description provided for @base.
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get base;
+
   /// No description provided for @baseUnit.
   ///
   /// In en, this message translates to:
@@ -3259,6 +3301,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System Unit'**
   String get systemUnit;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @code.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get code;
+
+  /// No description provided for @isBaseUnitFor.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the Base Unit for {category}.'**
+  String isBaseUnitFor(String category);
+
+  /// No description provided for @multiplierConversionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiplier (Conversion to Base)'**
+  String get multiplierConversionLabel;
+
+  /// No description provided for @baseUnitSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Base: {name} ({code})'**
+  String baseUnitSubtitle(String name, String code);
+
+  /// No description provided for @noBaseUnitSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No base unit set for this category'**
+  String get noBaseUnitSet;
+
+  /// No description provided for @noUnitsInCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No units defined in this category'**
+  String get noUnitsInCategory;
+
+  /// No description provided for @softDeleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft Delete Warning'**
+  String get softDeleteWarning;
+
+  /// No description provided for @unitInUseMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The unit \"{name}\" ({code}) is used by {count} products or other units.'**
+  String unitInUseMessage(String name, String code, int count);
+
+  /// No description provided for @confirmDeleteUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\" ({code})?'**
+  String confirmDeleteUnit(String name, String code);
+
+  /// No description provided for @unitArchiveNote.
+  ///
+  /// In en, this message translates to:
+  /// **'It will be archived instead of deleted to maintain data integrity for current products.'**
+  String get unitArchiveNote;
+
+  /// No description provided for @actionCannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get actionCannotBeUndone;
+
+  /// No description provided for @archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archive;
 
   /// No description provided for @categoryLength.
   ///
@@ -3386,6 +3506,24 @@ abstract class AppLocalizations {
   /// **'Subcategory with this name already exists in the selected category.'**
   String get subcategoryExistsError;
 
+  /// No description provided for @departmentInUseDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete department because it is used by {count} item(s).'**
+  String departmentInUseDeleteError(int count);
+
+  /// No description provided for @categoryInUseDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete category because it is used by {count} item(s).'**
+  String categoryInUseDeleteError(int count);
+
+  /// No description provided for @subCategoryInUseDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete sub-category because it is used by {count} item(s).'**
+  String subCategoryInUseDeleteError(int count);
+
   /// No description provided for @editDetails.
   ///
   /// In en, this message translates to:
@@ -3421,6 +3559,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DEPARTMENTS'**
   String get departmentsHeader;
+
+  /// No description provided for @detailsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'DETAILS'**
+  String get detailsHeader;
 
   /// No description provided for @categoriesSubcategoriesHeader.
   ///
@@ -4123,6 +4267,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'New Purchase Bill'**
   String get purchaseScreenTitle;
+
+  /// No description provided for @unitManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit Management'**
+  String get unitManagement;
+
+  /// No description provided for @derivedUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Derived Unit'**
+  String get derivedUnit;
+
+  /// No description provided for @conversionFormula.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversion Formula'**
+  String get conversionFormula;
+
+  /// No description provided for @unitCodeFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get unitCodeFallback;
+
+  /// No description provided for @isBaseUnitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Is this a Base Unit?'**
+  String get isBaseUnitTitle;
+
+  /// No description provided for @isBaseUnitPrimarySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This will be the primary measurement for this category.'**
+  String get isBaseUnitPrimarySubtitle;
+
+  /// No description provided for @isBaseUnitDerivedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a derived unit (calculated from the base unit).'**
+  String get isBaseUnitDerivedSubtitle;
+
+  /// No description provided for @conversionFromBaseUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversion from Base Unit ({baseCode})'**
+  String conversionFromBaseUnit(Object baseCode);
+
+  /// No description provided for @conversionPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'1 {unitCode} = '**
+  String conversionPrefix(Object unitCode);
+
+  /// No description provided for @multiplierHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hint: If 1 {unitCode} = 1000 {baseCode}, then multiplier is 1000.'**
+  String multiplierHint(Object unitCode, Object baseCode);
+
+  /// No description provided for @unitInUseWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This unit is used by {count} products and/or dependent units'**
+  String unitInUseWarning(Object count);
+
+  /// No description provided for @categoryVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get categoryVolume;
+
+  /// No description provided for @purchaseNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase not found or already cancelled'**
+  String get purchaseNotFound;
+
+  /// No description provided for @invoiceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice not found or already cancelled'**
+  String get invoiceNotFound;
+
+  /// No description provided for @supplierNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier not found'**
+  String get supplierNotFound;
+
+  /// No description provided for @insufficientStockForCancellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot cancel purchase: insufficient stock for product. Please verify stock levels.'**
+  String get insufficientStockForCancellation;
+
+  /// No description provided for @negativeStockError.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock cannot be negative'**
+  String get negativeStockError;
+
+  /// No description provided for @invalidPriceAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid price adjustment: must provide either percentage or fixed increase'**
+  String get invalidPriceAdjustment;
+
+  /// No description provided for @invoiceMathError.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice calculation error: please verify items and discount amounts'**
+  String get invoiceMathError;
+
+  /// No description provided for @paymentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment processing failed. Please try again or contact support.'**
+  String get paymentFailed;
 }
 
 class _AppLocalizationsDelegate

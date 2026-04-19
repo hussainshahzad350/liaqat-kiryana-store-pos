@@ -180,7 +180,7 @@ class SuppliersRepository {
       );
 
       if (result.isEmpty) {
-        throw Exception('Supplier not found');
+        throw Exception('SUPPLIER_NOT_FOUND');
       }
 
       final currentBalance =
@@ -293,7 +293,7 @@ class SuppliersRepository {
     final supplier = await getSupplierById(supplierId);
     if (supplier == null) {
       return {
-        'error': 'Supplier not found',
+        'error': 'SUPPLIER_NOT_FOUND',
       };
     }
 

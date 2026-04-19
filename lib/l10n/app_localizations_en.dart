@@ -108,6 +108,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get units => 'Units';
 
   @override
+  String get unitsManagement => 'Units Management';
+
+  @override
   String get itemsManagement => 'Items Management';
 
   @override
@@ -115,6 +118,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noItemsFound => 'No items found';
+
+  @override
+  String get noCategoriesFound => 'No categories found.';
 
   @override
   String get addNewItem => 'Add New Item';
@@ -1291,7 +1297,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidQuantity => 'Quantity must be greater than zero';
 
   @override
+  String get invoiceEmpty => 'Invoice must have at least one item';
+
+  @override
+  String get paymentNegative => 'Payment amounts cannot be negative';
+
+  @override
+  String get paymentSplitMismatch => 'Payment split must equal grand total';
+
+  @override
   String get insufficientStock => 'Insufficient stock';
+
+  @override
+  String insufficientStockForItem(String item) {
+    return 'Insufficient stock for $item';
+  }
 
   @override
   String get outOfStock => 'Out of stock';
@@ -1593,6 +1613,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get category => 'Category';
 
   @override
+  String get base => 'Base';
+
+  @override
   String get baseUnit => 'Base Unit';
 
   @override
@@ -1621,6 +1644,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get systemUnit => 'System Unit';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get code => 'Code';
+
+  @override
+  String isBaseUnitFor(String category) {
+    return 'This is the Base Unit for $category.';
+  }
+
+  @override
+  String get multiplierConversionLabel => 'Multiplier (Conversion to Base)';
+
+  @override
+  String baseUnitSubtitle(String name, String code) {
+    return 'Base: $name ($code)';
+  }
+
+  @override
+  String get noBaseUnitSet => 'No base unit set for this category';
+
+  @override
+  String get noUnitsInCategory => 'No units defined in this category';
+
+  @override
+  String get softDeleteWarning => 'Soft Delete Warning';
+
+  @override
+  String unitInUseMessage(String name, String code, int count) {
+    return 'The unit \"$name\" ($code) is used by $count products or other units.';
+  }
+
+  @override
+  String confirmDeleteUnit(String name, String code) {
+    return 'Are you sure you want to delete \"$name\" ($code)?';
+  }
+
+  @override
+  String get unitArchiveNote =>
+      'It will be archived instead of deleted to maintain data integrity for current products.';
+
+  @override
+  String get actionCannotBeUndone => 'This action cannot be undone.';
+
+  @override
+  String get archive => 'Archive';
 
   @override
   String get categoryLength => 'Length';
@@ -1694,6 +1765,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Subcategory with this name already exists in the selected category.';
 
   @override
+  String departmentInUseDeleteError(int count) {
+    return 'Cannot delete department because it is used by $count item(s).';
+  }
+
+  @override
+  String categoryInUseDeleteError(int count) {
+    return 'Cannot delete category because it is used by $count item(s).';
+  }
+
+  @override
+  String subCategoryInUseDeleteError(int count) {
+    return 'Cannot delete sub-category because it is used by $count item(s).';
+  }
+
+  @override
   String get editDetails => 'Edit Details';
 
   @override
@@ -1711,6 +1797,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get departmentsHeader => 'DEPARTMENTS';
+
+  @override
+  String get detailsHeader => 'DETAILS';
 
   @override
   String get categoriesSubcategoriesHeader => 'CATEGORIES & SUBCATEGORIES';
@@ -2090,4 +2179,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get purchaseScreenTitle => 'New Purchase Bill';
+
+  @override
+  String get unitManagement => 'Unit Management';
+
+  @override
+  String get derivedUnit => 'Derived Unit';
+
+  @override
+  String get conversionFormula => 'Conversion Formula';
+
+  @override
+  String get unitCodeFallback => 'Unit';
+
+  @override
+  String get isBaseUnitTitle => 'Is this a Base Unit?';
+
+  @override
+  String get isBaseUnitPrimarySubtitle =>
+      'This will be the primary measurement for this category.';
+
+  @override
+  String get isBaseUnitDerivedSubtitle =>
+      'This is a derived unit (calculated from the base unit).';
+
+  @override
+  String conversionFromBaseUnit(Object baseCode) {
+    return 'Conversion from Base Unit ($baseCode)';
+  }
+
+  @override
+  String conversionPrefix(Object unitCode) {
+    return '1 $unitCode = ';
+  }
+
+  @override
+  String multiplierHint(Object unitCode, Object baseCode) {
+    return 'Hint: If 1 $unitCode = 1000 $baseCode, then multiplier is 1000.';
+  }
+
+  @override
+  String unitInUseWarning(Object count) {
+    return 'This unit is used by $count products and/or dependent units';
+  }
+
+  @override
+  String get categoryVolume => 'Volume';
+
+  @override
+  String get purchaseNotFound => 'Purchase not found or already cancelled';
+
+  @override
+  String get invoiceNotFound => 'Invoice not found or already cancelled';
+
+  @override
+  String get supplierNotFound => 'Supplier not found';
+
+  @override
+  String get insufficientStockForCancellation =>
+      'Cannot cancel purchase: insufficient stock for product. Please verify stock levels.';
+
+  @override
+  String get negativeStockError => 'Stock cannot be negative';
+
+  @override
+  String get invalidPriceAdjustment =>
+      'Invalid price adjustment: must provide either percentage or fixed increase';
+
+  @override
+  String get invoiceMathError =>
+      'Invoice calculation error: please verify items and discount amounts';
+
+  @override
+  String get paymentFailed =>
+      'Payment processing failed. Please try again or contact support.';
 }

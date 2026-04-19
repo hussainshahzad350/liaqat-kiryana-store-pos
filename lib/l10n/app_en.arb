@@ -33,9 +33,11 @@
   "suppliers": "Suppliers",
   "categories": "Categories",
   "units": "Units",
+  "unitsManagement": "Units Management",
   "itemsManagement": "Items Management",
   "searchItem": "Search Items",
   "noItemsFound": "No items found",
+  "noCategoriesFound": "No categories found.",
   "addNewItem": "Add New Item",
   "englishName": "English Name",
   "urduName": "Urdu Name",
@@ -430,7 +432,18 @@
   "completed": "Completed",
   "invalidPrice": "Price must be greater than zero",
   "invalidQuantity": "Quantity must be greater than zero",
+  "invoiceEmpty": "Invoice must have at least one item",
+  "paymentNegative": "Payment amounts cannot be negative",
+  "paymentSplitMismatch": "Payment split must equal grand total",
   "insufficientStock": "Insufficient stock",
+  "insufficientStockForItem": "Insufficient stock for {item}",
+  "@insufficientStockForItem": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "outOfStock": "Out of stock",
   "productNotFound": "Product not found",
   "creditLimitExceeded": "Credit Limit Exceeded",
@@ -527,6 +540,7 @@
   "subCategory": "Sub Category",
   "brand": "Brand",
   "category": "Category",
+  "base": "Base",
   "baseUnit": "Base Unit",
   "codeInputLabel": "Code (e.g. BOX)",
   "multiplier": "Multiplier",
@@ -537,6 +551,43 @@
   "greaterThanOneError": "Must be > 1",
   "close": "Close",
   "systemUnit": "System Unit",
+  "edit": "Edit",
+  "code": "Code",
+  "isBaseUnitFor": "This is the Base Unit for {category}.",
+  "@isBaseUnitFor": {
+    "placeholders": {
+      "category": { "type": "String" }
+    }
+  },
+  "multiplierConversionLabel": "Multiplier (Conversion to Base)",
+  "baseUnitSubtitle": "Base: {name} ({code})",
+  "@baseUnitSubtitle": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "code": { "type": "String" }
+    }
+  },
+  "noBaseUnitSet": "No base unit set",
+  "noUnitsInCategory": "No units defined in this category",
+  "softDeleteWarning": "Soft Delete Warning",
+  "unitInUseMessage": "The unit \"{name}\" ({code}) is used by {count} products or other units.",
+  "@unitInUseMessage": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "code": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "confirmDeleteUnit": "Are you sure you want to delete \"{name}\" ({code})?",
+  "@confirmDeleteUnit": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "code": { "type": "String" }
+    }
+  },
+  "unitArchiveNote": "It will be archived instead of deleted to maintain data integrity for current products.",
+  "actionCannotBeUndone": "This action cannot be undone.",
+  "archive": "Archive",
   "categoryLength": "Length",
   "categoryWeight": "Weight",
   "categoryCount": "Count",
@@ -573,12 +624,37 @@
   "departmentExistsError": "Department with this name already exists.",
   "categoryExistsError": "Category with this name already exists in the selected department.",
   "subcategoryExistsError": "Subcategory with this name already exists in the selected category.",
+  "departmentInUseDeleteError": "Cannot delete department because it is used by {count} item(s).",
+  "@departmentInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "categoryInUseDeleteError": "Cannot delete category because it is used by {count} item(s).",
+  "@categoryInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subCategoryInUseDeleteError": "Cannot delete sub-category because it is used by {count} item(s).",
+  "@subCategoryInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "editDetails": "Edit Details",
   "nameEnglishLabel": "Name (English)",
   "nameUrduLabel": "Name (Urdu)",
   "departmentLabel": "Department",
   "searchDepartmentsCategoriesHint": "Search departments, categories...",
   "departmentsHeader": "DEPARTMENTS",
+  "detailsHeader": "DETAILS",
   "categoriesSubcategoriesHeader": "CATEGORIES & SUBCATEGORIES",
   "statusVisibilityHeader": "STATUS & VISIBILITY",
   "statisticsHeader": "STATISTICS",
@@ -767,5 +843,42 @@
   "searchSuppliers": "Search suppliers...",
   "unitCost": "Unit cost",
   "lineTotal": "Line total",
-  "purchaseScreenTitle": "New Purchase Bill"
+  "purchaseScreenTitle": "New Purchase Bill",
+  "unitManagement": "Unit Management",
+  "derivedUnit": "Derived Unit",
+  "conversionFormula": "Conversion Formula",
+  "noBaseUnitSet": "No base unit set for this category",
+  "unitCodeFallback": "Unit",
+  "isBaseUnitTitle": "Is this a Base Unit?",
+  "isBaseUnitPrimarySubtitle": "This will be the primary measurement for this category.",
+  "isBaseUnitDerivedSubtitle": "This is a derived unit (calculated from the base unit).",
+  "conversionFromBaseUnit": "Conversion from Base Unit ({baseCode})",
+  "@conversionFromBaseUnit": {
+    "placeholders": {
+      "baseCode": {}
+    }
+  },
+  "conversionPrefix": "1 {unitCode} = ",
+  "@conversionPrefix": {
+    "placeholders": {
+      "unitCode": {}
+    }
+  },
+  "multiplierHint": "Hint: If 1 {unitCode} = 1000 {baseCode}, then multiplier is 1000.",
+  "@multiplierHint": {
+    "placeholders": {
+      "unitCode": {},
+      "baseCode": {}
+    }
+  },
+  "unitInUseWarning": "This unit is used by {count} products and/or dependent units",
+  "categoryVolume": "Volume",
+  "purchaseNotFound": "Purchase not found or already cancelled",
+  "invoiceNotFound": "Invoice not found or already cancelled",
+  "supplierNotFound": "Supplier not found",
+  "insufficientStockForCancellation": "Cannot cancel purchase: insufficient stock for product. Please verify stock levels.",
+  "negativeStockError": "Stock cannot be negative",
+  "invalidPriceAdjustment": "Invalid price adjustment: must provide either percentage or fixed increase",
+  "invoiceMathError": "Invoice calculation error: please verify items and discount amounts",
+  "paymentFailed": "Payment processing failed. Please try again or contact support."
 }

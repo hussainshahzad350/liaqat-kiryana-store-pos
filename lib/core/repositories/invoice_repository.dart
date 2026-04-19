@@ -35,9 +35,9 @@ class InvoiceRepository {
 
     // Validation
     if (items.isEmpty) {
-      throw ArgumentError('Invoice must have at least one item');
+      throw Exception('INVOICE_EMPTY');
     }
-    
+
     final now = DateTime.now();
     final String yy = (now.year % 100).toString().padLeft(2, '0');
     final String mm = now.month.toString().padLeft(2, '0');
@@ -57,8 +57,7 @@ class InvoiceRepository {
         final limit = (custRes.first['credit_limit'] as num).toInt();
         final balance = (custRes.first['outstanding_balance'] as num).toInt();
         if (limit > 0 && (balance + grandTotal) > limit) {
-          throw Exception(
-              'Credit limit exceeded. Current: $balance, Limit: $limit, Invoice: $grandTotal');
+          throw Exception('CREDIT_LIMIT_EXCEEDED');
         }
       }
 
@@ -68,14 +67,13 @@ class InvoiceRepository {
         calculatedSubTotal += (item['total'] as int);
       }
       if ((calculatedSubTotal - discount) != grandTotal) {
-        throw Exception(
-            'Invoice math error: Items ($calculatedSubTotal) - Discount ($discount) != Total ($grandTotal)');
+        throw Exception('INVOICE_MATH_ERROR');
       }
       if (cashAmount < 0 || bankAmount < 0 || creditAmount < 0) {
-        throw ArgumentError('Payment amounts cannot be negative');
+        throw Exception('PAYMENT_NEGATIVE');
       }
       if ((cashAmount + bankAmount + creditAmount) != grandTotal) {
-        throw ArgumentError('Payment split must equal grand total');
+        throw Exception('PAYMENT_SPLIT_MISMATCH');
       }
 
       // 3. Insert Invoice with Temp Number
@@ -123,7 +121,11 @@ class InvoiceRepository {
         );
 
         if (updated == 0) {
-          throw Exception('Insufficient stock for product ID: $productId');
+          final itemLabel =
+              (item['name_english']?.toString().trim().isNotEmpty ?? false)
+                  ? item['name_english'].toString().trim()
+                  : productId.toString();
+          throw Exception('INSUFFICIENT_STOCK:$itemLabel');
         }
 
         await txn.insert('stock_activities', {
@@ -227,8 +229,8 @@ class InvoiceRepository {
         final res = await txn.rawQuery(
             'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
         int currentCashBalance = res.isNotEmpty
-          ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
-          : 0;
+            ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
+            : 0;
 
         await txn.insert('cash_ledger', {
           'transaction_date': dateStr,
@@ -246,8 +248,8 @@ class InvoiceRepository {
         final res = await txn.rawQuery(
             'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
         int currentCashBalance = res.isNotEmpty
-          ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
-          : 0;
+            ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
+            : 0;
 
         await txn.insert('cash_ledger', {
           'transaction_date': dateStr,
@@ -293,7 +295,7 @@ class InvoiceRepository {
       );
 
       if (invoiceRes.isEmpty) {
-        throw Exception('Invoice not found or already cancelled');
+        throw Exception('INVOICE_NOT_FOUND');
       }
 
       final invoice = invoiceRes.first;
@@ -323,7 +325,7 @@ class InvoiceRepository {
       for (var item in items) {
         final productId = item['product_id'] as int;
         final quantity = (item['quantity'] as num).toDouble();
-        
+
         await txn.rawUpdate(
           'UPDATE products SET current_stock = current_stock + ? WHERE id = ?',
           [quantity, productId],
@@ -345,8 +347,9 @@ class InvoiceRepository {
         'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
         [customerId],
       );
-      int prevBalance =
-          lastEntry.isNotEmpty ? (lastEntry.first['balance'] as num?)?.toInt() ?? 0 : 0;
+      int prevBalance = lastEntry.isNotEmpty
+          ? (lastEntry.first['balance'] as num?)?.toInt() ?? 0
+          : 0;
       int newBalance = prevBalance - grandTotal;
 
       await txn.insert('customer_ledger', {
@@ -382,11 +385,10 @@ class InvoiceRepository {
 
         // Reversal: IN becomes OUT, OUT becomes IN
         final reversalType = entryType == 'IN' ? 'OUT' : 'IN';
-        
+
         final res = await txn.rawQuery(
-          'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
-        );
-        int currentCashBalance = res.isNotEmpty 
+            'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+        int currentCashBalance = res.isNotEmpty
             ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
             : 0;
 
@@ -396,8 +398,8 @@ class InvoiceRepository {
           'description': 'Reversal: Invoice #$invoiceNumber cancelled',
           'type': reversalType,
           'amount': entryAmount,
-          'balance_after': reversalType == 'IN' 
-              ? currentCashBalance + entryAmount 
+          'balance_after': reversalType == 'IN'
+              ? currentCashBalance + entryAmount
               : currentCashBalance - entryAmount,
           'remarks': 'Auto-reversal for cancelled invoice',
           'payment_mode': entryMode,
