@@ -71,6 +71,12 @@ class InvoiceRepository {
         throw Exception(
             'Invoice math error: Items ($calculatedSubTotal) - Discount ($discount) != Total ($grandTotal)');
       }
+      if (cashAmount < 0 || bankAmount < 0 || creditAmount < 0) {
+        throw ArgumentError('Payment amounts cannot be negative');
+      }
+      if ((cashAmount + bankAmount + creditAmount) != grandTotal) {
+        throw ArgumentError('Payment split must equal grand total');
+      }
 
       // 3. Insert Invoice with Temp Number
       final tempNumber = 'TEMP-${now.microsecondsSinceEpoch}';
@@ -220,8 +226,9 @@ class InvoiceRepository {
       if (cashAmount > 0) {
         final res = await txn.rawQuery(
             'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
-        int currentCashBalance =
-            res.isNotEmpty ? (res.first['balance_after'] as num).toInt() : 0;
+        int currentCashBalance = res.isNotEmpty
+          ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
+          : 0;
 
         await txn.insert('cash_ledger', {
           'transaction_date': dateStr,
@@ -238,8 +245,9 @@ class InvoiceRepository {
       if (bankAmount > 0) {
         final res = await txn.rawQuery(
             'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
-        int currentCashBalance =
-            res.isNotEmpty ? (res.first['balance_after'] as num).toInt() : 0;
+        int currentCashBalance = res.isNotEmpty
+          ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
+          : 0;
 
         await txn.insert('cash_ledger', {
           'transaction_date': dateStr,
@@ -364,7 +372,7 @@ class InvoiceRepository {
       final cashEntries = await txn.query(
         'cash_ledger',
         where: 'description LIKE ?',
-        whereArgs: ['%#$invoiceNumber%'],
+        whereArgs: ['Sale $invoiceNumber%'],
       );
 
       for (var entry in cashEntries) {
@@ -379,7 +387,7 @@ class InvoiceRepository {
           'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
         );
         int currentCashBalance = res.isNotEmpty 
-            ? (res.first['balance_after'] as num).toInt() 
+            ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
             : 0;
 
         await txn.insert('cash_ledger', {

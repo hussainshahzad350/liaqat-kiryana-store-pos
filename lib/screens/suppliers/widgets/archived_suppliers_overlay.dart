@@ -81,6 +81,12 @@ class ArchivedSuppliersOverlay extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
+                                        icon: Icon(Icons.receipt_long,
+                                            color: colorScheme.primary),
+                                        tooltip: loc.viewLedgerTooltip,
+                                        onPressed: () => onLedger(s),
+                                      ),
+                                      IconButton(
                                         icon: Icon(Icons.unarchive,
                                             color: colorScheme.primary),
                                         onPressed: () => onUnarchive(s),

@@ -15,9 +15,11 @@ class SuppliersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final repository = context.read<SuppliersRepository>();
+
     return ChangeNotifierProvider(
       create: (context) {
-        final controller = SupplierController(SuppliersRepository());
+        final controller = SupplierController(repository);
         controller.init();
         return controller;
       },
@@ -33,6 +35,7 @@ class _SuppliersScreenContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final controller = context.watch<SupplierController>();
+    final repository = context.read<SuppliersRepository>();
 
     return Stack(
       children: [
@@ -53,7 +56,7 @@ class _SuppliersScreenContent extends StatelessWidget {
                         showDialog(
                           context: context,
                           builder: (_) => AddSupplierDialog(
-                            repository: SuppliersRepository(),
+                            repository: repository,
                             onSaved: () => controller.refresh(),
                           ),
                         );
@@ -85,7 +88,7 @@ class _SuppliersScreenContent extends StatelessWidget {
                       context: context,
                       builder: (_) => AddSupplierDialog(
                         supplier: supplier,
-                        repository: SuppliersRepository(),
+                        repository: repository,
                         onSaved: () => controller.refresh(),
                       ),
                     );
@@ -95,8 +98,10 @@ class _SuppliersScreenContent extends StatelessWidget {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
-                        title: Text('Confirm Delete', style: Theme.of(context).textTheme.titleLarge),
-                        content: Text('Are you sure you want to completely delete this supplier?',
+                        title: Text('Confirm Delete',
+                            style: Theme.of(context).textTheme.titleLarge),
+                        content: Text(
+                            'Are you sure you want to completely delete this supplier?',
                             style: Theme.of(context).textTheme.bodyMedium),
                         actions: [
                           TextButton(
@@ -141,11 +146,11 @@ class _SuppliersScreenContent extends StatelessWidget {
               controller.openLedger(supplier);
             },
           ),
-          
+
         if (controller.ledgerSupplier != null)
           SupplierLedgerPanel(
             supplier: controller.ledgerSupplier!,
-            repository: SuppliersRepository(),
+            repository: repository,
             onClose: () => controller.closeLedger(),
             onDataChanged: () {
               controller.refreshLedgerSupplier();

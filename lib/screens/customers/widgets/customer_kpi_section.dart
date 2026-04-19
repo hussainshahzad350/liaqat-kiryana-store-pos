@@ -15,8 +15,8 @@ class CustomerKpiSection extends StatelessWidget {
     
     return Consumer<CustomerController>(
       builder: (context, controller, child) {
-        return SizedBox(
-          height: 115.0,
+        return ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 115.0),
           child: Row(
             children: [
               Expanded(

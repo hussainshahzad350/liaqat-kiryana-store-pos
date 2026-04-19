@@ -27,14 +27,14 @@ class CashLedgerKpiSection extends StatelessWidget {
               const SizedBox(width: AppTokens.spacingMedium),
               Expanded(
                 child: _CashLedgerKpiCard(
-                  title: "Digital Collections", // Needs arb
+                  title: loc.digitalCollections,
                   amount: controller.totalDigitalIn,
                 ),
               ),
               const SizedBox(width: AppTokens.spacingMedium),
               Expanded(
                 child: _CashLedgerKpiCard(
-                  title: "Cash In Drawer",
+                  title: loc.cashInDrawer,
                   amount: controller.cashInDrawer,
                   isPrimary: true,
                 ),

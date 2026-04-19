@@ -4,6 +4,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/res/app_tokens.dart';
 import '../../../../core/repositories/cash_repository.dart';
 import '../../../../domain/entities/money.dart';
+import '../../../../models/cash_ledger_model.dart';
 
 class AddTransactionDialog extends StatefulWidget {
   final String initialType;
@@ -28,9 +29,15 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
 
   late String _selectedType;
   late DateTime _selectedDate;
-  String _paymentMode = 'CASH';
+  PaymentMode _paymentMode = PaymentMode.cash;
 
-  final List<String> _paymentModes = ['CASH', 'CARD', 'BANK', 'EASYPAISA', 'JAZZCASH'];
+  final List<PaymentMode> _paymentModes = [
+    PaymentMode.cash,
+    PaymentMode.card,
+    PaymentMode.bank,
+    PaymentMode.easyPaisa,
+    PaymentMode.jazzCash,
+  ];
 
   @override
   void initState() {
@@ -70,7 +77,8 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
             children: [
               Text(
                 _selectedType == 'IN' ? loc.newCashIn : loc.newCashOut,
-                style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+                style: textTheme.titleLarge
+                    ?.copyWith(color: colorScheme.onSurface),
               ),
               const SizedBox(height: AppTokens.spacingLarge),
               Expanded(
@@ -85,14 +93,18 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                             child: InkWell(
                               onTap: () => setState(() => _selectedType = 'IN'),
                               child: Container(
-                                padding: const EdgeInsets.all(AppTokens.spacingStandard),
+                                padding: const EdgeInsets.all(
+                                    AppTokens.spacingStandard),
                                 decoration: BoxDecoration(
                                   color: _selectedType == 'IN'
                                       ? colorScheme.primaryContainer
                                       : colorScheme.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.buttonBorderRadius),
                                   border: Border.all(
-                                    color: _selectedType == 'IN' ? colorScheme.primary : colorScheme.outline,
+                                    color: _selectedType == 'IN'
+                                        ? colorScheme.primary
+                                        : colorScheme.outline,
                                   ),
                                 ),
                                 alignment: Alignment.center,
@@ -108,16 +120,21 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                           const SizedBox(width: AppTokens.spacingStandard),
                           Expanded(
                             child: InkWell(
-                              onTap: () => setState(() => _selectedType = 'OUT'),
+                              onTap: () =>
+                                  setState(() => _selectedType = 'OUT'),
                               child: Container(
-                                padding: const EdgeInsets.all(AppTokens.spacingStandard),
+                                padding: const EdgeInsets.all(
+                                    AppTokens.spacingStandard),
                                 decoration: BoxDecoration(
                                   color: _selectedType == 'OUT'
                                       ? colorScheme.errorContainer
                                       : colorScheme.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.buttonBorderRadius),
                                   border: Border.all(
-                                    color: _selectedType == 'OUT' ? colorScheme.error : colorScheme.outline,
+                                    color: _selectedType == 'OUT'
+                                        ? colorScheme.error
+                                        : colorScheme.outline,
                                   ),
                                 ),
                                 alignment: Alignment.center,
@@ -146,7 +163,8 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                                   firstDate: DateTime(2020),
                                   lastDate: DateTime.now(),
                                   builder: (context, child) => Theme(
-                                      data: Theme.of(context).copyWith(colorScheme: colorScheme),
+                                      data: Theme.of(context)
+                                          .copyWith(colorScheme: colorScheme),
                                       child: child!),
                                 );
                                 if (picked != null) {
@@ -154,20 +172,30 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                                 }
                               },
                               child: Container(
-                                padding: const EdgeInsets.all(AppTokens.spacingStandard),
+                                padding: const EdgeInsets.all(
+                                    AppTokens.spacingStandard),
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: colorScheme.outline),
-                                  borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
+                                  border:
+                                      Border.all(color: colorScheme.outline),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.buttonBorderRadius),
                                   color: colorScheme.surface,
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.calendar_today, size: AppTokens.iconSizeMedium, color: colorScheme.onSurfaceVariant),
-                                    const SizedBox(width: AppTokens.spacingStandard),
+                                    Icon(Icons.calendar_today,
+                                        size: AppTokens.iconSizeMedium,
+                                        color: colorScheme.onSurfaceVariant),
+                                    const SizedBox(
+                                        width: AppTokens.spacingStandard),
                                     Expanded(
                                       child: Text(
-                                        DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(_selectedDate),
-                                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                                        DateFormat.yMMMd(
+                                                Localizations.localeOf(context)
+                                                    .toString())
+                                            .format(_selectedDate),
+                                        style: textTheme.bodyMedium?.copyWith(
+                                            color: colorScheme.onSurface),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -178,24 +206,34 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                           ),
                           const SizedBox(width: AppTokens.spacingMedium),
                           Expanded(
-                            child: DropdownButtonFormField<String>(
+                            child: DropdownButtonFormField<PaymentMode>(
                               value: _paymentMode,
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: colorScheme.surface,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingMedium),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: AppTokens.spacingMedium),
                                 border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
-                                  borderSide: BorderSide(color: colorScheme.outline),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.buttonBorderRadius),
+                                  borderSide:
+                                      BorderSide(color: colorScheme.outline),
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
-                                  borderSide: BorderSide(color: colorScheme.outline),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.buttonBorderRadius),
+                                  borderSide:
+                                      BorderSide(color: colorScheme.outline),
                                 ),
                               ),
-                              items: _paymentModes.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+                              items: _paymentModes
+                                  .map((m) => DropdownMenuItem(
+                                      value: m, child: Text(m.dbValue)))
+                                  .toList(),
                               onChanged: (val) {
-                                if (val != null) setState(() => _paymentMode = val);
+                                if (val != null) {
+                                  setState(() => _paymentMode = val);
+                                }
                               },
                             ),
                           ),
@@ -210,9 +248,12 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                             labelText: loc.amount,
                             filled: true,
                             fillColor: colorScheme.surfaceContainerHighest,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius))),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.buttonBorderRadius))),
                         keyboardType: TextInputType.number,
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colorScheme.onSurface),
                       ),
                       const SizedBox(height: AppTokens.spacingStandard),
                       TextField(
@@ -221,8 +262,11 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                             labelText: loc.description,
                             filled: true,
                             fillColor: colorScheme.surfaceContainerHighest,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius))),
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.buttonBorderRadius))),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colorScheme.onSurface),
                       ),
                       const SizedBox(height: AppTokens.spacingStandard),
                       TextField(
@@ -231,8 +275,11 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                             labelText: loc.remarks,
                             filled: true,
                             fillColor: colorScheme.surfaceContainerHighest,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius))),
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.buttonBorderRadius))),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colorScheme.onSurface),
                       ),
                     ],
                   ),
@@ -244,57 +291,66 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(loc.cancel, style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                    child: Text(loc.cancel,
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colorScheme.onSurfaceVariant)),
                   ),
                   const SizedBox(width: AppTokens.spacingStandard),
                   ElevatedButton(
                     onPressed: () async {
-                      debugPrint('[CashDialog] Save pressed. Amount="${_amountCtrl.text}" Desc="${_descCtrl.text}" Type=$_selectedType Mode=$_paymentMode');
                       Money? amount;
                       try {
-                        amount = Money.fromRupeesString(_amountCtrl.text.trim());
-                        debugPrint('[CashDialog] Parsed amount: ${amount.paisas} paisas');
+                        amount =
+                            Money.fromRupeesString(_amountCtrl.text.trim());
                       } catch (e) {
-                        debugPrint('[CashDialog] Amount parse EXCEPTION: $e');
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.invalidAmount), backgroundColor: colorScheme.error));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(loc.invalidAmount),
+                            backgroundColor: colorScheme.error));
                         return;
                       }
-                      if (amount > const Money(0) && _descCtrl.text.trim().isNotEmpty) {
-                        debugPrint('[CashDialog] Validation passed. Calling addCashEntry...');
-                        try{
+                      if (amount > Money.zero &&
+                          _descCtrl.text.trim().isNotEmpty) {
+                        try {
                           await widget.repository.addCashEntry(
                             _descCtrl.text.trim(),
                             _selectedType,
                             amount,
                             _remarksCtrl.text.trim(),
-                            paymentMode: _paymentMode,
+                            paymentMode: _paymentMode.dbValue,
                           );
-                          debugPrint('[CashDialog] addCashEntry SUCCEEDED');
                           if (!context.mounted) {
-                            debugPrint('[CashDialog] context.mounted is FALSE after save - cannot pop');
                             return;
                           }
                           widget.onSaved();
                           Navigator.pop(context);
-                        } catch(e){
-                          debugPrint('[CashDialog] addCashEntry FAILED: $e');
-                         if (!context.mounted) return;
-                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error saving: $e"), backgroundColor: colorScheme.error));
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("Error saving: $e"),
+                              backgroundColor: colorScheme.error));
                         }
                       } else if (_descCtrl.text.trim().isEmpty) {
-                        debugPrint('[CashDialog] REJECTED: description empty');
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.descriptionRequired), backgroundColor: colorScheme.error));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(loc.descriptionRequired),
+                            backgroundColor: colorScheme.error));
                       } else {
-                        debugPrint('[CashDialog] REJECTED: amount=${amount.paisas} not > 0');
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(loc.invalidAmount), backgroundColor: colorScheme.error));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(loc.invalidAmount),
+                            backgroundColor: colorScheme.error));
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedType == 'IN' ? colorScheme.primary : colorScheme.error,
-                      foregroundColor: _selectedType == 'IN' ? colorScheme.onPrimary : colorScheme.onError,
+                      backgroundColor: _selectedType == 'IN'
+                          ? colorScheme.primary
+                          : colorScheme.error,
+                      foregroundColor: _selectedType == 'IN'
+                          ? colorScheme.onPrimary
+                          : colorScheme.onError,
                       minimumSize: const Size(0, AppTokens.buttonHeight),
                     ),
-                    child: Text(loc.save, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    child: Text(loc.save,
+                        style: textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

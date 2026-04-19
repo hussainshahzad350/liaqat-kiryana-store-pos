@@ -45,6 +45,10 @@ void main() {
   late MockCustomersRepository mockRepo;
   late CustomerController controller;
 
+  setUpAll(() {
+    registerFallbackValue(_makeCustomer());
+  });
+
   setUp(() {
     mockRepo = MockCustomersRepository();
 
@@ -59,7 +63,8 @@ void main() {
     controller = CustomerController(mockRepo);
   });
 
-  tearDown(() {
+  tearDown(() async {
+    await Future<void>.delayed(Duration.zero);
     controller.dispose();
   });
 
@@ -381,6 +386,16 @@ void main() {
       expect(result, false);
       expect(controller.errorMessage, contains('Delete failed'));
     });
+
+    test('clears open ledger customer after successful deletion', () async {
+      final customer = _makeCustomer(id: 14);
+      controller.ledgerCustomer = customer;
+
+      final result = await controller.deleteCustomer(customer);
+
+      expect(result, true);
+      expect(controller.ledgerCustomer, isNull);
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -449,14 +464,14 @@ void main() {
       await controller.refreshLedgerCustomer();
     });
 
-    test('does nothing when getCustomerById returns null', () async {
+    test('clears ledgerCustomer when getCustomerById returns null', () async {
       final original = _makeCustomer(id: 13);
       controller.ledgerCustomer = original;
       when(() => mockRepo.getCustomerById(13)).thenAnswer((_) async => null);
 
       await controller.refreshLedgerCustomer();
 
-      expect(controller.ledgerCustomer, original);
+      expect(controller.ledgerCustomer, isNull);
     });
   });
 
@@ -635,15 +650,14 @@ void main() {
   // ---------------------------------------------------------------------------
   group('Regression / edge cases', () {
     test('deleteCustomer on customer without id does not crash', () async {
-      // Customer with null id should propagate error gracefully
-      when(() => mockRepo.deleteCustomer(any())).thenAnswer((_) async => 0);
       final customerNoId = Customer(
         nameEnglish: 'No ID',
         isActive: true,
       );
-      // This would throw a Null-check error; verify returns false and sets errorMessage
       final result = await controller.deleteCustomer(customerNoId);
       expect(result, false);
+      expect(controller.errorMessage, isNotNull);
+      verifyNever(() => mockRepo.deleteCustomer(any()));
     });
 
     test('loadStats handles numeric values returned as double', () async {

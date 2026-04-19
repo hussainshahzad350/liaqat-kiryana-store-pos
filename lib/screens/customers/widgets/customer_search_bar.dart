@@ -20,6 +20,7 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
     super.initState();
     // Auto-focus search bar for POS fast workflow
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _focusNode.requestFocus();
     });
   }

@@ -11,7 +11,7 @@ void main() {
         type: 'IN',
         amount: 1000,
       );
-      expect(entry.paymentMode, 'CASH');
+      expect(entry.paymentMode, PaymentMode.cash);
     });
 
     test('stores custom payment mode when provided in constructor', () {
@@ -20,16 +20,22 @@ void main() {
         description: 'Bank transfer',
         type: 'IN',
         amount: 5000,
-        paymentMode: 'BANK',
+        paymentMode: PaymentMode.bank,
       );
-      expect(entry.paymentMode, 'BANK');
+      expect(entry.paymentMode, PaymentMode.bank);
     });
 
     test('accepts all expected payment mode values', () {
-      for (final mode in ['CASH', 'CARD', 'BANK', 'EASYPAISA', 'JAZZCASH']) {
+      for (final mode in [
+        PaymentMode.cash,
+        PaymentMode.card,
+        PaymentMode.bank,
+        PaymentMode.easyPaisa,
+        PaymentMode.jazzCash,
+      ]) {
         final entry = CashLedger(
           transactionDate: DateTime(2024, 1, 15),
-          description: 'Payment via $mode',
+          description: 'Payment via ${mode.dbValue}',
           type: 'IN',
           amount: 100,
           paymentMode: mode,
@@ -53,7 +59,7 @@ void main() {
         'payment_mode': 'BANK',
       };
       final entry = CashLedger.fromMap(map);
-      expect(entry.paymentMode, 'BANK');
+      expect(entry.paymentMode, PaymentMode.bank);
     });
 
     test('defaults paymentMode to CASH when missing from map', () {
@@ -69,7 +75,7 @@ void main() {
         // payment_mode key absent
       };
       final entry = CashLedger.fromMap(map);
-      expect(entry.paymentMode, 'CASH');
+      expect(entry.paymentMode, PaymentMode.cash);
     });
 
     test('defaults paymentMode to CASH when map value is null', () {
@@ -85,7 +91,7 @@ void main() {
         'payment_mode': null,
       };
       final entry = CashLedger.fromMap(map);
-      expect(entry.paymentMode, 'CASH');
+      expect(entry.paymentMode, PaymentMode.cash);
     });
 
     test('parses EASYPAISA payment mode', () {
@@ -97,7 +103,7 @@ void main() {
         'payment_mode': 'EASYPAISA',
       };
       final entry = CashLedger.fromMap(map);
-      expect(entry.paymentMode, 'EASYPAISA');
+      expect(entry.paymentMode, PaymentMode.easyPaisa);
     });
 
     test('correctly parses all other fields alongside paymentMode', () {
@@ -119,7 +125,7 @@ void main() {
       expect(entry.amount, 7500);
       expect(entry.balanceAfter, 22500);
       expect(entry.remarks, 'Test remark');
-      expect(entry.paymentMode, 'CARD');
+      expect(entry.paymentMode, PaymentMode.card);
     });
   });
 
@@ -134,7 +140,7 @@ void main() {
         amount: 10000,
         balanceAfter: 50000,
         remarks: 'Opening balance',
-        paymentMode: 'CASH',
+        paymentMode: PaymentMode.cash,
       );
       final map = entry.toMap();
       expect(map['payment_mode'], 'CASH');
@@ -146,7 +152,7 @@ void main() {
         description: 'Bank transfer',
         type: 'IN',
         amount: 20000,
-        paymentMode: 'BANK',
+        paymentMode: PaymentMode.bank,
       );
       final map = entry.toMap();
       expect(map['payment_mode'], 'BANK');
@@ -161,7 +167,7 @@ void main() {
         type: 'OUT',
         amount: 500,
         balanceAfter: 9500,
-        paymentMode: 'JAZZCASH',
+        paymentMode: PaymentMode.jazzCash,
       );
       final map = original.toMap();
       final restored = CashLedger.fromMap(map);
@@ -176,10 +182,10 @@ void main() {
         description: 'Original',
         type: 'IN',
         amount: 1000,
-        paymentMode: 'BANK',
+        paymentMode: PaymentMode.bank,
       );
       final copy = original.copyWith(description: 'Updated');
-      expect(copy.paymentMode, 'BANK');
+      expect(copy.paymentMode, PaymentMode.bank);
     });
 
     test('updates paymentMode when specified in copyWith', () {
@@ -188,12 +194,12 @@ void main() {
         description: 'Original',
         type: 'IN',
         amount: 1000,
-        paymentMode: 'CASH',
+        paymentMode: PaymentMode.cash,
       );
-      final updated = original.copyWith(paymentMode: 'CARD');
-      expect(updated.paymentMode, 'CARD');
+      final updated = original.copyWith(paymentMode: PaymentMode.card);
+      expect(updated.paymentMode, PaymentMode.card);
       // Original unchanged
-      expect(original.paymentMode, 'CASH');
+      expect(original.paymentMode, PaymentMode.cash);
     });
 
     test('preserves all other fields when only paymentMode is updated', () {
@@ -206,16 +212,16 @@ void main() {
         amount: 3000,
         balanceAfter: 8000,
         remarks: 'July note',
-        paymentMode: 'CASH',
+        paymentMode: PaymentMode.cash,
       );
-      final updated = original.copyWith(paymentMode: 'EASYPAISA');
+      final updated = original.copyWith(paymentMode: PaymentMode.easyPaisa);
       expect(updated.id, 5);
       expect(updated.description, 'July payment');
       expect(updated.type, 'IN');
       expect(updated.amount, 3000);
       expect(updated.balanceAfter, 8000);
       expect(updated.remarks, 'July note');
-      expect(updated.paymentMode, 'EASYPAISA');
+      expect(updated.paymentMode, PaymentMode.easyPaisa);
     });
   });
 
@@ -282,7 +288,7 @@ void main() {
         description: 'Bank sale',
         type: 'IN',
         amount: 5000,
-        paymentMode: 'BANK',
+        paymentMode: PaymentMode.bank,
       );
       expect(entry.isInflow, true);
     });
@@ -292,17 +298,17 @@ void main() {
     test('two entries with same id, date, amount are equal', () {
       final date = DateTime(2024, 1, 10);
       final a = CashLedger(
-        id: 1, transactionDate: date, description: 'A', type: 'IN', amount: 500, paymentMode: 'CASH');
+        id: 1, transactionDate: date, description: 'A', type: 'IN', amount: 500, paymentMode: PaymentMode.cash);
       final b = CashLedger(
-        id: 1, transactionDate: date, description: 'B', type: 'OUT', amount: 500, paymentMode: 'BANK');
+        id: 1, transactionDate: date, description: 'B', type: 'OUT', amount: 500, paymentMode: PaymentMode.bank);
       // Equality is based on id, transactionDate, and amount only
       expect(a, equals(b));
     });
 
     test('entries differing in paymentMode but same id/date/amount have same hash', () {
       final date = DateTime(2024, 1, 10);
-      final a = CashLedger(id: 1, transactionDate: date, description: 'X', type: 'IN', amount: 100, paymentMode: 'CASH');
-      final b = CashLedger(id: 1, transactionDate: date, description: 'X', type: 'IN', amount: 100, paymentMode: 'BANK');
+      final a = CashLedger(id: 1, transactionDate: date, description: 'X', type: 'IN', amount: 100, paymentMode: PaymentMode.cash);
+      final b = CashLedger(id: 1, transactionDate: date, description: 'X', type: 'IN', amount: 100, paymentMode: PaymentMode.bank);
       expect(a.hashCode, equals(b.hashCode));
     });
   });

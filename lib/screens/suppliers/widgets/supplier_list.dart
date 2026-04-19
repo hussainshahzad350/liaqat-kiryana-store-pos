@@ -23,11 +23,13 @@ class SupplierList extends StatelessWidget {
 
     return Consumer<SupplierController>(
       builder: (context, controller, child) {
+        final suppliers = controller.visibleSuppliers;
+
         if (controller.isLoading) {
           return Center(child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
-        if (controller.errorMessage != null) {
+        if (controller.listErrorMessage != null) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -35,7 +37,7 @@ class SupplierList extends StatelessWidget {
                 Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                 const SizedBox(height: AppTokens.spacingMedium),
                 Text(
-                  controller.errorMessage!,
+                  controller.listErrorMessage!,
                   style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
                   textAlign: TextAlign.center,
                 ),
@@ -46,14 +48,14 @@ class SupplierList extends StatelessWidget {
                     controller.refresh();
                   },
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'), // Keeping standard english fallback
+                  label: Text(loc.retry),
                 )
               ],
             ),
           );
         }
 
-        if (controller.activeSuppliers.isEmpty) {
+        if (suppliers.isEmpty) {
           return Center(
             child: Text(
               loc.noSuppliersFound,
@@ -64,9 +66,9 @@ class SupplierList extends StatelessWidget {
 
         return ListView.builder(
           padding: const EdgeInsets.only(bottom: AppTokens.spacingLarge),
-          itemCount: controller.activeSuppliers.length,
+          itemCount: suppliers.length,
           itemBuilder: (context, i) {
-            final s = controller.activeSuppliers[i];
+            final s = suppliers[i];
             final isSelected = controller.selectedIndex == i;
 
             return Container(

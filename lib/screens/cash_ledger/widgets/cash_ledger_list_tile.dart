@@ -49,16 +49,17 @@ class CashLedgerListTile extends StatelessWidget {
                   vertical: 2.0,
                 ),
                 decoration: BoxDecoration(
-                  color: entry.paymentMode == 'CASH'
+                  color: entry.paymentMode.isCash
                       ? colorScheme.tertiaryContainer
                       : colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(AppTokens.badgeBorderRadius),
+                  borderRadius:
+                      BorderRadius.circular(AppTokens.badgeBorderRadius),
                 ),
                 child: Text(
-                  entry.paymentMode == 'CASH' ? 'CASH' : entry.paymentMode,
+                  entry.paymentMode.dbValue,
                   style: textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: entry.paymentMode == 'CASH'
+                    color: entry.paymentMode.isCash
                         ? colorScheme.onTertiaryContainer
                         : colorScheme.onSecondaryContainer,
                   ),
@@ -67,7 +68,12 @@ class CashLedgerListTile extends StatelessWidget {
             ],
           ),
           subtitle: Text(
-            '${DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(entry.transactionDate)} | ${entry.transactionTime}',
+            [
+              DateFormat.yMMMd(Localizations.localeOf(context).toString())
+                  .format(entry.transactionDate),
+              if (entry.transactionTime?.isNotEmpty ?? false)
+                entry.transactionTime!,
+            ].join(' | '),
             style: textTheme.bodySmall?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -79,7 +85,8 @@ class CashLedgerListTile extends StatelessWidget {
               Text(
                 isIncome
                     ? loc.ledgerAmountIn(Money(entry.amount).formattedNoDecimal)
-                    : loc.ledgerAmountOut(Money(entry.amount).formattedNoDecimal),
+                    : loc.ledgerAmountOut(
+                        Money(entry.amount).formattedNoDecimal),
                 style: textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: isIncome ? colorScheme.primary : colorScheme.error,
@@ -87,7 +94,8 @@ class CashLedgerListTile extends StatelessWidget {
               ),
               if (entry.balanceAfter != null)
                 Text(
-                  loc.balanceShort(Money(entry.balanceAfter!).formattedNoDecimal),
+                  loc.balanceShort(
+                      Money(entry.balanceAfter!).formattedNoDecimal),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

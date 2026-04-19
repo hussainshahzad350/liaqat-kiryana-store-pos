@@ -13,7 +13,8 @@ class SupplierController extends ChangeNotifier {
   List<Supplier> archivedSuppliers = [];
   bool isLoading = true;
   bool isArchivedLoading = false;
-  String? errorMessage;
+  String? listErrorMessage;
+  String? statsErrorMessage;
 
   int countTotal = 0;
   int balTotal = 0;
@@ -29,6 +30,11 @@ class SupplierController extends ChangeNotifier {
   int _searchToken = 0;
   Timer? _searchDebounce;
   String _currentQuery = '';
+
+  List<Supplier> get visibleSuppliers =>
+      showArchive ? archivedSuppliers : activeSuppliers;
+
+  String? get errorMessage => listErrorMessage ?? statsErrorMessage;
 
   Future<void> init() async {
     isLoading = true;
@@ -55,9 +61,10 @@ class SupplierController extends ChangeNotifier {
       balActive = (s['balActive'] as num?)?.toInt() ?? 0;
       countArchived = (s['countArchived'] as num?)?.toInt() ?? 0;
       balArchived = (s['balArchived'] as num?)?.toInt() ?? 0;
+      statsErrorMessage = null;
       notifyListeners();
     } catch (e) {
-      errorMessage = e.toString();
+      statsErrorMessage = e.toString();
       notifyListeners();
     }
   }
@@ -73,22 +80,24 @@ class SupplierController extends ChangeNotifier {
       // Maintaining exact same method pattern without forced pagination to guarantee duplicate UX mapping
       final result = query.isEmpty
           ? await _repository.getActiveSuppliers()
-          : await _repository.searchSuppliers(query); // searchSuppliers doesn't explicitly filter by active, but active mapping will be done if needed, or query covers it.
+          : await _repository.searchSuppliers(
+              query,
+              activeOnly: true,
+            );
 
-      // We explicitly need active only for this view
-      final activeResult = result.map((e) => Supplier.fromMap(e)).where((e) => e.isActive).toList();
+      final activeResult = result.map((e) => Supplier.fromMap(e)).toList();
 
       if (token != _searchToken) return;
 
       activeSuppliers = activeResult;
       selectedIndex = -1;
       isLoading = false;
-      errorMessage = null;
+      listErrorMessage = null;
       notifyListeners();
     } catch (e) {
       if (token != _searchToken) return;
       isLoading = false;
-      errorMessage = e.toString();
+      listErrorMessage = e.toString();
       notifyListeners();
     }
   }
@@ -100,10 +109,11 @@ class SupplierController extends ChangeNotifier {
       final result = await _repository.getInactiveSuppliers();
       archivedSuppliers = result.map((e) => Supplier.fromMap(e)).toList();
       isArchivedLoading = false;
+      listErrorMessage = null;
       notifyListeners();
     } catch (e) {
       isArchivedLoading = false;
-      errorMessage = e.toString();
+      listErrorMessage = e.toString();
       notifyListeners();
     }
   }
@@ -134,7 +144,7 @@ class SupplierController extends ChangeNotifier {
       await _repository.toggleSupplierStatus(supplier.id!);
       await refresh();
     } catch (e) {
-      errorMessage = e.toString();
+      listErrorMessage = e.toString();
       notifyListeners();
     }
   }
@@ -143,9 +153,13 @@ class SupplierController extends ChangeNotifier {
     try {
       await _repository.deleteSupplier(supplier.id!);
       await refresh();
+      if (ledgerSupplier?.id == supplier.id) {
+        ledgerSupplier = null;
+      }
+      notifyListeners();
       return true;
     } catch (e) {
-      errorMessage = e.toString();
+      listErrorMessage = e.toString();
       notifyListeners();
       return false;
     }
@@ -167,29 +181,33 @@ class SupplierController extends ChangeNotifier {
       final updatedMap = await _repository.getSupplierById(ledgerSupplier!.id!);
       if (updatedMap != null) {
         ledgerSupplier = Supplier.fromMap(updatedMap);
-        notifyListeners();
+      } else {
+        ledgerSupplier = null;
       }
+      notifyListeners();
     } catch (e) {
       // Ignore background refresh errors
     }
   }
 
   void clearError() {
-    errorMessage = null;
+    listErrorMessage = null;
+    statsErrorMessage = null;
     notifyListeners();
   }
 
   void setSelectedIndex(int index) {
-    if (index >= -1 && index < activeSuppliers.length) {
+    if (index >= -1 && index < visibleSuppliers.length) {
       selectedIndex = index;
       notifyListeners();
     }
   }
 
   void handleKeyboardNavigation(bool isDown) {
-    if (activeSuppliers.isEmpty) return;
+    final suppliers = visibleSuppliers;
+    if (suppliers.isEmpty) return;
     if (isDown) {
-      if (selectedIndex < activeSuppliers.length - 1) {
+      if (selectedIndex < suppliers.length - 1) {
         selectedIndex++;
         notifyListeners();
       }
@@ -205,8 +223,9 @@ class SupplierController extends ChangeNotifier {
   }
 
   void submitSelected() {
-    if (selectedIndex >= 0 && selectedIndex < activeSuppliers.length) {
-      openLedger(activeSuppliers[selectedIndex]);
+    final suppliers = visibleSuppliers;
+    if (selectedIndex >= 0 && selectedIndex < suppliers.length) {
+      openLedger(suppliers[selectedIndex]);
     }
   }
 

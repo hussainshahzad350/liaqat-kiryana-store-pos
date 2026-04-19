@@ -32,7 +32,7 @@ class SuppliersRepository {
       whereArgs: [id],
       limit: 1,
     );
-    
+
     if (result.isEmpty) return null;
     return result.first;
   }
@@ -73,15 +73,23 @@ class SuppliersRepository {
   // ========================================
 
   /// Search suppliers by name or contact
-  Future<List<Map<String, dynamic>>> searchSuppliers(String query) async {
+  Future<List<Map<String, dynamic>>> searchSuppliers(
+    String query, {
+    bool activeOnly = false,
+  }) async {
     final db = await _dbHelper.database;
     final q = '%${query.toLowerCase()}%';
-    
+
+    final activeFilter = activeOnly ? ' AND is_active = 1' : '';
+
     return await db.rawQuery('''
       SELECT * FROM suppliers 
-      WHERE LOWER(name_english) LIKE ? 
-      OR LOWER(name_urdu) LIKE ?
-      OR contact_primary LIKE ?
+      WHERE (
+        LOWER(name_english) LIKE ? 
+        OR LOWER(name_urdu) LIKE ?
+        OR contact_primary LIKE ?
+      )
+      $activeFilter
       ORDER BY name_english ASC
     ''', [q, q, query]);
   }
@@ -99,7 +107,8 @@ class SuppliersRepository {
       final q = '%$query%';
       maps = await db.query(
         'suppliers',
-        where: 'name_english LIKE ? OR name_urdu LIKE ? OR contact_primary LIKE ?',
+        where:
+            'name_english LIKE ? OR name_urdu LIKE ? OR contact_primary LIKE ?',
         whereArgs: [q, q, q],
         orderBy: 'name_english ASC',
         limit: limit,
@@ -159,7 +168,7 @@ class SuppliersRepository {
     int adjustment,
   ) async {
     final db = await _dbHelper.database;
-    
+
     return await db.transaction((txn) async {
       // Get current balance
       final result = await txn.query(
@@ -174,7 +183,8 @@ class SuppliersRepository {
         throw Exception('Supplier not found');
       }
 
-      final currentBalance = (result.first['outstanding_balance'] as num).toInt();
+      final currentBalance =
+          (result.first['outstanding_balance'] as num).toInt();
       final newBalance = currentBalance + adjustment;
 
       // Update balance
@@ -199,9 +209,8 @@ class SuppliersRepository {
       });
 
       await txn.rawUpdate(
-        'UPDATE suppliers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
-        [amount, supplierId]
-      );
+          'UPDATE suppliers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
+          [amount, supplierId]);
     });
   }
 
@@ -218,9 +227,8 @@ class SuppliersRepository {
   /// Get total outstanding balance to suppliers
   Future<int> getTotalOutstandingBalance() async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery(
-      'SELECT SUM(outstanding_balance) as total FROM suppliers'
-    );
+    final result = await db
+        .rawQuery('SELECT SUM(outstanding_balance) as total FROM suppliers');
     return (result.first['total'] as num?)?.toInt() ?? 0;
   }
 
@@ -254,9 +262,9 @@ class SuppliersRepository {
   Future<int> toggleSupplierStatus(int supplierId) async {
     final supplier = await getSupplierById(supplierId);
     if (supplier == null) return 0;
-    
+
     final isActive = (supplier['is_active'] as int) == 1;
-    return await (isActive 
+    return await (isActive
         ? deactivateSupplier(supplierId)
         : activateSupplier(supplierId));
   }
@@ -276,8 +284,7 @@ class SuppliersRepository {
   Future<int> getActiveSupplierCount() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM suppliers WHERE is_active = 1'
-    );
+        'SELECT COUNT(*) as count FROM suppliers WHERE is_active = 1');
     return (result.first['count'] as int?) ?? 0;
   }
 
@@ -307,11 +314,13 @@ class SuppliersRepository {
   Future<Map<String, dynamic>> getSupplierStats() async {
     final db = await _dbHelper.database;
 
-    final activeRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM suppliers WHERE is_active = 1');
+    final activeRes = await db.rawQuery(
+        'SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM suppliers WHERE is_active = 1');
     final countActive = (activeRes.first['count'] as int?) ?? 0;
     final balActive = (activeRes.first['total'] as num? ?? 0).toInt();
 
-    final archRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM suppliers WHERE is_active = 0');
+    final archRes = await db.rawQuery(
+        'SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM suppliers WHERE is_active = 0');
     final countArchived = (archRes.first['count'] as int?) ?? 0;
     final balArchived = (archRes.first['total'] as num? ?? 0).toInt();
 
@@ -332,10 +341,10 @@ class SuppliersRepository {
   /// Bulk activate suppliers
   Future<int> bulkActivateSuppliers(List<int> supplierIds) async {
     if (supplierIds.isEmpty) return 0;
-    
+
     final db = await _dbHelper.database;
     final placeholders = List.filled(supplierIds.length, '?').join(',');
-    
+
     return await db.rawUpdate(
       'UPDATE suppliers SET is_active = 1 WHERE id IN ($placeholders)',
       supplierIds,
@@ -345,10 +354,10 @@ class SuppliersRepository {
   /// Bulk deactivate suppliers
   Future<int> bulkDeactivateSuppliers(List<int> supplierIds) async {
     if (supplierIds.isEmpty) return 0;
-    
+
     final db = await _dbHelper.database;
     final placeholders = List.filled(supplierIds.length, '?').join(',');
-    
+
     return await db.rawUpdate(
       'UPDATE suppliers SET is_active = 0 WHERE id IN ($placeholders)',
       supplierIds,
@@ -358,10 +367,10 @@ class SuppliersRepository {
   /// Bulk delete suppliers
   Future<int> bulkDeleteSuppliers(List<int> supplierIds) async {
     if (supplierIds.isEmpty) return 0;
-    
+
     final db = await _dbHelper.database;
     final placeholders = List.filled(supplierIds.length, '?').join(',');
-    
+
     return await db.rawDelete(
       'DELETE FROM suppliers WHERE id IN ($placeholders)',
       supplierIds,
@@ -375,36 +384,38 @@ class SuppliersRepository {
   /// Check if supplier name exists
   Future<bool> supplierNameExists(String name, {int? excludeId}) async {
     final db = await _dbHelper.database;
-    
-    String query = 'SELECT COUNT(*) as count FROM suppliers WHERE name_english = ?';
+
+    String query =
+        'SELECT COUNT(*) as count FROM suppliers WHERE name_english = ?';
     List<dynamic> args = [name];
-    
+
     if (excludeId != null) {
       query += ' AND id != ?';
       args.add(excludeId);
     }
-    
+
     final result = await db.rawQuery(query, args);
     final count = (result.first['count'] as int?) ?? 0;
-    
+
     return count > 0;
   }
 
   /// Check if supplier contact exists
   Future<bool> supplierContactExists(String contact, {int? excludeId}) async {
     final db = await _dbHelper.database;
-    
-    String query = 'SELECT COUNT(*) as count FROM suppliers WHERE contact_primary = ?';
+
+    String query =
+        'SELECT COUNT(*) as count FROM suppliers WHERE contact_primary = ?';
     List<dynamic> args = [contact];
-    
+
     if (excludeId != null) {
       query += ' AND id != ?';
       args.add(excludeId);
     }
-    
+
     final result = await db.rawQuery(query, args);
     final count = (result.first['count'] as int?) ?? 0;
-    
+
     return count > 0;
   }
 
@@ -439,7 +450,8 @@ class SuppliersRepository {
   }
 
   /// Get supplier ledger
-  Future<List<Map<String, dynamic>>> getSupplierLedger(int supplierId, {DateTime? startDate, DateTime? endDate}) async {
+  Future<List<Map<String, dynamic>>> getSupplierLedger(int supplierId,
+      {DateTime? startDate, DateTime? endDate}) async {
     final db = await _dbHelper.database;
 
     // 1. Fetch Purchases (Bills)
@@ -498,10 +510,14 @@ class SuppliersRepository {
     // Filter by date after calculation to preserve running balance
     if (startDate != null || endDate != null) {
       final start = startDate ?? DateTime(1900);
-      final end = endDate != null ? DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59) : DateTime(2100);
+      final end = endDate != null
+          ? DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
+          : DateTime(2100);
       finalLedger = finalLedger.where((row) {
-        final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
-        return date.isAfter(start.subtract(const Duration(seconds: 1))) && date.isBefore(end);
+        final date =
+            DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
+        return date.isAfter(start.subtract(const Duration(seconds: 1))) &&
+            date.isBefore(end);
       }).toList();
     }
 

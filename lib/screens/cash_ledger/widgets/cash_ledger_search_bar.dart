@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/res/app_tokens.dart';
 import '../controller/cash_ledger_controller.dart';
 
@@ -14,27 +15,32 @@ class CashLedgerSearchBar extends StatefulWidget {
 
 class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
   final _searchCtrl = TextEditingController();
+  late final FocusNode _focusNode;
+
+  void _handleSearchTextChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    // Initialize controller with current filter mode
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<CashLedgerController>();
-        setState(() {}); // refresh after provider read
-      }
-    });
+    _focusNode = FocusNode();
+    _searchCtrl.addListener(_handleSearchTextChanged);
   }
 
   @override
   void dispose() {
+    _searchCtrl.removeListener(_handleSearchTextChanged);
     _searchCtrl.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -47,7 +53,7 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
               // Search Input
               Expanded(
                 child: KeyboardListener(
-                  focusNode: FocusNode(),
+                  focusNode: _focusNode,
                   onKeyEvent: (event) {
                     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
                       _searchCtrl.clear();
@@ -102,10 +108,10 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
                     value: controller.paymentModeFilter,
                     icon: Icon(Icons.filter_list, color: colorScheme.onSurfaceVariant),
                     dropdownColor: colorScheme.surface,
-                    items: const [
-                      DropdownMenuItem(value: 'ALL', child: Text("All Modes")),
-                      DropdownMenuItem(value: 'CASH', child: Text("Physical Cash")),
-                      DropdownMenuItem(value: 'DIGITAL', child: Text("Digital Bank")),
+                    items: [
+                      DropdownMenuItem(value: 'ALL', child: Text(loc.allModes)),
+                      DropdownMenuItem(value: 'CASH', child: Text(loc.physicalCash)),
+                      DropdownMenuItem(value: 'DIGITAL', child: Text(loc.digitalBank)),
                     ],
                     onChanged: (val) {
                       if (val != null) controller.setPaymentModeFilter(val);

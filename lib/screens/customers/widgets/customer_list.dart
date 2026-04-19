@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/res/app_tokens.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../models/customer_model.dart';
 import '../controller/customer_controller.dart';
 import 'customer_list_tile.dart';
 
 class CustomerList extends StatelessWidget {
-  final Function(dynamic) onEdit;
-  final Function(dynamic) onDelete;
+  final void Function(Customer) onEdit;
+  final void Function(Customer) onDelete;
 
   const CustomerList({
-    super.key, 
+    super.key,
     required this.onEdit,
     required this.onDelete,
   });
@@ -24,7 +25,8 @@ class CustomerList extends StatelessWidget {
     return Consumer<CustomerController>(
       builder: (context, controller, child) {
         if (controller.isLoading) {
-          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+          return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (controller.errorMessage != null) {
@@ -36,7 +38,8 @@ class CustomerList extends StatelessWidget {
                 const SizedBox(height: AppTokens.spacingMedium),
                 Text(
                   controller.errorMessage!,
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+                  style:
+                      textTheme.bodyMedium?.copyWith(color: colorScheme.error),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppTokens.spacingMedium),
@@ -46,7 +49,7 @@ class CustomerList extends StatelessWidget {
                     controller.refresh();
                   },
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'), // Keeping hardcoded string for prompt missing loc
+                  label: Text(loc.retry),
                 )
               ],
             ),
@@ -57,7 +60,8 @@ class CustomerList extends StatelessWidget {
           return Center(
             child: Text(
               loc.noCustomersFound,
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           );
         }
@@ -70,7 +74,9 @@ class CustomerList extends StatelessWidget {
             final isSelected = controller.selectedIndex == i;
 
             return Container(
-              color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : Colors.transparent,
+              color: isSelected
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                  : Colors.transparent,
               child: MouseRegion(
                 onEnter: (_) => controller.setSelectedIndex(i),
                 child: CustomerListTile(

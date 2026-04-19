@@ -13,7 +13,7 @@ CashLedger _makeEntry({
   int id = 1,
   String type = 'IN',
   int amount = 1000,
-  String paymentMode = 'CASH',
+  PaymentMode paymentMode = PaymentMode.cash,
   DateTime? date,
 }) {
   return CashLedger(
@@ -40,10 +40,15 @@ void main() {
         .thenAnswer((_) async => Money.fromPaisas(5000));
     when(() => mockRepo.getCashLedgerByDateRange(any(), any()))
         .thenAnswer((_) async => []);
-    when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-        .thenAnswer((_) async => []);
-    when(() => mockRepo.searchCashLedger(any()))
-        .thenAnswer((_) async => []);
+    when(() => mockRepo.getCashLedger(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+          paymentModeFilter: any(named: 'paymentModeFilter'),
+        )).thenAnswer((_) async => []);
+    when(() => mockRepo.searchCashLedger(
+          any(),
+          paymentModeFilter: any(named: 'paymentModeFilter'),
+        )).thenAnswer((_) async => []);
 
     controller = CashLedgerController(mockRepo);
   });
@@ -104,10 +109,15 @@ void main() {
       expect(controller.allEntries, isEmpty);
     });
 
-    test('sets hasNextPage false when repository returns fewer than limit', () async {
+    test('sets hasNextPage false when repository returns fewer than limit',
+        () async {
       // Returns 5 entries (less than the internal limit of 20)
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => List.generate(5, (i) => _makeEntry(id: i + 1)));
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .thenAnswer(
+              (_) async => List.generate(5, (i) => _makeEntry(id: i + 1)));
 
       await controller.refresh();
 
@@ -115,8 +125,12 @@ void main() {
     });
 
     test('sets hasNextPage true when repository returns full page', () async {
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => List.generate(20, (i) => _makeEntry(id: i + 1)));
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .thenAnswer(
+              (_) async => List.generate(20, (i) => _makeEntry(id: i + 1)));
 
       await controller.refresh();
 
@@ -128,12 +142,28 @@ void main() {
   // _loadStats() – tested indirectly via refresh()
   // ---------------------------------------------------------------------------
   group('Stats computation (_loadStats)', () {
-    test('computes totalInflow as sum of all inflow amounts for today', () async {
+    test('computes totalInflow as sum of all inflow amounts for today',
+        () async {
       final today = DateTime.now();
       final entries = [
-        _makeEntry(id: 1, type: 'IN', amount: 3000, paymentMode: 'CASH', date: today),
-        _makeEntry(id: 2, type: 'IN', amount: 2000, paymentMode: 'BANK', date: today),
-        _makeEntry(id: 3, type: 'OUT', amount: 1000, paymentMode: 'CASH', date: today),
+        _makeEntry(
+            id: 1,
+            type: 'IN',
+            amount: 3000,
+            paymentMode: PaymentMode.cash,
+            date: today),
+        _makeEntry(
+            id: 2,
+            type: 'IN',
+            amount: 2000,
+            paymentMode: PaymentMode.bank,
+            date: today),
+        _makeEntry(
+            id: 3,
+            type: 'OUT',
+            amount: 1000,
+            paymentMode: PaymentMode.cash,
+            date: today),
       ];
 
       when(() => mockRepo.getCashLedgerByDateRange(any(), any()))
@@ -148,9 +178,24 @@ void main() {
     test('computes totalDigitalIn as sum of non-CASH inflow amounts', () async {
       final today = DateTime.now();
       final entries = [
-        _makeEntry(id: 1, type: 'IN', amount: 3000, paymentMode: 'CASH', date: today),
-        _makeEntry(id: 2, type: 'IN', amount: 2000, paymentMode: 'BANK', date: today),
-        _makeEntry(id: 3, type: 'IN', amount: 1500, paymentMode: 'EASYPAISA', date: today),
+        _makeEntry(
+            id: 1,
+            type: 'IN',
+            amount: 3000,
+            paymentMode: PaymentMode.cash,
+            date: today),
+        _makeEntry(
+            id: 2,
+            type: 'IN',
+            amount: 2000,
+            paymentMode: PaymentMode.bank,
+            date: today),
+        _makeEntry(
+            id: 3,
+            type: 'IN',
+            amount: 1500,
+            paymentMode: PaymentMode.easyPaisa,
+            date: today),
       ];
 
       when(() => mockRepo.getCashLedgerByDateRange(any(), any()))
@@ -165,8 +210,18 @@ void main() {
     test('OUT entries do not affect totalInflow', () async {
       final today = DateTime.now();
       final entries = [
-        _makeEntry(id: 1, type: 'OUT', amount: 5000, paymentMode: 'CASH', date: today),
-        _makeEntry(id: 2, type: 'OUT', amount: 3000, paymentMode: 'BANK', date: today),
+        _makeEntry(
+            id: 1,
+            type: 'OUT',
+            amount: 5000,
+            paymentMode: PaymentMode.cash,
+            date: today),
+        _makeEntry(
+            id: 2,
+            type: 'OUT',
+            amount: 3000,
+            paymentMode: PaymentMode.bank,
+            date: today),
       ];
 
       when(() => mockRepo.getCashLedgerByDateRange(any(), any()))
@@ -181,7 +236,12 @@ void main() {
     test('OPENING type entries are counted as inflow in stats', () async {
       final today = DateTime.now();
       final entries = [
-        _makeEntry(id: 1, type: 'OPENING', amount: 10000, paymentMode: 'CASH', date: today),
+        _makeEntry(
+            id: 1,
+            type: 'OPENING',
+            amount: 10000,
+            paymentMode: PaymentMode.cash,
+            date: today),
       ];
 
       when(() => mockRepo.getCashLedgerByDateRange(any(), any()))
@@ -199,12 +259,15 @@ void main() {
   group('Payment mode filtering', () {
     test('ALL filter keeps all entries regardless of payment mode', () async {
       final entries = [
-        _makeEntry(id: 1, paymentMode: 'CASH'),
-        _makeEntry(id: 2, paymentMode: 'BANK'),
-        _makeEntry(id: 3, paymentMode: 'EASYPAISA'),
+        _makeEntry(id: 1, paymentMode: PaymentMode.cash),
+        _makeEntry(id: 2, paymentMode: PaymentMode.bank),
+        _makeEntry(id: 3, paymentMode: PaymentMode.easyPaisa),
       ];
 
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
           .thenAnswer((_) async => entries);
 
       controller.paymentModeFilter = 'ALL';
@@ -215,48 +278,52 @@ void main() {
 
     test('CASH filter keeps only CASH entries', () async {
       final entries = [
-        _makeEntry(id: 1, paymentMode: 'CASH'),
-        _makeEntry(id: 2, paymentMode: 'BANK'),
-        _makeEntry(id: 3, paymentMode: 'CASH'),
-        _makeEntry(id: 4, paymentMode: 'EASYPAISA'),
+        _makeEntry(id: 1, paymentMode: PaymentMode.cash),
+        _makeEntry(id: 2, paymentMode: PaymentMode.bank),
+        _makeEntry(id: 3, paymentMode: PaymentMode.cash),
+        _makeEntry(id: 4, paymentMode: PaymentMode.easyPaisa),
       ];
+      final cashOnly = [entries[0], entries[2]];
 
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => entries);
+      when(() => mockRepo.getCashLedger(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+          paymentModeFilter: 'CASH')).thenAnswer((_) async => cashOnly);
 
       controller.paymentModeFilter = 'CASH';
       await controller.refresh();
 
       expect(controller.allEntries.length, 2);
-      expect(controller.allEntries.every((e) => e.paymentMode == 'CASH'), true);
+      expect(controller.allEntries.every((e) => e.paymentMode.isCash), true);
     });
 
     test('DIGITAL filter keeps only non-CASH entries', () async {
       final entries = [
-        _makeEntry(id: 1, paymentMode: 'CASH'),
-        _makeEntry(id: 2, paymentMode: 'BANK'),
-        _makeEntry(id: 3, paymentMode: 'CARD'),
-        _makeEntry(id: 4, paymentMode: 'CASH'),
+        _makeEntry(id: 1, paymentMode: PaymentMode.cash),
+        _makeEntry(id: 2, paymentMode: PaymentMode.bank),
+        _makeEntry(id: 3, paymentMode: PaymentMode.card),
+        _makeEntry(id: 4, paymentMode: PaymentMode.cash),
       ];
+      final digitalOnly = [entries[1], entries[2]];
 
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => entries);
+      when(() => mockRepo.getCashLedger(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+          paymentModeFilter: 'DIGITAL')).thenAnswer((_) async => digitalOnly);
 
       controller.paymentModeFilter = 'DIGITAL';
       await controller.refresh();
 
       expect(controller.allEntries.length, 2);
-      expect(controller.allEntries.every((e) => e.paymentMode != 'CASH'), true);
+      expect(controller.allEntries.every((e) => !e.paymentMode.isCash), true);
     });
 
-    test('DIGITAL filter with all CASH entries results in empty list', () async {
-      final entries = [
-        _makeEntry(id: 1, paymentMode: 'CASH'),
-        _makeEntry(id: 2, paymentMode: 'CASH'),
-      ];
-
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => entries);
+    test('DIGITAL filter with all CASH entries results in empty list',
+        () async {
+      when(() => mockRepo.getCashLedger(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+          paymentModeFilter: 'DIGITAL')).thenAnswer((_) async => []);
 
       controller.paymentModeFilter = 'DIGITAL';
       await controller.refresh();
@@ -269,9 +336,11 @@ void main() {
   // Date filter (updateDate)
   // ---------------------------------------------------------------------------
   group('updateDate()', () {
-    test('setting a date triggers refresh and uses getCashLedgerByDateRange', () async {
+    test('setting a date triggers refresh and uses getCashLedgerByDateRange',
+        () async {
       final entries = [_makeEntry(id: 1)];
-      when(() => mockRepo.getCashLedgerByDateRange(any(), any()))
+      when(() => mockRepo.getCashLedgerByDateRange(any(), any(),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
           .thenAnswer((_) async => entries);
 
       controller.updateDate(DateTime(2024, 3, 15));
@@ -280,10 +349,14 @@ void main() {
       await Future.delayed(Duration.zero);
 
       expect(controller.selectedDate, DateTime(2024, 3, 15));
-      verify(() => mockRepo.getCashLedgerByDateRange(any(), any())).called(greaterThan(0));
+      verify(() => mockRepo.getCashLedgerByDateRange(any(), any(),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .called(greaterThan(0));
     });
 
-    test('setting date to null clears selectedDate and reverts to paginated view', () async {
+    test(
+        'setting date to null clears selectedDate and reverts to paginated view',
+        () async {
       controller.selectedDate = DateTime(2024, 3, 15);
       controller.updateDate(null);
 
@@ -292,9 +365,12 @@ void main() {
       expect(controller.selectedDate, isNull);
     });
 
-    test('date filter disables further pagination (hasNextPage = false)', () async {
-      when(() => mockRepo.getCashLedgerByDateRange(any(), any()))
-          .thenAnswer((_) async => List.generate(50, (i) => _makeEntry(id: i + 1)));
+    test('date filter disables further pagination (hasNextPage = false)',
+        () async {
+      when(() => mockRepo.getCashLedgerByDateRange(any(), any(),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .thenAnswer(
+              (_) async => List.generate(50, (i) => _makeEntry(id: i + 1)));
 
       await controller.init();
       controller.updateDate(DateTime(2024, 6, 1));
@@ -310,20 +386,26 @@ void main() {
   // Search filter (setSearchQuery)
   // ---------------------------------------------------------------------------
   group('setSearchQuery()', () {
-    test('non-empty query uses searchCashLedger instead of getCashLedger', () async {
+    test('non-empty query uses searchCashLedger instead of getCashLedger',
+        () async {
       final entries = [_makeEntry(id: 1)];
-      when(() => mockRepo.searchCashLedger('sale'))
+      when(() => mockRepo.searchCashLedger('sale',
+              paymentModeFilter: any(named: 'paymentModeFilter')))
           .thenAnswer((_) async => entries);
 
       controller.setSearchQuery('sale');
       await Future.delayed(Duration.zero);
 
-      verify(() => mockRepo.searchCashLedger('sale')).called(greaterThan(0));
+      verify(() => mockRepo.searchCashLedger('sale',
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .called(greaterThan(0));
     });
 
     test('non-empty query sets hasNextPage to false', () async {
-      when(() => mockRepo.searchCashLedger(any()))
-          .thenAnswer((_) async => List.generate(50, (i) => _makeEntry(id: i + 1)));
+      when(() => mockRepo.searchCashLedger(any(),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .thenAnswer(
+              (_) async => List.generate(50, (i) => _makeEntry(id: i + 1)));
 
       await controller.init();
       controller.setSearchQuery('some query');
@@ -339,6 +421,7 @@ void main() {
       verify(() => mockRepo.getCashLedger(
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
+            paymentModeFilter: any(named: 'paymentModeFilter'),
           )).called(greaterThan(0));
     });
   });
@@ -357,12 +440,20 @@ void main() {
 
     test('switching from ALL to DIGITAL removes CASH entries', () async {
       final allEntries = [
-        _makeEntry(id: 1, paymentMode: 'CASH'),
-        _makeEntry(id: 2, paymentMode: 'BANK'),
+        _makeEntry(id: 1, paymentMode: PaymentMode.cash),
+        _makeEntry(id: 2, paymentMode: PaymentMode.bank),
       ];
+      final digitalEntries = [allEntries[1]];
 
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => allEntries);
+      when(() => mockRepo.getCashLedger(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+          paymentModeFilter: 'ALL')).thenAnswer((_) async => allEntries);
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: 'DIGITAL'))
+          .thenAnswer((_) async => digitalEntries);
 
       await controller.refresh();
       expect(controller.allEntries.length, 2);
@@ -370,7 +461,7 @@ void main() {
       controller.setPaymentModeFilter('DIGITAL');
       await Future.delayed(const Duration(milliseconds: 50));
 
-      expect(controller.allEntries.every((e) => e.paymentMode != 'CASH'), true);
+      expect(controller.allEntries.every((e) => !e.paymentMode.isCash), true);
     });
   });
 
@@ -389,6 +480,7 @@ void main() {
         () => mockRepo.getCashLedger(
           limit: any(named: 'limit'),
           offset: any(named: 'offset'),
+          paymentModeFilter: any(named: 'paymentModeFilter'),
         ),
       ).callCount;
       // Just verify no crash and state unchanged
@@ -405,6 +497,7 @@ void main() {
       verifyNever(() => mockRepo.getCashLedger(
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
+            paymentModeFilter: any(named: 'paymentModeFilter'),
           ));
     });
 
@@ -422,7 +515,8 @@ void main() {
     });
 
     test('does nothing when searchQuery is non-empty', () async {
-      when(() => mockRepo.searchCashLedger(any()))
+      when(() => mockRepo.searchCashLedger(any(),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
           .thenAnswer((_) async => [_makeEntry()]);
 
       controller.searchQuery = 'test';
@@ -441,15 +535,20 @@ void main() {
       await controller.loadMore();
 
       // No additional calls beyond the initial refresh
-      expect(controller.isLoadMoreRunning, true); // Still true, we short-circuited
+      expect(
+          controller.isLoadMoreRunning, true); // Still true, we short-circuited
     });
 
-    test('appends entries from next page and preserves existing entries', () async {
+    test('appends entries from next page and preserves existing entries',
+        () async {
       final page0 = List.generate(20, (i) => _makeEntry(id: i + 1));
       final page1 = List.generate(10, (i) => _makeEntry(id: i + 21));
 
       var callCount = 0;
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
           .thenAnswer((_) async {
         callCount++;
         if (callCount == 1) return page0;
@@ -466,14 +565,23 @@ void main() {
       expect(controller.hasNextPage, false); // page1 has 10 < 20
     });
 
-    test('sets hasNextPage false when loaded page is less than limit', () async {
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => List.generate(20, (i) => _makeEntry(id: i + 1)));
+    test('sets hasNextPage false when loaded page is less than limit',
+        () async {
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .thenAnswer(
+              (_) async => List.generate(20, (i) => _makeEntry(id: i + 1)));
 
       await controller.refresh();
 
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => List.generate(5, (i) => _makeEntry(id: i + 21)));
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .thenAnswer(
+              (_) async => List.generate(5, (i) => _makeEntry(id: i + 21)));
 
       await controller.loadMore();
 
@@ -481,8 +589,12 @@ void main() {
     });
 
     test('sets isLoadMoreRunning back to false after completion', () async {
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => List.generate(20, (i) => _makeEntry(id: i + 1)));
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .thenAnswer(
+              (_) async => List.generate(20, (i) => _makeEntry(id: i + 1)));
 
       await controller.refresh();
       await controller.loadMore();
@@ -491,12 +603,19 @@ void main() {
     });
 
     test('sets isLoadMoreRunning to false even on error', () async {
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async => List.generate(20, (i) => _makeEntry(id: i + 1)));
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .thenAnswer(
+              (_) async => List.generate(20, (i) => _makeEntry(id: i + 1)));
 
       await controller.refresh();
 
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
           .thenThrow(Exception('Load more error'));
 
       await controller.loadMore();
@@ -506,31 +625,31 @@ void main() {
     });
 
     test('applies paymentMode filter to appended entries', () async {
-      final page0 = List.generate(20, (i) => _makeEntry(id: i + 1, paymentMode: 'CASH'));
-      final page1 = [
-        _makeEntry(id: 21, paymentMode: 'BANK'),
-        _makeEntry(id: 22, paymentMode: 'CASH'),
+      final filteredPage0 = List.generate(
+          20, (i) => _makeEntry(id: i + 1, paymentMode: PaymentMode.bank));
+      final filteredPage1 = [
+        _makeEntry(id: 21, paymentMode: PaymentMode.bank),
       ];
 
       var callCount = 0;
-      when(() => mockRepo.getCashLedger(limit: any(named: 'limit'), offset: any(named: 'offset')))
-          .thenAnswer((_) async {
+      when(() => mockRepo.getCashLedger(
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+          paymentModeFilter: 'DIGITAL')).thenAnswer((_) async {
         callCount++;
-        if (callCount == 1) return page0;
-        return page1;
+        if (callCount == 1) return filteredPage0;
+        return filteredPage1;
       });
 
       controller.paymentModeFilter = 'DIGITAL';
       await controller.refresh();
 
-      // page0 all CASH, DIGITAL filter => 0 entries
-      expect(controller.allEntries, isEmpty);
+      expect(controller.allEntries.length, 20);
 
       await controller.loadMore();
 
-      // From page1, only id=21 (BANK) passes filter
-      expect(controller.allEntries.length, 1);
-      expect(controller.allEntries.first.id, 21);
+      expect(controller.allEntries.length, 21);
+      expect(controller.allEntries.last.id, 21);
     });
   });
 
@@ -538,7 +657,8 @@ void main() {
   // notifyListeners() coverage
   // ---------------------------------------------------------------------------
   group('notifyListeners integration', () {
-    test('refresh notifies listeners at least twice (loading then loaded)', () async {
+    test('refresh notifies listeners at least twice (loading then loaded)',
+        () async {
       int notifyCount = 0;
       controller.addListener(() => notifyCount++);
 

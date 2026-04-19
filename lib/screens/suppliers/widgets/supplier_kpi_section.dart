@@ -12,11 +12,11 @@ class SupplierKpiSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    
+
     return Consumer<SupplierController>(
       builder: (context, controller, child) {
-        return SizedBox(
-          height: 115.0,
+        return ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 115.0),
           child: Row(
             children: [
               Expanded(

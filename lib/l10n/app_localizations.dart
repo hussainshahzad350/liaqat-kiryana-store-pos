@@ -2774,6 +2774,36 @@ abstract class AppLocalizations {
   /// **'Total'**
   String get dashboardTotal;
 
+  /// No description provided for @digitalCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Collections'**
+  String get digitalCollections;
+
+  /// No description provided for @cashInDrawer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash In Drawer'**
+  String get cashInDrawer;
+
+  /// No description provided for @allModes.
+  ///
+  /// In en, this message translates to:
+  /// **'All Modes'**
+  String get allModes;
+
+  /// No description provided for @physicalCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical Cash'**
+  String get physicalCash;
+
+  /// No description provided for @digitalBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital Bank'**
+  String get digitalBank;
+
   /// No description provided for @dashboardActive.
   ///
   /// In en, this message translates to:
@@ -2815,6 +2845,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone (Unique)'**
   String get phoneLabel;
+
+  /// No description provided for @supplierType.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier Type'**
+  String get supplierType;
 
   /// No description provided for @addressLabel.
   ///

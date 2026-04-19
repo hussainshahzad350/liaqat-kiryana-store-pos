@@ -25,9 +25,13 @@ class CustomerKpiCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final containerColor = colorScheme.primaryContainer;
-    final contentColor = colorScheme.onPrimaryContainer;
-    final borderColor = colorScheme.primary;
+    final containerColor = isTertiary
+        ? colorScheme.tertiaryContainer
+        : colorScheme.primaryContainer;
+    final contentColor = isTertiary
+        ? colorScheme.onTertiaryContainer
+        : colorScheme.onPrimaryContainer;
+    final borderColor = isTertiary ? colorScheme.tertiary : colorScheme.primary;
 
     return Card(
       elevation: AppTokens.cardElevation,

@@ -126,6 +126,12 @@ class CustomerController extends ChangeNotifier {
   }
 
   Future<void> toggleArchiveStatus(Customer customer) async {
+    if (customer.id == null) {
+      errorMessage = 'Customer ID is missing';
+      notifyListeners();
+      return;
+    }
+
     try {
       final updated = customer.copyWith(isActive: !customer.isActive);
       await _repository.updateCustomer(customer.id!, updated);
@@ -137,9 +143,17 @@ class CustomerController extends ChangeNotifier {
   }
 
   Future<bool> deleteCustomer(Customer customer) async {
+    if (customer.id == null) {
+      errorMessage = 'Customer ID is missing';
+      notifyListeners();
+      return false;
+    }
+
     try {
       await _repository.deleteCustomer(customer.id!);
       await refresh();
+      ledgerCustomer = null;
+      notifyListeners();
       return true;
     } catch (e) {
       errorMessage = e.toString();
@@ -164,8 +178,10 @@ class CustomerController extends ChangeNotifier {
       final updated = await _repository.getCustomerById(ledgerCustomer!.id!);
       if (updated != null) {
         ledgerCustomer = updated;
-        notifyListeners();
+      } else {
+        ledgerCustomer = null;
       }
+      notifyListeners();
     } catch (e) {
       // Ignore background refresh errors
     }

@@ -85,12 +85,16 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
         if (!isUnique) throw Exception(loc.phoneExistsError);
       }
 
-      Money? parsedBalance;
-      try {
-        parsedBalance = Money.fromRupeesString(_balanceCtrl.text);
-      } catch (_) {
+      final balanceText = _balanceCtrl.text.trim();
+      final normalizedBalance = balanceText
+          .replaceAll(',', '')
+          .replaceAll(RegExp(r'rs\.?', caseSensitive: false), '')
+          .trim();
+      if (normalizedBalance.isNotEmpty &&
+          double.tryParse(normalizedBalance) == null) {
         throw Exception(loc.invalidAmount);
       }
+      final parsedBalance = Money.fromRupeesString(normalizedBalance);
 
       final suppMap = {
         'name_english': _nameEnCtrl.text.trim(),
@@ -164,7 +168,6 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
             ),
             const Divider(),
             const SizedBox(height: AppTokens.spacingMedium),
-
             Flexible(
               child: SingleChildScrollView(
                 child: Column(
@@ -201,7 +204,7 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
                     const SizedBox(height: AppTokens.spacingMedium),
                     _Field(
                       controller: _typeCtrl,
-                      label: "Supplier Type",
+                      label: loc.supplierType,
                       icon: Icons.category,
                     ),
                     const SizedBox(height: AppTokens.spacingMedium),
@@ -215,9 +218,7 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
                 ),
               ),
             ),
-
             const SizedBox(height: AppTokens.spacingLarge),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -237,7 +238,7 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
                             color: colorScheme.onPrimary,
                           ),
                         )
-                      : Text(isEdit ? loc.update : loc.save),
+                      : Text(_isEdit ? loc.update : loc.save),
                 ),
               ],
             ),
@@ -246,8 +247,6 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
       ),
     );
   }
-
-  bool get isEdit => widget.supplier != null;
 }
 
 class _Field extends StatelessWidget {

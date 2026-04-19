@@ -68,14 +68,15 @@ class CashLedgerController extends ChangeNotifier {
 
     // Pull today's entries to compute daily inflow split
     final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final dayEntries = await _repository.getCashLedgerByDateRange(todayStr, todayStr);
+    final dayEntries =
+        await _repository.getCashLedgerByDateRange(todayStr, todayStr);
 
     int cashInPaisas = 0;
     int digitalInPaisas = 0;
 
     for (var entry in dayEntries) {
       if (entry.isInflow) {
-        if (entry.paymentMode == 'CASH') {
+        if (entry.paymentMode.isCash) {
           cashInPaisas += entry.amount;
         } else {
           digitalInPaisas += entry.amount;
@@ -93,23 +94,36 @@ class CashLedgerController extends ChangeNotifier {
     if (selectedDate != null) {
       // Date-filtered mode
       final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate!);
-      data = await _repository.getCashLedgerByDateRange(dateStr, dateStr);
+      data = await _repository.getCashLedgerByDateRange(
+        dateStr,
+        dateStr,
+        paymentModeFilter: paymentModeFilter,
+      );
       hasNextPage = false; // date-range loads all at once
     } else if (searchQuery.isNotEmpty) {
       // Search mode
-      data = await _repository.searchCashLedger(searchQuery);
+      data = await _repository.searchCashLedger(
+        searchQuery,
+        paymentModeFilter: paymentModeFilter,
+      );
       hasNextPage = false;
     } else {
       // Default: paginated all-time view (matches old screen behavior)
-      data = await _repository.getCashLedger(limit: _limit, offset: 0);
+      data = await _repository.getCashLedger(
+        limit: _limit,
+        offset: 0,
+        paymentModeFilter: paymentModeFilter,
+      );
       if (data.length < _limit) hasNextPage = false;
     }
 
-    _applyPaymentModeFilter(data);
+    allEntries = data;
   }
 
   Future<void> loadMore() async {
-    if (isLoadMoreRunning || !hasNextPage || state != CashLedgerState.loaded) return;
+    if (isLoadMoreRunning || !hasNextPage || state != CashLedgerState.loaded) {
+      return;
+    }
     // Only paginated in default all-time view
     if (selectedDate != null || searchQuery.isNotEmpty) return;
 
@@ -119,12 +133,18 @@ class CashLedgerController extends ChangeNotifier {
     final token = _requestToken;
 
     try {
-      _page++;
-      final data = await _repository.getCashLedger(limit: _limit, offset: _page * _limit);
+      final nextPage = _page + 1;
+      final data = await _repository.getCashLedger(
+        limit: _limit,
+        offset: nextPage * _limit,
+        paymentModeFilter: paymentModeFilter,
+      );
       if (token != _requestToken) return;
 
+      _page = nextPage;
+
       if (data.isNotEmpty) {
-        _applyPaymentModeFilter(data, append: true);
+        allEntries.addAll(data);
       }
 
       if (data.length < _limit) {
@@ -136,20 +156,6 @@ class CashLedgerController extends ChangeNotifier {
     } finally {
       isLoadMoreRunning = false;
       notifyListeners();
-    }
-  }
-
-  void _applyPaymentModeFilter(List<CashLedger> newData, {bool append = false}) {
-    var filtered = newData.where((entry) {
-      if (paymentModeFilter == 'CASH' && entry.paymentMode != 'CASH') return false;
-      if (paymentModeFilter == 'DIGITAL' && entry.paymentMode == 'CASH') return false;
-      return true;
-    }).toList();
-
-    if (append) {
-      allEntries.addAll(filtered);
-    } else {
-      allEntries = filtered;
     }
   }
 

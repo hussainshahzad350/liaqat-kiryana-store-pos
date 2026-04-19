@@ -109,27 +109,6 @@ class PurchaseRepository {
         [totalAmount, supplierId],
       );
 
-      // 5. Auto-record in Cash Ledger (Cash OUT for purchase)
-      if (totalAmount > 0) {
-        final dateStr = DateFormat('yyyy-MM-dd').format(now);
-        final timeStr = DateFormat('hh:mm a').format(now);
-        final res = await txn.rawQuery(
-            'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
-        int currentCashBalance =
-            res.isNotEmpty ? (res.first['balance_after'] as num).toInt() : 0;
-
-        await txn.insert('cash_ledger', {
-          'transaction_date': dateStr,
-          'transaction_time': timeStr,
-          'description': 'Purchase #$id from Supplier',
-          'type': 'OUT',
-          'amount': totalAmount,
-          'balance_after': currentCashBalance - totalAmount,
-          'remarks': notes ?? '',
-          'payment_mode': 'CASH',
-        });
-      }
-
       AppLogger.info('Purchase created: ID $id', tag: 'PurchaseRepo');
       return id;
     });
@@ -181,6 +160,7 @@ class PurchaseRepository {
 
       final purchase = purchaseRes.first;
       final supplierId = purchase['supplier_id'] as int;
+      final purchaseTotal = (purchase['total_amount'] as num).toInt();
 
       // 2. Mark as CANCELLED
       await txn.update(
@@ -256,9 +236,25 @@ class PurchaseRepository {
         'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
         [supplierId],
       );
+      final supplierRes = await txn.query(
+        'suppliers',
+        columns: ['outstanding_balance'],
+        where: 'id = ?',
+        whereArgs: [supplierId],
+        limit: 1,
+      );
+      final currentOutstanding = supplierRes.isNotEmpty
+          ? (supplierRes.first['outstanding_balance'] as num?)?.toInt() ?? 0
+          : 0;
+      final reversalAmount = purchaseTotal <= currentOutstanding
+          ? purchaseTotal
+          : currentOutstanding;
       int prevBalance =
           lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
-      int newBalance = prevBalance - (purchase['total_amount'] as int);
+      int newBalance = prevBalance - reversalAmount;
+      if (newBalance < 0) {
+        newBalance = 0;
+      }
 
       await txn.insert('supplier_ledger', {
         'supplier_id': supplierId,
@@ -267,7 +263,7 @@ class PurchaseRepository {
         'ref_type': 'ADJUSTMENT',
         'ref_id': purchaseId,
         'debit': 0,
-        'credit': purchase['total_amount'],
+        'credit': reversalAmount,
         'balance': newBalance,
         'created_at': DateTime.now().toIso8601String(),
       });
@@ -275,14 +271,14 @@ class PurchaseRepository {
       // 5. Reverse Supplier outstanding_balance
       await txn.rawUpdate(
         'UPDATE suppliers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
-        [purchase['total_amount'], supplierId],
+        [reversalAmount, supplierId],
       );
 
       // 6. Reverse Cash Ledger Entries
       final cashEntries = await txn.query(
         'cash_ledger',
-        where: 'description LIKE ?',
-        whereArgs: ['%Purchase #$purchaseId%'],
+        where: 'description = ?',
+        whereArgs: ['Purchase #$purchaseId from Supplier'],
       );
 
       for (var entry in cashEntries) {
@@ -297,7 +293,7 @@ class PurchaseRepository {
           'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
         );
         int currentCashBalance = res.isNotEmpty 
-            ? (res.first['balance_after'] as num).toInt() 
+            ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
             : 0;
 
         await txn.insert('cash_ledger', {

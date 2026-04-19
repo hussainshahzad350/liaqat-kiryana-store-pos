@@ -38,6 +38,7 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
   String _filterType = 'ALL';
   String _searchQuery = '';
   bool _isLoading = true;
+  String? _loadError;
 
   @override
   void initState() {
@@ -53,7 +54,10 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
   }
 
   Future<void> _loadLedger() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
     try {
       final data = await widget.repository.getSupplierLedger(
         widget.supplier.id!,
@@ -64,10 +68,16 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
         setState(() {
           _ledger = data;
           _isLoading = false;
+          _loadError = null;
         });
       }
-    } catch (_) {
-      if (mounted) setState(() => _isLoading = false);
+    } catch (e, _) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _loadError = e.toString();
+        });
+      }
     }
   }
 
@@ -81,8 +91,8 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
       }
       if (_searchQuery.isNotEmpty) {
         final q = _searchQuery.toLowerCase();
-        return row['ref_no'].toString().toLowerCase().contains(q) ||
-            (row['description'] ?? '').toString().toLowerCase().contains(q);
+        return (row['bill_no'] ?? '').toString().toLowerCase().contains(q) ||
+            (row['desc'] ?? '').toString().toLowerCase().contains(q);
       }
       return true;
     }).toList();
@@ -242,6 +252,31 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
                       ? Center(
                           child: CircularProgressIndicator(
                               color: colorScheme.primary))
+                      : _loadError != null
+                          ? Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.error_outline,
+                                      size: 40, color: colorScheme.error),
+                                  const SizedBox(
+                                      height: AppTokens.spacingMedium),
+                                  Text(
+                                    loc.errorMessage(_loadError!),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.error),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(
+                                      height: AppTokens.spacingMedium),
+                                  ElevatedButton.icon(
+                                    onPressed: _loadLedger,
+                                    icon: const Icon(Icons.refresh),
+                                    label: Text(loc.retry),
+                                  ),
+                                ],
+                              ),
+                            )
                       : _filtered.isEmpty
                           ? Center(
                               child: Text(loc.noTransactionsFound,
@@ -278,9 +313,8 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
                                       Expanded(
                                           flex: 2,
                                           child: Text(
-                                              isBill
-                                                  ? 'BILL-${row['ref_no']}'
-                                                  : 'PAY-${row['ref_no']}',
+                                            (row['bill_no'] ?? '-')
+                                              .toString(),
                                               style: textTheme.bodySmall?.copyWith(fontFamily: 'RobotoMono'))),
                                       Expanded(
                                           flex: 2,
@@ -294,7 +328,7 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
                                           )),
                                       Expanded(
                                           flex: 4,
-                                          child: Text(row['desc'] ?? row['description'] ?? '',
+                                          child: Text((row['desc'] ?? '').toString(),
                                               style: textTheme.bodySmall, overflow: TextOverflow.ellipsis)),
                                       Expanded(
                                           flex: 2,
