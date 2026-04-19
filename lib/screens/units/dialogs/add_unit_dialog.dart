@@ -38,26 +38,28 @@ class _AddUnitDialogState extends State<AddUnitDialog> {
     _multiplierCtrl = TextEditingController(text: '1');
     if (widget.categories.isNotEmpty) {
       _selectedCategory = widget.categories.first;
-      _checkBaseUnitAvailability();
+      _computeBaseUnitAvailability();
     }
   }
 
-  void _checkBaseUnitAvailability() {
+  void _computeBaseUnitAvailability() {
     if (_selectedCategory == null) return;
 
     final categoryUnits =
         widget.allUnits.where((u) => u.category.id == _selectedCategory!.id);
     final existingBase = categoryUnits.where((u) => u.isBase).firstOrNull;
 
-    setState(() {
-      if (existingBase == null) {
-        _isBase = true; // Must be base if none exists
-        _baseUnit = null;
-      } else {
-        _isBase = false;
-        _baseUnit = existingBase;
-      }
-    });
+    if (existingBase == null) {
+      _isBase = true; // Must be base if none exists
+      _baseUnit = null;
+    } else {
+      _isBase = false;
+      _baseUnit = existingBase;
+    }
+  }
+
+  void _checkBaseUnitAvailability() {
+    setState(() => _computeBaseUnitAvailability());
   }
 
   @override

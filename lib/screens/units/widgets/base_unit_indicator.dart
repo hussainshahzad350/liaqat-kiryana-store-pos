@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../../core/res/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
 
 class BaseUnitIndicator extends StatelessWidget {
   const BaseUnitIndicator({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppTokens.spacingMedium,
@@ -28,12 +31,12 @@ class BaseUnitIndicator extends StatelessWidget {
           ),
           const SizedBox(width: AppTokens.spacingSmall),
           Text(
-            'BASE',
+            loc.base,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.amber[900],
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
+                  color: Colors.amber[900],
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
           ),
         ],
       ),

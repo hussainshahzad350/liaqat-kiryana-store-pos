@@ -38,7 +38,14 @@ Gold Standard: 9.8/10
 
 Critical Code Patterns
 ✅ API Preferences (never use the deprecated versions)
-Use thisNot this.withValues(alpha: x).withOpacity(x)WidgetStatePropertyMaterialStatePropertytextTheme.ROLE?.copyWith()bare TextStyle(...)context.mountedmountedPopScopeWillPopScopeMoney.tryParse(text) ?? Money.zerotry-catch around Money.fromRupeesString()
+| Use this | Not this |
+|---|---|
+| `.withValues(alpha: x)` | `.withOpacity(x)` |
+| `WidgetStateProperty` | `MaterialStateProperty` |
+| `textTheme.ROLE?.copyWith()` | bare `TextStyle(...)` |
+| `context.mounted` | `mounted` |
+| `PopScope` | `WillPopScope` |
+| `Money.tryParse(text) ?? Money.zero` | try-catch around `Money.fromRupeesString()` |
 ✅ Mounted Checks — Required Locations
 Always check context.mounted before:
 
@@ -50,13 +57,15 @@ After dialog dismissals
 
 ✅ BLoC Failure State Hygiene (double-emit pattern)
 After every validation error and every catch block, failure states must immediately re-emit back to a ready state. This matches the SalesBloc pattern and prevents the UI getting stuck.
-dart// ✅ CORRECT — double-emit pattern
+```dart
+// ✅ CORRECT — double-emit pattern
 emit(SomeFailure(message: 'Validation failed'));
 emit(const SomeReady());   // immediately re-emit ready
 
 // ❌ WRONG — stuck failure state
 emit(SomeFailure(message: 'Validation failed'));
 // (nothing follows — UI is now stuck)
+```
 ✅ Post-Action Cleanup
 After any successful state-changing operation (e.g. purchase submission, sale completion):
 
@@ -67,38 +76,47 @@ Trigger downstream refreshes (stock levels, lists)
 UI widgets must never be stored in Cubit or BLoC state. Local screen state (StatefulWidget) holds widget references if needed.
 ✅ Localization — No Hardcoded Strings
 Every user-facing string uses AppLocalizations:
-dartfinal loc = AppLocalizations.of(context)!;
+```dart
+final loc = AppLocalizations.of(context)!;
 Text(loc.someKey)   // ✅
 Text('Some text')   // ❌
+```
 Covers: labels, tooltips, button text, dialog titles, error messages, snackbars.
 ✅ Error Handling via ErrorHandler
-dartfinal err = ErrorHandler.getLocalizedMessage(state.errorMessage, loc);
+```dart
+final err = ErrorHandler.getLocalizedMessage(state.errorMessage, loc);
 ScaffoldMessenger.of(context).showSnackBar(
   SnackBar(content: Text(err), backgroundColor: colorScheme.error),
 );
+```
 ✅ Debounce Search Inputs
 
 Product/item search: 100ms
 Customer search: 300ms
 General text search: 200ms
 
-dartTimer? _searchDebounce;
+```dart
+Timer? _searchDebounce;
 void _onSearch(String query) {
   _searchDebounce?.cancel();
   _searchDebounce = Timer(const Duration(milliseconds: 300), () {
     context.read<MyBloc>().add(SearchChanged(query));
   });
 }
+```
 Always cancel the timer in dispose().
 ✅ Dialog Size Constraints — Fixed Pixels Only
-dart// ✅ Correct
+```dart
+// ✅ Correct
 constraints: const BoxConstraints(minWidth: 400, maxWidth: 500),
 
 // ❌ Wrong
 maxWidth: MediaQuery.of(context).size.width * 0.6,
+```
 Size guide: small 400–500px, medium 450–550px, large 500–650px.
 ✅ Responsive Panel Widths — Breakpoint-Based
-dartLayoutBuilder(builder: (context, constraints) {
+```dart
+LayoutBuilder(builder: (context, constraints) {
   double panelWidth = constraints.maxWidth >= 2560 ? 600
       : constraints.maxWidth >= 1920 ? 550
       : constraints.maxWidth >= 1366 ? 500
@@ -108,6 +126,7 @@ dartLayoutBuilder(builder: (context, constraints) {
     SizedBox(width: panelWidth, child: rightPanel),
   ]);
 });
+```
 
 Urdu / RTL Font Rules
 
@@ -115,8 +134,10 @@ English font: Roboto (standard)
 Urdu font: NooriNastaleeq (RTL)
 Critical: NooriNastaleeq has tall line-height characteristics. Always set height: 1.2 explicitly in any TextStyle applied to Urdu text to prevent RenderFlex overflows.
 
-dart// ✅ Urdu text style
+```dart
+// ✅ Urdu text style
 TextStyle(fontFamily: 'NooriNastaleeq', height: 1.2)
+```
 
 Architecture Rules
 Layering (strict top-down, no inversions)
@@ -131,13 +152,15 @@ Cross-screen communication uses broadcast streams on the repository layer (e.g. 
 BLoCs are provided at feature level, not globally, unless truly app-wide
 
 Domain Getters — No Magic Strings
-dart// ✅ Domain getter
+```dart
+// ✅ Domain getter
 if (invoice.isCancelled) { }
 if (customer.isWalkIn) { }
 
 // ❌ Magic string
 if (invoice.status == 'CANCELLED') { }
 if (customer.id == 1) { }
+```
 
 Screen Audit Protocol
 When auditing a screen, score it across 9 phases and deduct points per anti-pattern:
@@ -156,11 +179,21 @@ Audit and fix are always separate phases. Never audit and refactor in the same p
 
 Refactoring Workflow (Phased)
 Each phase = one prompt = one layer. Never combine.
-PhaseScopeLayerPre-UI fixesBLoC failure states, post-action cleanupBLoC onlyPhase 1File structure extractionUI structurePhase 2Code quality (mounted, localization, ErrorHandler)UI onlyPhase 3UI/UX patterns (dialogs, fonts, breakpoints)UI onlyPhase 4Architecture (domain getters, stream wiring)Domain/Data
+| Phase | Scope | Layer |
+|---|---|---|
+| Pre-UI fixes | BLoC failure states, post-action cleanup | BLoC only |
+| Phase 1 | File structure extraction | UI structure |
+| Phase 2 | Code quality (mounted, localization, ErrorHandler) | UI only |
+| Phase 3 | UI/UX patterns (dialogs, fonts, breakpoints) | UI only |
+| Phase 4 | Architecture (domain getters, stream wiring) | Domain/Data |
 Verification after every phase: flutter analyze must show zero errors.
 
 Current Screen Status (as of last session)
-ScreenScoreStatusSales Screen9.8/10 ✅Gold Standard — do not modifyStock Screen~9.3–9.7/10Near complete; side panel feature pendingPurchase Screen3.4/10 ⚠️Full rewrite planned; Phase 1.5 BLoC fixes first
+| Screen | Score | Status |
+|---|---|---|
+| Sales Screen | 9.8/10 ✅ | Gold Standard — do not modify |
+| Stock Screen | ~9.3–9.7/10 | Near complete; side panel feature pending |
+| Purchase Screen | 3.4/10 ⚠️ | Full rewrite planned; Phase 1.5 BLoC fixes first |
 Purchase Screen — Phase 1.5 BLoC Fixes Required Before UI Work
 Five fixes (A–E) must be applied to purchase_bloc.dart before the UI rewrite:
 

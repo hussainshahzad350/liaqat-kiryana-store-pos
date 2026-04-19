@@ -46,11 +46,22 @@ class _DepartmentDialogState extends State<DepartmentDialog> {
     final loc = AppLocalizations.of(context)!;
 
     final nameEn = _nameEnController.text.trim();
-    final exists =
-        await widget.onValidate(nameEn, excludeId: widget.department?.id);
+    bool exists;
+    try {
+      exists = await widget.onValidate(nameEn, excludeId: widget.department?.id);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(loc.unknownError),
+            backgroundColor: Theme.of(context).colorScheme.error),
+      );
+      return;
+    } finally {
+      if (mounted) setState(() => _isValidating = false);
+    }
 
     if (!mounted) return;
-    setState(() => _isValidating = false);
 
     if (exists) {
       ScaffoldMessenger.of(context).showSnackBar(

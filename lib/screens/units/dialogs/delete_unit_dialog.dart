@@ -26,8 +26,9 @@ class DeleteUnitDialog extends StatelessWidget {
       future: repository.checkUsage(unit.id),
       builder: (context, snapshot) {
         final isLoading = snapshot.connectionState == ConnectionState.waiting;
-        final usageCount = snapshot.data ?? 0;
-        final inUse = usageCount > 0;
+        final hasError = snapshot.hasError;
+        final usageCount = (!hasError && snapshot.hasData) ? snapshot.data! : 0;
+        final inUse = !hasError && usageCount > 0;
 
         return AlertDialog(
           backgroundColor: colorScheme.surface,
@@ -35,12 +36,24 @@ class DeleteUnitDialog extends StatelessWidget {
           title: Row(
             children: [
               Icon(
-                inUse ? Icons.warning_amber_rounded : Icons.delete_outline,
-                color: inUse ? Colors.orange : colorScheme.error,
+                hasError
+                    ? Icons.error_outline
+                    : inUse
+                        ? Icons.warning_amber_rounded
+                        : Icons.delete_outline,
+                color: hasError
+                    ? colorScheme.error
+                    : inUse
+                        ? Colors.orange
+                        : colorScheme.error,
               ),
               const SizedBox(width: AppTokens.spacingMedium),
               Text(
-                inUse ? 'Soft Delete Warning' : loc.confirm,
+                hasError
+                    ? loc.error
+                    : inUse
+                        ? loc.softDeleteWarning
+                        : loc.confirm,
                 style: textTheme.titleLarge,
               ),
             ],
@@ -52,44 +65,69 @@ class DeleteUnitDialog extends StatelessWidget {
                     height: 100,
                     child: Center(child: CircularProgressIndicator()),
                   )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        inUse
-                            ? 'The unit "${unit.name}" (${unit.code}) is used by $usageCount products or other units.'
-                            : 'Are you sure you want to delete "${unit.name}" (${unit.code})?',
-                        style: textTheme.bodyLarge,
+                : hasError
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            loc.unknownError,
+                            style: textTheme.bodyLarge
+                                ?.copyWith(color: colorScheme.error),
+                          ),
+                          const SizedBox(height: AppTokens.spacingSmall),
+                          Text(
+                            '${snapshot.error}',
+                            style: textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.outline),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            inUse
+                                ? loc.unitInUseMessage(unit.name, unit.code, usageCount)
+                                : loc.confirmDeleteUnit(unit.name, unit.code),
+                            style: textTheme.bodyLarge,
+                          ),
+                          const SizedBox(height: AppTokens.spacingMedium),
+                          if (inUse)
+                            Container(
+                              padding:
+                                  const EdgeInsets.all(AppTokens.spacingMedium),
+                              decoration: BoxDecoration(
+                                color: colorScheme.errorContainer
+                                    .withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.borderRadiusSmall),
+                                border: Border.all(
+                                    color: colorScheme.error
+                                        .withValues(alpha: 0.2)),
+                              ),
+                              child: Text(
+                                loc.unitArchiveNote,
+                                style: textTheme.bodySmall
+                                    ?.copyWith(color: colorScheme.error),
+                              ),
+                            )
+                          else
+                            Text(
+                              loc.actionCannotBeUndone,
+                              style: textTheme.bodySmall
+                                  ?.copyWith(color: colorScheme.outline),
+                            ),
+                        ],
                       ),
-                      const SizedBox(height: AppTokens.spacingMedium),
-                      if (inUse)
-                        Container(
-                          padding: const EdgeInsets.all(AppTokens.spacingMedium),
-                          decoration: BoxDecoration(
-                            color: colorScheme.errorContainer.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(AppTokens.borderRadiusSmall),
-                            border: Border.all(color: colorScheme.error.withValues(alpha: 0.2)),
-                          ),
-                          child: Text(
-                            'It will be archived instead of deleted to maintain data integrity for current products.',
-                            style: textTheme.bodySmall?.copyWith(color: colorScheme.error),
-                          ),
-                        )
-                      else
-                        Text(
-                          'This action cannot be undone.',
-                          style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
-                        ),
-                    ],
-                  ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(loc.cancel),
             ),
-            if (!isLoading)
+            if (!isLoading && !hasError)
               ElevatedButton(
                 onPressed: () {
                   onDeleteConfirmed();
@@ -99,7 +137,7 @@ class DeleteUnitDialog extends StatelessWidget {
                   backgroundColor: inUse ? Colors.orange : colorScheme.error,
                   foregroundColor: inUse ? Colors.white : colorScheme.onError,
                 ),
-                child: Text(inUse ? 'Archive' : loc.yesDelete),
+                child: Text(inUse ? loc.archive : loc.yesDelete),
               ),
           ],
         );

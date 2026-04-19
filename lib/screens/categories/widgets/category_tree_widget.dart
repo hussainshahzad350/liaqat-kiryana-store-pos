@@ -57,6 +57,13 @@ class _CategoryTreeWidgetState extends State<CategoryTreeWidget> {
   }
 
   void _scheduleSearchSubCategoryPreload() {
+    if (widget.subCategoryCache.isEmpty) {
+      _preloadRequestedCategoryIds.clear();
+    } else {
+      _preloadRequestedCategoryIds
+          .removeWhere((id) => widget.subCategoryCache.containsKey(id));
+    }
+
     final results = widget.searchResults;
     if (results == null) return;
 

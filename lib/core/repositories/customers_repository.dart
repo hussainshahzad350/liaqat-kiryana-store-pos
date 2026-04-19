@@ -13,10 +13,11 @@ class CustomersRepository {
   // ========================================
 
   /// Get all customers
-  Future<List<Customer>> getAllCustomers({int limit = 50, int offset = 0}) async {
+  Future<List<Customer>> getAllCustomers(
+      {int limit = 50, int offset = 0}) async {
     final db = await _dbHelper.database;
     final result = await db.query(
-      'customers', 
+      'customers',
       orderBy: 'name_english ASC',
       limit: limit,
       offset: offset,
@@ -44,7 +45,7 @@ class CustomersRepository {
       whereArgs: [id],
       limit: 1,
     );
-    
+
     if (result.isEmpty) return null;
     return Customer.fromMap(result.first);
   }
@@ -81,11 +82,13 @@ class CustomersRepository {
   }
 
   /// Search customers by name or phone
-  Future<List<Customer>> searchCustomers(String query, {bool activeOnly = false, int limit = 50}) async {
+  Future<List<Customer>> searchCustomers(String query,
+      {bool activeOnly = false, int limit = 50}) async {
     final db = await _dbHelper.database;
     final q = '%${query.toLowerCase()}%';
-    
-    String whereClause = '(LOWER(name_english) LIKE ? OR LOWER(name_urdu) LIKE ? OR contact_primary LIKE ?)';
+
+    String whereClause =
+        '(LOWER(name_english) LIKE ? OR LOWER(name_urdu) LIKE ? OR contact_primary LIKE ?)';
     List<dynamic> args = [q, q, '%$query%'];
 
     if (activeOnly) {
@@ -179,7 +182,7 @@ class CustomersRepository {
     int purchaseAmount,
   ) async {
     final customer = await getCustomerById(customerId);
-    
+
     if (customer == null) {
       return {
         'allowed': false,
@@ -218,19 +221,14 @@ class CustomersRepository {
 
   /// Add payment and update customer balance
   /// Moved from DatabaseHelper.addPayment()
-  Future<int> addPayment(
-    int customerId,
-    int amount,
-    String date,
-    String notes,
-    {String paymentMode = 'CASH'}
-  ) async {
+  Future<int> addPayment(int customerId, int amount, String date, String notes,
+      {String paymentMode = 'CASH'}) async {
     if (amount <= 0) {
       throw ArgumentError('Payment amount must be greater than zero');
     }
 
     final db = await _dbHelper.database;
-    
+
     try {
       return await db.transaction((txn) async {
         // 1. Record the Receipt (Financial Event)
@@ -248,12 +246,12 @@ class CustomersRepository {
         // Get current balance first (to ensure running balance integrity, though we calculate it)
         // Actually, for running balance, we need the previous balance.
         final lastEntry = await txn.rawQuery(
-          'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
-          [customerId]
-        );
-        
+            'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+            [customerId]);
+
         // Edge Case: Overpayment is allowed (results in negative balance)
-        int previousBalance = lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
+        int previousBalance =
+            lastEntry.isNotEmpty ? (lastEntry.first['balance'] as int) : 0;
         // Rule: balance = previous balance - credit
         int newBalance = previousBalance - amount;
 
@@ -271,20 +269,17 @@ class CustomersRepository {
 
         // 3. Update Customer Cache
         await txn.rawUpdate(
-          'UPDATE customers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
-          [amount, customerId]
-        );
-        
+            'UPDATE customers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
+            [amount, customerId]);
+
         // 4. Record in cash ledger as an 'IN' entry (Shop Cash Flow)
         final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
         final timeStr = DateFormat('hh:mm a').format(DateTime.now());
-        
+
         final res = await txn.rawQuery(
-          'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
-        );
-        int currentBalance = res.isNotEmpty 
-            ? (res.first['balance_after'] as num).toInt() 
-            : 0;
+            'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+        int currentBalance =
+            res.isNotEmpty ? (res.first['balance_after'] as num).toInt() : 0;
 
         await txn.insert('cash_ledger', {
           'transaction_date': dateStr,
@@ -299,6 +294,14 @@ class CustomersRepository {
         return receiptId;
       });
     } catch (e) {
+      if (e is Exception) {
+        final message = e.toString().replaceFirst('Exception: ', '').trim();
+        final isSentinel =
+            RegExp(r'^[A-Z][A-Z0-9_]*(?::.+)?$').hasMatch(message);
+        if (isSentinel) {
+          rethrow;
+        }
+      }
       AppLogger.error('Error adding payment: $e', tag: 'CustomersRepo');
       throw Exception('PAYMENT_FAILED');
     }
@@ -374,7 +377,7 @@ class CustomersRepository {
       WHERE $whereClause
       ORDER BY transaction_date DESC, id DESC
     ''', args);
-    
+
     return result;
   }
 
@@ -384,13 +387,12 @@ class CustomersRepository {
     int customerId, {
     DateTime? startDate,
     DateTime? endDate,
-  }
-  ) async {
+  }) async {
     final db = await _dbHelper.database;
 
     String whereClause = 'customer_id = ?';
     List<dynamic> args = [customerId];
-    
+
     // For items query
     String itemsWhereClause = 'i.customer_id = ?';
     List<dynamic> itemsArgs = [customerId];
@@ -399,7 +401,7 @@ class CustomersRepository {
       final startStr = DateFormat('yyyy-MM-dd').format(startDate);
       whereClause += ' AND transaction_date >= ?';
       args.add(startStr);
-      
+
       itemsWhereClause += ' AND i.invoice_date >= ?';
       itemsArgs.add(startStr);
     }
@@ -408,7 +410,7 @@ class CustomersRepository {
       final endStr = '${DateFormat('yyyy-MM-dd').format(endDate)} 23:59:59';
       whereClause += ' AND transaction_date <= ?';
       args.add(endStr);
-      
+
       itemsWhereClause += ' AND i.invoice_date <= ?';
       itemsArgs.add(endStr);
     }
@@ -521,7 +523,7 @@ class CustomersRepository {
     try {
       final db = await _dbHelper.database;
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
+
       return await db.rawQuery('''
         SELECT 
           c.name_urdu, 
@@ -536,7 +538,8 @@ class CustomersRepository {
         LIMIT 5
       ''', [today]);
     } catch (e) {
-      AppLogger.error("Error fetching today's customers: $e", tag: 'CustomerRepo');
+      AppLogger.error("Error fetching today's customers: $e",
+          tag: 'CustomerRepo');
       return [];
     }
   }
@@ -584,22 +587,23 @@ class CustomersRepository {
     final db = await _dbHelper.database;
     final date = DateTime.now().subtract(Duration(days: daysBack));
     final dateStr = DateFormat('yyyy-MM-dd').format(date);
-    
+
     final result = await db.rawQuery('''
       SELECT COUNT(DISTINCT customer_id) as count
       FROM invoices
       WHERE invoice_date >= ? AND status = 'COMPLETED'
-    ''', [dateStr]); // Note: invoice_date is datetime string, might need substring for date comparison if not careful, but >= works for ISO8601
-    
+    ''', [
+      dateStr
+    ]); // Note: invoice_date is datetime string, might need substring for date comparison if not careful, but >= works for ISO8601
+
     return (result.first['count'] as int?) ?? 0;
   }
 
   /// Get total outstanding balance across all customers
   Future<int> getTotalOutstandingBalance() async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery(
-      'SELECT SUM(outstanding_balance) as total FROM customers'
-    );
+    final result = await db
+        .rawQuery('SELECT SUM(outstanding_balance) as total FROM customers');
     return (result.first['total'] as num?)?.toInt() ?? 0;
   }
 
@@ -607,11 +611,13 @@ class CustomersRepository {
   Future<Map<String, dynamic>> getCustomerStats() async {
     final db = await _dbHelper.database;
 
-    final activeRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 1');
+    final activeRes = await db.rawQuery(
+        'SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 1');
     final countActive = (activeRes.first['count'] as int?) ?? 0;
     final balActive = (activeRes.first['total'] as num? ?? 0).toInt();
 
-    final archRes = await db.rawQuery('SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 0');
+    final archRes = await db.rawQuery(
+        'SELECT COUNT(*) as count, SUM(outstanding_balance) as total FROM customers WHERE is_active = 0');
     final countArchived = (archRes.first['count'] as int?) ?? 0;
     final balArchived = (archRes.first['total'] as num? ?? 0).toInt();
 

@@ -43,7 +43,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Units Management',
+                    loc.unitsManagement,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -82,7 +82,8 @@ class _UnitsScreenState extends State<UnitsScreen> {
     
     if (state is UnitsLoaded) {
       if (state.categories.isEmpty) {
-        return const Center(child: Text('No categories found.'));
+        final loc = AppLocalizations.of(context)!;
+        return Center(child: Text(loc.noCategoriesFound));
       }
 
       return ListView.builder(

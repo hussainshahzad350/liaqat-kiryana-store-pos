@@ -35,7 +35,11 @@ class _SubCategoryDialogState extends State<SubCategoryDialog> {
     super.initState();
     _nameEnController = TextEditingController(text: widget.subCategory?.nameEn);
     _nameUrController = TextEditingController(text: widget.subCategory?.nameUr);
-    _selectedCatId = widget.subCategory?.categoryId ?? widget.parentCatId;
+    final candidateId = widget.subCategory?.categoryId ?? widget.parentCatId;
+    final validIds = widget.categories.map((c) => c.id).toSet();
+    _selectedCatId = (candidateId != null && validIds.contains(candidateId))
+        ? candidateId
+        : null;
   }
 
   @override
@@ -52,11 +56,23 @@ class _SubCategoryDialogState extends State<SubCategoryDialog> {
     final loc = AppLocalizations.of(context)!;
 
     final nameEn = _nameEnController.text.trim();
-    final exists = await widget.onValidate(_selectedCatId!, nameEn,
-        excludeId: widget.subCategory?.id);
+    bool exists;
+    try {
+      exists = await widget.onValidate(_selectedCatId!, nameEn,
+          excludeId: widget.subCategory?.id);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(loc.unknownError),
+            backgroundColor: Theme.of(context).colorScheme.error),
+      );
+      return;
+    } finally {
+      if (mounted) setState(() => _isValidating = false);
+    }
 
     if (!mounted) return;
-    setState(() => _isValidating = false);
 
     if (exists) {
       ScaffoldMessenger.of(context).showSnackBar(

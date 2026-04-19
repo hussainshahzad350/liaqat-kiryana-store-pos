@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/res/app_tokens.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/unit_model.dart';
 import 'unit_list_item.dart';
 
@@ -56,14 +57,14 @@ class UnitCategorySection extends StatelessWidget {
           category.name,
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
-        subtitle: baseUnit != null 
-          ? Text('Base: ${baseUnit!.name} (${baseUnit!.code})', style: textTheme.bodySmall)
-          : Text('No base unit set', style: textTheme.bodySmall?.copyWith(color: colorScheme.error)),
+        subtitle: baseUnit != null
+          ? Text(AppLocalizations.of(context)!.baseUnitSubtitle(baseUnit!.name, baseUnit!.code), style: textTheme.bodySmall)
+          : Text(AppLocalizations.of(context)!.noBaseUnitSet, style: textTheme.bodySmall?.copyWith(color: colorScheme.error)),
         childrenPadding: const EdgeInsets.symmetric(vertical: AppTokens.spacingSmall),
         children: units.isEmpty 
           ? [Padding(
               padding: const EdgeInsets.all(AppTokens.spacingLarge),
-              child: Text('No units defined in this category', style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
+              child: Text(AppLocalizations.of(context)!.noUnitsInCategory, style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
             )]
           : units.map((u) => UnitListItem(
               unit: u, 

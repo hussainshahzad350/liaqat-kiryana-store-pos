@@ -23,69 +23,85 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+              'ALTER TABLE cash_ledger ADD COLUMN payment_mode TEXT DEFAULT "CASH"');
+          await db.execute('''
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_units_system_code
+            ON units(code)
+            WHERE is_system = 1
+          ''');
+        }
+      },
       onOpen: (db) async {
-        try {
-          await db.execute('ALTER TABLE cash_ledger ADD COLUMN payment_mode TEXT DEFAULT "CASH"');
-        } catch (_) {}
-        await _fixUnitsData(db);
+        await ensureStandardUnits(db);
       },
     );
   }
 
-  Future<void> _fixUnitsData(Database db) async {
+  static Future<void> ensureStandardUnits(Database db) async {
     try {
       await db.transaction((txn) async {
-        // 1. Fix Categories (ensure IDs match names)
-        await txn.execute('UPDATE unit_categories SET name = "Weight" WHERE id = 1');
-        await txn.execute('UPDATE unit_categories SET name = "Volume" WHERE id = 2');
-        await txn.execute('UPDATE unit_categories SET name = "Count" WHERE id = 3');
-        await txn.execute('UPDATE unit_categories SET name = "Length" WHERE id = 4');
-
-        // 2. Fix Core Units
-        // WEIGHT
-        await _upsertSystemUnit(txn, 'Gram', 'G', 1, null, 1);
-        final gIdRes = await txn.query('units', columns: ['id'], where: 'code = ?', whereArgs: ['G']);
-        int? gId = gIdRes.isNotEmpty ? gIdRes.first['id'] as int : null;
-        await _upsertSystemUnit(txn, 'Kilogram', 'KG', 1, gId, 1000);
-
-        // VOLUME
-        await _upsertSystemUnit(txn, 'Milliliter', 'ML', 2, null, 1);
-        final mlIdRes = await txn.query('units', columns: ['id'], where: 'code = ?', whereArgs: ['ML']);
-        int? mlId = mlIdRes.isNotEmpty ? mlIdRes.first['id'] as int : null;
-        await _upsertSystemUnit(txn, 'Liter', 'L', 2, mlId, 1000);
-
-        // COUNT
-        await _upsertSystemUnit(txn, 'Piece', 'PCS', 3, null, 1);
-        final pcsIdRes = await txn.query('units', columns: ['id'], where: 'code = ?', whereArgs: ['PCS']);
-        int? pcsId = pcsIdRes.isNotEmpty ? pcsIdRes.first['id'] as int : null;
-        await _upsertSystemUnit(txn, 'Dozen', 'DZN', 3, pcsId, 12);
-
-        // LENGTH
-        await _upsertSystemUnit(txn, 'Centimeter', 'CM', 4, null, 1);
-        final cmIdRes = await txn.query('units', columns: ['id'], where: 'code = ?', whereArgs: ['CM']);
-        int? cmId = cmIdRes.isNotEmpty ? cmIdRes.first['id'] as int : null;
-        await _upsertSystemUnit(txn, 'Meter', 'M', 4, cmId, 100);
+        await ensureStandardUnitsInTransaction(txn);
       });
-      AppLogger.db('Unit categories and base units fixed in onOpen');
+      AppLogger.db('Unit categories and base units normalized');
     } catch (e) {
-      AppLogger.error('Error fixing units data: $e');
+      AppLogger.error('Error normalizing units data: $e');
     }
   }
 
-  static Future<void> _upsertSystemUnit(Transaction txn, String name, String code, int categoryId, int? baseUnitId, int multiplier) async {
-    final existing = await txn.query('units', where: 'code = ?', whereArgs: [code]);
+  static Future<void> ensureStandardUnitsInTransaction(
+      DatabaseExecutor txn) async {
+    await txn
+        .execute('UPDATE unit_categories SET name = "Weight" WHERE id = 1');
+    await txn
+        .execute('UPDATE unit_categories SET name = "Volume" WHERE id = 2');
+    await txn.execute('UPDATE unit_categories SET name = "Count" WHERE id = 3');
+    await txn
+        .execute('UPDATE unit_categories SET name = "Length" WHERE id = 4');
+
+    await _upsertSystemUnit(txn, 'Gram', 'G', 1, null, 1);
+    final gId = await _getSystemUnitId(txn, 'G');
+    await _upsertSystemUnit(txn, 'Kilogram', 'KG', 1, gId, 1000);
+
+    await _upsertSystemUnit(txn, 'Milliliter', 'ML', 2, null, 1);
+    final mlId = await _getSystemUnitId(txn, 'ML');
+    await _upsertSystemUnit(txn, 'Liter', 'L', 2, mlId, 1000);
+
+    await _upsertSystemUnit(txn, 'Piece', 'PCS', 3, null, 1);
+    final pcsId = await _getSystemUnitId(txn, 'PCS');
+    await _upsertSystemUnit(txn, 'Dozen', 'DZN', 3, pcsId, 12);
+
+    await _upsertSystemUnit(txn, 'Centimeter', 'CM', 4, null, 1);
+    final cmId = await _getSystemUnitId(txn, 'CM');
+    await _upsertSystemUnit(txn, 'Meter', 'M', 4, cmId, 100);
+  }
+
+  static Future<void> _upsertSystemUnit(DatabaseExecutor txn, String name,
+      String code, int categoryId, int? baseUnitId, int multiplier) async {
+    final existing = await txn.query(
+      'units',
+      where: 'code = ? AND is_system = 1',
+      whereArgs: [code],
+      limit: 1,
+    );
     if (existing.isNotEmpty) {
-      await txn.update('units', {
-        'name': name,
-        'category_id': categoryId,
-        'is_system': 1,
-        'base_unit_id': baseUnitId,
-        'multiplier': multiplier,
-        'is_active': 1,
-      }, where: 'code = ?', whereArgs: [code]);
+      await txn.update(
+          'units',
+          {
+            'name': name,
+            'category_id': categoryId,
+            'is_system': 1,
+            'base_unit_id': baseUnitId,
+            'multiplier': multiplier,
+            'is_active': 1,
+          },
+          where: 'code = ? AND is_system = 1',
+          whereArgs: [code]);
     } else {
       await txn.insert('units', {
         'name': name,
@@ -97,6 +113,19 @@ class DatabaseHelper {
         'is_active': 1,
       });
     }
+  }
+
+  static Future<int?> _getSystemUnitId(
+      DatabaseExecutor txn, String code) async {
+    final result = await txn.query(
+      'units',
+      columns: ['id'],
+      where: 'code = ? AND is_system = 1',
+      whereArgs: [code],
+      limit: 1,
+    );
+    if (result.isEmpty) return null;
+    return result.first['id'] as int;
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -325,6 +354,12 @@ class DatabaseHelper {
         FOREIGN KEY (category_id) REFERENCES unit_categories (id) ON DELETE CASCADE,
         FOREIGN KEY (base_unit_id) REFERENCES units (id) ON DELETE SET NULL
       )
+    ''');
+
+    await db.execute('''
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_units_system_code
+      ON units(code)
+      WHERE is_system = 1
     ''');
 
     // 16. Supplier Purchases

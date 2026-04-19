@@ -293,7 +293,7 @@ class SuppliersRepository {
     final supplier = await getSupplierById(supplierId);
     if (supplier == null) {
       return {
-        'error': 'Supplier not found',
+        'error': 'SUPPLIER_NOT_FOUND',
       };
     }
 

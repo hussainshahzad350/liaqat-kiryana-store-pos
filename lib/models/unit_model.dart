@@ -79,6 +79,7 @@ class Unit {
     String? code,
     UnitCategory? category,
     int? baseUnitId,
+    bool clearBaseUnit = false,
     int? multiplier,
     bool? isActive,
   }) {
@@ -88,7 +89,7 @@ class Unit {
       code: code ?? this.code,
       category: category ?? this.category,
       isSystem: isSystem,
-      baseUnitId: baseUnitId ?? this.baseUnitId,
+      baseUnitId: clearBaseUnit ? null : (baseUnitId ?? this.baseUnitId),
       multiplier: multiplier ?? this.multiplier,
       isActive: isActive ?? this.isActive,
     );

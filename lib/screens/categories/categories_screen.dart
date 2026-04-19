@@ -28,7 +28,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Timer? _searchDebounce;
 
   @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchControllerChanged);
+  }
+
+  void _onSearchControllerChanged() {
+    setState(() {});
+  }
+
+  @override
   void dispose() {
+    _searchController.removeListener(_onSearchControllerChanged);
     _searchController.dispose();
     _searchDebounce?.cancel();
     super.dispose();
@@ -47,8 +58,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return BlocProvider(
-      create: (context) =>
-          CategoriesBloc(CategoriesRepository())..add(LoadCategories()),
+      create: (context) => CategoriesBloc(context.read<CategoriesRepository>())
+        ..add(LoadCategories()),
       child: BlocConsumer<CategoriesBloc, CategoriesState>(
         listener: (context, state) {
           if (state is CategoriesFailure) {
@@ -222,11 +233,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   void _showAddDepartment(BuildContext context) {
     final bloc = context.read<CategoriesBloc>();
+    final repo = context.read<CategoriesRepository>();
     showDialog(
       context: context,
       builder: (ctx) => DepartmentDialog(
         onValidate: (name, {excludeId}) =>
-            CategoriesRepository().departmentExists(name, excludeId: excludeId),
+            repo.departmentExists(name, excludeId: excludeId),
         onSave: (dept) => bloc.add(AddDepartment(dept)),
       ),
     );
@@ -234,13 +246,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   void _showAddCategory(BuildContext context, CategoriesReady state) {
     final bloc = context.read<CategoriesBloc>();
+    final repo = context.read<CategoriesRepository>();
     showDialog(
       context: context,
       builder: (ctx) => CategoryDialog(
         parentDeptId: state.selectedDepartment?.id,
         departments: state.departments,
-        onValidate: (deptId, name, {excludeId}) => CategoriesRepository()
-            .categoryExists(deptId, name, excludeId: excludeId),
+        onValidate: (deptId, name, {excludeId}) =>
+            repo.categoryExists(deptId, name, excludeId: excludeId),
         onSave: (cat) => bloc.add(AddCategory(cat)),
       ),
     );
@@ -249,13 +262,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   void _showAddSubCategory(
       BuildContext context, CategoriesReady state, Category category) {
     final bloc = context.read<CategoriesBloc>();
+    final repo = context.read<CategoriesRepository>();
     showDialog(
       context: context,
       builder: (ctx) => SubCategoryDialog(
         parentCatId: category.id,
         categories: state.categories,
-        onValidate: (catId, name, {excludeId}) => CategoriesRepository()
-            .subCategoryExists(catId, name, excludeId: excludeId),
+        onValidate: (catId, name, {excludeId}) =>
+            repo.subCategoryExists(catId, name, excludeId: excludeId),
         onSave: (sub) => bloc.add(AddSubCategory(sub)),
       ),
     );
@@ -263,13 +277,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   void _showEditDialog(BuildContext context, CategoriesReady state) {
     final bloc = context.read<CategoriesBloc>();
+    final repo = context.read<CategoriesRepository>();
     if (state.selectionLevel == 1 && state.selectedDepartment != null) {
       showDialog(
         context: context,
         builder: (ctx) => DepartmentDialog(
           department: state.selectedDepartment,
-          onValidate: (name, {excludeId}) => CategoriesRepository()
-              .departmentExists(name, excludeId: excludeId),
+          onValidate: (name, {excludeId}) =>
+              repo.departmentExists(name, excludeId: excludeId),
           onSave: (dept) => bloc.add(UpdateDepartment(dept)),
         ),
       );
@@ -279,8 +294,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         builder: (ctx) => CategoryDialog(
           category: state.selectedCategory,
           departments: state.departments,
-          onValidate: (deptId, name, {excludeId}) => CategoriesRepository()
-              .categoryExists(deptId, name, excludeId: excludeId),
+          onValidate: (deptId, name, {excludeId}) =>
+              repo.categoryExists(deptId, name, excludeId: excludeId),
           onSave: (cat) => bloc.add(UpdateCategory(cat)),
         ),
       );
@@ -290,8 +305,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         builder: (ctx) => SubCategoryDialog(
           subCategory: state.selectedSubCategory,
           categories: state.categories,
-          onValidate: (catId, name, {excludeId}) => CategoriesRepository()
-              .subCategoryExists(catId, name, excludeId: excludeId),
+          onValidate: (catId, name, {excludeId}) =>
+              repo.subCategoryExists(catId, name, excludeId: excludeId),
           onSave: (sub) => bloc.add(UpdateSubCategory(sub)),
         ),
       );
@@ -300,29 +315,34 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   Future<void> _confirmDelete(
       BuildContext context, CategoriesReady state) async {
-    final loc = AppLocalizations.of(context)!;
-    final bloc = context.read<CategoriesBloc>();
-
     final bool confirm = await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(loc.confirmDeleteTitle),
-            content: Text(loc.confirmDeleteMessage),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: Text(loc.no)),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(ctx).colorScheme.error),
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(loc.yesDelete,
-                    style: TextStyle(color: Theme.of(ctx).colorScheme.onError)),
-              ),
-            ],
-          ),
+          builder: (ctx) {
+            final loc = AppLocalizations.of(ctx)!;
+            return AlertDialog(
+              title: Text(loc.confirmDeleteTitle),
+              content: Text(loc.confirmDeleteMessage),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(loc.no)),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(ctx).colorScheme.error),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(loc.yesDelete,
+                      style:
+                          TextStyle(color: Theme.of(ctx).colorScheme.onError)),
+                ),
+              ],
+            );
+          },
         ) ??
         false;
+
+    if (!context.mounted) return;
+
+    final bloc = context.read<CategoriesBloc>();
 
     if (!confirm) return;
 

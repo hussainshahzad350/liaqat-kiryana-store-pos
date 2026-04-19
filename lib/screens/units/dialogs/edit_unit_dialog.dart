@@ -39,14 +39,15 @@ class _EditUnitDialogState extends State<EditUnitDialog> {
     _codeCtrl = TextEditingController(text: widget.unit.code);
     _multiplierCtrl =
         TextEditingController(text: widget.unit.multiplier.toString());
-    _selectedCategory =
-        widget.categories.firstWhere((c) => c.id == widget.unit.category.id);
+    _selectedCategory = widget.categories
+        .where((c) => c.id == widget.unit.category.id)
+        .firstOrNull;
     _isBase = widget.unit.isBase;
 
     if (!_isBase) {
-      _baseUnit = widget.allUnits.firstWhere(
-          (u) => u.id == widget.unit.baseUnitId,
-          orElse: () => widget.unit);
+      _baseUnit = widget.allUnits
+          .where((u) => u.id == widget.unit.baseUnitId)
+          .firstOrNull;
     }
   }
 
@@ -70,138 +71,157 @@ class _EditUnitDialogState extends State<EditUnitDialog> {
       title: Text(loc.editItem, style: textTheme.titleLarge),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Info Section
-                Text(
-                  'Category: ${_selectedCategory?.name}',
-                  style: textTheme.labelLarge
-                      ?.copyWith(color: colorScheme.outline),
+        child: _selectedCategory == null
+            ? Padding(
+                padding: const EdgeInsets.symmetric(
+                    vertical: AppTokens.spacingMedium),
+                child: Text(
+                  loc.unknownError,
+                  style:
+                      textTheme.bodyMedium?.copyWith(color: colorScheme.error),
                 ),
-                const SizedBox(height: AppTokens.spacingMedium),
-
-                // Name
-                TextFormField(
-                  controller: _nameCtrl,
-                  decoration: InputDecoration(labelText: loc.name),
-                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: AppTokens.spacingMedium),
-
-                // Code
-                TextFormField(
-                  controller: _codeCtrl,
-                  decoration: const InputDecoration(labelText: 'Code'),
-                  validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: AppTokens.spacingLarge),
-
-                // Base Status
-                if (_isBase)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(AppTokens.spacingMedium),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.1),
-                      borderRadius:
-                          BorderRadius.circular(AppTokens.borderRadiusSmall),
-                      border: Border.all(
-                          color: Colors.amber.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 20),
-                        const SizedBox(width: AppTokens.spacingMedium),
-                        Expanded(
+              )
+            : Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Info Section
+                      Text(
+                        '${loc.category}: ${_selectedCategory!.name}',
+                        style: textTheme.labelLarge
+                            ?.copyWith(color: colorScheme.outline),
+                      ),
+                      if (!_isBase && _baseUnit == null)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              top: AppTokens.spacingSmall),
                           child: Text(
-                            'This is the Base Unit for ${_selectedCategory?.name}.',
+                            loc.unknownError,
                             style: textTheme.bodySmall
-                                ?.copyWith(color: Colors.brown),
+                                ?.copyWith(color: colorScheme.error),
                           ),
                         ),
-                      ],
-                    ),
-                  )
-                else
-                  TextFormField(
-                  TextFormField(
-                    controller: _multiplierCtrl,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Multiplier (Conversion to Base)',
-                      prefixText: '1 ${_codeCtrl.text} = ',
-                      suffixText: _baseUnit?.code ?? '',
-                    ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Required';
-                      final val = int.tryParse(v);
-                      if (val == null || val <= 0) return 'Must be > 0';
-                      return null;
-                    },
+                      const SizedBox(height: AppTokens.spacingMedium),
+
+                      // Name
+                      TextFormField(
+                        controller: _nameCtrl,
+                        decoration: InputDecoration(labelText: loc.name),
+                        validator: (v) =>
+                            v == null || v.trim().isEmpty ? loc.required : null,
+                      ),
+                      const SizedBox(height: AppTokens.spacingMedium),
+
+                      // Code
+                      TextFormField(
+                        controller: _codeCtrl,
+                        decoration: InputDecoration(labelText: loc.code),
+                        validator: (v) =>
+                            v == null || v.trim().isEmpty ? loc.required : null,
+                      ),
+                      const SizedBox(height: AppTokens.spacingLarge),
+
+                      // Base Status
+                      if (_isBase)
+                        Container(
+                          width: double.infinity,
+                          padding:
+                              const EdgeInsets.all(AppTokens.spacingMedium),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(
+                                AppTokens.borderRadiusSmall),
+                            border: Border.all(
+                                color: Colors.amber.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.star,
+                                  color: Colors.amber, size: 20),
+                              const SizedBox(width: AppTokens.spacingMedium),
+                              Expanded(
+                                child: Text(
+                                  loc.isBaseUnitFor(_selectedCategory!.name),
+                                  style: textTheme.bodySmall
+                                      ?.copyWith(color: Colors.brown),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        TextFormField(
+                          controller: _multiplierCtrl,
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration: InputDecoration(
+                            labelText: loc.multiplierConversionLabel,
+                            prefixText: '1 ${_codeCtrl.text} = ',
+                            suffixText: _baseUnit?.code ?? '',
+                          ),
+                          validator:
+                              UnitValidator.validatePositiveWholeMultiplier,
+                        ),
+                    ],
                   ),
-              ],
-            ),
-          ),
-        ),
+                ),
+              ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
+        TextButton(
+            onPressed: () => Navigator.pop(context), child: Text(loc.cancel)),
         ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              final unit = widget.unit.copyWith(
-                name: _nameCtrl.text,
-                code: _codeCtrl.text,
-              );
-              // Note: multiplier/baseUnitId change during edit might be restricted in some systems, 
-              // but here we allow it if the current model supports it via copyWith.
-              // However, copyWith in unit_model.dart doesn't have multiplier/baseUnitId yet.
-              // I'll update the model later if needed, but for now I'll just use the constructor.
-              
-              final updatedUnit = Unit(
-                id: unit.id,
-                name: _nameCtrl.text,
-                code: _codeCtrl.text,
-                category: unit.category,
-                baseUnitId: unit.baseUnitId, // Usually fixed on edit for simplicity
-                multiplier: _isBase ? 1 : int.parse(_multiplierCtrl.text.trim()),
-                isSystem: unit.isSystem,
-                isActive: unit.isActive,
-              );
+          onPressed: _selectedCategory == null ||
+                  (!_isBase && _baseUnit == null)
+              ? null
+              : () {
+                  if (_formKey.currentState!.validate()) {
+                    final multiplier = _isBase
+                        ? 1
+                        : UnitValidator.parsePositiveWholeMultiplier(
+                            _multiplierCtrl.text);
+                    if (!_isBase && multiplier == null) {
+                      return;
+                    }
 
-              final unitsForValidation = widget.allUnits
-                  .where((existingUnit) => existingUnit.id != updatedUnit.id)
-                  .toList()
-                ..add(updatedUnit);
-
-              final validationError = updatedUnit.isBase
-                  ? UnitValidator.validateBaseUnit(
-                      updatedUnit.category,
-                      unitsForValidation,
-                    )
-                  : UnitValidator.validateDerivedUnit(
-                      updatedUnit,
-                      unitsForValidation,
+                    final updatedUnit = widget.unit.copyWith(
+                      name: _nameCtrl.text,
+                      code: _codeCtrl.text,
+                      multiplier: multiplier!,
                     );
-              if (validationError != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(validationError),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                  ),
-                );
-                return;
-              }
 
-              widget.onSave(updatedUnit);
-              Navigator.pop(context);
-            }
-          },
+                    final unitsForValidation = widget.allUnits
+                        .where(
+                            (existingUnit) => existingUnit.id != updatedUnit.id)
+                        .toList()
+                      ..add(updatedUnit);
+
+                    final validationError = updatedUnit.isBase
+                        ? UnitValidator.validateBaseUnit(
+                            updatedUnit.category,
+                            unitsForValidation,
+                          )
+                        : UnitValidator.validateDerivedUnit(
+                            updatedUnit,
+                            unitsForValidation,
+                          );
+                    if (validationError != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(validationError),
+                          backgroundColor: Theme.of(context).colorScheme.error,
+                        ),
+                      );
+                      return;
+                    }
+
+                    widget.onSave(updatedUnit);
+                    Navigator.pop(context);
+                  }
+                },
           child: Text(loc.save),
         ),
       ],

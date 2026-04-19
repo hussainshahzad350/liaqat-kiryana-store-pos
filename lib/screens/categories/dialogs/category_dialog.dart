@@ -48,25 +48,20 @@ class _CategoryDialogState extends State<CategoryDialog> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _selectedDeptId == null) return;
 
-    final selectedDeptId = _selectedDeptId!;
-    final nameEn = _nameEnController.text.trim();
     setState(() => _isValidating = true);
     final loc = AppLocalizations.of(context)!;
 
+    final nameEn = _nameEnController.text.trim();
     bool exists;
     try {
-      exists = await widget.onValidate(
-        selectedDeptId,
-        nameEn,
-        excludeId: widget.category?.id,
-      );
-    } catch (_) {
+      exists = await widget.onValidate(_selectedDeptId!, nameEn,
+          excludeId: widget.category?.id);
+    } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(loc.error),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
+            content: Text(loc.unknownError),
+            backgroundColor: Theme.of(context).colorScheme.error),
       );
       return;
     } finally {
@@ -77,20 +72,22 @@ class _CategoryDialogState extends State<CategoryDialog> {
 
     if (exists) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.categoryExistsError), backgroundColor: Theme.of(context).colorScheme.error),
+        SnackBar(
+            content: Text(loc.categoryExistsError),
+            backgroundColor: Theme.of(context).colorScheme.error),
       );
       return;
     }
 
     final cat = Category(
       id: widget.category?.id,
-      departmentId: selectedDeptId,
+      departmentId: _selectedDeptId,
       nameEn: nameEn,
       nameUr: _nameUrController.text.trim(),
       isActive: widget.category?.isActive ?? true,
       isVisibleInPOS: widget.category?.isVisibleInPOS ?? true,
     );
-    
+
     widget.onSave(cat);
     Navigator.pop(context);
   }
@@ -101,7 +98,8 @@ class _CategoryDialogState extends State<CategoryDialog> {
     final textTheme = Theme.of(context).textTheme;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
       child: Container(
         constraints: const BoxConstraints(minWidth: 400, maxWidth: 500),
         padding: const EdgeInsets.all(AppTokens.spacingLarge),
@@ -124,7 +122,8 @@ class _CategoryDialogState extends State<CategoryDialog> {
                   isDense: true,
                 ),
                 items: widget.departments
-                    .map((d) => DropdownMenuItem(value: d.id, child: Text(d.nameEn)))
+                    .map((d) =>
+                        DropdownMenuItem(value: d.id, child: Text(d.nameEn)))
                     .toList(),
                 onChanged: (val) => setState(() => _selectedDeptId = val),
                 validator: (val) => val == null ? loc.required : null,
@@ -148,7 +147,8 @@ class _CategoryDialogState extends State<CategoryDialog> {
                   border: const OutlineInputBorder(),
                   isDense: true,
                 ),
-                style: const TextStyle(fontFamily: 'NooriNastaleeq', height: 1.2),
+                style:
+                    const TextStyle(fontFamily: 'NooriNastaleeq', height: 1.2),
               ),
               const SizedBox(height: AppTokens.spacingLarge),
               Row(
@@ -160,9 +160,14 @@ class _CategoryDialogState extends State<CategoryDialog> {
                   ),
                   const SizedBox(width: AppTokens.spacingMedium),
                   ElevatedButton(
-                    onPressed: (_isValidating || _selectedDeptId == null) ? null : _submit,
-                    child: _isValidating 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    onPressed: (_isValidating || _selectedDeptId == null)
+                        ? null
+                        : _submit,
+                    child: _isValidating
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2))
                         : Text(loc.save),
                   ),
                 ],

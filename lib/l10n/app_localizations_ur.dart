@@ -108,6 +108,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get units => 'یونٹس';
 
   @override
+  String get unitsManagement => 'یونٹس مینجمنٹ';
+
+  @override
   String get itemsManagement => 'اشیا کا انتظام';
 
   @override
@@ -115,6 +118,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get noItemsFound => 'کوئی آئٹم نہیں ملا';
+
+  @override
+  String get noCategoriesFound => 'کوئی کیٹیگری نہیں ملی۔';
 
   @override
   String get addNewItem => 'نیا آئٹم شامل کریں';
@@ -1288,7 +1294,22 @@ class AppLocalizationsUr extends AppLocalizations {
   String get invalidQuantity => 'مقدار صفر سے زیادہ ہونی چاہیے';
 
   @override
+  String get invoiceEmpty => 'انوائس میں کم از کم ایک آئٹم ہونا ضروری ہے';
+
+  @override
+  String get paymentNegative => 'ادائیگی کی رقوم منفی نہیں ہو سکتیں';
+
+  @override
+  String get paymentSplitMismatch =>
+      'ادائیگی کی تقسیم گرینڈ ٹوٹل کے برابر ہونی چاہیے';
+
+  @override
   String get insufficientStock => 'ناکافی اسٹاک';
+
+  @override
+  String insufficientStockForItem(String item) {
+    return '$item کے لیے اسٹاک ناکافی ہے';
+  }
 
   @override
   String get outOfStock => 'اسٹاک ختم';
@@ -1589,6 +1610,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get category => 'کیٹیگری';
 
   @override
+  String get base => 'بنیادی';
+
+  @override
   String get baseUnit => 'بنیادی یونٹ';
 
   @override
@@ -1617,6 +1641,54 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get systemUnit => 'System Unit';
+
+  @override
+  String get edit => 'ترمیم کریں';
+
+  @override
+  String get code => 'کوڈ';
+
+  @override
+  String isBaseUnitFor(String category) {
+    return 'یہ $category کی بنیادی اکائی ہے۔';
+  }
+
+  @override
+  String get multiplierConversionLabel => 'ضرب کار (بنیادی میں تبدیلی)';
+
+  @override
+  String baseUnitSubtitle(String name, String code) {
+    return 'بنیادی: $name ($code)';
+  }
+
+  @override
+  String get noBaseUnitSet => 'کوئی بنیادی اکائی مقرر نہیں';
+
+  @override
+  String get noUnitsInCategory => 'اس زمرے میں کوئی اکائی متعین نہیں';
+
+  @override
+  String get softDeleteWarning => 'نرم خاتمہ انتباہ';
+
+  @override
+  String unitInUseMessage(String name, String code, int count) {
+    return 'یونٹ \"$name\" ($code) کو $count مصنوعات یا دیگر یونٹس استعمال کر رہے ہیں۔';
+  }
+
+  @override
+  String confirmDeleteUnit(String name, String code) {
+    return 'کیا آپ واقعی \"$name\" ($code) کو حذف کرنا چاہتے ہیں؟';
+  }
+
+  @override
+  String get unitArchiveNote =>
+      'موجودہ مصنوعات کا ڈیٹا محفوظ رکھنے کے لیے اسے حذف کی بجاے ا۹ائیو کیا جائے گا۔';
+
+  @override
+  String get actionCannotBeUndone => 'یہ عمل واپس نہیں ہو سکتا۔';
+
+  @override
+  String get archive => 'ا۹ائیو کریں';
 
   @override
   String get categoryLength => 'لمبائی';
@@ -1687,6 +1759,11 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get subcategoryExistsError =>
       'اس نام کی ذیلی کیٹیگری منتخب کیٹیگری میں پہلے سے موجود ہے۔';
+
+  @override
+  String departmentInUseDeleteError(int count) {
+    return 'ڈپارٹمنٹ حذف نہیں کیا جا سکتا کیونکہ یہ $count آئٹم میں استعمال ہو رہا ہے۔';
+  }
 
   @override
   String categoryInUseDeleteError(int count) {
@@ -2110,9 +2187,6 @@ class AppLocalizationsUr extends AppLocalizations {
   String get conversionFormula => 'تبدیلی کا فارمولا';
 
   @override
-  String get noBaseUnitSet => 'اس زمرے کے لیے کوئی بنیادی یونٹ سیٹ نہیں ہے';
-
-  @override
   String get unitCodeFallback => 'یونٹ';
 
   @override
@@ -2143,7 +2217,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String unitInUseWarning(Object count) {
-    return 'یہ یونٹ $count مصنوعات میں استعمال ہو رہا ہے';
+    return 'یہ یونٹ $count مصنوعات اور منحصر یونٹس میں استعمال ہو رہا ہے';
   }
 
   @override

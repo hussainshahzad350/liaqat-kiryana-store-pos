@@ -296,6 +296,12 @@ abstract class AppLocalizations {
   /// **'Units'**
   String get units;
 
+  /// No description provided for @unitsManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Units Management'**
+  String get unitsManagement;
+
   /// No description provided for @itemsManagement.
   ///
   /// In en, this message translates to:
@@ -313,6 +319,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No items found'**
   String get noItemsFound;
+
+  /// No description provided for @noCategoriesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories found.'**
+  String get noCategoriesFound;
 
   /// No description provided for @addNewItem.
   ///
@@ -2618,11 +2630,35 @@ abstract class AppLocalizations {
   /// **'Quantity must be greater than zero'**
   String get invalidQuantity;
 
+  /// No description provided for @invoiceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice must have at least one item'**
+  String get invoiceEmpty;
+
+  /// No description provided for @paymentNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment amounts cannot be negative'**
+  String get paymentNegative;
+
+  /// No description provided for @paymentSplitMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment split must equal grand total'**
+  String get paymentSplitMismatch;
+
   /// No description provided for @insufficientStock.
   ///
   /// In en, this message translates to:
   /// **'Insufficient stock'**
   String get insufficientStock;
+
+  /// No description provided for @insufficientStockForItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Insufficient stock for {item}'**
+  String insufficientStockForItem(String item);
 
   /// No description provided for @outOfStock.
   ///
@@ -3200,6 +3236,12 @@ abstract class AppLocalizations {
   /// **'Category'**
   String get category;
 
+  /// No description provided for @base.
+  ///
+  /// In en, this message translates to:
+  /// **'Base'**
+  String get base;
+
   /// No description provided for @baseUnit.
   ///
   /// In en, this message translates to:
@@ -3259,6 +3301,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System Unit'**
   String get systemUnit;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @code.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get code;
+
+  /// No description provided for @isBaseUnitFor.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the Base Unit for {category}.'**
+  String isBaseUnitFor(String category);
+
+  /// No description provided for @multiplierConversionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiplier (Conversion to Base)'**
+  String get multiplierConversionLabel;
+
+  /// No description provided for @baseUnitSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Base: {name} ({code})'**
+  String baseUnitSubtitle(String name, String code);
+
+  /// No description provided for @noBaseUnitSet.
+  ///
+  /// In en, this message translates to:
+  /// **'No base unit set for this category'**
+  String get noBaseUnitSet;
+
+  /// No description provided for @noUnitsInCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No units defined in this category'**
+  String get noUnitsInCategory;
+
+  /// No description provided for @softDeleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft Delete Warning'**
+  String get softDeleteWarning;
+
+  /// No description provided for @unitInUseMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The unit \"{name}\" ({code}) is used by {count} products or other units.'**
+  String unitInUseMessage(String name, String code, int count);
+
+  /// No description provided for @confirmDeleteUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\" ({code})?'**
+  String confirmDeleteUnit(String name, String code);
+
+  /// No description provided for @unitArchiveNote.
+  ///
+  /// In en, this message translates to:
+  /// **'It will be archived instead of deleted to maintain data integrity for current products.'**
+  String get unitArchiveNote;
+
+  /// No description provided for @actionCannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone.'**
+  String get actionCannotBeUndone;
+
+  /// No description provided for @archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archive;
 
   /// No description provided for @categoryLength.
   ///
@@ -3385,6 +3505,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subcategory with this name already exists in the selected category.'**
   String get subcategoryExistsError;
+
+  /// No description provided for @departmentInUseDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete department because it is used by {count} item(s).'**
+  String departmentInUseDeleteError(int count);
 
   /// No description provided for @categoryInUseDeleteError.
   ///
@@ -4160,12 +4286,6 @@ abstract class AppLocalizations {
   /// **'Conversion Formula'**
   String get conversionFormula;
 
-  /// No description provided for @noBaseUnitSet.
-  ///
-  /// In en, this message translates to:
-  /// **'No base unit set for this category'**
-  String get noBaseUnitSet;
-
   /// No description provided for @unitCodeFallback.
   ///
   /// In en, this message translates to:
@@ -4211,7 +4331,7 @@ abstract class AppLocalizations {
   /// No description provided for @unitInUseWarning.
   ///
   /// In en, this message translates to:
-  /// **'This unit is used by {count} products'**
+  /// **'This unit is used by {count} products and/or dependent units'**
   String unitInUseWarning(Object count);
 
   /// No description provided for @categoryVolume.

@@ -24,6 +24,10 @@ class CategoriesRepository {
 
   Future<int> deleteDepartment(int id) async {
     final db = await _dbHelper.database;
+    final inUseCount = await getProductCountByDepartment(id);
+    if (inUseCount > 0) {
+      throw Exception('DEPARTMENT_IN_USE:$inUseCount');
+    }
     return await db.delete('departments', where: 'id = ?', whereArgs: [id]);
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/res/app_tokens.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/unit_model.dart';
 import 'base_unit_indicator.dart';
 import '../utils/unit_converter.dart';
@@ -20,6 +21,7 @@ class UnitListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -43,37 +45,46 @@ class UnitListItem extends StatelessWidget {
                 color: unit.isSystem
                     ? colorScheme.surfaceContainerHighest
                     : colorScheme.primaryContainer.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(AppTokens.borderRadiusSmall),
+                borderRadius:
+                    BorderRadius.circular(AppTokens.borderRadiusSmall),
               ),
               child: Icon(
                 unit.isSystem ? Icons.lock : Icons.balance,
                 size: 16,
-                color: unit.isSystem 
-                    ? colorScheme.onSurfaceVariant 
+                color: unit.isSystem
+                    ? colorScheme.onSurfaceVariant
                     : colorScheme.onPrimaryContainer,
               ),
             ),
-            
+
             // Name and Tags
             Expanded(
               flex: 2,
               child: Row(
                 children: [
-                  Text(
-                    unit.name,
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      unit.name,
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                   const SizedBox(width: AppTokens.spacingMedium),
                   if (unit.isBase)
                     const BaseUnitIndicator()
                   else if (baseUnit != null)
-                    Text(
-                      '(${UnitConverter.getFormula(unit, baseUnit)})',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.outline,
-                        fontStyle: FontStyle.italic,
+                    Flexible(
+                      child: Text(
+                        '(${UnitConverter.getFormula(unit, baseUnit)})',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.outline,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                 ],
@@ -90,7 +101,8 @@ class UnitListItem extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: colorScheme.secondaryContainer.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(AppTokens.borderRadiusSmall),
+                  borderRadius:
+                      BorderRadius.circular(AppTokens.borderRadiusSmall),
                 ),
                 child: Text(
                   unit.code,
@@ -109,14 +121,18 @@ class UnitListItem extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, size: 20),
                   onPressed: unit.isSystem ? null : onEdit,
-                  tooltip: unit.isSystem ? 'System Unit' : 'Edit',
-                  color: unit.isSystem ? colorScheme.outline.withValues(alpha: 0.3) : colorScheme.primary,
+                  tooltip: unit.isSystem ? loc.systemUnit : loc.edit,
+                  color: unit.isSystem
+                      ? colorScheme.outline.withValues(alpha: 0.3)
+                      : colorScheme.primary,
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
                   onPressed: unit.isSystem ? null : onDelete,
-                  tooltip: unit.isSystem ? 'System Unit' : 'Delete',
-                  color: unit.isSystem ? colorScheme.outline.withValues(alpha: 0.3) : colorScheme.error,
+                  tooltip: unit.isSystem ? loc.systemUnit : loc.delete,
+                  color: unit.isSystem
+                      ? colorScheme.outline.withValues(alpha: 0.3)
+                      : colorScheme.error,
                 ),
               ],
             ),
