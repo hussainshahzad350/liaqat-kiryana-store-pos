@@ -31,6 +31,7 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
   final LedgerExportService _exportService = LedgerExportService();
   final _searchCtrl = TextEditingController();
   Timer? _searchDebounce;
+  int _ledgerRequestId = 0;
 
   List<Map<String, dynamic>> _ledger = [];
   DateTime? _startDate;
@@ -54,17 +55,20 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
   }
 
   Future<void> _loadLedger() async {
-    setState(() {
-      _isLoading = true;
-      _loadError = null;
-    });
+    final requestId = ++_ledgerRequestId;
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _loadError = null;
+      });
+    }
     try {
       final data = await widget.repository.getSupplierLedger(
         widget.supplier.id!,
         startDate: _startDate,
         endDate: _endDate,
       );
-      if (mounted) {
+      if (mounted && requestId == _ledgerRequestId) {
         setState(() {
           _ledger = data;
           _isLoading = false;
@@ -72,7 +76,7 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
         });
       }
     } catch (e, _) {
-      if (mounted) {
+      if (mounted && requestId == _ledgerRequestId) {
         setState(() {
           _isLoading = false;
           _loadError = e.toString();
@@ -146,7 +150,8 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
   }
 
   Future<void> _handleExport() async {
-    if (_ledger.isEmpty) return;
+    final visibleRows = _filtered;
+    if (visibleRows.isEmpty) return;
     final loc = AppLocalizations.of(context)!;
     final isUrdu = Localizations.localeOf(context).languageCode == 'ur';
     final colorScheme = Theme.of(context).colorScheme;
@@ -164,7 +169,8 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
               onTap: () {
                 Navigator.pop(ctx);
                 _exportService.exportSupplierLedgerToPdf(
-                  _ledger, widget.supplier,
+                  visibleRows,
+                  widget.supplier,
                   isUrdu: isUrdu,
                 );
               },
@@ -175,8 +181,10 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
               onTap: () async {
                 Navigator.pop(ctx);
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
-                final path =
-                    await _exportService.exportSupplierLedgerToCsv(_ledger, widget.supplier);
+                final path = await _exportService.exportSupplierLedgerToCsv(
+                  visibleRows,
+                  widget.supplier,
+                );
                 if (mounted) {
                   scaffoldMessenger.showSnackBar(
                       SnackBar(content: Text(loc.savedToPath(path))));
@@ -263,8 +271,8 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
                                       height: AppTokens.spacingMedium),
                                   Text(
                                     loc.errorMessage(_loadError!),
-                                    style: textTheme.bodyMedium?.copyWith(
-                                        color: colorScheme.error),
+                                    style: textTheme.bodyMedium
+                                        ?.copyWith(color: colorScheme.error),
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(
@@ -277,91 +285,131 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
                                 ],
                               ),
                             )
-                      : _filtered.isEmpty
-                          ? Center(
-                              child: Text(loc.noTransactionsFound,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                      color: colorScheme.onSurfaceVariant)))
-                          : ListView.builder(
-                              itemCount: _filtered.length,
-                              itemBuilder: (ctx, i) {
-                                final row = _filtered[i];
-                                final isEven = i % 2 == 0;
-                                final date = DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
-                                final debit = Money(_parseInt(row['dr']) ?? _parseInt(row['debit']) ?? 0); // We paid them
-                                final credit = Money(_parseInt(row['cr']) ?? _parseInt(row['credit']) ?? 0); // Bill
-                                final balance = Money(_parseInt(row['balance']) ?? 0);
-                                final isBill = row['type'] == 'BILL';
+                          : _filtered.isEmpty
+                              ? Center(
+                                  child: Text(loc.noTransactionsFound,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                          color: colorScheme.onSurfaceVariant)))
+                              : ListView.builder(
+                                  itemCount: _filtered.length,
+                                  itemBuilder: (ctx, i) {
+                                    final row = _filtered[i];
+                                    final isEven = i % 2 == 0;
+                                    final DateTime? parsedDate =
+                                        DateTime.tryParse(
+                                            row['date']?.toString() ?? '');
+                                    final debit = Money(_parseInt(row['dr']) ??
+                                        _parseInt(row['debit']) ??
+                                        0); // We paid them
+                                    final credit = Money(_parseInt(row['cr']) ??
+                                        _parseInt(row['credit']) ??
+                                        0); // Bill
+                                    final balance =
+                                        Money(_parseInt(row['balance']) ?? 0);
+                                    final isBill = row['type'] == 'BILL';
 
-                                final bgColor = isEven ? colorScheme.surface : colorScheme.surfaceContainerHighest;
+                                    final bgColor = isEven
+                                        ? colorScheme.surface
+                                        : colorScheme.surfaceContainerHighest;
 
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: AppTokens.spacingSmall,
-                                    horizontal: AppTokens.spacingMedium,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: bgColor,
-                                    border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                          flex: 2,
-                                          child: Text(DateFormat('dd-MM-yyyy').format(date),
-                                              style: textTheme.bodySmall?.copyWith(fontFamily: 'RobotoMono'))),
-                                      Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            (row['bill_no'] ?? '-')
-                                              .toString(),
-                                              style: textTheme.bodySmall?.copyWith(fontFamily: 'RobotoMono'))),
-                                      Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            isBill ? "Bill" : "Payment",
-                                            style: textTheme.bodySmall?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color:
-                                                  isBill ? colorScheme.primary : colorScheme.tertiary,
-                                            ),
-                                          )),
-                                      Expanded(
-                                          flex: 4,
-                                          child: Text((row['desc'] ?? '').toString(),
-                                              style: textTheme.bodySmall, overflow: TextOverflow.ellipsis)),
-                                      Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            debit > Money.zero ? debit.toString() : '-', // DR
-                                            textAlign: TextAlign.right,
-                                            style: textTheme.bodySmall?.copyWith(fontFamily: 'RobotoMono'),
-                                          )),
-                                      Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            credit > Money.zero ? credit.toString() : '-', // CR
-                                            textAlign: TextAlign.right,
-                                            style: textTheme.bodySmall?.copyWith(fontFamily: 'RobotoMono'),
-                                          )),
-                                      Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            balance.toString(),
-                                            textAlign: TextAlign.right,
-                                            style: textTheme.bodySmall?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: 'RobotoMono',
-                                              color: balance > Money.zero
-                                                  ? colorScheme.error
-                                                  : colorScheme.primary, // Alert them it's a debt we owe!
-                                            ),
-                                          )),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: AppTokens.spacingSmall,
+                                        horizontal: AppTokens.spacingMedium,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: bgColor,
+                                        border: Border(
+                                            bottom: BorderSide(
+                                                color: colorScheme
+                                                    .outlineVariant)),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                  parsedDate != null
+                                                      ? DateFormat('dd-MM-yyyy')
+                                                          .format(parsedDate)
+                                                      : '-',
+                                                  style: textTheme.bodySmall
+                                                      ?.copyWith(
+                                                          fontFamily:
+                                                              'RobotoMono'))),
+                                          Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                  (row['bill_no'] ?? '-')
+                                                      .toString(),
+                                                  style: textTheme.bodySmall
+                                                      ?.copyWith(
+                                                          fontFamily:
+                                                              'RobotoMono'))),
+                                          Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                isBill ? loc.bill : loc.payment,
+                                                style: textTheme.bodySmall
+                                                    ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isBill
+                                                      ? colorScheme.primary
+                                                      : colorScheme.tertiary,
+                                                ),
+                                              )),
+                                          Expanded(
+                                              flex: 4,
+                                              child: Text(
+                                                  (row['desc'] ?? '')
+                                                      .toString(),
+                                                  style: textTheme.bodySmall,
+                                                  overflow:
+                                                      TextOverflow.ellipsis)),
+                                          Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                debit > Money.zero
+                                                    ? debit.toString()
+                                                    : '-', // DR
+                                                textAlign: TextAlign.right,
+                                                style: textTheme.bodySmall
+                                                    ?.copyWith(
+                                                        fontFamily:
+                                                            'RobotoMono'),
+                                              )),
+                                          Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                credit > Money.zero
+                                                    ? credit.toString()
+                                                    : '-', // CR
+                                                textAlign: TextAlign.right,
+                                                style: textTheme.bodySmall
+                                                    ?.copyWith(
+                                                        fontFamily:
+                                                            'RobotoMono'),
+                                              )),
+                                          Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                balance.toString(),
+                                                textAlign: TextAlign.right,
+                                                style: textTheme.bodySmall
+                                                    ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'RobotoMono',
+                                                  color: balance > Money.zero
+                                                      ? colorScheme.error
+                                                      : colorScheme
+                                                          .primary, // Alert them it's a debt we owe!
+                                                ),
+                                              )),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
                 ),
               ],
             ),
@@ -533,10 +581,10 @@ class _FilterBar extends StatelessWidget {
           ],
           const SizedBox(width: AppTokens.spacingMedium),
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'ALL', label: Text("All")),
-              ButtonSegment(value: 'BILL', label: Text("Bills")),
-              ButtonSegment(value: 'PAYMENT', label: Text("Payments")),
+            segments: [
+              ButtonSegment(value: 'ALL', label: Text(loc.all)),
+              ButtonSegment(value: 'BILL', label: Text(loc.bills)),
+              ButtonSegment(value: 'PAYMENT', label: Text(loc.payments)),
             ],
             selected: {filterType},
             onSelectionChanged: (s) => onFilterChanged(s.first),

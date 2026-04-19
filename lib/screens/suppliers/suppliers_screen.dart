@@ -31,6 +31,34 @@ class SuppliersScreen extends StatelessWidget {
 class _SuppliersScreenContent extends StatelessWidget {
   const _SuppliersScreenContent();
 
+  Future<bool> _confirmDeleteSupplier(
+      BuildContext context, ColorScheme colorScheme) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Confirm Delete',
+            style: Theme.of(context).textTheme.titleLarge),
+        content: Text(
+            'Are you sure you want to completely delete this supplier?',
+            style: Theme.of(context).textTheme.bodyMedium),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.error,
+              foregroundColor: colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    return confirm == true;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -94,31 +122,7 @@ class _SuppliersScreenContent extends StatelessWidget {
                     );
                   },
                   onDelete: (supplier) async {
-                    // Logic from existing delete logic migrated into a localized dialog explicitly
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: Text('Confirm Delete',
-                            style: Theme.of(context).textTheme.titleLarge),
-                        content: Text(
-                            'Are you sure you want to completely delete this supplier?',
-                            style: Theme.of(context).textTheme.bodyMedium),
-                        actions: [
-                          TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text('Cancel')),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: colorScheme.error,
-                              foregroundColor: colorScheme.onError,
-                            ),
-                            onPressed: () => Navigator.pop(ctx, true),
-                            child: const Text('Delete'),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (confirm == true) {
+                    if (await _confirmDeleteSupplier(context, colorScheme)) {
                       await controller.deleteSupplier(supplier);
                     }
                   },
@@ -138,8 +142,9 @@ class _SuppliersScreenContent extends StatelessWidget {
               controller.closeArchiveView();
             },
             onDelete: (supplier) async {
-              await controller.deleteSupplier(supplier);
-              controller.refresh();
+              if (await _confirmDeleteSupplier(context, colorScheme)) {
+                await controller.deleteSupplier(supplier);
+              }
             },
             onLedger: (supplier) {
               controller.closeArchiveView();

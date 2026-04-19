@@ -29,6 +29,7 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
 
   late String _selectedType;
   late DateTime _selectedDate;
+  bool _isSaving = false;
   PaymentMode _paymentMode = PaymentMode.cash;
 
   final List<PaymentMode> _paymentModes = [
@@ -156,21 +157,23 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                         children: [
                           Expanded(
                             child: InkWell(
-                              onTap: () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: _selectedDate,
-                                  firstDate: DateTime(2020),
-                                  lastDate: DateTime.now(),
-                                  builder: (context, child) => Theme(
-                                      data: Theme.of(context)
-                                          .copyWith(colorScheme: colorScheme),
-                                      child: child!),
-                                );
-                                if (picked != null) {
-                                  setState(() => _selectedDate = picked);
-                                }
-                              },
+                              onTap: _isSaving
+                                  ? null
+                                  : () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: _selectedDate,
+                                        firstDate: DateTime(2020),
+                                        lastDate: DateTime.now(),
+                                        builder: (context, child) => Theme(
+                                            data: Theme.of(context).copyWith(
+                                                colorScheme: colorScheme),
+                                            child: child!),
+                                      );
+                                      if (picked != null) {
+                                        setState(() => _selectedDate = picked);
+                                      }
+                                    },
                               child: Container(
                                 padding: const EdgeInsets.all(
                                     AppTokens.spacingStandard),
@@ -208,6 +211,13 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                           Expanded(
                             child: DropdownButtonFormField<PaymentMode>(
                               value: _paymentMode,
+                              onChanged: _isSaving
+                                  ? null
+                                  : (val) {
+                                      if (val != null) {
+                                        setState(() => _paymentMode = val);
+                                      }
+                                    },
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: colorScheme.surface,
@@ -230,11 +240,6 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                                   .map((m) => DropdownMenuItem(
                                       value: m, child: Text(m.dbValue)))
                                   .toList(),
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setState(() => _paymentMode = val);
-                                }
-                              },
                             ),
                           ),
                         ],
@@ -244,6 +249,7 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                       // Amount, Description, Remarks
                       TextField(
                         controller: _amountCtrl,
+                        enabled: !_isSaving,
                         decoration: InputDecoration(
                             labelText: loc.amount,
                             filled: true,
@@ -258,6 +264,7 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                       const SizedBox(height: AppTokens.spacingStandard),
                       TextField(
                         controller: _descCtrl,
+                        enabled: !_isSaving,
                         decoration: InputDecoration(
                             labelText: loc.description,
                             filled: true,
@@ -271,6 +278,7 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                       const SizedBox(height: AppTokens.spacingStandard),
                       TextField(
                         controller: _remarksCtrl,
+                        enabled: !_isSaving,
                         decoration: InputDecoration(
                             labelText: loc.remarks,
                             filled: true,
@@ -290,55 +298,64 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: _isSaving ? null : () => Navigator.pop(context),
                     child: Text(loc.cancel,
                         style: textTheme.bodyMedium
                             ?.copyWith(color: colorScheme.onSurfaceVariant)),
                   ),
                   const SizedBox(width: AppTokens.spacingStandard),
                   ElevatedButton(
-                    onPressed: () async {
-                      Money? amount;
-                      try {
-                        amount =
-                            Money.fromRupeesString(_amountCtrl.text.trim());
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(loc.invalidAmount),
-                            backgroundColor: colorScheme.error));
-                        return;
-                      }
-                      if (amount > Money.zero &&
-                          _descCtrl.text.trim().isNotEmpty) {
-                        try {
-                          await widget.repository.addCashEntry(
-                            _descCtrl.text.trim(),
-                            _selectedType,
-                            amount,
-                            _remarksCtrl.text.trim(),
-                            paymentMode: _paymentMode.dbValue,
-                          );
-                          if (!context.mounted) {
-                            return;
-                          }
-                          widget.onSaved();
-                          Navigator.pop(context);
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text("Error saving: $e"),
-                              backgroundColor: colorScheme.error));
-                        }
-                      } else if (_descCtrl.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(loc.descriptionRequired),
-                            backgroundColor: colorScheme.error));
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(loc.invalidAmount),
-                            backgroundColor: colorScheme.error));
-                      }
-                    },
+                    onPressed: _isSaving
+                        ? null
+                        : () async {
+                            Money? amount;
+                            try {
+                              amount = Money.fromRupeesString(
+                                  _amountCtrl.text.trim());
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(loc.invalidAmount),
+                                      backgroundColor: colorScheme.error));
+                              return;
+                            }
+                            if (amount > Money.zero &&
+                                _descCtrl.text.trim().isNotEmpty) {
+                              setState(() => _isSaving = true);
+                              try {
+                                await widget.repository.addCashEntry(
+                                  _descCtrl.text.trim(),
+                                  _selectedType,
+                                  amount,
+                                  _remarksCtrl.text.trim(),
+                                  paymentMode: _paymentMode.dbValue,
+                                  transactionDate: _selectedDate,
+                                );
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                widget.onSaved();
+                                Navigator.pop(context);
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                setState(() => _isSaving = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text("Error saving: $e"),
+                                        backgroundColor: colorScheme.error));
+                              }
+                            } else if (_descCtrl.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(loc.descriptionRequired),
+                                      backgroundColor: colorScheme.error));
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(loc.invalidAmount),
+                                      backgroundColor: colorScheme.error));
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _selectedType == 'IN'
                           ? colorScheme.primary
@@ -348,9 +365,20 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                           : colorScheme.onError,
                       minimumSize: const Size(0, AppTokens.buttonHeight),
                     ),
-                    child: Text(loc.save,
-                        style: textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.bold)),
+                    child: _isSaving
+                        ? SizedBox(
+                            width: AppTokens.iconSizeMedium,
+                            height: AppTokens.iconSizeMedium,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: _selectedType == 'IN'
+                                  ? colorScheme.onPrimary
+                                  : colorScheme.onError,
+                            ),
+                          )
+                        : Text(loc.save,
+                            style: textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

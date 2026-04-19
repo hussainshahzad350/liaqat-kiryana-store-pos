@@ -1,4 +1,6 @@
 // test/unit/cash_ledger_controller_test.dart
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:liaqat_store/core/repositories/cash_repository.dart';
@@ -135,6 +137,64 @@ void main() {
       await controller.refresh();
 
       expect(controller.hasNextPage, true);
+    });
+
+    test('ignores stale stats from an earlier refresh', () async {
+      final firstBalance = Completer<Money>();
+      var balanceCallCount = 0;
+
+      when(() => mockRepo.getPhysicalCashBalance()).thenAnswer((_) {
+        balanceCallCount++;
+        if (balanceCallCount == 1) {
+          return firstBalance.future;
+        }
+        return Future.value(Money.fromPaisas(9000));
+      });
+
+      final firstRefresh = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+
+      final secondRefresh = controller.refresh();
+      await secondRefresh;
+
+      expect(controller.cashInDrawer.paisas, 9000);
+
+      firstBalance.complete(Money.fromPaisas(1000));
+      await firstRefresh;
+
+      expect(controller.cashInDrawer.paisas, 9000);
+    });
+
+    test('ignores stale transaction data from an earlier refresh', () async {
+      final firstEntries = Completer<List<CashLedger>>();
+      var ledgerCallCount = 0;
+
+      when(() => mockRepo.getCashLedger(
+              limit: any(named: 'limit'),
+              offset: any(named: 'offset'),
+              paymentModeFilter: any(named: 'paymentModeFilter')))
+          .thenAnswer((_) {
+        ledgerCallCount++;
+        if (ledgerCallCount == 1) {
+          return firstEntries.future;
+        }
+        return Future.value([_makeEntry(id: 99)]);
+      });
+
+      final firstRefresh = controller.refresh();
+      await Future<void>.delayed(Duration.zero);
+
+      final secondRefresh = controller.refresh();
+      await secondRefresh;
+
+      expect(controller.allEntries.map((entry) => entry.id), [99]);
+      expect(controller.hasNextPage, false);
+
+      firstEntries.complete(List.generate(20, (i) => _makeEntry(id: i + 1)));
+      await firstRefresh;
+
+      expect(controller.allEntries.map((entry) => entry.id), [99]);
+      expect(controller.hasNextPage, false);
     });
   });
 

@@ -176,7 +176,6 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
                       controller: _nameEnCtrl,
                       label: '${loc.nameEnglish} *',
                       icon: Icons.person,
-                      readOnly: _isEdit,
                     ),
                     const SizedBox(height: AppTokens.spacingMedium),
                     _Field(
@@ -184,7 +183,6 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
                       label: '${loc.nameUrdu} *',
                       icon: Icons.translate,
                       fontFamily: 'NooriNastaleeq',
-                      readOnly: _isEdit,
                     ),
                     const SizedBox(height: AppTokens.spacingMedium),
                     _Field(

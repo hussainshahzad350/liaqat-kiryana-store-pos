@@ -1201,6 +1201,15 @@ class AppLocalizationsUr extends AppLocalizations {
   String get bill => 'بل';
 
   @override
+  String get payment => 'ادائیگی';
+
+  @override
+  String get bills => 'بلز';
+
+  @override
+  String get payments => 'ادائیگیاں';
+
+  @override
   String get deletedSuccessfully => 'کامیابی سے ختم ہو گیا ہے';
 
   @override

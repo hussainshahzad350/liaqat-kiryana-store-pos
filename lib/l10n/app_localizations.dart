@@ -2450,6 +2450,24 @@ abstract class AppLocalizations {
   /// **'Bill'**
   String get bill;
 
+  /// No description provided for @payment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get payment;
+
+  /// No description provided for @bills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get bills;
+
+  /// No description provided for @payments.
+  ///
+  /// In en, this message translates to:
+  /// **'Payments'**
+  String get payments;
+
   /// No description provided for @deletedSuccessfully.
   ///
   /// In en, this message translates to:

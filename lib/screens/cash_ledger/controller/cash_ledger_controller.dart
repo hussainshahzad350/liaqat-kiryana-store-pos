@@ -6,6 +6,17 @@ import 'package:intl/intl.dart';
 
 enum CashLedgerState { loading, loaded, error }
 
+typedef _CashLedgerStats = ({
+  Money cashInDrawer,
+  Money totalDigitalIn,
+  Money totalInflow,
+});
+
+typedef _CashLedgerTransactions = ({
+  List<CashLedger> entries,
+  bool hasNextPage,
+});
+
 class CashLedgerController extends ChangeNotifier {
   final CashRepository _repository;
 
@@ -47,12 +58,20 @@ class CashLedgerController extends ChangeNotifier {
     allEntries = [];
 
     try {
-      await _loadStats();
+      final stats = await _loadStats();
       if (token != _requestToken) return;
 
-      await _loadTransactions();
+      cashInDrawer = stats.cashInDrawer;
+      totalDigitalIn = stats.totalDigitalIn;
+      totalInflow = stats.totalInflow;
+
+      final transactions = await _loadTransactions();
       if (token != _requestToken) return;
 
+      allEntries = transactions.entries;
+      hasNextPage = transactions.hasNextPage;
+
+      errorMessage = null;
       state = CashLedgerState.loaded;
     } catch (e) {
       if (token != _requestToken) return;
@@ -62,9 +81,9 @@ class CashLedgerController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _loadStats() async {
+  Future<_CashLedgerStats> _loadStats() async {
     // Current physical cash in drawer (filtered for CASH only)
-    cashInDrawer = await _repository.getPhysicalCashBalance();
+    final cashInDrawer = await _repository.getPhysicalCashBalance();
 
     // Pull today's entries to compute daily inflow split
     final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -84,12 +103,16 @@ class CashLedgerController extends ChangeNotifier {
       }
     }
 
-    totalDigitalIn = Money.fromPaisas(digitalInPaisas);
-    totalInflow = Money.fromPaisas(cashInPaisas + digitalInPaisas);
+    return (
+      cashInDrawer: cashInDrawer,
+      totalDigitalIn: Money.fromPaisas(digitalInPaisas),
+      totalInflow: Money.fromPaisas(cashInPaisas + digitalInPaisas),
+    );
   }
 
-  Future<void> _loadTransactions() async {
+  Future<_CashLedgerTransactions> _loadTransactions() async {
     List<CashLedger> data;
+    var nextHasNextPage = true;
 
     if (selectedDate != null) {
       // Date-filtered mode
@@ -99,14 +122,14 @@ class CashLedgerController extends ChangeNotifier {
         dateStr,
         paymentModeFilter: paymentModeFilter,
       );
-      hasNextPage = false; // date-range loads all at once
+      nextHasNextPage = false; // date-range loads all at once
     } else if (searchQuery.isNotEmpty) {
       // Search mode
       data = await _repository.searchCashLedger(
         searchQuery,
         paymentModeFilter: paymentModeFilter,
       );
-      hasNextPage = false;
+      nextHasNextPage = false;
     } else {
       // Default: paginated all-time view (matches old screen behavior)
       data = await _repository.getCashLedger(
@@ -114,10 +137,15 @@ class CashLedgerController extends ChangeNotifier {
         offset: 0,
         paymentModeFilter: paymentModeFilter,
       );
-      if (data.length < _limit) hasNextPage = false;
+      if (data.length < _limit) {
+        nextHasNextPage = false;
+      }
     }
 
-    allEntries = data;
+    return (
+      entries: data,
+      hasNextPage: nextHasNextPage,
+    );
   }
 
   Future<void> loadMore() async {

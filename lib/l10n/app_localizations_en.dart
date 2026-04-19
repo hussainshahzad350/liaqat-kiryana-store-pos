@@ -1204,6 +1204,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bill => 'Bill';
 
   @override
+  String get payment => 'Payment';
+
+  @override
+  String get bills => 'Bills';
+
+  @override
+  String get payments => 'Payments';
+
+  @override
   String get deletedSuccessfully => 'Deleted Successfully';
 
   @override

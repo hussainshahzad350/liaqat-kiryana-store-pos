@@ -110,9 +110,10 @@ class CashRepository {
     Money amount,
     String remarks, {
     String paymentMode = 'CASH',
+    DateTime? transactionDate,
   }) async {
     final db = await _dbHelper.database;
-    final now = DateTime.now();
+    final now = transactionDate ?? DateTime.now();
 
     final dateStr = DateFormat('yyyy-MM-dd').format(now);
     final timeStr = DateFormat('hh:mm a').format(now);
@@ -156,8 +157,16 @@ class CashRepository {
     Money amount, {
     String? remarks,
     String paymentMode = 'CASH',
+    DateTime? transactionDate,
   }) async {
-    await addCashEntry(description, 'IN', amount, remarks ?? '', paymentMode: paymentMode);
+    await addCashEntry(
+      description,
+      'IN',
+      amount,
+      remarks ?? '',
+      paymentMode: paymentMode,
+      transactionDate: transactionDate,
+    );
   }
 
   /// Add cash OUT entry (shorthand)
@@ -166,8 +175,16 @@ class CashRepository {
     Money amount, {
     String? remarks,
     String paymentMode = 'CASH',
+    DateTime? transactionDate,
   }) async {
-    await addCashEntry(description, 'OUT', amount, remarks ?? '', paymentMode: paymentMode);
+    await addCashEntry(
+      description,
+      'OUT',
+      amount,
+      remarks ?? '',
+      paymentMode: paymentMode,
+      transactionDate: transactionDate,
+    );
   }
 
   // ========================================
