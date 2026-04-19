@@ -174,7 +174,9 @@ class _CategoryTreeWidgetState extends State<CategoryTreeWidget> {
                     data: Theme.of(context)
                         .copyWith(dividerColor: Colors.transparent),
                     child: ExpansionTile(
-                      key: PageStorageKey('cat_${cat.id}'),
+                      key: PageStorageKey(
+                        'cat_${cat.id}_${widget.searchResults != null ? widget.searchQuery : ''}',
+                      ),
                       initiallyExpanded:
                           widget.searchResults != null || isCatSelected,
                       onExpansionChanged: (expanded) {
