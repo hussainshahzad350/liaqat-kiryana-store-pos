@@ -28,7 +28,7 @@ dependencies:
   shared_preferences: ^2.2.2
   
   # File Handling
-  file_picker: ^5.3.3
+  file_picker: ^8.0.7
   
   # Printing & PDF
   printing: ^5.11.3

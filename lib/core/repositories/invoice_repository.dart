@@ -71,6 +71,12 @@ class InvoiceRepository {
         throw Exception(
             'Invoice math error: Items ($calculatedSubTotal) - Discount ($discount) != Total ($grandTotal)');
       }
+      if (cashAmount < 0 || bankAmount < 0 || creditAmount < 0) {
+        throw ArgumentError('Payment amounts cannot be negative');
+      }
+      if ((cashAmount + bankAmount + creditAmount) != grandTotal) {
+        throw ArgumentError('Payment split must equal grand total');
+      }
 
       // 3. Insert Invoice with Temp Number
       final tempNumber = 'TEMP-${now.microsecondsSinceEpoch}';
@@ -213,6 +219,48 @@ class InvoiceRepository {
         );
       }
 
+      // 9. Auto-record in Cash Ledger (Shop Cash Flow)
+      final dateStr = DateFormat('yyyy-MM-dd').format(now);
+      final timeStr = DateFormat('hh:mm a').format(now);
+
+      if (cashAmount > 0) {
+        final res = await txn.rawQuery(
+            'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+        int currentCashBalance = res.isNotEmpty
+          ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
+          : 0;
+
+        await txn.insert('cash_ledger', {
+          'transaction_date': dateStr,
+          'transaction_time': timeStr,
+          'description': 'Sale $finalNumber (Cash)',
+          'type': 'IN',
+          'amount': cashAmount,
+          'balance_after': currentCashBalance + cashAmount,
+          'remarks': notes ?? '',
+          'payment_mode': 'CASH',
+        });
+      }
+
+      if (bankAmount > 0) {
+        final res = await txn.rawQuery(
+            'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+        int currentCashBalance = res.isNotEmpty
+          ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
+          : 0;
+
+        await txn.insert('cash_ledger', {
+          'transaction_date': dateStr,
+          'transaction_time': timeStr,
+          'description': 'Sale $finalNumber (Bank/Digital)',
+          'type': 'IN',
+          'amount': bankAmount,
+          'balance_after': currentCashBalance + bankAmount,
+          'remarks': notes ?? '',
+          'payment_mode': 'BANK',
+        });
+      }
+
       AppLogger.info('Invoice created: (ID: $invoiceId)', tag: 'InvoiceRepo');
       return invoiceId;
     });
@@ -319,6 +367,42 @@ class InvoiceRepository {
         where: 'id = ?',
         whereArgs: [customerId],
       );
+
+      // 6. Reverse Cash Ledger Entries
+      final cashEntries = await txn.query(
+        'cash_ledger',
+        where: 'description LIKE ?',
+        whereArgs: ['Sale $invoiceNumber%'],
+      );
+
+      for (var entry in cashEntries) {
+        final entryAmount = (entry['amount'] as num).toInt();
+        final entryType = entry['type'] as String;
+        final entryMode = (entry['payment_mode'] as String?) ?? 'CASH';
+
+        // Reversal: IN becomes OUT, OUT becomes IN
+        final reversalType = entryType == 'IN' ? 'OUT' : 'IN';
+        
+        final res = await txn.rawQuery(
+          'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1'
+        );
+        int currentCashBalance = res.isNotEmpty 
+            ? ((res.first['balance_after'] as num?)?.toInt() ?? 0)
+            : 0;
+
+        await txn.insert('cash_ledger', {
+          'transaction_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          'transaction_time': DateFormat('hh:mm a').format(DateTime.now()),
+          'description': 'Reversal: Invoice #$invoiceNumber cancelled',
+          'type': reversalType,
+          'amount': entryAmount,
+          'balance_after': reversalType == 'IN' 
+              ? currentCashBalance + entryAmount 
+              : currentCashBalance - entryAmount,
+          'remarks': 'Auto-reversal for cancelled invoice',
+          'payment_mode': entryMode,
+        });
+      }
 
       AppLogger.info('Invoice cancelled: #$invoiceNumber', tag: 'InvoiceRepo');
     });

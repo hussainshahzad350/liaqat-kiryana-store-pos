@@ -1,3 +1,54 @@
+enum PaymentMode {
+  cash,
+  card,
+  bank,
+  easyPaisa,
+  jazzCash,
+  other,
+}
+
+extension PaymentModeX on PaymentMode {
+  String get dbValue {
+    switch (this) {
+      case PaymentMode.cash:
+        return 'CASH';
+      case PaymentMode.card:
+        return 'CARD';
+      case PaymentMode.bank:
+        return 'BANK';
+      case PaymentMode.easyPaisa:
+        return 'EASYPAISA';
+      case PaymentMode.jazzCash:
+        return 'JAZZCASH';
+      case PaymentMode.other:
+        return 'OTHER';
+    }
+  }
+
+  bool get isCash => this == PaymentMode.cash;
+
+  static PaymentMode fromString(String? value) {
+    final normalized = value?.trim().toUpperCase() ?? '';
+    switch (normalized) {
+      case 'CASH':
+        return PaymentMode.cash;
+      case 'CARD':
+        return PaymentMode.card;
+      case 'BANK':
+        return PaymentMode.bank;
+      case 'EASYPAISA':
+      case 'EAWAYPAISA':
+        return PaymentMode.easyPaisa;
+      case 'JAZZCASH':
+        return PaymentMode.jazzCash;
+      case '':
+        return PaymentMode.cash;
+      default:
+        return PaymentMode.other;
+    }
+  }
+}
+
 class CashLedger {
   final int? id;
   final DateTime transactionDate;
@@ -7,6 +58,7 @@ class CashLedger {
   final int amount;
   final int? balanceAfter;
   final String? remarks;
+  final PaymentMode paymentMode;
 
   CashLedger({
     this.id,
@@ -17,6 +69,7 @@ class CashLedger {
     required this.amount,
     this.balanceAfter,
     this.remarks,
+    this.paymentMode = PaymentMode.cash,
   });
 
   /// Create a CashLedger from database map
@@ -32,6 +85,7 @@ class CashLedger {
       amount: (map['amount'] ?? 0) as int,
       balanceAfter: map['balance_after'] as int?,
       remarks: map['remarks'] as String?,
+      paymentMode: PaymentModeX.fromString(map['payment_mode'] as String?),
     );
   }
 
@@ -46,6 +100,7 @@ class CashLedger {
       'amount': amount,
       'balance_after': balanceAfter,
       'remarks': remarks,
+      'payment_mode': paymentMode.dbValue,
     };
   }
 
@@ -59,6 +114,7 @@ class CashLedger {
     int? amount,
     int? balanceAfter,
     String? remarks,
+    PaymentMode? paymentMode,
   }) {
     return CashLedger(
       id: id ?? this.id,
@@ -69,6 +125,7 @@ class CashLedger {
       amount: amount ?? this.amount,
       balanceAfter: balanceAfter ?? this.balanceAfter,
       remarks: remarks ?? this.remarks,
+      paymentMode: paymentMode ?? this.paymentMode,
     );
   }
 

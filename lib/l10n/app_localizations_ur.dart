@@ -1201,6 +1201,15 @@ class AppLocalizationsUr extends AppLocalizations {
   String get bill => 'بل';
 
   @override
+  String get payment => 'ادائیگی';
+
+  @override
+  String get bills => 'بلز';
+
+  @override
+  String get payments => 'ادائیگیاں';
+
+  @override
   String get deletedSuccessfully => 'کامیابی سے ختم ہو گیا ہے';
 
   @override
@@ -1370,6 +1379,21 @@ class AppLocalizationsUr extends AppLocalizations {
   String get dashboardTotal => 'کل';
 
   @override
+  String get digitalCollections => 'ڈیجیٹل وصولیاں';
+
+  @override
+  String get cashInDrawer => 'دراز میں نقد رقم';
+
+  @override
+  String get allModes => 'تمام موڈز';
+
+  @override
+  String get physicalCash => 'نقد رقم';
+
+  @override
+  String get digitalBank => 'ڈیجیٹل بینک';
+
+  @override
   String get dashboardActive => 'سرگرم';
 
   @override
@@ -1391,6 +1415,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get phoneLabel => 'فون نمبر';
+
+  @override
+  String get supplierType => 'سپلائر کی قسم';
 
   @override
   String get addressLabel => 'پتہ';
@@ -1796,6 +1823,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get notesOptionalLabel => 'نوٹس (اختیاری)';
+
+  @override
+  String get notesOptional => 'نوٹس (اختیاری)';
 
   @override
   String get failedToLoadDetails => 'تفصیلات لوڈ کرنے میں ناکام';

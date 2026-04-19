@@ -1204,6 +1204,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bill => 'Bill';
 
   @override
+  String get payment => 'Payment';
+
+  @override
+  String get bills => 'Bills';
+
+  @override
+  String get payments => 'Payments';
+
+  @override
   String get deletedSuccessfully => 'Deleted Successfully';
 
   @override
@@ -1373,6 +1382,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardTotal => 'Total';
 
   @override
+  String get digitalCollections => 'Digital Collections';
+
+  @override
+  String get cashInDrawer => 'Cash In Drawer';
+
+  @override
+  String get allModes => 'All Modes';
+
+  @override
+  String get physicalCash => 'Physical Cash';
+
+  @override
+  String get digitalBank => 'Digital Bank';
+
+  @override
   String get dashboardActive => 'Active';
 
   @override
@@ -1394,6 +1418,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phoneLabel => 'Phone (Unique)';
+
+  @override
+  String get supplierType => 'Supplier Type';
 
   @override
   String get addressLabel => 'Address';
@@ -1800,6 +1827,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notesOptionalLabel => 'Notes (optional)';
+
+  @override
+  String get notesOptional => 'Notes (optional)';
 
   @override
   String get failedToLoadDetails => 'Failed to load details';

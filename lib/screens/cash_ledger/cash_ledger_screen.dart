@@ -1,410 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:liaqat_store/core/repositories/cash_repository.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
-import '../../models/cash_ledger_model.dart';
-import '../../domain/entities/money.dart';
-import 'package:liaqat_store/core/res/app_tokens.dart';
+import '../../core/res/app_tokens.dart';
+import '../../core/repositories/cash_repository.dart';
+import 'controller/cash_ledger_controller.dart';
+import 'widgets/cash_ledger_kpi_section.dart';
+import 'widgets/cash_ledger_search_bar.dart';
+import 'widgets/cash_ledger_list.dart';
+import 'dialogs/add_transaction_dialog.dart';
 
-class CashLedgerScreen extends StatefulWidget {
+class CashLedgerScreen extends StatelessWidget {
   const CashLedgerScreen({super.key});
 
   @override
-  State<CashLedgerScreen> createState() => _CashLedgerScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => CashLedgerController(CashRepository())..init(),
+      child: const _CashLedgerScreenInternal(),
+    );
+  }
 }
 
-class _CashLedgerScreenState extends State<CashLedgerScreen> {
-  final CashRepository _cashRepository = CashRepository();
-  List<CashLedger> ledgerEntries = [];
-  Money currentBalance = const Money(0);
+class _CashLedgerScreenInternal extends StatelessWidget {
+  const _CashLedgerScreenInternal();
 
-  bool _isFirstLoadRunning = true;
-  bool _hasNextPage = true;
-  bool _isLoadMoreRunning = false;
-  int _page = 0;
-  final int _limit = 20;
-  int _requestToken = 0;
-  late final ScrollController _scrollController;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController()..addListener(_scrollListener);
-    _refreshData();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollListener() {
-    if (_scrollController.position.extentAfter <
-            AppTokens.spacingXXXLarge &&
-        !_isFirstLoadRunning &&
-        !_isLoadMoreRunning &&
-        _hasNextPage) {
-      _loadMore();
-    }
-  }
-
-  Future<void> _refreshData() async {
-    final requestToken = ++_requestToken;
-    setState(() {
-      _isFirstLoadRunning = true;
-      _page = 0;
-      _hasNextPage = true;
-      ledgerEntries = [];
-      _isLoadMoreRunning = false;
-    });
-    try {
-      final bal = await _cashRepository.getCurrentCashBalance();
-      final data =
-          await _cashRepository.getCashLedger(limit: _limit, offset: 0);
-      if (!mounted || requestToken != _requestToken) return;
-      setState(() {
-        currentBalance = bal;
-        ledgerEntries = data;
-        _isFirstLoadRunning = false;
-        if (data.length < _limit) _hasNextPage = false;
-      });
-    } catch (_) {
-      if (!mounted || requestToken != _requestToken) return;
-      setState(() => _isFirstLoadRunning = false);
-    }
-  }
-
-  Future<void> _loadMore() async {
-    if (_isLoadMoreRunning || !_hasNextPage) return;
-    setState(() => _isLoadMoreRunning = true);
-
-    final requestToken = _requestToken;
-    final nextPage = _page + 1;
-    try {
-      final data = await _cashRepository.getCashLedger(
-          limit: _limit, offset: nextPage * _limit);
-      if (!mounted || requestToken != _requestToken) return;
-      setState(() {
-        if (data.isNotEmpty) {
-          _page = nextPage;
-          ledgerEntries.addAll(data);
-        }
-        if (data.length < _limit) _hasNextPage = false;
-        _isLoadMoreRunning = false;
-      });
-    } catch (_) {
-      if (!mounted || requestToken != _requestToken) return;
-      setState(() => _isLoadMoreRunning = false);
-    }
-  }
-
-  Future<void> _addTransaction(String initialType) async {
-    final loc = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final amountCtrl = TextEditingController();
-    final descCtrl = TextEditingController();
-    final remarksCtrl = TextEditingController();
-
-    String selectedType = initialType;
-    DateTime selectedDate = DateTime.now();
-
-    await showDialog(
+  void _showAddTransactionDialog(BuildContext context, String type) {
+    final controller = context.read<CashLedgerController>();
+    showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(builder: (context, setStateDialog) {
-        return Dialog(
-          backgroundColor: colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(AppTokens.dialogBorderRadius),
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: AppTokens.dialogWidth,
-              maxHeight: AppTokens.dialogHeight,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(AppTokens.dialogPadding),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    selectedType == 'IN' ? loc.newCashIn : loc.newCashOut,
-                    style: textTheme.titleLarge
-                        ?.copyWith(color: colorScheme.onSurface),
-                  ),
-                  const SizedBox(height: AppTokens.spacingLarge),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Type Selector
-                          Row(
-                            children: [
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () =>
-                                      setStateDialog(() => selectedType = 'IN'),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(
-                                        AppTokens.spacingStandard),
-                                    decoration: BoxDecoration(
-                                      color: selectedType == 'IN'
-                                          ? colorScheme.primaryContainer
-                                          : colorScheme.surfaceContainerHighest,
-                                      borderRadius: BorderRadius.circular(
-                                          AppTokens.buttonBorderRadius),
-                                      border: Border.all(
-                                          color: selectedType == 'IN'
-                                              ? colorScheme.primary
-                                              : colorScheme.outline),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(loc.cashIn,
-                                        style: textTheme.bodyMedium?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: selectedType == 'IN'
-                                                ? colorScheme.onPrimaryContainer
-                                                : colorScheme
-                                                    .onSurfaceVariant)),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                  width: AppTokens.spacingStandard),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => setStateDialog(
-                                      () => selectedType = 'OUT'),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(
-                                        AppTokens.spacingStandard),
-                                    decoration: BoxDecoration(
-                                      color: selectedType == 'OUT'
-                                          ? colorScheme.errorContainer
-                                          : colorScheme.surfaceContainerHighest,
-                                      borderRadius: BorderRadius.circular(
-                                          AppTokens.buttonBorderRadius),
-                                      border: Border.all(
-                                          color: selectedType == 'OUT'
-                                              ? colorScheme.error
-                                              : colorScheme.outline),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(loc.cashOut,
-                                        style: textTheme.bodyMedium?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: selectedType == 'OUT'
-                                                ? colorScheme.onErrorContainer
-                                                : colorScheme
-                                                    .onSurfaceVariant)),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                              height: AppTokens.spacingMedium),
-
-                          // Date Picker
-                          InkWell(
-                            onTap: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: selectedDate,
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime.now(),
-                                builder: (context, child) => Theme(
-                                    data: Theme.of(context)
-                                        .copyWith(colorScheme: colorScheme),
-                                    child: child!),
-                              );
-                              if (picked != null) {
-                                setStateDialog(() => selectedDate = picked);
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(
-                                  AppTokens.spacingStandard),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: colorScheme.outline),
-                                borderRadius: BorderRadius.circular(
-                                    AppTokens.buttonBorderRadius),
-                                color: colorScheme.surface,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.calendar_today,
-                                      size: AppTokens.iconSizeMedium,
-                                      color: colorScheme.onSurfaceVariant),
-                                  const SizedBox(
-                                      width: AppTokens.spacingStandard),
-                                  Text(
-                                      DateFormat.yMMMd(
-                                              Localizations.localeOf(context)
-                                                  .toString())
-                                          .format(selectedDate),
-                                      style: textTheme.bodyMedium?.copyWith(
-                                          color: colorScheme.onSurface)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                              height: AppTokens.spacingMedium),
-
-                          // Amount, Description, Remarks
-                          TextField(
-                            controller: amountCtrl,
-                            decoration: InputDecoration(
-                                labelText: loc.amount,
-                                filled: true,
-                                fillColor: colorScheme.surfaceContainerHighest,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        AppTokens.buttonBorderRadius))),
-                            keyboardType: TextInputType.number,
-                            style: textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurface),
-                          ),
-                          const SizedBox(
-                              height: AppTokens.spacingStandard),
-                          TextField(
-                            controller: descCtrl,
-                            decoration: InputDecoration(
-                                labelText: loc.description,
-                                filled: true,
-                                fillColor: colorScheme.surfaceContainerHighest,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        AppTokens.buttonBorderRadius))),
-                            style: textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurface),
-                          ),
-                          const SizedBox(
-                              height: AppTokens.spacingStandard),
-                          TextField(
-                            controller: remarksCtrl,
-                            decoration: InputDecoration(
-                                labelText: loc.remarks,
-                                filled: true,
-                                fillColor: colorScheme.surfaceContainerHighest,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        AppTokens.buttonBorderRadius))),
-                            style: textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurface),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppTokens.spacingLarge),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(loc.cancel,
-                            style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant)),
-                      ),
-                      const SizedBox(width: AppTokens.spacingStandard),
-                      ElevatedButton(
-                        onPressed: () async {
-                          Money? amount;
-                          try {
-                            amount =
-                                Money.fromRupeesString(amountCtrl.text.trim());
-                          } catch (_) {
-                            // Show validation error
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(loc.invalidAmount),
-                                backgroundColor: colorScheme.error,
-                              ),
-                            );
-                            return;
-                          }
-                          if (amount > const Money(0) &&
-                              descCtrl.text.trim().isNotEmpty) {
-                            await _cashRepository.addCashEntry(
-                                descCtrl.text.trim(),
-                                selectedType,
-                                amount,
-                                remarksCtrl.text.trim());
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              _refreshData();
-                            }
-                          } else if (descCtrl.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(loc.descriptionRequired),
-                                backgroundColor: colorScheme.error,
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(loc.invalidAmount),
-                                backgroundColor: colorScheme.error,
-                              ),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: selectedType == 'IN'
-                              ? colorScheme.primary
-                              : colorScheme.error,
-                          foregroundColor: selectedType == 'IN'
-                              ? colorScheme.onPrimary
-                              : colorScheme.onError,
-                          minimumSize:
-                              const Size(0, AppTokens.buttonHeight),
-                        ),
-                        child: Text(loc.save,
-                            style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: selectedType == 'IN'
-                                    ? colorScheme.onPrimary
-                                    : colorScheme.onError)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }),
-    ).then((_) {
-      amountCtrl.dispose();
-      descCtrl.dispose();
-      remarksCtrl.dispose();
-    });
+      builder: (_) => AddTransactionDialog(
+        initialType: type,
+        repository: CashRepository(),
+        onSaved: () => controller.refresh(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Padding(
       padding: const EdgeInsets.all(AppTokens.spacingLarge),
       child: Column(
         children: [
           // Action Buttons
-          Container(
-            padding: const EdgeInsets.all(AppTokens.spacingMedium),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingLarge, vertical: AppTokens.spacingMedium),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () => _addTransaction('IN'),
+                  onPressed: () => _showAddTransactionDialog(context, 'IN'),
                   icon: const Icon(Icons.add),
                   label: Text(loc.cashIn),
                   style: ElevatedButton.styleFrom(
@@ -415,7 +63,7 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
                 ),
                 const SizedBox(width: AppTokens.spacingMedium),
                 ElevatedButton.icon(
-                  onPressed: () => _addTransaction('OUT'),
+                  onPressed: () => _showAddTransactionDialog(context, 'OUT'),
                   icon: const Icon(Icons.remove),
                   label: Text(loc.cashOut),
                   style: ElevatedButton.styleFrom(
@@ -427,134 +75,18 @@ class _CashLedgerScreenState extends State<CashLedgerScreen> {
               ],
             ),
           ),
-          // Balance Card
-          Card(
-            elevation: AppTokens.cardElevation,
-            color: colorScheme.primaryContainer,
-            shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AppTokens.cardBorderRadius),
-            ),
+
+          // KPI Cards
+          const CashLedgerKpiSection(),
+          
+          // Search & Filter Bar
+          const CashLedgerSearchBar(),
+          
+          // List
+          const Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(AppTokens.spacingXXLarge),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(loc.currentBalance,
-                      style: textTheme.bodyMedium
-                          ?.copyWith(color: colorScheme.onPrimaryContainer)),
-                  Text(
-                    currentBalance.formattedNoDecimal,
-                    style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onPrimaryContainer),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppTokens.spacingMedium),
-          // Ledger List
-          Expanded(
-            child: Card(
-              elevation: AppTokens.cardElevation,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      AppTokens.cardBorderRadius)),
-              child: ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(AppTokens.cardBorderRadius),
-                child: _isFirstLoadRunning
-                    ? Center(
-                        child: CircularProgressIndicator(
-                            color: colorScheme.primary))
-                    : ledgerEntries.isEmpty
-                        ? Center(
-                            child: Text(loc.noData,
-                                style: textTheme.bodyMedium
-                                    ?.copyWith(color: colorScheme.onSurface)),
-                          )
-                        : ListView.builder(
-                            controller: _scrollController,
-                            itemCount: ledgerEntries.length +
-                                (_isLoadMoreRunning ? 1 : 0),
-                            itemBuilder: (context, index) {
-                              if (index == ledgerEntries.length) {
-                                return Center(
-                                    child: CircularProgressIndicator(
-                                        color: colorScheme.primary));
-                              }
-
-                              final entry = ledgerEntries[index];
-                              final isIncome = entry.isInflow;
-
-                              return Column(
-                                children: [
-                                  ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: isIncome
-                                          ? colorScheme.primaryContainer
-                                          : colorScheme.errorContainer,
-                                      child: Icon(
-                                        isIncome
-                                            ? Icons.arrow_downward
-                                            : Icons.arrow_upward,
-                                        color: isIncome
-                                            ? colorScheme.primary
-                                            : colorScheme.error,
-                                      ),
-                                    ),
-                                    title: Text(entry.description,
-                                        style: textTheme.bodyMedium?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: colorScheme.onSurface)),
-                                    subtitle: Text(
-                                        '${entry.transactionDate} | ${entry.transactionTime}',
-                                        style: textTheme.bodySmall?.copyWith(
-                                            color:
-                                                colorScheme.onSurfaceVariant)),
-                                    trailing: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          isIncome
-                                              ? loc.ledgerAmountIn(Money(
-                                                      (entry.amount as num)
-                                                          .toInt())
-                                                  .formattedNoDecimal)
-                                              : loc.ledgerAmountOut(Money(
-                                                      (entry.amount as num)
-                                                          .toInt())
-                                                  .formattedNoDecimal),
-                                          style: textTheme.bodyMedium?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: isIncome
-                                                ? colorScheme.primary
-                                                : colorScheme.error,
-                                          ),
-                                        ),
-                                        Text(
-                                          loc.balanceShort(Money(
-                                                  (entry.balanceAfter as num?)
-                                                          ?.toInt() ??
-                                                      0)
-                                              .formattedNoDecimal),
-                                          style: textTheme.bodySmall?.copyWith(
-                                              color:
-                                                  colorScheme.onSurfaceVariant),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Divider(height: 1),
-                                ],
-                              );
-                            },
-                          ),
-              ),
+              padding: EdgeInsets.symmetric(horizontal: AppTokens.spacingLarge),
+              child: CashLedgerList(),
             ),
           ),
         ],
