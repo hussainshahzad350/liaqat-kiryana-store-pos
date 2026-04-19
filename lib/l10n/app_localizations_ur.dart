@@ -1589,19 +1589,19 @@ class AppLocalizationsUr extends AppLocalizations {
   String get category => 'کیٹیگری';
 
   @override
-  String get baseUnit => 'Base Unit';
+  String get baseUnit => 'بنیادی یونٹ';
 
   @override
   String get codeInputLabel => 'Code (e.g. BOX)';
 
   @override
-  String get multiplier => 'Multiplier';
+  String get multiplier => 'ضرب کنندہ';
 
   @override
   String get viewUnit => 'View Unit';
 
   @override
-  String get systemUnitWarning => 'System units cannot be modified.';
+  String get systemUnitWarning => 'سسٹم یونٹس میں ترمیم نہیں کی جا سکتی';
 
   @override
   String get codeUniqueError => 'Code must be unique';
@@ -1619,13 +1619,13 @@ class AppLocalizationsUr extends AppLocalizations {
   String get systemUnit => 'System Unit';
 
   @override
-  String get categoryLength => 'Length';
+  String get categoryLength => 'لمبائی';
 
   @override
-  String get categoryWeight => 'Weight';
+  String get categoryWeight => 'وزن';
 
   @override
-  String get categoryCount => 'Count';
+  String get categoryCount => 'تعداد';
 
   @override
   String get packingType => 'پیکنگ کی قسم';
@@ -1689,6 +1689,16 @@ class AppLocalizationsUr extends AppLocalizations {
       'اس نام کی ذیلی کیٹیگری منتخب کیٹیگری میں پہلے سے موجود ہے۔';
 
   @override
+  String categoryInUseDeleteError(int count) {
+    return 'کیٹیگری حذف نہیں کی جا سکتی کیونکہ یہ $count آئٹم میں استعمال ہو رہی ہے۔';
+  }
+
+  @override
+  String subCategoryInUseDeleteError(int count) {
+    return 'ذیلی کیٹیگری حذف نہیں کی جا سکتی کیونکہ یہ $count آئٹم میں استعمال ہو رہی ہے۔';
+  }
+
+  @override
   String get editDetails => 'تفصیلات میں ترمیم کریں';
 
   @override
@@ -1706,6 +1716,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get departmentsHeader => 'ڈپارٹمنٹس';
+
+  @override
+  String get detailsHeader => 'تفصیلات';
 
   @override
   String get categoriesSubcategoriesHeader => 'کیٹیگریز اور ذیلی کیٹیگریز';
@@ -2086,4 +2099,81 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get purchaseScreenTitle => 'نئی خریداری بِل';
+
+  @override
+  String get unitManagement => 'یونٹ مینیجمنٹ';
+
+  @override
+  String get derivedUnit => 'ماخوذ یونٹ';
+
+  @override
+  String get conversionFormula => 'تبدیلی کا فارمولا';
+
+  @override
+  String get noBaseUnitSet => 'اس زمرے کے لیے کوئی بنیادی یونٹ سیٹ نہیں ہے';
+
+  @override
+  String get unitCodeFallback => 'یونٹ';
+
+  @override
+  String get isBaseUnitTitle => 'کیا یہ بنیادی یونٹ ہے؟';
+
+  @override
+  String get isBaseUnitPrimarySubtitle =>
+      'یہ اس زمرے کے لیے بنیادی پیمائش ہوگی۔';
+
+  @override
+  String get isBaseUnitDerivedSubtitle =>
+      'یہ ماخوذ یونٹ ہے (بنیادی یونٹ سے حساب کیا جاتا ہے)۔';
+
+  @override
+  String conversionFromBaseUnit(Object baseCode) {
+    return 'بنیادی یونٹ ($baseCode) سے تبدیلی';
+  }
+
+  @override
+  String conversionPrefix(Object unitCode) {
+    return '1 $unitCode = ';
+  }
+
+  @override
+  String multiplierHint(Object unitCode, Object baseCode) {
+    return 'اشارہ: اگر 1 $unitCode = 1000 $baseCode ہو، تو ضرب کنندہ 1000 ہے۔';
+  }
+
+  @override
+  String unitInUseWarning(Object count) {
+    return 'یہ یونٹ $count مصنوعات میں استعمال ہو رہا ہے';
+  }
+
+  @override
+  String get categoryVolume => 'حجم';
+
+  @override
+  String get purchaseNotFound => 'خریداری نہیں ملی یا پہلے سے منسوخ ہے';
+
+  @override
+  String get invoiceNotFound => 'رسید نہیں ملی یا پہلے سے منسوخ ہے';
+
+  @override
+  String get supplierNotFound => 'سپلائر نہیں ملا';
+
+  @override
+  String get insufficientStockForCancellation =>
+      'خریداری منسوخ نہیں کی جا سکی: پروڈکٹ کے لیے ناکافی اسٹاک۔ براہ کرم اسٹاک کی سطح کی تصدیق کریں۔';
+
+  @override
+  String get negativeStockError => 'اسٹاک منفی نہیں ہو سکتا';
+
+  @override
+  String get invalidPriceAdjustment =>
+      'غلط قیمت میں ترمیم: فیصد یا مقررہ اضافہ فراہم کرنا ضروری ہے';
+
+  @override
+  String get invoiceMathError =>
+      'رسید کی گنتی میں خرابی: براہ کرم اشیاء اور ڈسکاؤنٹ کی رقوم کی تصدیق کریں';
+
+  @override
+  String get paymentFailed =>
+      'ادائیگی کی کارروائی ناکام ہوگئی۔ براہ کرم دوبارہ کوشش کریں یا معاونت سے رابطہ کریں۔';
 }

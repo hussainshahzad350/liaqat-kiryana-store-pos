@@ -6,6 +6,12 @@ import '../../bloc/units/units_event.dart';
 import '../../bloc/units/units_state.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/unit_model.dart';
+import '../../core/repositories/units_repository.dart';
+import '../../core/utils/error_handler.dart';
+import 'dialogs/add_unit_dialog.dart';
+import 'dialogs/edit_unit_dialog.dart';
+import 'dialogs/delete_unit_dialog.dart';
+import 'widgets/unit_category_section.dart';
 
 class UnitsScreen extends StatefulWidget {
   const UnitsScreen({super.key});
@@ -20,478 +26,123 @@ class _UnitsScreenState extends State<UnitsScreen> {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.all(AppTokens.spacingLarge),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Local Toolbar
-          Container(
-            padding: const EdgeInsets.only(
-              bottom: AppTokens.spacingMedium,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () => _showAddUnitDialog(context),
-                  icon: const Icon(Icons.add),
-                  label: Text(loc.addItem),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primaryContainer,
-                    foregroundColor: colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Card(
-              elevation: AppTokens.cardElevation,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      AppTokens.cardBorderRadius)),
-              child: ClipRRect(
-                borderRadius:
-                    BorderRadius.circular(AppTokens.cardBorderRadius),
-                child: Column(
-                  children: [
-                    Container(
-                      color: colorScheme.primaryContainer,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppTokens.spacingLarge,
-                          vertical: AppTokens.spacingStandard),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 60,
-                            child: Text(
-                              '#',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                      color: colorScheme.onPrimaryContainer),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              loc.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                      color: colorScheme.onPrimaryContainer),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: Text(
-                              'Code',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                      color: colorScheme.onPrimaryContainer),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 120,
-                            child: Text(
-                              'Actions',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.copyWith(
-                                      color: colorScheme.onPrimaryContainer),
-                              textAlign: TextAlign.end,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Divider(height: 1, thickness: 1),
-                    Expanded(
-                      child: BlocBuilder<UnitsBloc, UnitsState>(
-                        builder: (context, state) {
-                          if (state is UnitsLoading) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          } else if (state is UnitsError) {
-                            return Center(child: Text(state.message));
-                          } else if (state is UnitsLoaded) {
-                            if (state.units.isEmpty) {
-                              return const Center(
-                                  child: Text('No units found'));
-                            }
-                            return ListView.separated(
-                              itemCount: state.units.length,
-                              separatorBuilder: (context, index) => Divider(
-                                  height: 1, color: colorScheme.outlineVariant),
-                              itemBuilder: (context, index) {
-                                final unit = state.units[index];
-                                return InkWell(
-                                  onTap: () {
-                                    if (unit.isSystem) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(loc.systemUnitWarning),
-                                          backgroundColor: colorScheme.error,
-                                        ),
-                                      );
-                                    } else {
-                                      _showEditUnitDialog(context, unit);
-                                    }
-                                  },
-                                  hoverColor: colorScheme.primaryContainer
-                                      .withValues(alpha: 0.1),
-                                  child: Container(
-                                    height: AppTokens.buttonHeight,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal:
-                                            AppTokens.spacingLarge,
-                                        vertical:
-                                            AppTokens.spacingSmall),
-                                    child: Row(
-                                      children: [
-                                        SizedBox(
-                                          width: 60,
-                                          child: Text(
-                                            '${index + 1}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 2,
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                width: 32,
-                                                height: 32,
-                                                margin: const EdgeInsets.only(
-                                                    right: AppTokens
-                                                        .spacingStandard),
-                                                decoration: BoxDecoration(
-                                                  color: unit.isSystem
-                                                      ? colorScheme
-                                                          .surfaceContainerHighest
-                                                      : colorScheme
-                                                          .primaryContainer,
-                                                  borderRadius: BorderRadius
-                                                      .circular(AppTokens
-                                                              .cardBorderRadius /
-                                                          2),
-                                                ),
-                                                child: Icon(
-                                                    unit.isSystem
-                                                        ? Icons.lock_outline
-                                                        : Icons.square_foot,
-                                                    size: 18,
-                                                    color: unit.isSystem
-                                                        ? colorScheme
-                                                            .onSurfaceVariant
-                                                        : colorScheme
-                                                            .onPrimaryContainer),
-                                              ),
-                                              Text(unit.name,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyLarge),
-                                              if (unit.isSystem)
-                                                Container(
-                                                  margin: const EdgeInsets.only(
-                                                      left: AppTokens
-                                                          .spacingMedium),
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: AppTokens
-                                                          .spacingMedium,
-                                                      vertical: AppTokens
-                                                          .spacingSmall),
-                                                  decoration: BoxDecoration(
-                                                    color: colorScheme
-                                                        .surfaceContainerHighest,
-                                                    borderRadius: BorderRadius
-                                                        .circular(AppTokens
-                                                            .borderRadiusSmall),
-                                                    border: Border.all(
-                                                        color: colorScheme
-                                                            .outline
-                                                            .withValues(alpha: 0.3)),
-                                                  ),
-                                                  child: Text(
-                                                    'System',
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodySmall
-                                                        ?.copyWith(
-                                                            color: colorScheme
-                                                                .onSurfaceVariant),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 1,
-                                          child: Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: AppTokens
-                                                          .spacingMedium,
-                                                      vertical: AppTokens
-                                                          .spacingSmall),
-                                              decoration: BoxDecoration(
-                                                color: colorScheme
-                                                    .secondaryContainer,
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        AppTokens
-                                                            .borderRadiusSmall),
-                                              ),
-                                              child: Text(
-                                                unit.code,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .labelMedium
-                                                    ?.copyWith(
-                                                        color: colorScheme
-                                                            .onSecondaryContainer,
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 120,
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
-                                            children: [
-                                              IconButton(
-                                                icon: const Icon(Icons.edit,
-                                                    size: AppTokens
-                                                        .iconSizeMedium),
-                                                color: unit.isSystem
-                                                    ? colorScheme.outline
-                                                        .withValues(alpha: 0.5)
-                                                    : colorScheme.primary,
-                                                onPressed: unit.isSystem
-                                                    ? null
-                                                    : () => _showEditUnitDialog(
-                                                        context, unit),
-                                                tooltip: unit.isSystem
-                                                    ? 'System Unit'
-                                                    : loc.editItem,
-                                                splashRadius: 20,
-                                              ),
-                                              IconButton(
-                                                icon: const Icon(Icons.delete,
-                                                    size: AppTokens
-                                                        .iconSizeMedium),
-                                                color: unit.isSystem
-                                                    ? colorScheme.outline
-                                                        .withValues(alpha: 0.5)
-                                                    : colorScheme.error,
-                                                onPressed: unit.isSystem
-                                                    ? null
-                                                    : () => _deleteUnit(
-                                                        context, unit),
-                                                tooltip: unit.isSystem
-                                                    ? 'System Unit'
-                                                    : 'Delete',
-                                                splashRadius: 20,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAddUnitDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<UnitsBloc>(),
-        child: const UnitDialog(),
-      ),
-    );
-  }
-
-  void _showEditUnitDialog(BuildContext context, Unit unit) {
-    showDialog(
-      context: context,
-      builder: (_) => BlocProvider.value(
-        value: context.read<UnitsBloc>(),
-        child: UnitDialog(unit: unit),
-      ),
-    );
-  }
-
-  void _deleteUnit(BuildContext context, Unit unit) {
-    final loc = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: colorScheme.surface,
-        title: Text(loc.confirm, style: textTheme.titleLarge),
-        content: Text(loc.confirmDeleteItem, style: textTheme.bodyMedium),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(loc.no),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.read<UnitsBloc>().add(DeleteCustomUnit(unit.id));
-              Navigator.pop(context);
-            },
-            child: Text(loc.yesDelete),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class UnitDialog extends StatefulWidget {
-  final Unit? unit;
-
-  const UnitDialog({super.key, this.unit});
-
-  @override
-  State<UnitDialog> createState() => _UnitDialogState();
-}
-
-class _UnitDialogState extends State<UnitDialog> {
-  late TextEditingController _nameCtrl;
-  late TextEditingController _codeCtrl;
-  final _formKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-    _nameCtrl = TextEditingController(text: widget.unit?.name ?? '');
-    _codeCtrl = TextEditingController(text: widget.unit?.code ?? '');
-  }
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _codeCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final isEdit = widget.unit != null;
-
-    return AlertDialog(
-      backgroundColor: colorScheme.surface,
-      title: Text(
-        isEdit ? loc.editItem : loc.addItem,
-        style: textTheme.titleLarge,
-      ),
-      content: SizedBox(
-        width: AppTokens.dialogWidth,
-        child: Form(
-          key: _formKey,
+    return BlocConsumer<UnitsBloc, UnitsState>(
+      listener: (context, state) {
+        if (state is UnitsError) {
+          ErrorHandler.handleError(context, state.message, tag: 'Units');
+        }
+      },
+      builder: (context, state) {
+        return Padding(
+          padding: const EdgeInsets.all(AppTokens.spacingLarge),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: _nameCtrl,
-                style: textTheme.bodyMedium,
-                decoration: InputDecoration(
-                    labelText: loc.name,
-                    filled: true,
-                    fillColor: colorScheme.surfaceContainerHighest,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                            AppTokens.cardBorderRadius / 2))),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Required' : null,
+              // Toolbar
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Units Management',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: state is UnitsLoaded 
+                      ? () => _showAddUnitDialog(context, state) 
+                      : null,
+                    icon: const Icon(Icons.add),
+                    label: Text(loc.addItem),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primaryContainer,
+                      foregroundColor: colorScheme.onPrimaryContainer,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: AppTokens.spacingLarge),
-              TextFormField(
-                controller: _codeCtrl,
-                style: textTheme.bodyMedium,
-                decoration: InputDecoration(
-                    labelText: 'Code (e.g. KG)',
-                    filled: true,
-                    fillColor: colorScheme.surfaceContainerHighest,
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                            AppTokens.cardBorderRadius / 2))),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Required' : null,
+
+              // Content
+              Expanded(
+                child: _buildContent(context, state),
               ),
             ],
           ),
-        ),
+        );
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context, UnitsState state) {
+    if (state is UnitsLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    
+    if (state is UnitsLoaded) {
+      if (state.categories.isEmpty) {
+        return const Center(child: Text('No categories found.'));
+      }
+
+      return ListView.builder(
+        itemCount: state.categories.length,
+        itemBuilder: (context, index) {
+          final category = state.categories[index];
+          final units = state.unitsByCategory[category.id] ?? [];
+          final baseUnit = state.baseUnitByCategory[category.id];
+
+          return UnitCategorySection(
+            category: category,
+            units: units,
+            baseUnit: baseUnit,
+            onEdit: (unit) => _showEditUnitDialog(context, unit, state),
+            onDelete: (unit) => _showDeleteUnitDialog(context, unit),
+          );
+        },
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  void _showAddUnitDialog(BuildContext context, UnitsLoaded state) {
+    showDialog(
+      context: context,
+      builder: (_) => AddUnitDialog(
+        categories: state.categories,
+        allUnits: state.units,
+        onSave: (unit) {
+          context.read<UnitsBloc>().add(AddCustomUnit(unit));
+        },
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(loc.cancel),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              // Default to 'Count' category (ID 3) for now since selector is not yet implemented
-              const defaultCategory =
-                  UnitCategory(id: 3, name: 'Count', isSystem: true);
+    );
+  }
 
-              final unit = widget.unit != null
-                  ? widget.unit!
-                      .copyWith(name: _nameCtrl.text, code: _codeCtrl.text)
-                  : Unit(
-                      id: 0, // Dummy ID for new entry
-                      name: _nameCtrl.text,
-                      code: _codeCtrl.text,
-                      category: defaultCategory);
+  void _showEditUnitDialog(BuildContext context, Unit unit, UnitsLoaded state) {
+    showDialog(
+      context: context,
+      builder: (_) => EditUnitDialog(
+        unit: unit,
+        categories: state.categories,
+        allUnits: state.units,
+        onSave: (updatedUnit) {
+          context.read<UnitsBloc>().add(UpdateCustomUnit(updatedUnit));
+        },
+      ),
+    );
+  }
 
-              if (isEdit) {
-                context.read<UnitsBloc>().add(UpdateCustomUnit(unit));
-              } else {
-                context.read<UnitsBloc>().add(AddCustomUnit(unit));
-              }
-              Navigator.pop(context);
-            }
-          },
-          child: Text(loc.save),
-        ),
-      ],
+  void _showDeleteUnitDialog(BuildContext context, Unit unit) {
+    showDialog(
+      context: context,
+      builder: (_) => DeleteUnitDialog(
+        unit: unit,
+        repository: context.read<UnitsRepository>(),
+        onDeleteConfirmed: () {
+          context.read<UnitsBloc>().add(DeleteCustomUnit(unit.id));
+        },
+      ),
     );
   }
 }

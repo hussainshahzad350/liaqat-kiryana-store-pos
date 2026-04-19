@@ -573,12 +573,29 @@
   "departmentExistsError": "Department with this name already exists.",
   "categoryExistsError": "Category with this name already exists in the selected department.",
   "subcategoryExistsError": "Subcategory with this name already exists in the selected category.",
+  "categoryInUseDeleteError": "Cannot delete category because it is used by {count} item(s).",
+  "@categoryInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subCategoryInUseDeleteError": "Cannot delete sub-category because it is used by {count} item(s).",
+  "@subCategoryInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "editDetails": "Edit Details",
   "nameEnglishLabel": "Name (English)",
   "nameUrduLabel": "Name (Urdu)",
   "departmentLabel": "Department",
   "searchDepartmentsCategoriesHint": "Search departments, categories...",
   "departmentsHeader": "DEPARTMENTS",
+  "detailsHeader": "DETAILS",
   "categoriesSubcategoriesHeader": "CATEGORIES & SUBCATEGORIES",
   "statusVisibilityHeader": "STATUS & VISIBILITY",
   "statisticsHeader": "STATISTICS",
@@ -767,5 +784,42 @@
   "searchSuppliers": "Search suppliers...",
   "unitCost": "Unit cost",
   "lineTotal": "Line total",
-  "purchaseScreenTitle": "New Purchase Bill"
+  "purchaseScreenTitle": "New Purchase Bill",
+  "unitManagement": "Unit Management",
+  "derivedUnit": "Derived Unit",
+  "conversionFormula": "Conversion Formula",
+  "noBaseUnitSet": "No base unit set for this category",
+  "unitCodeFallback": "Unit",
+  "isBaseUnitTitle": "Is this a Base Unit?",
+  "isBaseUnitPrimarySubtitle": "This will be the primary measurement for this category.",
+  "isBaseUnitDerivedSubtitle": "This is a derived unit (calculated from the base unit).",
+  "conversionFromBaseUnit": "Conversion from Base Unit ({baseCode})",
+  "@conversionFromBaseUnit": {
+    "placeholders": {
+      "baseCode": {}
+    }
+  },
+  "conversionPrefix": "1 {unitCode} = ",
+  "@conversionPrefix": {
+    "placeholders": {
+      "unitCode": {}
+    }
+  },
+  "multiplierHint": "Hint: If 1 {unitCode} = 1000 {baseCode}, then multiplier is 1000.",
+  "@multiplierHint": {
+    "placeholders": {
+      "unitCode": {},
+      "baseCode": {}
+    }
+  },
+  "unitInUseWarning": "This unit is used by {count} products",
+  "categoryVolume": "Volume",
+  "purchaseNotFound": "Purchase not found or already cancelled",
+  "invoiceNotFound": "Invoice not found or already cancelled",
+  "supplierNotFound": "Supplier not found",
+  "insufficientStockForCancellation": "Cannot cancel purchase: insufficient stock for product. Please verify stock levels.",
+  "negativeStockError": "Stock cannot be negative",
+  "invalidPriceAdjustment": "Invalid price adjustment: must provide either percentage or fixed increase",
+  "invoiceMathError": "Invoice calculation error: please verify items and discount amounts",
+  "paymentFailed": "Payment processing failed. Please try again or contact support."
 }

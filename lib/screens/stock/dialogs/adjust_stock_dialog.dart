@@ -77,8 +77,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
               Container(
                 padding: const EdgeInsets.all(AppTokens.spacingMedium),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
+                  color: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.5),
+                  borderRadius:
+                      BorderRadius.circular(AppTokens.cardBorderRadius),
                 ),
                 child: Row(
                   children: [
@@ -88,8 +90,8 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                     const SizedBox(width: AppTokens.spacingSmall),
                     Text(
                       '${loc.stock}: ${widget.item.currentStock} ${widget.item.unit}',
-                      style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500),
+                      style: textTheme.bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -107,7 +109,9 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
                     const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   if (value == null || value.isEmpty) return loc.required;
-                  if (double.tryParse(value) == null) return loc.invalidAmount;
+                  if (double.tryParse(value.trim()) == null) {
+                    return loc.invalidAmount;
+                  }
                   return null;
                 },
               ),
@@ -147,7 +151,10 @@ class _AdjustStockDialogState extends State<AdjustStockDialog> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      final newQty = double.parse(_quantityCtrl.text);
+      final newQty = double.tryParse(_quantityCtrl.text.trim());
+      if (newQty == null) {
+        return;
+      }
       final diff = newQty - widget.item.currentStock;
       if (diff != 0) {
         widget.onSave(diff, _reasonCtrl.text);

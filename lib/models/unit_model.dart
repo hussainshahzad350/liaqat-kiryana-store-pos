@@ -78,6 +78,8 @@ class Unit {
     String? name,
     String? code,
     UnitCategory? category,
+    int? baseUnitId,
+    int? multiplier,
     bool? isActive,
   }) {
     return Unit(
@@ -86,8 +88,8 @@ class Unit {
       code: code ?? this.code,
       category: category ?? this.category,
       isSystem: isSystem,
-      baseUnitId: baseUnitId,
-      multiplier: multiplier,
+      baseUnitId: baseUnitId ?? this.baseUnitId,
+      multiplier: multiplier ?? this.multiplier,
       isActive: isActive ?? this.isActive,
     );
   }

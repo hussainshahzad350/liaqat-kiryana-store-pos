@@ -155,7 +155,7 @@ class PurchaseRepository {
         limit: 1,
       );
       if (purchaseRes.isEmpty) {
-        throw Exception('Purchase not found or already cancelled');
+        throw Exception('PURCHASE_NOT_FOUND');
       }
 
       final purchase = purchaseRes.first;
@@ -189,26 +189,23 @@ class PurchaseRepository {
         final expiryDate =
             expiryRaw != null ? DateTime.tryParse(expiryRaw) : null;
 
-        // Fetch product details for better error message
+        // Verify product exists and has sufficient stock
         final productRes = await txn.query(
           'products',
-          columns: ['name_english', 'current_stock'],
+          columns: ['current_stock'],
           where: 'id = ?',
           whereArgs: [productId],
           limit: 1,
         );
 
         if (productRes.isEmpty) {
-          throw Exception('Product $productId not found');
+          throw Exception('PRODUCT_NOT_FOUND');
         }
 
-        final productName = productRes.first['name_english'] as String;
         final currentStock = (productRes.first['current_stock'] as num).toDouble();
 
         if (currentStock < quantity) {
-          throw Exception(
-              'Cannot cancel purchase: insufficient stock for product $productName. '
-              'Current stock: $currentStock, required to subtract: $quantity');
+          throw Exception('INSUFFICIENT_STOCK_FOR_CANCELLATION');
         }
 
         // Reduce total stock

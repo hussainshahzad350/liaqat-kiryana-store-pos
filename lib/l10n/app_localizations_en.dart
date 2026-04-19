@@ -1694,6 +1694,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Subcategory with this name already exists in the selected category.';
 
   @override
+  String categoryInUseDeleteError(int count) {
+    return 'Cannot delete category because it is used by $count item(s).';
+  }
+
+  @override
+  String subCategoryInUseDeleteError(int count) {
+    return 'Cannot delete sub-category because it is used by $count item(s).';
+  }
+
+  @override
   String get editDetails => 'Edit Details';
 
   @override
@@ -1711,6 +1721,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get departmentsHeader => 'DEPARTMENTS';
+
+  @override
+  String get detailsHeader => 'DETAILS';
 
   @override
   String get categoriesSubcategoriesHeader => 'CATEGORIES & SUBCATEGORIES';
@@ -2090,4 +2103,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get purchaseScreenTitle => 'New Purchase Bill';
+
+  @override
+  String get unitManagement => 'Unit Management';
+
+  @override
+  String get derivedUnit => 'Derived Unit';
+
+  @override
+  String get conversionFormula => 'Conversion Formula';
+
+  @override
+  String get noBaseUnitSet => 'No base unit set for this category';
+
+  @override
+  String get unitCodeFallback => 'Unit';
+
+  @override
+  String get isBaseUnitTitle => 'Is this a Base Unit?';
+
+  @override
+  String get isBaseUnitPrimarySubtitle =>
+      'This will be the primary measurement for this category.';
+
+  @override
+  String get isBaseUnitDerivedSubtitle =>
+      'This is a derived unit (calculated from the base unit).';
+
+  @override
+  String conversionFromBaseUnit(Object baseCode) {
+    return 'Conversion from Base Unit ($baseCode)';
+  }
+
+  @override
+  String conversionPrefix(Object unitCode) {
+    return '1 $unitCode = ';
+  }
+
+  @override
+  String multiplierHint(Object unitCode, Object baseCode) {
+    return 'Hint: If 1 $unitCode = 1000 $baseCode, then multiplier is 1000.';
+  }
+
+  @override
+  String unitInUseWarning(Object count) {
+    return 'This unit is used by $count products';
+  }
+
+  @override
+  String get categoryVolume => 'Volume';
+
+  @override
+  String get purchaseNotFound => 'Purchase not found or already cancelled';
+
+  @override
+  String get invoiceNotFound => 'Invoice not found or already cancelled';
+
+  @override
+  String get supplierNotFound => 'Supplier not found';
+
+  @override
+  String get insufficientStockForCancellation =>
+      'Cannot cancel purchase: insufficient stock for product. Please verify stock levels.';
+
+  @override
+  String get negativeStockError => 'Stock cannot be negative';
+
+  @override
+  String get invalidPriceAdjustment =>
+      'Invalid price adjustment: must provide either percentage or fixed increase';
+
+  @override
+  String get invoiceMathError =>
+      'Invoice calculation error: please verify items and discount amounts';
+
+  @override
+  String get paymentFailed =>
+      'Payment processing failed. Please try again or contact support.';
 }

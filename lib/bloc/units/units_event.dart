@@ -10,6 +10,8 @@ abstract class UnitsEvent extends Equatable {
 
 class LoadUnits extends UnitsEvent {}
 
+class LoadUnitsGroupedByCategory extends UnitsEvent {}
+
 class AddCustomUnit extends UnitsEvent {
   final Unit unit;
   const AddCustomUnit(this.unit);
@@ -29,4 +31,12 @@ class DeleteCustomUnit extends UnitsEvent {
   const DeleteCustomUnit(this.unitId);
   @override
   List<Object?> get props => [unitId];
+}
+
+class SetBaseUnit extends UnitsEvent {
+  final int categoryId;
+  final int unitId;
+  const SetBaseUnit(this.categoryId, this.unitId);
+  @override
+  List<Object?> get props => [categoryId, unitId];
 }

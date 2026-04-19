@@ -179,14 +179,14 @@ class ItemsRepository {
       );
 
       if (result.isEmpty) {
-        throw Exception('Product not found');
+        throw Exception('PRODUCT_NOT_FOUND');
       }
 
       final currentStock = (result.first['current_stock'] as num).toDouble();
       final newStock = currentStock + adjustment;
 
       if (newStock < 0) {
-        throw Exception('Stock cannot be negative');
+        throw Exception('NEGATIVE_STOCK');
       }
 
       // Log Adjustment
@@ -232,7 +232,7 @@ class ItemsRepository {
       );
 
       if (result.isEmpty) {
-        throw Exception('Product not found');
+        throw Exception('PRODUCT_NOT_FOUND');
       }
 
       final currentStock = (result.first['current_stock'] as num).toDouble();
@@ -630,7 +630,7 @@ class ItemsRepository {
     int? fixedIncrease,
   }) async {
     if (percentageIncrease == null && fixedIncrease == null) {
-      throw Exception('Must provide either percentage or fixed increase');
+      throw Exception('INVALID_PRICE_ADJUSTMENT');
     }
 
     final db = await _dbHelper.database;

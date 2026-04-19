@@ -30,8 +30,73 @@ class DatabaseHelper {
         try {
           await db.execute('ALTER TABLE cash_ledger ADD COLUMN payment_mode TEXT DEFAULT "CASH"');
         } catch (_) {}
+        await _fixUnitsData(db);
       },
     );
+  }
+
+  Future<void> _fixUnitsData(Database db) async {
+    try {
+      await db.transaction((txn) async {
+        // 1. Fix Categories (ensure IDs match names)
+        await txn.execute('UPDATE unit_categories SET name = "Weight" WHERE id = 1');
+        await txn.execute('UPDATE unit_categories SET name = "Volume" WHERE id = 2');
+        await txn.execute('UPDATE unit_categories SET name = "Count" WHERE id = 3');
+        await txn.execute('UPDATE unit_categories SET name = "Length" WHERE id = 4');
+
+        // 2. Fix Core Units
+        // WEIGHT
+        await _upsertSystemUnit(txn, 'Gram', 'G', 1, null, 1);
+        final gIdRes = await txn.query('units', columns: ['id'], where: 'code = ?', whereArgs: ['G']);
+        int? gId = gIdRes.isNotEmpty ? gIdRes.first['id'] as int : null;
+        await _upsertSystemUnit(txn, 'Kilogram', 'KG', 1, gId, 1000);
+
+        // VOLUME
+        await _upsertSystemUnit(txn, 'Milliliter', 'ML', 2, null, 1);
+        final mlIdRes = await txn.query('units', columns: ['id'], where: 'code = ?', whereArgs: ['ML']);
+        int? mlId = mlIdRes.isNotEmpty ? mlIdRes.first['id'] as int : null;
+        await _upsertSystemUnit(txn, 'Liter', 'L', 2, mlId, 1000);
+
+        // COUNT
+        await _upsertSystemUnit(txn, 'Piece', 'PCS', 3, null, 1);
+        final pcsIdRes = await txn.query('units', columns: ['id'], where: 'code = ?', whereArgs: ['PCS']);
+        int? pcsId = pcsIdRes.isNotEmpty ? pcsIdRes.first['id'] as int : null;
+        await _upsertSystemUnit(txn, 'Dozen', 'DZN', 3, pcsId, 12);
+
+        // LENGTH
+        await _upsertSystemUnit(txn, 'Centimeter', 'CM', 4, null, 1);
+        final cmIdRes = await txn.query('units', columns: ['id'], where: 'code = ?', whereArgs: ['CM']);
+        int? cmId = cmIdRes.isNotEmpty ? cmIdRes.first['id'] as int : null;
+        await _upsertSystemUnit(txn, 'Meter', 'M', 4, cmId, 100);
+      });
+      AppLogger.db('Unit categories and base units fixed in onOpen');
+    } catch (e) {
+      AppLogger.error('Error fixing units data: $e');
+    }
+  }
+
+  static Future<void> _upsertSystemUnit(Transaction txn, String name, String code, int categoryId, int? baseUnitId, int multiplier) async {
+    final existing = await txn.query('units', where: 'code = ?', whereArgs: [code]);
+    if (existing.isNotEmpty) {
+      await txn.update('units', {
+        'name': name,
+        'category_id': categoryId,
+        'is_system': 1,
+        'base_unit_id': baseUnitId,
+        'multiplier': multiplier,
+        'is_active': 1,
+      }, where: 'code = ?', whereArgs: [code]);
+    } else {
+      await txn.insert('units', {
+        'name': name,
+        'code': code,
+        'category_id': categoryId,
+        'is_system': 1,
+        'base_unit_id': baseUnitId,
+        'multiplier': multiplier,
+        'is_active': 1,
+      });
+    }
   }
 
   Future<void> _createDB(Database db, int version) async {
@@ -500,18 +565,31 @@ class DatabaseHelper {
           'unit_categories', {'id': 4, 'name': 'Length', 'is_system': 1});
 
       // Units
+      // 1. Weight (Category 1)
+      int gId = await db.insert('units', {
+        'name': 'Gram',
+        'code': 'G',
+        'category_id': 1,
+        'is_system': 1,
+        'base_unit_id': null,
+        'multiplier': 1
+      });
       await db.insert('units', {
         'name': 'Kilogram',
         'code': 'KG',
         'category_id': 1,
         'is_system': 1,
-        'multiplier': 1
+        'base_unit_id': gId,
+        'multiplier': 1000
       });
-      await db.insert('units', {
-        'name': 'Gram',
-        'code': 'G',
-        'category_id': 1,
+
+      // 2. Volume (Category 2)
+      int mlId = await db.insert('units', {
+        'name': 'Milliliter',
+        'code': 'ML',
+        'category_id': 2,
         'is_system': 1,
+        'base_unit_id': null,
         'multiplier': 1
       });
       await db.insert('units', {
@@ -519,20 +597,17 @@ class DatabaseHelper {
         'code': 'L',
         'category_id': 2,
         'is_system': 1,
-        'multiplier': 1
+        'base_unit_id': mlId,
+        'multiplier': 1000
       });
-      await db.insert('units', {
-        'name': 'Milliliter',
-        'code': 'ML',
-        'category_id': 2,
-        'is_system': 1,
-        'multiplier': 1
-      });
-      await db.insert('units', {
+
+      // 3. Count (Category 3)
+      int pcsId = await db.insert('units', {
         'name': 'Piece',
         'code': 'PCS',
         'category_id': 3,
         'is_system': 1,
+        'base_unit_id': null,
         'multiplier': 1
       });
       await db.insert('units', {
@@ -540,7 +615,26 @@ class DatabaseHelper {
         'code': 'DZN',
         'category_id': 3,
         'is_system': 1,
+        'base_unit_id': pcsId,
         'multiplier': 12
+      });
+
+      // 4. Length (Category 4)
+      int cmId = await db.insert('units', {
+        'name': 'Centimeter',
+        'code': 'CM',
+        'category_id': 4,
+        'is_system': 1,
+        'base_unit_id': null,
+        'multiplier': 1
+      });
+      await db.insert('units', {
+        'name': 'Meter',
+        'code': 'M',
+        'category_id': 4,
+        'is_system': 1,
+        'base_unit_id': cmId,
+        'multiplier': 100
       });
 
       AppLogger.db('Sample data inserted');

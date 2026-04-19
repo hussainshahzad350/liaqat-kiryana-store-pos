@@ -57,8 +57,7 @@ class InvoiceRepository {
         final limit = (custRes.first['credit_limit'] as num).toInt();
         final balance = (custRes.first['outstanding_balance'] as num).toInt();
         if (limit > 0 && (balance + grandTotal) > limit) {
-          throw Exception(
-              'Credit limit exceeded. Current: $balance, Limit: $limit, Invoice: $grandTotal');
+          throw Exception('CREDIT_LIMIT_EXCEEDED');
         }
       }
 
@@ -68,8 +67,7 @@ class InvoiceRepository {
         calculatedSubTotal += (item['total'] as int);
       }
       if ((calculatedSubTotal - discount) != grandTotal) {
-        throw Exception(
-            'Invoice math error: Items ($calculatedSubTotal) - Discount ($discount) != Total ($grandTotal)');
+        throw Exception('INVOICE_MATH_ERROR');
       }
       if (cashAmount < 0 || bankAmount < 0 || creditAmount < 0) {
         throw ArgumentError('Payment amounts cannot be negative');
@@ -123,7 +121,7 @@ class InvoiceRepository {
         );
 
         if (updated == 0) {
-          throw Exception('Insufficient stock for product ID: $productId');
+          throw Exception('INSUFFICIENT_STOCK');
         }
 
         await txn.insert('stock_activities', {
@@ -293,7 +291,7 @@ class InvoiceRepository {
       );
 
       if (invoiceRes.isEmpty) {
-        throw Exception('Invoice not found or already cancelled');
+        throw Exception('INVOICE_NOT_FOUND');
       }
 
       final invoice = invoiceRes.first;

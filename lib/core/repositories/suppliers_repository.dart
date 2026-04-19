@@ -180,7 +180,7 @@ class SuppliersRepository {
       );
 
       if (result.isEmpty) {
-        throw Exception('Supplier not found');
+        throw Exception('SUPPLIER_NOT_FOUND');
       }
 
       final currentBalance =

@@ -555,12 +555,29 @@
   "departmentExistsError": "اس نام کا ڈپارٹمنٹ پہلے سے موجود ہے۔",
   "categoryExistsError": "اس نام کی کیٹیگری منتخب ڈپارٹمنٹ میں پہلے سے موجود ہے۔",
   "subcategoryExistsError": "اس نام کی ذیلی کیٹیگری منتخب کیٹیگری میں پہلے سے موجود ہے۔",
+  "categoryInUseDeleteError": "کیٹیگری حذف نہیں کی جا سکتی کیونکہ یہ {count} آئٹم میں استعمال ہو رہی ہے۔",
+  "@categoryInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "subCategoryInUseDeleteError": "ذیلی کیٹیگری حذف نہیں کی جا سکتی کیونکہ یہ {count} آئٹم میں استعمال ہو رہی ہے۔",
+  "@subCategoryInUseDeleteError": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "editDetails": "تفصیلات میں ترمیم کریں",
   "nameEnglishLabel": "نام (انگریزی)",
   "nameUrduLabel": "نام (اردو)",
   "departmentLabel": "ڈپارٹمنٹ",
   "searchDepartmentsCategoriesHint": "ڈپارٹمنٹس، کیٹیگریز تلاش کریں...",
   "departmentsHeader": "ڈپارٹمنٹس",
+  "detailsHeader": "تفصیلات",
   "categoriesSubcategoriesHeader": "کیٹیگریز اور ذیلی کیٹیگریز",
   "statusVisibilityHeader": "اسٹیٹس اور مرئیت",
   "statisticsHeader": "شماریات",
@@ -748,5 +765,48 @@
   "searchSuppliers": "سپلائر تلاش کریں...",
   "unitCost": "فی اکائی لاگت",
   "lineTotal": "لائن کل",
-  "purchaseScreenTitle": "نئی خریداری بِل"
+  "purchaseScreenTitle": "نئی خریداری بِل",
+  "unitManagement": "یونٹ مینیجمنٹ",
+  "baseUnit": "بنیادی یونٹ",
+  "derivedUnit": "ماخوذ یونٹ",
+  "conversionFormula": "تبدیلی کا فارمولا",
+  "multiplier": "ضرب کنندہ",
+  "noBaseUnitSet": "اس زمرے کے لیے کوئی بنیادی یونٹ سیٹ نہیں ہے",
+  "unitCodeFallback": "یونٹ",
+  "isBaseUnitTitle": "کیا یہ بنیادی یونٹ ہے؟",
+  "isBaseUnitPrimarySubtitle": "یہ اس زمرے کے لیے بنیادی پیمائش ہوگی۔",
+  "isBaseUnitDerivedSubtitle": "یہ ماخوذ یونٹ ہے (بنیادی یونٹ سے حساب کیا جاتا ہے)۔",
+  "conversionFromBaseUnit": "بنیادی یونٹ ({baseCode}) سے تبدیلی",
+  "@conversionFromBaseUnit": {
+    "placeholders": {
+      "baseCode": {}
+    }
+  },
+  "conversionPrefix": "1 {unitCode} = ",
+  "@conversionPrefix": {
+    "placeholders": {
+      "unitCode": {}
+    }
+  },
+  "multiplierHint": "اشارہ: اگر 1 {unitCode} = 1000 {baseCode} ہو، تو ضرب کنندہ 1000 ہے۔",
+  "@multiplierHint": {
+    "placeholders": {
+      "unitCode": {},
+      "baseCode": {}
+    }
+  },
+  "systemUnitWarning": "سسٹم یونٹس میں ترمیم نہیں کی جا سکتی",
+  "unitInUseWarning": "یہ یونٹ {count} مصنوعات میں استعمال ہو رہا ہے",
+  "categoryWeight": "وزن",
+  "categoryVolume": "حجم",
+  "categoryCount": "تعداد",
+  "categoryLength": "لمبائی",
+  "purchaseNotFound": "خریداری نہیں ملی یا پہلے سے منسوخ ہے",
+  "invoiceNotFound": "رسید نہیں ملی یا پہلے سے منسوخ ہے",
+  "supplierNotFound": "سپلائر نہیں ملا",
+  "insufficientStockForCancellation": "خریداری منسوخ نہیں کی جا سکی: پروڈکٹ کے لیے ناکافی اسٹاک۔ براہ کرم اسٹاک کی سطح کی تصدیق کریں۔",
+  "negativeStockError": "اسٹاک منفی نہیں ہو سکتا",
+  "invalidPriceAdjustment": "غلط قیمت میں ترمیم: فیصد یا مقررہ اضافہ فراہم کرنا ضروری ہے",
+  "invoiceMathError": "رسید کی گنتی میں خرابی: براہ کرم اشیاء اور ڈسکاؤنٹ کی رقوم کی تصدیق کریں",
+  "paymentFailed": "ادائیگی کی کارروائی ناکام ہوگئی۔ براہ کرم دوبارہ کوشش کریں یا معاونت سے رابطہ کریں۔"
 }

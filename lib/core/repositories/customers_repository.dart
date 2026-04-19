@@ -300,7 +300,7 @@ class CustomersRepository {
       });
     } catch (e) {
       AppLogger.error('Error adding payment: $e', tag: 'CustomersRepo');
-      throw Exception('Payment Failed: ${e.toString()}');
+      throw Exception('PAYMENT_FAILED');
     }
   }
 
