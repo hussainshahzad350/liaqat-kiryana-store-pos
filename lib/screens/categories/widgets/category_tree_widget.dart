@@ -196,23 +196,31 @@ class _CategoryTreeWidgetState extends State<CategoryTreeWidget> {
                         onTap: () => widget.onCategorySelect(cat),
                         child: Row(
                           children: [
-                            buildHighlightedText(
-                                cat.nameEn,
-                                widget.searchQuery,
-                                (textTheme.bodyMedium ?? const TextStyle())
-                                    .copyWith(fontWeight: FontWeight.bold),
-                                colorScheme.primaryContainer),
+                            Flexible(
+                              fit: FlexFit.loose,
+                              child: buildHighlightedText(
+                                  cat.nameEn,
+                                  widget.searchQuery,
+                                  (textTheme.bodyMedium ?? const TextStyle())
+                                      .copyWith(fontWeight: FontWeight.bold),
+                                  colorScheme.primaryContainer,
+                                  maxLines: 1),
+                            ),
                             const SizedBox(width: AppTokens.spacingMedium),
-                            buildHighlightedText(
-                                cat.nameUr,
-                                widget.searchQuery,
-                                (textTheme.bodySmall ?? const TextStyle())
-                                    .copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontFamily: 'NooriNastaleeq',
-                                  height: 1.2,
-                                ),
-                                colorScheme.primaryContainer),
+                            Flexible(
+                              fit: FlexFit.loose,
+                              child: buildHighlightedText(
+                                  cat.nameUr,
+                                  widget.searchQuery,
+                                  (textTheme.bodySmall ?? const TextStyle())
+                                      .copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontFamily: 'NooriNastaleeq',
+                                    height: 1.2,
+                                  ),
+                                  colorScheme.primaryContainer,
+                                  maxLines: 1),
+                            ),
                           ],
                         ),
                       ),
