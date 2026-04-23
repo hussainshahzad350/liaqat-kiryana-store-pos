@@ -399,19 +399,70 @@ class SettingsRepository {
     final prefs = await SharedPreferences.getInstance();
     return {
       'language': prefs.getString('app_language') ?? 'en',
-      'theme': prefs.getString('app_theme') ?? 'lightGreen',
+      'theme': prefs.getString('app_theme') ?? 'green',
+      'themeMode': prefs.getString('app_theme_mode') ?? 'system',
+      'dateFormat': prefs.getString('date_format') ?? 'DD-MM-YYYY',
+      'currencySymbol': prefs.getString('currency_symbol') ?? 'Rs',
+      'currencyPosition': prefs.getString('currency_position') ?? 'before',
+      'requirePassword': prefs.getBool('require_password') ?? false,
+      'password': prefs.getString('app_password') ?? '',
+      'autoBackupEnabled': prefs.getBool('auto_backup_enabled') ?? false,
+      'backupFrequency': prefs.getString('backup_frequency') ?? 'Daily',
+      'lowStockAlert': prefs.getBool('low_stock_alert') ?? true,
+      'dayCloseReminder': prefs.getBool('day_close_reminder') ?? true,
       'soundEnabled': prefs.getBool('soundEnabled') ?? true,
       'printOnSale': prefs.getBool('printOnSale') ?? false,
+      // Receipt Options (Normalized to lowercase to match UI keys)
+      'showLogo': prefs.getBool('receipt_show_logo') ?? true,
+      'showAddress': prefs.getBool('receipt_show_address') ?? true,
+      'showPhone': prefs.getBool('receipt_show_phone') ?? true,
+      'showDateTime': prefs.getBool('receipt_show_datetime') ?? true,
+      'showCustomer': prefs.getBool('receipt_show_customer') ?? true,
+      'showPayment': prefs.getBool('receipt_show_payment') ?? true,
+      'receiptFontSize': (prefs.getString('receipt_font_size') ?? 'medium').toLowerCase(),
+      'paperWidth': prefs.getString('receipt_paper_width') ?? '80mm',
+      'printerType': (prefs.getString('receipt_printer_type') ?? 'usb').toLowerCase(),
     };
   }
 
   Future<void> updateAppPreferences(Map<String, dynamic> preferences) async {
     final prefs = await SharedPreferences.getInstance();
+    
     if (preferences.containsKey('language')) {
       await prefs.setString('app_language', preferences['language']);
     }
     if (preferences.containsKey('theme')) {
       await prefs.setString('app_theme', preferences['theme']);
+    }
+    if (preferences.containsKey('themeMode')) {
+      await prefs.setString('app_theme_mode', preferences['themeMode']);
+    }
+    if (preferences.containsKey('dateFormat')) {
+      await prefs.setString('date_format', preferences['dateFormat']);
+    }
+    if (preferences.containsKey('currencySymbol')) {
+      await prefs.setString('currency_symbol', preferences['currencySymbol']);
+    }
+    if (preferences.containsKey('currencyPosition')) {
+      await prefs.setString('currency_position', preferences['currencyPosition']);
+    }
+    if (preferences.containsKey('requirePassword')) {
+      await prefs.setBool('require_password', preferences['requirePassword']);
+    }
+    if (preferences.containsKey('password')) {
+      await prefs.setString('app_password', preferences['password']);
+    }
+    if (preferences.containsKey('autoBackupEnabled')) {
+      await prefs.setBool('auto_backup_enabled', preferences['autoBackupEnabled']);
+    }
+    if (preferences.containsKey('backupFrequency')) {
+      await prefs.setString('backup_frequency', preferences['backupFrequency']);
+    }
+    if (preferences.containsKey('lowStockAlert')) {
+      await prefs.setBool('low_stock_alert', preferences['lowStockAlert']);
+    }
+    if (preferences.containsKey('dayCloseReminder')) {
+      await prefs.setBool('day_close_reminder', preferences['dayCloseReminder']);
     }
     if (preferences.containsKey('soundEnabled')) {
       await prefs.setBool('soundEnabled', preferences['soundEnabled']);
@@ -419,6 +470,36 @@ class SettingsRepository {
     if (preferences.containsKey('printOnSale')) {
       await prefs.setBool('printOnSale', preferences['printOnSale']);
     }
+    
+    // Receipt Options
+    if (preferences.containsKey('showLogo')) {
+      await prefs.setBool('receipt_show_logo', preferences['showLogo']);
+    }
+    if (preferences.containsKey('showAddress')) {
+      await prefs.setBool('receipt_show_address', preferences['showAddress']);
+    }
+    if (preferences.containsKey('showPhone')) {
+      await prefs.setBool('receipt_show_phone', preferences['showPhone']);
+    }
+    if (preferences.containsKey('showDateTime')) {
+      await prefs.setBool('receipt_show_datetime', preferences['showDateTime']);
+    }
+    if (preferences.containsKey('showCustomer')) {
+      await prefs.setBool('receipt_show_customer', preferences['showCustomer']);
+    }
+    if (preferences.containsKey('showPayment')) {
+      await prefs.setBool('receipt_show_payment', preferences['showPayment']);
+    }
+    if (preferences.containsKey('receiptFontSize')) {
+      await prefs.setString('receipt_font_size', preferences['receiptFontSize']);
+    }
+    if (preferences.containsKey('paperWidth')) {
+      await prefs.setString('receipt_paper_width', preferences['paperWidth']);
+    }
+    if (preferences.containsKey('printerType')) {
+      await prefs.setString('receipt_printer_type', preferences['printerType']);
+    }
+
     AppLogger.info('App preferences updated', tag: 'SettingsRepo');
   }
 }

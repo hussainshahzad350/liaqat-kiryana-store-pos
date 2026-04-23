@@ -880,5 +880,10 @@
   "negativeStockError": "Stock cannot be negative",
   "invalidPriceAdjustment": "Invalid price adjustment: must provide either percentage or fixed increase",
   "invoiceMathError": "Invoice calculation error: please verify items and discount amounts",
-  "paymentFailed": "Payment processing failed. Please try again or contact support."
+  "paymentFailed": "Payment processing failed. Please try again or contact support.",
+  "shopProfileSubtitle": "Store Name, Address, Contact, and Logo",
+  "backupSubtitle": "Database Backups, Restore, and Repair tools",
+  "receiptSubtitle": "Printer Type, Font Size, and Template Options",
+  "preferencesSubtitle": "Language, Theme, Security, and Notifications",
+  "aboutSubtitle": "App Version, System Info, and Developer Support"
 }

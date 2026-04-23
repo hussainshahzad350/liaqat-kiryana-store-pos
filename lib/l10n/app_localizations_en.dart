@@ -2253,4 +2253,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paymentFailed =>
       'Payment processing failed. Please try again or contact support.';
+
+  @override
+  String get shopProfileSubtitle => 'Store Name, Address, Contact, and Logo';
+
+  @override
+  String get backupSubtitle => 'Database Backups, Restore, and Repair tools';
+
+  @override
+  String get receiptSubtitle => 'Printer Type, Font Size, and Template Options';
+
+  @override
+  String get preferencesSubtitle =>
+      'Language, Theme, Security, and Notifications';
+
+  @override
+  String get aboutSubtitle => 'App Version, System Info, and Developer Support';
 }

@@ -4387,6 +4387,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment processing failed. Please try again or contact support.'**
   String get paymentFailed;
+
+  /// No description provided for @shopProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store Name, Address, Contact, and Logo'**
+  String get shopProfileSubtitle;
+
+  /// No description provided for @backupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Database Backups, Restore, and Repair tools'**
+  String get backupSubtitle;
+
+  /// No description provided for @receiptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer Type, Font Size, and Template Options'**
+  String get receiptSubtitle;
+
+  /// No description provided for @preferencesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Language, Theme, Security, and Notifications'**
+  String get preferencesSubtitle;
+
+  /// No description provided for @aboutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App Version, System Info, and Developer Support'**
+  String get aboutSubtitle;
 }
 
 class _AppLocalizationsDelegate

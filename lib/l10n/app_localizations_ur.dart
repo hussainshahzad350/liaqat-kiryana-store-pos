@@ -2250,4 +2250,20 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get paymentFailed =>
       'ادائیگی کی کارروائی ناکام ہوگئی۔ براہ کرم دوبارہ کوشش کریں یا معاونت سے رابطہ کریں۔';
+
+  @override
+  String get shopProfileSubtitle => 'دکان کا نام، پتہ، رابطہ اور لوگو';
+
+  @override
+  String get backupSubtitle => 'ڈیٹا بیس بیک اپ، ری اسٹور اور مرمتی ٹولز';
+
+  @override
+  String get receiptSubtitle =>
+      'پرنٹر کی قسم، فونٹ سائز اور ٹیمپلیٹ کے اختیارات';
+
+  @override
+  String get preferencesSubtitle => 'زبان، تھیم، سیکیورٹی اور نوٹیفیکیشنز';
+
+  @override
+  String get aboutSubtitle => 'ایپ ورژن، سسٹم کی معلومات اور ڈویلپر سپورٹ';
 }
