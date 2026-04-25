@@ -263,6 +263,7 @@ void main() {
         customerId: 1, // Walk-in
         grandTotal: 145000,
         discount: 5000,
+        cashAmount: 145000,
         items: [
           {
             'product_id': 1,
@@ -285,6 +286,7 @@ void main() {
       await invoiceRepo.createInvoiceWithTransaction(
         customerId: 1,
         grandTotal: 100000,
+        cashAmount: 100000,
         items: [
           {
             'product_id': 1,
