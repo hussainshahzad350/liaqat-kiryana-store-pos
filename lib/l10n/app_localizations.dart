@@ -1052,6 +1052,12 @@ abstract class AppLocalizations {
   /// **'Import from USB'**
   String get importFromUsb;
 
+  /// No description provided for @functionalityComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Functionality coming soon'**
+  String get functionalityComingSoon;
+
   /// No description provided for @recentBackups.
   ///
   /// In en, this message translates to:
@@ -1165,6 +1171,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App Language'**
   String get appLanguage;
+
+  /// No description provided for @theme_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme_title;
+
+  /// No description provided for @theme_color.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Color'**
+  String get theme_color;
+
+  /// No description provided for @theme_color_green.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get theme_color_green;
+
+  /// No description provided for @theme_color_blue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get theme_color_blue;
+
+  /// No description provided for @theme_color_orange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get theme_color_orange;
+
+  /// No description provided for @theme_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Mode'**
+  String get theme_mode;
+
+  /// No description provided for @theme_mode_light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get theme_mode_light;
+
+  /// No description provided for @theme_mode_dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get theme_mode_dark;
+
+  /// No description provided for @theme_mode_system.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get theme_mode_system;
 
   /// No description provided for @dateFormat.
   ///
@@ -1297,6 +1357,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Developed by'**
   String get developedBy;
+
+  /// No description provided for @developedByCompanyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Khata Technologies'**
+  String get developedByCompanyName;
 
   /// No description provided for @systemInfo.
   ///
@@ -3151,6 +3217,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Preferences saved successfully'**
   String get preferencesSaved;
+
+  /// No description provided for @databaseOptimized.
+  ///
+  /// In en, this message translates to:
+  /// **'Database optimized'**
+  String get databaseOptimized;
+
+  /// No description provided for @databaseOptimizationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimization failed'**
+  String get databaseOptimizationFailed;
 
   /// No description provided for @checkingForUpdates.
   ///

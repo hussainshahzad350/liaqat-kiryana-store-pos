@@ -143,7 +143,46 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
             '/': (context) => const LoginScreen(),
             // Single post-login route — AppShell hosts sidebar + header +
             // IndexedStack of all screens. Nothing is disposed on navigation.
-            AppRoutes.home: (context) => const AppShell(),
+            AppRoutes.home: (context) => const AppShell(
+                  initialRoute: AppRoutes.home,
+                ),
+            AppRoutes.sales: (context) => const AppShell(
+                  initialRoute: AppRoutes.sales,
+                ),
+            AppRoutes.stock: (context) => const AppShell(
+                  initialRoute: AppRoutes.stock,
+                ),
+            AppRoutes.purchase: (context) => const AppShell(
+                  initialRoute: AppRoutes.purchase,
+                ),
+            AppRoutes.items: (context) => const AppShell(
+                  initialRoute: AppRoutes.items,
+                ),
+            AppRoutes.customers: (context) => const AppShell(
+                  initialRoute: AppRoutes.customers,
+                ),
+            AppRoutes.suppliers: (context) => const AppShell(
+                  initialRoute: AppRoutes.suppliers,
+                ),
+            AppRoutes.categories: (context) => const AppShell(
+                  initialRoute: AppRoutes.categories,
+                ),
+            AppRoutes.units: (context) => const AppShell(
+                  initialRoute: AppRoutes.units,
+                ),
+            AppRoutes.reports: (context) => const AppShell(
+                  initialRoute: AppRoutes.reports,
+                ),
+            AppRoutes.cashLedger: (context) => const AppShell(
+                  initialRoute: AppRoutes.cashLedger,
+                ),
+            AppRoutes.settings: (context) => const AppShell(
+                  initialRoute: AppRoutes.settings,
+                ),
+            AppRoutes.about: (context) => const AppShell(
+                  initialRoute: AppRoutes.about,
+                ),
+            AppRoutes.logout: (context) => const LoginScreen(),
           },
         );
       },

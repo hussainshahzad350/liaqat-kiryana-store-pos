@@ -19,7 +19,8 @@ class PreferencesPage extends StatelessWidget {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
         final prefs = state.preferences;
-        final String currentLangCode = Localizations.localeOf(context).languageCode;
+        final String currentLangCode =
+            Localizations.localeOf(context).languageCode;
         String langLabel = currentLangCode == 'ur' ? 'اردو' : 'English';
 
         return SingleChildScrollView(
@@ -37,14 +38,18 @@ class PreferencesPage extends StatelessWidget {
                       value: langLabel,
                       isExpanded: true,
                       items: const ['اردو', 'English']
-                          .map((l) => DropdownMenuItem(value: l, child: Text(l)))
+                          .map(
+                              (l) => DropdownMenuItem(value: l, child: Text(l)))
                           .toList(),
                       onChanged: (v) {
-                        if (v == 'English') {
-                          LiaqatStoreApp.setLocale(context, const Locale('en', ''));
-                        } else {
-                          LiaqatStoreApp.setLocale(context, const Locale('ur', ''));
-                        }
+                        final settingsCubit = context.read<SettingsCubit>();
+                        final locale = v == 'English'
+                            ? const Locale('en', '')
+                            : const Locale('ur', '');
+
+                        LiaqatStoreApp.setLocale(context, locale);
+                        settingsCubit.updatePreferences(
+                            {'language': locale.languageCode});
                       },
                     ),
                     const SizedBox(height: AppTokens.spacingMedium),
@@ -53,9 +58,12 @@ class PreferencesPage extends StatelessWidget {
                       value: prefs['dateFormat'] ?? 'DD-MM-YYYY',
                       isExpanded: true,
                       items: const ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD']
-                          .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+                          .map(
+                              (f) => DropdownMenuItem(value: f, child: Text(f)))
                           .toList(),
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'dateFormat': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'dateFormat': v}),
                     ),
                   ],
                 ),
@@ -64,45 +72,53 @@ class PreferencesPage extends StatelessWidget {
               Consumer<ThemeProvider>(
                 builder: (context, themeProvider, child) {
                   return SettingSection(
-                    title: "Theme", // TODO: Add to localization
+                    title: loc.theme_title,
                     icon: Icons.palette_outlined,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Theme Color", style: TextStyle(fontSize: 14)),
+                        Text(loc.theme_color,
+                            style: const TextStyle(fontSize: 14)),
                         DropdownButton<String>(
                           value: themeProvider.currentColor,
                           isExpanded: true,
-                          items: const [
-                            DropdownMenuItem(value: 'green', child: Text('Green')),
-                            DropdownMenuItem(value: 'blue', child: Text('Blue')),
-                            DropdownMenuItem(value: 'orange', child: Text('Orange')),
+                          items: [
+                            DropdownMenuItem(
+                                value: 'green',
+                                child: Text(loc.theme_color_green)),
+                            DropdownMenuItem(
+                                value: 'blue',
+                                child: Text(loc.theme_color_blue)),
+                            DropdownMenuItem(
+                                value: 'orange',
+                                child: Text(loc.theme_color_orange)),
                           ],
                           onChanged: (v) {
                             if (v != null) themeProvider.setColor(v);
                           },
                         ),
                         const SizedBox(height: AppTokens.spacingMedium),
-                        const Text("Theme Mode", style: TextStyle(fontSize: 14)),
+                        Text(loc.theme_mode,
+                            style: const TextStyle(fontSize: 14)),
                         Row(
                           children: [
                             _ThemeModeButton(
                               mode: ThemeMode.light,
                               currentMode: themeProvider.themeMode,
                               onChanged: themeProvider.setMode,
-                              label: 'Light',
+                              label: loc.theme_mode_light,
                             ),
                             _ThemeModeButton(
                               mode: ThemeMode.dark,
                               currentMode: themeProvider.themeMode,
                               onChanged: themeProvider.setMode,
-                              label: 'Dark',
+                              label: loc.theme_mode_dark,
                             ),
                             _ThemeModeButton(
                               mode: ThemeMode.system,
                               currentMode: themeProvider.themeMode,
                               onChanged: themeProvider.setMode,
-                              label: 'System',
+                              label: loc.theme_mode_system,
                             ),
                           ],
                         ),
@@ -120,11 +136,14 @@ class PreferencesPage extends StatelessWidget {
                     OptionSwitch(
                       title: loc.requirePasswordStartup,
                       value: prefs['requirePassword'] ?? false,
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'requirePassword': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'requirePassword': v}),
                     ),
                     if (prefs['requirePassword'] == true)
                       Padding(
-                        padding: const EdgeInsets.only(top: AppTokens.spacingSmall),
+                        padding:
+                            const EdgeInsets.only(top: AppTokens.spacingSmall),
                         child: TextFormField(
                           initialValue: prefs['password'],
                           obscureText: true,
@@ -133,7 +152,9 @@ class PreferencesPage extends StatelessWidget {
                             border: const OutlineInputBorder(),
                             isDense: true,
                           ),
-                          onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'password': v}),
+                          onChanged: (v) => context
+                              .read<SettingsCubit>()
+                              .updatePreferences({'password': v}),
                         ),
                       ),
                   ],
@@ -148,12 +169,16 @@ class PreferencesPage extends StatelessWidget {
                     OptionSwitch(
                       title: loc.lowStockAlert,
                       value: prefs['lowStockAlert'] ?? true,
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'lowStockAlert': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'lowStockAlert': v}),
                     ),
                     OptionSwitch(
                       title: loc.dayCloseReminder,
                       value: prefs['dayCloseReminder'] ?? true,
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'dayCloseReminder': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'dayCloseReminder': v}),
                     ),
                   ],
                 ),
@@ -195,7 +220,9 @@ class _ThemeModeButton extends StatelessWidget {
           },
           selectedColor: colorScheme.primaryContainer,
           labelStyle: TextStyle(
-            color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+            color: isSelected
+                ? colorScheme.onPrimaryContainer
+                : colorScheme.onSurface,
             fontSize: 12,
           ),
         ),

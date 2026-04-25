@@ -489,6 +489,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importFromUsb => 'Import from USB';
 
   @override
+  String get functionalityComingSoon => 'Functionality coming soon';
+
+  @override
   String get recentBackups => 'Recent Backups';
 
   @override
@@ -544,6 +547,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appLanguage => 'App Language';
+
+  @override
+  String get theme_title => 'Theme';
+
+  @override
+  String get theme_color => 'Theme Color';
+
+  @override
+  String get theme_color_green => 'Green';
+
+  @override
+  String get theme_color_blue => 'Blue';
+
+  @override
+  String get theme_color_orange => 'Orange';
+
+  @override
+  String get theme_mode => 'Theme Mode';
+
+  @override
+  String get theme_mode_light => 'Light';
+
+  @override
+  String get theme_mode_dark => 'Dark';
+
+  @override
+  String get theme_mode_system => 'System';
 
   @override
   String get dateFormat => 'Date Format';
@@ -610,6 +640,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get developedBy => 'Developed by';
+
+  @override
+  String get developedByCompanyName => 'Smart Khata Technologies';
 
   @override
   String get systemInfo => 'System Information';
@@ -1567,6 +1600,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get preferencesSaved => 'Preferences saved successfully';
+
+  @override
+  String get databaseOptimized => 'Database optimized';
+
+  @override
+  String get databaseOptimizationFailed => 'Optimization failed';
 
   @override
   String get checkingForUpdates => 'Checking for updates...';

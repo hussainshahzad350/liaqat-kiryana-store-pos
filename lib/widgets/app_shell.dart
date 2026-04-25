@@ -91,7 +91,12 @@ const _kIndexRoute = <int, String>{
 // ---------------------------------------------------------------------------
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  final String initialRoute;
+
+  const AppShell({
+    super.key,
+    this.initialRoute = AppRoutes.home,
+  });
 
   // ── Static navigation helper ────────────────────────────────────────────
   /// Called by [AppNavigationSidebar] instead of Navigator.pushReplacementNamed.
@@ -99,9 +104,12 @@ class AppShell extends StatefulWidget {
   /// below the shell in the tree.
   static void navigateTo(BuildContext context, String route) {
     final state = context.findAncestorStateOfType<_AppShellState>();
-    assert(state != null, 'AppShell.navigateTo called outside AppShell tree');
+    if (state == null) return;
+
     final index = _kRouteIndex[route];
-    if (index != null) state!._setIndex(index);
+    if (index == null) return;
+
+    state._setIndex(index);
   }
 
   @override
@@ -109,7 +117,14 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+  final Map<int, Widget> _screenCache = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = _kRouteIndex[widget.initialRoute] ?? 0;
+  }
 
   void _setIndex(int index) {
     if (index == _currentIndex) return;
@@ -118,11 +133,16 @@ class _AppShellState extends State<AppShell> {
 
   String get _currentRoute => _kIndexRoute[_currentIndex] ?? AppRoutes.home;
 
+  Widget _getOrCreateScreen(int index, BuildContext context) {
+    return _screenCache.putIfAbsent(index, () => _buildScreen(index, context));
+  }
+
   // ── Keyboard shortcuts ──────────────────────────────────────────────────
   static const _shortcuts = <ShortcutActivator, Intent>{
     SingleActivator(LogicalKeyboardKey.keyN, control: true): _NewSaleIntent(),
     SingleActivator(LogicalKeyboardKey.keyR, control: true): _RefreshIntent(),
-    SingleActivator(LogicalKeyboardKey.keyB, control: true): _ToggleSidebarIntent(),
+    SingleActivator(LogicalKeyboardKey.keyB, control: true):
+        _ToggleSidebarIntent(),
   };
 
   @override
@@ -150,8 +170,8 @@ class _AppShellState extends State<AppShell> {
             );
             return null;
           }),
-          _ToggleSidebarIntent: CallbackAction<_ToggleSidebarIntent>(
-              onInvoke: (_) {
+          _ToggleSidebarIntent:
+              CallbackAction<_ToggleSidebarIntent>(onInvoke: (_) {
             context.read<SidebarCubit>().toggle();
             return null;
           }),
@@ -174,7 +194,16 @@ class _AppShellState extends State<AppShell> {
                       Expanded(
                         child: IndexedStack(
                           index: _currentIndex,
-                          children: _buildScreens(context),
+                          children: List.generate(
+                            _kIndexRoute.length,
+                            (index) {
+                              if (index == _currentIndex) {
+                                return _getOrCreateScreen(index, context);
+                              }
+                              return _screenCache[index] ??
+                                  const SizedBox.shrink();
+                            },
+                          ),
                         ),
                       ),
                     ],
@@ -188,94 +217,82 @@ class _AppShellState extends State<AppShell> {
     );
   }
 
-  /// Builds all screen widgets wrapped in their required BlocProviders.
-  /// IndexedStack keeps all children alive but only paints the active one,
-  /// so BLoC/Cubits for every screen are created once at shell startup.
-  List<Widget> _buildScreens(BuildContext context) {
-    return [
-      // 0 — Home
-      const HomeScreen(),
-
-      // 1 — Sales
-      BlocProvider(
-        create: (ctx) => SalesBloc(
-          invoiceRepository: ctx.read<InvoiceRepository>(),
-          itemsRepository: ctx.read<ItemsRepository>(),
-          customersRepository: ctx.read<CustomersRepository>(),
-          settingsRepository: ctx.read<SettingsRepository>(),
-          receiptRepository: ctx.read<ReceiptRepository>(),
-        ),
-        child: const SalesScreen(),
-      ),
-
-      // 2 — Stock
-      MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (_) => StockUiCubit()),
-          BlocProvider(
-            create: (ctx) =>
-                StockOverviewBloc(ctx.read<StockRepository>())
-                  ..add(const LoadStockOverview()),
+  /// Lazily builds one screen wrapped in its required BlocProviders.
+  /// Each screen is created only on first visit and then kept in [_screenCache].
+  Widget _buildScreen(int index, BuildContext context) {
+    switch (index) {
+      case 0:
+        return const HomeScreen();
+      case 1:
+        return BlocProvider(
+          create: (ctx) => SalesBloc(
+            invoiceRepository: ctx.read<InvoiceRepository>(),
+            itemsRepository: ctx.read<ItemsRepository>(),
+            customersRepository: ctx.read<CustomersRepository>(),
+            settingsRepository: ctx.read<SettingsRepository>(),
+            receiptRepository: ctx.read<ReceiptRepository>(),
           ),
-          BlocProvider(
-            create: (ctx) => StockFilterBloc(
-              ctx.read<SuppliersRepository>(),
-              ctx.read<CategoriesRepository>(),
-            )..add(LoadFilters()),
-          ),
-          BlocProvider(
-            create: (ctx) => StockActivityBloc(
-              ctx.read<StockActivityRepository>(),
-              ctx.read<ItemsRepository>(),
-              ctx.read<PurchaseRepository>(),
-              ctx.read<InvoiceRepository>(),
-            )..add(const LoadStockActivities()),
-          ),
-        ],
-        child: const StockScreen(),
-      ),
-
-      // 3 — Purchase
-      BlocProvider(
-        create: (ctx) => PurchaseBloc(
-          purchaseRepository: ctx.read<PurchaseRepository>(),
-          suppliersRepository: ctx.read<SuppliersRepository>(),
-          itemsRepository: ctx.read<ItemsRepository>(),
-        )..add(InitializePurchase()),
-        child: const PurchaseScreen(),
-      ),
-
-      // 4 — Items
-      const ItemsScreen(),
-
-      // 5 — Customers
-      const CustomersScreen(),
-
-      // 6 — Suppliers
-      const SuppliersScreen(),
-
-      // 7 — Categories
-      const CategoriesScreen(),
-
-      // 8 — Units
-      BlocProvider(
-        create: (ctx) =>
-            UnitsBloc(ctx.read<UnitsRepository>())..add(LoadUnits()),
-        child: const UnitsScreen(),
-      ),
-
-      // 9 — Reports
-      const ReportsScreen(),
-
-      // 10 — Cash Ledger
-      const CashLedgerScreen(),
-
-      // 11 — Settings
-      const SettingsScreen(),
-
-      // 12 — About
-      const AboutScreen(),
-    ];
+          child: const SalesScreen(),
+        );
+      case 2:
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => StockUiCubit()),
+            BlocProvider(
+              create: (ctx) => StockOverviewBloc(ctx.read<StockRepository>())
+                ..add(const LoadStockOverview()),
+            ),
+            BlocProvider(
+              create: (ctx) => StockFilterBloc(
+                ctx.read<SuppliersRepository>(),
+                ctx.read<CategoriesRepository>(),
+              )..add(LoadFilters()),
+            ),
+            BlocProvider(
+              create: (ctx) => StockActivityBloc(
+                ctx.read<StockActivityRepository>(),
+                ctx.read<ItemsRepository>(),
+                ctx.read<PurchaseRepository>(),
+                ctx.read<InvoiceRepository>(),
+              )..add(const LoadStockActivities()),
+            ),
+          ],
+          child: const StockScreen(),
+        );
+      case 3:
+        return BlocProvider(
+          create: (ctx) => PurchaseBloc(
+            purchaseRepository: ctx.read<PurchaseRepository>(),
+            suppliersRepository: ctx.read<SuppliersRepository>(),
+            itemsRepository: ctx.read<ItemsRepository>(),
+          )..add(InitializePurchase()),
+          child: const PurchaseScreen(),
+        );
+      case 4:
+        return const ItemsScreen();
+      case 5:
+        return const CustomersScreen();
+      case 6:
+        return const SuppliersScreen();
+      case 7:
+        return const CategoriesScreen();
+      case 8:
+        return BlocProvider(
+          create: (ctx) =>
+              UnitsBloc(ctx.read<UnitsRepository>())..add(LoadUnits()),
+          child: const UnitsScreen(),
+        );
+      case 9:
+        return const ReportsScreen();
+      case 10:
+        return const CashLedgerScreen();
+      case 11:
+        return const SettingsScreen();
+      case 12:
+        return const AboutScreen();
+      default:
+        return const HomeScreen();
+    }
   }
 }
 

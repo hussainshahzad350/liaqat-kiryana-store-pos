@@ -5,10 +5,28 @@ import 'settings_state.dart';
 class SettingsCubit extends Cubit<SettingsState> {
   final SettingsRepository _repository;
 
-  SettingsCubit(this._repository) : super(const SettingsState());
+  static const String _msgSaveChangesSuccess = 'save_changes_success';
+  static const String _msgPreferencesSaved = 'preferences_saved';
+  static const String _msgBackupCreated = 'backup_created';
+  static const String _msgBackupFailed = 'backup_failed';
+  static const String _msgBackupDeleted = 'backup_deleted';
+  static const String _msgDeleteFailed = 'delete_failed';
+  static const String _msgRestoreSuccess = 'restore_success';
+  static const String _msgRestoreFailed = 'restore_failed';
+  static const String _msgDatabaseOptimized = 'database_optimized';
+  static const String _msgDatabaseOptimizationFailed =
+      'database_optimization_failed';
+
+  SettingsCubit(this._repository) : super(SettingsState());
 
   Future<void> loadAll() async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(
+      isLoading: true,
+      clearErrorMessage: true,
+      clearSuccessMessage: true,
+      clearMessageKey: true,
+      clearMessageType: true,
+    ));
     try {
       final profile = await _repository.getShopProfile() ?? {};
       final backups = await _repository.getBackupFiles();
@@ -23,7 +41,13 @@ class SettingsCubit extends Cubit<SettingsState> {
         databaseStats: stats,
       ));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+        clearSuccessMessage: true,
+        clearMessageKey: true,
+        clearMessageType: true,
+      ));
     }
   }
 
@@ -32,37 +56,73 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   Future<void> updateShopProfile(Map<String, dynamic> data) async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(
+      isLoading: true,
+      clearErrorMessage: true,
+      clearSuccessMessage: true,
+      clearMessageKey: true,
+      clearMessageType: true,
+    ));
     try {
       await _repository.updateShopProfile(data);
       final profile = await _repository.getShopProfile() ?? {};
       emit(state.copyWith(
         isLoading: false,
         shopProfile: profile,
-        successMessage: 'Profile updated successfully',
+        messageKey: _msgSaveChangesSuccess,
+        messageType: SettingsMessageType.success,
+        clearSuccessMessage: true,
+        clearErrorMessage: true,
       ));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+        clearSuccessMessage: true,
+        clearMessageKey: true,
+        clearMessageType: true,
+      ));
     }
   }
 
   Future<void> updatePreferences(Map<String, dynamic> data) async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(
+      isLoading: true,
+      clearErrorMessage: true,
+      clearSuccessMessage: true,
+      clearMessageKey: true,
+      clearMessageType: true,
+    ));
     try {
       await _repository.updateAppPreferences(data);
       final prefs = await _repository.getAppPreferences();
       emit(state.copyWith(
         isLoading: false,
         preferences: prefs,
-        successMessage: 'Preferences updated successfully',
+        messageKey: _msgPreferencesSaved,
+        messageType: SettingsMessageType.success,
+        clearSuccessMessage: true,
+        clearErrorMessage: true,
       ));
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+        clearSuccessMessage: true,
+        clearMessageKey: true,
+        clearMessageType: true,
+      ));
     }
   }
 
   Future<void> createBackup() async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(
+      isLoading: true,
+      clearErrorMessage: true,
+      clearSuccessMessage: true,
+      clearMessageKey: true,
+      clearMessageType: true,
+    ));
     try {
       final path = await _repository.createManualBackup();
       if (path != null) {
@@ -70,18 +130,39 @@ class SettingsCubit extends Cubit<SettingsState> {
         emit(state.copyWith(
           isLoading: false,
           backups: backups,
-          successMessage: 'Backup created successfully',
+          messageKey: _msgBackupCreated,
+          messageType: SettingsMessageType.success,
+          clearSuccessMessage: true,
+          clearErrorMessage: true,
         ));
       } else {
-        emit(state.copyWith(isLoading: false, errorMessage: 'Backup failed'));
+        emit(state.copyWith(
+          isLoading: false,
+          messageKey: _msgBackupFailed,
+          messageType: SettingsMessageType.error,
+          clearSuccessMessage: true,
+          clearErrorMessage: true,
+        ));
       }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+        clearSuccessMessage: true,
+        clearMessageKey: true,
+        clearMessageType: true,
+      ));
     }
   }
 
   Future<void> deleteBackup(String path) async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(
+      isLoading: true,
+      clearErrorMessage: true,
+      clearSuccessMessage: true,
+      clearMessageKey: true,
+      clearMessageType: true,
+    ));
     try {
       final success = await _repository.deleteBackup(path);
       if (success) {
@@ -89,35 +170,77 @@ class SettingsCubit extends Cubit<SettingsState> {
         emit(state.copyWith(
           isLoading: false,
           backups: backups,
-          successMessage: 'Backup deleted',
+          messageKey: _msgBackupDeleted,
+          messageType: SettingsMessageType.success,
+          clearSuccessMessage: true,
+          clearErrorMessage: true,
         ));
       } else {
-        emit(state.copyWith(isLoading: false, errorMessage: 'Delete failed'));
+        emit(state.copyWith(
+          isLoading: false,
+          messageKey: _msgDeleteFailed,
+          messageType: SettingsMessageType.error,
+          clearSuccessMessage: true,
+          clearErrorMessage: true,
+        ));
       }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+        clearSuccessMessage: true,
+        clearMessageKey: true,
+        clearMessageType: true,
+      ));
     }
   }
 
   Future<void> restoreBackup(String path) async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(
+      isLoading: true,
+      clearErrorMessage: true,
+      clearSuccessMessage: true,
+      clearMessageKey: true,
+      clearMessageType: true,
+    ));
     try {
       final success = await _repository.restoreBackup(path);
       if (success) {
         emit(state.copyWith(
           isLoading: false,
-          successMessage: 'Restore successful. Restart app recommended.',
+          messageKey: _msgRestoreSuccess,
+          messageType: SettingsMessageType.success,
+          clearSuccessMessage: true,
+          clearErrorMessage: true,
         ));
       } else {
-        emit(state.copyWith(isLoading: false, errorMessage: 'Restore failed'));
+        emit(state.copyWith(
+          isLoading: false,
+          messageKey: _msgRestoreFailed,
+          messageType: SettingsMessageType.error,
+          clearSuccessMessage: true,
+          clearErrorMessage: true,
+        ));
       }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+        clearSuccessMessage: true,
+        clearMessageKey: true,
+        clearMessageType: true,
+      ));
     }
   }
 
   Future<void> optimizeDatabase() async {
-    emit(state.copyWith(isLoading: true));
+    emit(state.copyWith(
+      isLoading: true,
+      clearErrorMessage: true,
+      clearSuccessMessage: true,
+      clearMessageKey: true,
+      clearMessageType: true,
+    ));
     try {
       final success = await _repository.vacuumDatabase();
       if (success) {
@@ -125,17 +248,37 @@ class SettingsCubit extends Cubit<SettingsState> {
         emit(state.copyWith(
           isLoading: false,
           databaseStats: stats,
-          successMessage: 'Database optimized',
+          messageKey: _msgDatabaseOptimized,
+          messageType: SettingsMessageType.success,
+          clearSuccessMessage: true,
+          clearErrorMessage: true,
         ));
       } else {
-        emit(state.copyWith(isLoading: false, errorMessage: 'Optimization failed'));
+        emit(state.copyWith(
+          isLoading: false,
+          messageKey: _msgDatabaseOptimizationFailed,
+          messageType: SettingsMessageType.error,
+          clearSuccessMessage: true,
+          clearErrorMessage: true,
+        ));
       }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: e.toString()));
+      emit(state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+        clearSuccessMessage: true,
+        clearMessageKey: true,
+        clearMessageType: true,
+      ));
     }
   }
 
   void clearMessages() {
-    emit(state.copyWith(errorMessage: null, successMessage: null));
+    emit(state.copyWith(
+      clearErrorMessage: true,
+      clearSuccessMessage: true,
+      clearMessageKey: true,
+      clearMessageType: true,
+    ));
   }
 }

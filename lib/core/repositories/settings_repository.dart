@@ -5,10 +5,12 @@ import 'package:path/path.dart' as p;
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   // ========================================
   // BACKUP MANAGEMENT
@@ -22,12 +24,12 @@ class SettingsRepository {
       final String dbPath = db.path;
       final String dbDir = p.dirname(dbPath);
       final Directory dir = Directory(dbDir);
-      
+
       List<Map<String, dynamic>> backups = [];
-      
+
       if (await dir.exists()) {
         final files = await dir.list().toList();
-        
+
         for (var file in files) {
           if (file is File && file.path.contains('.backup.db')) {
             final stat = await file.stat();
@@ -39,11 +41,11 @@ class SettingsRepository {
             });
           }
         }
-        
+
         // Sort by modified date (newest first)
         backups.sort((a, b) => b['modified'].compareTo(a['modified']));
       }
-      
+
       return backups;
     } catch (e) {
       AppLogger.error('Error getting backup files: $e', tag: 'SettingsRepo');
@@ -57,21 +59,24 @@ class SettingsRepository {
     final db = await _dbHelper.database;
     try {
       final String dbPath = db.path;
-      final String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final String timestamp =
+          DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final String backupFileName = 'manual_backup_$timestamp.db';
       final String backupPath = p.join(p.dirname(dbPath), backupFileName);
-      
-      AppLogger.info('Creating manual backup: $backupPath', tag: 'SettingsRepo');
+
+      AppLogger.info('Creating manual backup: $backupPath',
+          tag: 'SettingsRepo');
 
       // Create backup
       final file = File(dbPath);
       if (await file.exists()) {
         await file.copy(backupPath);
-        AppLogger.info('Manual backup created: $backupPath', tag: 'SettingsRepo');
-        
+        AppLogger.info('Manual backup created: $backupPath',
+            tag: 'SettingsRepo');
+
         // Clean old backups
         await _cleanOldBackups(Directory(p.dirname(dbPath)), maxBackups);
-        
+
         return backupPath;
       }
     } catch (e) {
@@ -85,22 +90,24 @@ class SettingsRepository {
     try {
       if (await backupDir.exists()) {
         final files = await backupDir.list().toList();
-        final backupFiles = files.whereType<File>()
+        final backupFiles = files
+            .whereType<File>()
             .where((file) => file.path.contains('.backup.db'))
             .toList();
-        
+
         // Sort by modified date (oldest first)
         backupFiles.sort((a, b) {
           final aStat = a.statSync();
           final bStat = b.statSync();
           return aStat.modified.compareTo(bStat.modified);
         });
-        
+
         // Delete oldest files if exceeding maxBackups
         if (backupFiles.length > maxBackups) {
           for (int i = 0; i < backupFiles.length - maxBackups; i++) {
             await backupFiles[i].delete();
-            AppLogger.info('Deleted old backup: ${backupFiles[i].path}', tag: 'SettingsRepo');
+            AppLogger.info('Deleted old backup: ${backupFiles[i].path}',
+                tag: 'SettingsRepo');
           }
         }
       }
@@ -115,22 +122,23 @@ class SettingsRepository {
     try {
       final db = await _dbHelper.database;
       final String currentDbPath = db.path;
-      
+
       // 1. Close current database
       await db.close();
-      
+
       // 2. Backup current database first (emergency backup)
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final String emergencyBackup = '$currentDbPath.emergency.$timestamp.bak';
       await File(currentDbPath).copy(emergencyBackup);
-      
+
       // 3. Copy backup file over current database
       await File(backupPath).copy(currentDbPath);
-      
+
       // 4. Re-open database
       // Note: You'll need to handle database reinitialization in your app
-      
-      AppLogger.info('Database restored from: $backupPath', tag: 'SettingsRepo');
+
+      AppLogger.info('Database restored from: $backupPath',
+          tag: 'SettingsRepo');
       return true;
     } catch (e) {
       AppLogger.error('Restore Failed: $e', tag: 'SettingsRepo');
@@ -174,15 +182,16 @@ class SettingsRepository {
     try {
       final backups = await getBackupFiles();
       double total = 0.0;
-      
+
       for (var backup in backups) {
         final size = backup['size'] as int;
         total += size;
       }
-      
+
       return total / (1024 * 1024); // Convert to MB
     } catch (e) {
-      AppLogger.error('Error getting total backup storage: $e', tag: 'SettingsRepo');
+      AppLogger.error('Error getting total backup storage: $e',
+          tag: 'SettingsRepo');
       return 0.0;
     }
   }
@@ -196,7 +205,7 @@ class SettingsRepository {
     try {
       final db = await _dbHelper.database;
       final result = await db.query('shop_profile', limit: 1);
-      
+
       if (result.isEmpty) return null;
       return result.first;
     } catch (e) {
@@ -209,10 +218,10 @@ class SettingsRepository {
   Future<int> updateShopProfile(Map<String, dynamic> data) async {
     try {
       final db = await _dbHelper.database;
-      
+
       // Check if profile exists
       final existing = await db.query('shop_profile', limit: 1);
-      
+
       if (existing.isEmpty) {
         // Insert new profile
         return await db.insert('shop_profile', data);
@@ -240,7 +249,7 @@ class SettingsRepository {
     try {
       final db = await _dbHelper.database;
       final file = File(db.path);
-      
+
       if (await file.exists()) {
         final stat = await file.stat();
         return stat.size / (1024 * 1024); // Convert to MB
@@ -270,7 +279,7 @@ class SettingsRepository {
     try {
       final db = await _dbHelper.database;
       final batch = db.batch();
-      
+
       // Count records in each table
       batch.rawQuery('SELECT COUNT(*) as count FROM products');
       batch.rawQuery('SELECT COUNT(*) as count FROM customers');
@@ -279,9 +288,9 @@ class SettingsRepository {
       batch.rawQuery('SELECT COUNT(*) as count FROM receipts');
       batch.rawQuery('SELECT COUNT(*) as count FROM suppliers');
       batch.rawQuery('SELECT COUNT(*) as count FROM cash_ledger');
-      
+
       final results = await batch.commit();
-      
+
       return {
         'products': (results[0] as List).first['count'] ?? 0,
         'customers': (results[1] as List).first['count'] ?? 0,
@@ -307,30 +316,30 @@ class SettingsRepository {
     try {
       final db = await _dbHelper.database;
       final data = await db.query(tableName);
-      
+
       if (data.isEmpty) return null;
-      
+
       // Create CSV content
       final keys = data.first.keys.toList();
       final csv = StringBuffer();
-      
+
       // Header
       csv.writeln(keys.join(','));
-      
+
       // Data rows
       for (var row in data) {
         final values = keys.map((key) => row[key]?.toString() ?? '').toList();
         csv.writeln(values.join(','));
       }
-      
+
       // Save to file
       final directory = await getApplicationDocumentsDirectory();
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final filePath = p.join(directory.path, '${tableName}_$timestamp.csv');
-      
+
       final file = File(filePath);
       await file.writeAsString(csv.toString());
-      
+
       AppLogger.info('Data exported to: $filePath', tag: 'SettingsRepo');
       return filePath;
     } catch (e) {
@@ -394,9 +403,10 @@ class SettingsRepository {
 
   /// These could be stored in SharedPreferences or a settings table
   /// Placeholder methods for future implementation
-  
+
   Future<Map<String, dynamic>> getAppPreferences() async {
     final prefs = await SharedPreferences.getInstance();
+    final password = await _readAppPassword();
     return {
       'language': prefs.getString('app_language') ?? 'en',
       'theme': prefs.getString('app_theme') ?? 'green',
@@ -405,7 +415,7 @@ class SettingsRepository {
       'currencySymbol': prefs.getString('currency_symbol') ?? 'Rs',
       'currencyPosition': prefs.getString('currency_position') ?? 'before',
       'requirePassword': prefs.getBool('require_password') ?? false,
-      'password': prefs.getString('app_password') ?? '',
+      'password': password,
       'autoBackupEnabled': prefs.getBool('auto_backup_enabled') ?? false,
       'backupFrequency': prefs.getString('backup_frequency') ?? 'Daily',
       'lowStockAlert': prefs.getBool('low_stock_alert') ?? true,
@@ -419,87 +429,99 @@ class SettingsRepository {
       'showDateTime': prefs.getBool('receipt_show_datetime') ?? true,
       'showCustomer': prefs.getBool('receipt_show_customer') ?? true,
       'showPayment': prefs.getBool('receipt_show_payment') ?? true,
-      'receiptFontSize': (prefs.getString('receipt_font_size') ?? 'medium').toLowerCase(),
+      'receiptFontSize':
+          (prefs.getString('receipt_font_size') ?? 'medium').toLowerCase(),
       'paperWidth': prefs.getString('receipt_paper_width') ?? '80mm',
-      'printerType': (prefs.getString('receipt_printer_type') ?? 'usb').toLowerCase(),
+      'printerType':
+          (prefs.getString('receipt_printer_type') ?? 'usb').toLowerCase(),
     };
   }
 
   Future<void> updateAppPreferences(Map<String, dynamic> preferences) async {
     final prefs = await SharedPreferences.getInstance();
-    
-    if (preferences.containsKey('language')) {
-      await prefs.setString('app_language', preferences['language']);
-    }
-    if (preferences.containsKey('theme')) {
-      await prefs.setString('app_theme', preferences['theme']);
-    }
-    if (preferences.containsKey('themeMode')) {
-      await prefs.setString('app_theme_mode', preferences['themeMode']);
-    }
-    if (preferences.containsKey('dateFormat')) {
-      await prefs.setString('date_format', preferences['dateFormat']);
-    }
-    if (preferences.containsKey('currencySymbol')) {
-      await prefs.setString('currency_symbol', preferences['currencySymbol']);
-    }
-    if (preferences.containsKey('currencyPosition')) {
-      await prefs.setString('currency_position', preferences['currencyPosition']);
-    }
-    if (preferences.containsKey('requirePassword')) {
-      await prefs.setBool('require_password', preferences['requirePassword']);
-    }
-    if (preferences.containsKey('password')) {
-      await prefs.setString('app_password', preferences['password']);
-    }
-    if (preferences.containsKey('autoBackupEnabled')) {
-      await prefs.setBool('auto_backup_enabled', preferences['autoBackupEnabled']);
-    }
-    if (preferences.containsKey('backupFrequency')) {
-      await prefs.setString('backup_frequency', preferences['backupFrequency']);
-    }
-    if (preferences.containsKey('lowStockAlert')) {
-      await prefs.setBool('low_stock_alert', preferences['lowStockAlert']);
-    }
-    if (preferences.containsKey('dayCloseReminder')) {
-      await prefs.setBool('day_close_reminder', preferences['dayCloseReminder']);
-    }
-    if (preferences.containsKey('soundEnabled')) {
-      await prefs.setBool('soundEnabled', preferences['soundEnabled']);
-    }
-    if (preferences.containsKey('printOnSale')) {
-      await prefs.setBool('printOnSale', preferences['printOnSale']);
-    }
-    
+
+    await _setStringIf(preferences, prefs, 'language', 'app_language');
+    await _setStringIf(preferences, prefs, 'theme', 'app_theme');
+    await _setStringIf(preferences, prefs, 'themeMode', 'app_theme_mode');
+    await _setStringIf(preferences, prefs, 'dateFormat', 'date_format');
+    await _setStringIf(preferences, prefs, 'currencySymbol', 'currency_symbol');
+    await _setStringIf(
+        preferences, prefs, 'currencyPosition', 'currency_position');
+    await _setBoolIf(preferences, prefs, 'requirePassword', 'require_password');
+    await _writeAppPassword(preferences['password']);
+    await prefs.remove('app_password');
+    await _setBoolIf(
+        preferences, prefs, 'autoBackupEnabled', 'auto_backup_enabled');
+    await _setStringIf(
+        preferences, prefs, 'backupFrequency', 'backup_frequency');
+    await _setBoolIf(preferences, prefs, 'lowStockAlert', 'low_stock_alert');
+    await _setBoolIf(
+        preferences, prefs, 'dayCloseReminder', 'day_close_reminder');
+    await _setBoolIf(preferences, prefs, 'soundEnabled', 'soundEnabled');
+    await _setBoolIf(preferences, prefs, 'printOnSale', 'printOnSale');
+
     // Receipt Options
-    if (preferences.containsKey('showLogo')) {
-      await prefs.setBool('receipt_show_logo', preferences['showLogo']);
-    }
-    if (preferences.containsKey('showAddress')) {
-      await prefs.setBool('receipt_show_address', preferences['showAddress']);
-    }
-    if (preferences.containsKey('showPhone')) {
-      await prefs.setBool('receipt_show_phone', preferences['showPhone']);
-    }
-    if (preferences.containsKey('showDateTime')) {
-      await prefs.setBool('receipt_show_datetime', preferences['showDateTime']);
-    }
-    if (preferences.containsKey('showCustomer')) {
-      await prefs.setBool('receipt_show_customer', preferences['showCustomer']);
-    }
-    if (preferences.containsKey('showPayment')) {
-      await prefs.setBool('receipt_show_payment', preferences['showPayment']);
-    }
-    if (preferences.containsKey('receiptFontSize')) {
-      await prefs.setString('receipt_font_size', preferences['receiptFontSize']);
-    }
-    if (preferences.containsKey('paperWidth')) {
-      await prefs.setString('receipt_paper_width', preferences['paperWidth']);
-    }
-    if (preferences.containsKey('printerType')) {
-      await prefs.setString('receipt_printer_type', preferences['printerType']);
-    }
+    await _setBoolIf(preferences, prefs, 'showLogo', 'receipt_show_logo');
+    await _setBoolIf(preferences, prefs, 'showAddress', 'receipt_show_address');
+    await _setBoolIf(preferences, prefs, 'showPhone', 'receipt_show_phone');
+    await _setBoolIf(
+        preferences, prefs, 'showDateTime', 'receipt_show_datetime');
+    await _setBoolIf(
+        preferences, prefs, 'showCustomer', 'receipt_show_customer');
+    await _setBoolIf(preferences, prefs, 'showPayment', 'receipt_show_payment');
+    await _setStringIf(
+        preferences, prefs, 'receiptFontSize', 'receipt_font_size');
+    await _setStringIf(preferences, prefs, 'paperWidth', 'receipt_paper_width');
+    await _setStringIf(
+        preferences, prefs, 'printerType', 'receipt_printer_type');
 
     AppLogger.info('App preferences updated', tag: 'SettingsRepo');
+  }
+
+  Future<void> _setStringIf(
+    Map<String, dynamic> preferences,
+    SharedPreferences prefs,
+    String sourceKey,
+    String storageKey,
+  ) async {
+    if (!preferences.containsKey(sourceKey)) return;
+    final value = preferences[sourceKey];
+    if (value is String) {
+      await prefs.setString(storageKey, value);
+    }
+  }
+
+  Future<void> _setBoolIf(
+    Map<String, dynamic> preferences,
+    SharedPreferences prefs,
+    String sourceKey,
+    String storageKey,
+  ) async {
+    if (!preferences.containsKey(sourceKey)) return;
+    final value = preferences[sourceKey];
+    if (value is bool) {
+      await prefs.setBool(storageKey, value);
+    }
+  }
+
+  Future<String> _readAppPassword() async {
+    try {
+      return await _secureStorage.read(key: 'app_password') ?? '';
+    } catch (e) {
+      AppLogger.error('Error reading secure app password: $e',
+          tag: 'SettingsRepo');
+      return '';
+    }
+  }
+
+  Future<void> _writeAppPassword(dynamic value) async {
+    if (value is! String) return;
+
+    try {
+      await _secureStorage.write(key: 'app_password', value: value);
+    } catch (e) {
+      AppLogger.error('Error writing secure app password: $e',
+          tag: 'SettingsRepo');
+    }
   }
 }

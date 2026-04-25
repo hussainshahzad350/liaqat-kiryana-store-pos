@@ -34,11 +34,15 @@ class SettingSection extends StatelessWidget {
                   Icon(icon, color: colorScheme.primary, size: 24),
                   const SizedBox(width: AppTokens.spacingSmall),
                 ],
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
+                Flexible(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
                   ),
                 ),
               ],

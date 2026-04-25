@@ -29,32 +29,44 @@ class ReceiptPage extends StatelessWidget {
                     OptionSwitch(
                       title: loc.showLogo,
                       value: prefs['showLogo'] ?? true,
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'showLogo': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'showLogo': v}),
                     ),
                     OptionSwitch(
                       title: loc.showShopAddress,
                       value: prefs['showAddress'] ?? true,
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'showAddress': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'showAddress': v}),
                     ),
                     OptionSwitch(
                       title: loc.showPhone,
                       value: prefs['showPhone'] ?? true,
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'showPhone': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'showPhone': v}),
                     ),
                     OptionSwitch(
                       title: loc.showDateTime,
                       value: prefs['showDateTime'] ?? true,
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'showDateTime': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'showDateTime': v}),
                     ),
                     OptionSwitch(
                       title: loc.showCustomerDetails,
                       value: prefs['showCustomer'] ?? true,
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'showCustomer': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'showCustomer': v}),
                     ),
                     OptionSwitch(
                       title: loc.showPaymentDetails,
                       value: prefs['showPayment'] ?? true,
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'showPayment': v}),
+                      onChanged: (v) => context
+                          .read<SettingsCubit>()
+                          .updatePreferences({'showPayment': v}),
                     ),
                   ],
                 ),
@@ -71,11 +83,19 @@ class ReceiptPage extends StatelessWidget {
                       value: prefs['receiptFontSize'] ?? 'medium',
                       isExpanded: true,
                       items: [
-                        DropdownMenuItem(value: 'small', child: Text(loc.small)),
-                        DropdownMenuItem(value: 'medium', child: Text(loc.medium)),
-                        DropdownMenuItem(value: 'large', child: Text(loc.large)),
+                        DropdownMenuItem(
+                            value: 'small', child: Text(loc.small)),
+                        DropdownMenuItem(
+                            value: 'medium', child: Text(loc.medium)),
+                        DropdownMenuItem(
+                            value: 'large', child: Text(loc.large)),
                       ],
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'receiptFontSize': v}),
+                      onChanged: (v) {
+                        if (v == null) return;
+                        context
+                            .read<SettingsCubit>()
+                            .updatePreferences({'receiptFontSize': v});
+                      },
                     ),
                     const SizedBox(height: AppTokens.spacingMedium),
                     Text(loc.paperWidth, style: const TextStyle(fontSize: 14)),
@@ -83,30 +103,48 @@ class ReceiptPage extends StatelessWidget {
                       value: prefs['paperWidth'] ?? '80mm',
                       isExpanded: true,
                       items: [
-                        DropdownMenuItem(value: '58mm', child: Text(loc.paper58)),
-                        DropdownMenuItem(value: '80mm', child: Text(loc.paper80)),
+                        DropdownMenuItem(
+                            value: '58mm', child: Text(loc.paper58)),
+                        DropdownMenuItem(
+                            value: '80mm', child: Text(loc.paper80)),
                         DropdownMenuItem(value: 'A4', child: Text(loc.paperA4)),
                       ],
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'paperWidth': v}),
+                      onChanged: (v) {
+                        if (v == null) return;
+                        context
+                            .read<SettingsCubit>()
+                            .updatePreferences({'paperWidth': v});
+                      },
                     ),
                     const SizedBox(height: AppTokens.spacingMedium),
-                    Text(loc.selectPrinter, style: const TextStyle(fontSize: 14)),
+                    Text(loc.selectPrinter,
+                        style: const TextStyle(fontSize: 14)),
                     DropdownButton<String>(
                       value: prefs['printerType'] ?? 'usb',
                       isExpanded: true,
                       items: [
-                        DropdownMenuItem(value: 'default', child: Text(loc.printerDefault)),
-                        DropdownMenuItem(value: 'usb', child: Text(loc.printerUsb)),
-                        DropdownMenuItem(value: 'network', child: Text(loc.printerNetwork)),
-                        DropdownMenuItem(value: 'pdf', child: Text(loc.printerPdf)),
+                        DropdownMenuItem(
+                            value: 'default', child: Text(loc.printerDefault)),
+                        DropdownMenuItem(
+                            value: 'usb', child: Text(loc.printerUsb)),
+                        DropdownMenuItem(
+                            value: 'network', child: Text(loc.printerNetwork)),
+                        DropdownMenuItem(
+                            value: 'pdf', child: Text(loc.printerPdf)),
                       ],
-                      onChanged: (v) => context.read<SettingsCubit>().updatePreferences({'printerType': v}),
+                      onChanged: (v) {
+                        if (v == null) return;
+                        context
+                            .read<SettingsCubit>()
+                            .updatePreferences({'printerType': v});
+                      },
                     ),
                     const SizedBox(height: AppTokens.spacingLarge),
                     SizedBox(
                       width: double.infinity,
+                      // TODO(#settings-print-test): Implement print test receipt flow.
                       child: ElevatedButton.icon(
-                        onPressed: () {},
+                        onPressed: null,
                         icon: const Icon(Icons.print),
                         label: Text(loc.printTestReceipt),
                       ),

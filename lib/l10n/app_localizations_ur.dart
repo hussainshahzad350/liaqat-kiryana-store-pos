@@ -488,6 +488,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get importFromUsb => 'USB سے امپورٹ کریں';
 
   @override
+  String get functionalityComingSoon => 'یہ سہولت جلد دستیاب ہوگی';
+
+  @override
   String get recentBackups => 'حالیہ بیک اپ';
 
   @override
@@ -543,6 +546,33 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get appLanguage => 'ایپ کی زبان';
+
+  @override
+  String get theme_title => 'تھیم';
+
+  @override
+  String get theme_color => 'تھیم کا رنگ';
+
+  @override
+  String get theme_color_green => 'سبز';
+
+  @override
+  String get theme_color_blue => 'نیلا';
+
+  @override
+  String get theme_color_orange => 'نارنجی';
+
+  @override
+  String get theme_mode => 'تھیم موڈ';
+
+  @override
+  String get theme_mode_light => 'روشن';
+
+  @override
+  String get theme_mode_dark => 'تاریک';
+
+  @override
+  String get theme_mode_system => 'سسٹم';
 
   @override
   String get dateFormat => 'تاریخ کا فارمیٹ';
@@ -609,6 +639,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get developedBy => 'تیار کردہ از';
+
+  @override
+  String get developedByCompanyName => 'Smart Khata Technologies';
 
   @override
   String get systemInfo => 'سسٹم کی معلومات';
@@ -1566,6 +1599,12 @@ class AppLocalizationsUr extends AppLocalizations {
   String get preferencesSaved => 'ترجیحات کامیابی سے محفوظ ہو گئیں';
 
   @override
+  String get databaseOptimized => 'ڈیٹا بیس بہتر کر دیا گیا';
+
+  @override
+  String get databaseOptimizationFailed => 'ڈیٹا بیس بہتر بنانے میں ناکامی';
+
+  @override
   String get checkingForUpdates => 'اپ ڈیٹس کے لیے چیک کر رہا ہے...';
 
   @override
@@ -1682,13 +1721,13 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get unitArchiveNote =>
-      'موجودہ مصنوعات کا ڈیٹا محفوظ رکھنے کے لیے اسے حذف کی بجاے ا۹ائیو کیا جائے گا۔';
+      'موجودہ مصنوعات کا ڈیٹا محفوظ رکھنے کے لیے اسے حذف کی بجاے آرکائیو کیا جائے گا۔';
 
   @override
   String get actionCannotBeUndone => 'یہ عمل واپس نہیں ہو سکتا۔';
 
   @override
-  String get archive => 'ا۹ائیو کریں';
+  String get archive => 'آرکائیو کریں';
 
   @override
   String get categoryLength => 'لمبائی';
