@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../core/routes/app_routes.dart';
 import '../core/cubits/sidebar_cubit.dart';
 import '../core/res/app_tokens.dart';
+import 'app_shell.dart';
 
 class AppNavigationSidebar extends StatelessWidget {
   final String currentRoute;
@@ -151,7 +152,11 @@ class AppNavigationSidebar extends StatelessWidget {
                     route: AppRoutes.logout,
                     color: colorScheme.error,
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.login);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.logout,
+                        (_) => false,
+                      );
                     },
                   ),
                 ],
@@ -255,7 +260,7 @@ class AppNavigationSidebar extends StatelessWidget {
           onTap: onTap ??
               () {
                 if (!isActive) {
-                  Navigator.pushReplacementNamed(context, route);
+                  AppShell.navigateTo(context, route);
                 }
               },
           borderRadius: BorderRadius.circular(AppTokens.radius8),

@@ -12,6 +12,7 @@ import '../../core/routes/app_routes.dart';
 import '../../core/res/app_tokens.dart';
 import '../../domain/entities/money.dart';
 import '../../models/invoice_model.dart';
+import '../../widgets/app_shell.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -23,6 +24,7 @@ class HomeScreen extends StatefulWidget {
     this.invoiceRepository,
     this.customersRepository,
     this.itemsRepository,
+    this.refreshSignal,
   });
 
   final Future<int> Function()? todaySalesLoader;
@@ -33,6 +35,12 @@ class HomeScreen extends StatefulWidget {
   final InvoiceRepository? invoiceRepository;
   final CustomersRepository? customersRepository;
   final ItemsRepository? itemsRepository;
+
+  /// Optional [Listenable] that signals the dashboard to reload its data.
+  /// [AppShell] increments this notifier each time the Home tab becomes active,
+  /// ensuring the dashboard is always fresh after navigating away and back
+  /// (e.g. after completing a sale on the Sales screen).
+  final Listenable? refreshSignal;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -60,16 +68,23 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _invoiceRepository = widget.invoiceRepository ?? context.read<InvoiceRepository>();
-    _customersRepository = widget.customersRepository ?? context.read<CustomersRepository>();
-    _itemsRepository = widget.itemsRepository ?? context.read<ItemsRepository>();
+    _invoiceRepository =
+        widget.invoiceRepository ?? context.read<InvoiceRepository>();
+    _customersRepository =
+        widget.customersRepository ?? context.read<CustomersRepository>();
+    _itemsRepository =
+        widget.itemsRepository ?? context.read<ItemsRepository>();
 
     dataTimer = Timer.periodic(const Duration(minutes: 5), (_) => _loadData());
+    widget.refreshSignal?.addListener(_onRefreshSignal);
     _loadData();
   }
 
+  void _onRefreshSignal() => _loadData();
+
   @override
   void dispose() {
+    widget.refreshSignal?.removeListener(_onRefreshSignal);
     _leftPanelScroller.dispose();
     _activitiesScroller.dispose();
     dataTimer?.cancel();
@@ -156,6 +171,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return total;
   }
 
+  void _navigateTo(String route) {
+    AppShell.navigateTo(context, route);
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
@@ -174,8 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           _NewSaleIntent: CallbackAction<_NewSaleIntent>(
             onInvoke: (intent) {
-              Navigator.pushNamed(context, AppRoutes.sales)
-                  .then((_) => _loadData());
+              _navigateTo(AppRoutes.sales);
               return null;
             },
           ),
@@ -422,8 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // 1. Primary Action: New Sale Button
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.sales)
-                    .then((_) => _loadData());
+                _navigateTo(AppRoutes.sales);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.surface,
@@ -471,7 +488,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: localizations.reports,
                 color: colorScheme.primary,
                 onPressed: () {
-                  Navigator.pushNamed(context, AppRoutes.reports);
+                  _navigateTo(AppRoutes.reports);
                 },
                 colorScheme: colorScheme,
               ),
@@ -487,7 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: localizations.stockManagement,
                 color: colorScheme.primary,
                 onPressed: () {
-                  Navigator.pushNamed(context, AppRoutes.stock);
+                  _navigateTo(AppRoutes.stock);
                 },
                 colorScheme: colorScheme,
               ),
@@ -503,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: localizations.cashLedger,
                 color: colorScheme.primary,
                 onPressed: () {
-                  Navigator.pushNamed(context, AppRoutes.cashLedger);
+                  _navigateTo(AppRoutes.cashLedger);
                 },
                 colorScheme: colorScheme,
               ),
@@ -638,8 +655,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: colorScheme.primary,
                       trend: '+12%',
                       trendUp: true,
-                      onTap: () =>
-                          Navigator.pushNamed(context, AppRoutes.reports),
+                      onTap: () => _navigateTo(AppRoutes.reports),
                       colorScheme: colorScheme,
                       localizations: localizations,
                     ),
@@ -654,8 +670,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: colorScheme.secondary,
                       subtitle:
                           '${todayCustomers.length} ${localizations.customers}',
-                      onTap: () =>
-                          Navigator.pushNamed(context, AppRoutes.customers),
+                      onTap: () => _navigateTo(AppRoutes.customers),
                       colorScheme: colorScheme,
                       localizations: localizations,
                     ),
@@ -673,8 +688,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: colorScheme.error,
                       subtitle: localizations.itemsNeedRestock,
                       isAlert: lowStockItems.length > 5,
-                      onTap: () =>
-                          Navigator.pushNamed(context, AppRoutes.stock),
+                      onTap: () => _navigateTo(AppRoutes.stock),
                       colorScheme: colorScheme,
                       localizations: localizations,
                     ),
@@ -687,8 +701,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.people,
                       color: colorScheme.tertiary,
                       subtitle: localizations.activeToday,
-                      onTap: () =>
-                          Navigator.pushNamed(context, AppRoutes.customers),
+                      onTap: () => _navigateTo(AppRoutes.customers),
                       colorScheme: colorScheme,
                       localizations: localizations,
                     ),
@@ -713,7 +726,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: colorScheme.primary,
                   trend: '+12%',
                   trendUp: true,
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.reports),
+                  onTap: () => _navigateTo(AppRoutes.reports),
                   colorScheme: colorScheme,
                   localizations: localizations,
                 ),
@@ -727,8 +740,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: colorScheme.secondary,
                   subtitle:
                       '${todayCustomers.length} ${localizations.customers}',
-                  onTap: () =>
-                      Navigator.pushNamed(context, AppRoutes.customers),
+                  onTap: () => _navigateTo(AppRoutes.customers),
                   colorScheme: colorScheme,
                   localizations: localizations,
                 ),
@@ -742,7 +754,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: colorScheme.error,
                   subtitle: localizations.itemsNeedRestock,
                   isAlert: lowStockItems.length > 5,
-                  onTap: () => Navigator.pushNamed(context, AppRoutes.stock),
+                  onTap: () => _navigateTo(AppRoutes.stock),
                   colorScheme: colorScheme,
                   localizations: localizations,
                 ),
@@ -755,8 +767,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.people,
                   color: colorScheme.tertiary,
                   subtitle: localizations.activeToday,
-                  onTap: () =>
-                      Navigator.pushNamed(context, AppRoutes.customers),
+                  onTap: () => _navigateTo(AppRoutes.customers),
                   colorScheme: colorScheme,
                   localizations: localizations,
                 ),

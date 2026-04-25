@@ -489,6 +489,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importFromUsb => 'Import from USB';
 
   @override
+  String get functionalityComingSoon => 'Functionality coming soon';
+
+  @override
   String get recentBackups => 'Recent Backups';
 
   @override
@@ -544,6 +547,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appLanguage => 'App Language';
+
+  @override
+  String get themeTitle => 'Theme';
+
+  @override
+  String get themeColor => 'Theme Color';
+
+  @override
+  String get themeColorGreen => 'Green';
+
+  @override
+  String get themeColorBlue => 'Blue';
+
+  @override
+  String get themeColorOrange => 'Orange';
+
+  @override
+  String get themeMode => 'Theme Mode';
+
+  @override
+  String get themeModeLight => 'Light';
+
+  @override
+  String get themeModeDark => 'Dark';
+
+  @override
+  String get themeModeSystem => 'System';
 
   @override
   String get dateFormat => 'Date Format';
@@ -612,6 +642,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get developedBy => 'Developed by';
 
   @override
+  String get developedByCompanyName => 'Smart Khata Technologies';
+
+  @override
   String get systemInfo => 'System Information';
 
   @override
@@ -649,6 +682,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phone => 'Phone';
+
+  @override
+  String get unableToOpenLink => 'Unable to open link.';
 
   @override
   String get viewOnlineGuide => 'View Online Guide';
@@ -1569,6 +1605,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preferencesSaved => 'Preferences saved successfully';
 
   @override
+  String get databaseOptimized => 'Database optimized';
+
+  @override
+  String get databaseOptimizationFailed => 'Optimization failed';
+
+  @override
   String get checkingForUpdates => 'Checking for updates...';
 
   @override
@@ -1579,11 +1621,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveChangesSuccess => 'Changes saved successfully';
-
-  @override
-  String fieldRequired(String field) {
-    return '$field is required';
-  }
 
   @override
   String get noDataAvailable => 'No Data Available';
@@ -2062,6 +2099,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unknownError => 'An unknown error occurred';
 
   @override
+  String fieldRequired(String field) {
+    return '$field is required';
+  }
+
+  @override
   String get invalidPhone => 'Invalid phone number';
 
   @override
@@ -2253,4 +2295,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paymentFailed =>
       'Payment processing failed. Please try again or contact support.';
+
+  @override
+  String get shopProfileSubtitle => 'Store Name, Address, Contact, and Logo';
+
+  @override
+  String get backupSubtitle => 'Database Backups, Restore, and Repair tools';
+
+  @override
+  String get receiptSubtitle => 'Printer Type, Font Size, and Template Options';
+
+  @override
+  String get preferencesSubtitle =>
+      'Language, Theme, Security, and Notifications';
+
+  @override
+  String get aboutSubtitle => 'App Version, System Info, and Developer Support';
 }

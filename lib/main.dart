@@ -5,18 +5,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:window_manager/window_manager.dart';
-import 'bloc/purchase/purchase_bloc.dart';
-import 'bloc/purchase/purchase_event.dart';
-import 'bloc/sales/sales_bloc.dart';
-import 'bloc/stock/stock_activity/stock_activity_bloc.dart';
-import 'bloc/stock/stock_activity/stock_activity_event.dart';
-import 'bloc/stock/stock_filter/stock_filter_bloc.dart';
-import 'bloc/stock/stock_filter/stock_filter_event.dart';
-import 'bloc/stock/stock_overview/stock_overview_bloc.dart';
-import 'bloc/stock/stock_overview/stock_overview_event.dart';
-import 'bloc/stock/stock_ui/stock_ui_cubit.dart';
-import 'bloc/units/units_bloc.dart';
-import 'bloc/units/units_event.dart';
 import 'core/cubits/sidebar_cubit.dart';
 import 'core/repositories/categories_repository.dart';
 import 'core/repositories/customers_repository.dart';
@@ -32,21 +20,8 @@ import 'core/repositories/units_repository.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/theme_provider.dart';
 import 'l10n/app_localizations.dart';
-import 'screens/about/about_screen.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/cash_ledger/cash_ledger_screen.dart';
-import 'screens/categories/categories_screen.dart';
-import 'screens/customers/customers_screen.dart';
-import 'screens/home/home_screen.dart';
-import 'screens/items/items_screen.dart';
-import 'screens/purchase/purchase_screen.dart';
-import 'screens/reports/reports_screen.dart';
-import 'screens/sales/sales_screen.dart';
-import 'screens/settings/settings_screen.dart';
-import 'screens/stock/stock_screen.dart';
-import 'screens/suppliers/suppliers_screen.dart';
-import 'screens/units/units_screen.dart';
-import 'widgets/main_layout.dart';
+import 'widgets/app_shell.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,7 +49,7 @@ void main() async {
 
   final SettingsRepository settingsRepository = SettingsRepository();
   final initialPrefs = await settingsRepository.getAppPreferences();
-  final String languageCode = initialPrefs['languageCode'] ?? 'en';
+  final String languageCode = initialPrefs['language'] ?? 'en';
 
   runApp(
     MultiProvider(
@@ -139,7 +114,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
     }
 
     final repo = SettingsRepository();
-    await repo.updateAppPreferences({'languageCode': locale.languageCode});
+    await repo.updateAppPreferences({'language': locale.languageCode});
   }
 
   @override
@@ -166,90 +141,38 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
           initialRoute: '/',
           routes: {
             '/': (context) => const LoginScreen(),
-            AppRoutes.home: (context) => const MainLayout(
-                currentRoute: AppRoutes.home, child: HomeScreen()),
-            AppRoutes.sales: (context) => MainLayout(
-                  currentRoute: AppRoutes.sales,
-                  child: BlocProvider(
-                    create: (context) => SalesBloc(
-                      invoiceRepository: context.read<InvoiceRepository>(),
-                      itemsRepository: context.read<ItemsRepository>(),
-                      customersRepository: context.read<CustomersRepository>(),
-                      settingsRepository: context.read<SettingsRepository>(),
-                      receiptRepository: context.read<ReceiptRepository>(),
-                    ),
-                    child: const SalesScreen(),
-                  ),
+            // Single post-login shell route — feature navigation happens
+            // inside AppShell so sidebar/header/blocs stay alive.
+            AppRoutes.home: (context) => const AppShell(
+                  initialRoute: AppRoutes.home,
                 ),
-            AppRoutes.stock: (context) => MainLayout(
-                  currentRoute: AppRoutes.stock,
-                  child: MultiBlocProvider(
-                    providers: [
-                      BlocProvider(
-                        create: (context) => StockUiCubit(),
-                      ),
-                      BlocProvider(
-                        create: (context) =>
-                            StockOverviewBloc(context.read<StockRepository>())
-                              ..add(const LoadStockOverview()),
-                      ),
-                      BlocProvider(
-                        create: (context) => StockFilterBloc(
-                          context.read<SuppliersRepository>(),
-                          context.read<CategoriesRepository>(),
-                        )..add(LoadFilters()),
-                      ),
-                      BlocProvider(
-                        create: (context) => StockActivityBloc(
-                          context.read<StockActivityRepository>(),
-                          context.read<ItemsRepository>(),
-                          context.read<PurchaseRepository>(),
-                          context.read<InvoiceRepository>(),
-                        )..add(const LoadStockActivities()),
-                      ),
-                    ],
-                    child: const StockScreen(),
-                  ),
-                ),
-            AppRoutes.purchase: (context) => MainLayout(
-                  currentRoute: AppRoutes.purchase,
-                  child: BlocProvider(
-                    create: (context) => PurchaseBloc(
-                      purchaseRepository: context.read<PurchaseRepository>(),
-                      suppliersRepository: context.read<SuppliersRepository>(),
-                      itemsRepository: context.read<ItemsRepository>(),
-                    )..add(InitializePurchase()),
-                    child: const PurchaseScreen(),
-                  ),
-                ),
-            AppRoutes.items: (context) => const MainLayout(
-                currentRoute: AppRoutes.items, child: ItemsScreen()),
-            AppRoutes.customers: (context) => const MainLayout(
-                currentRoute: AppRoutes.customers, child: CustomersScreen()),
-            AppRoutes.suppliers: (context) => const MainLayout(
-                currentRoute: AppRoutes.suppliers, child: SuppliersScreen()),
-            AppRoutes.categories: (context) => const MainLayout(
-                currentRoute: AppRoutes.categories, child: CategoriesScreen()),
-            AppRoutes.units: (context) => MainLayout(
-                  currentRoute: AppRoutes.units,
-                  child: BlocProvider(
-                    create: (context) =>
-                        UnitsBloc(context.read<UnitsRepository>())
-                          ..add(LoadUnits()),
-                    child: const UnitsScreen(),
-                  ),
-                ),
-            AppRoutes.reports: (context) => const MainLayout(
-                currentRoute: AppRoutes.reports, child: ReportsScreen()),
-            AppRoutes.cashLedger: (context) => const MainLayout(
-                currentRoute: AppRoutes.cashLedger, child: CashLedgerScreen()),
-            AppRoutes.settings: (context) => const MainLayout(
-                currentRoute: AppRoutes.settings, child: SettingsScreen()),
-            AppRoutes.about: (context) => const MainLayout(
-                currentRoute: AppRoutes.about, child: AboutScreen()),
+            AppRoutes.logout: (context) => const LogoutScreen(),
           },
         );
       },
     );
+  }
+}
+
+class LogoutScreen extends StatefulWidget {
+  const LogoutScreen({super.key});
+
+  @override
+  State<LogoutScreen> createState() => _LogoutScreenState();
+}
+
+class _LogoutScreenState extends State<LogoutScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
   }
 }

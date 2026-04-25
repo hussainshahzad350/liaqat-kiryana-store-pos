@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/res/app_tokens.dart';
+import '../../core/routes/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,8 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Card(
             elevation: AppTokens.cardElevation,
             shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(AppTokens.cardBorderRadius),
+              borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
             ),
             child: Padding(
               padding: const EdgeInsets.all(AppTokens.cardPadding),
@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: AppTokens.buttonHeight,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/home');
+                        Navigator.pushReplacementNamed(context, AppRoutes.home);
                       },
                       child: Text(
                         localizations.login,

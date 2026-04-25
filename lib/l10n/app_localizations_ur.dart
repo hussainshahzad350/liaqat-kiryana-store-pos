@@ -488,6 +488,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get importFromUsb => 'USB سے امپورٹ کریں';
 
   @override
+  String get functionalityComingSoon => 'یہ سہولت جلد دستیاب ہوگی';
+
+  @override
   String get recentBackups => 'حالیہ بیک اپ';
 
   @override
@@ -543,6 +546,33 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get appLanguage => 'ایپ کی زبان';
+
+  @override
+  String get themeTitle => 'تھیم';
+
+  @override
+  String get themeColor => 'تھیم کا رنگ';
+
+  @override
+  String get themeColorGreen => 'سبز';
+
+  @override
+  String get themeColorBlue => 'نیلا';
+
+  @override
+  String get themeColorOrange => 'نارنجی';
+
+  @override
+  String get themeMode => 'تھیم موڈ';
+
+  @override
+  String get themeModeLight => 'روشن';
+
+  @override
+  String get themeModeDark => 'تاریک';
+
+  @override
+  String get themeModeSystem => 'سسٹم';
 
   @override
   String get dateFormat => 'تاریخ کا فارمیٹ';
@@ -611,6 +641,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get developedBy => 'تیار کردہ از';
 
   @override
+  String get developedByCompanyName => 'Smart Khata Technologies';
+
+  @override
   String get systemInfo => 'سسٹم کی معلومات';
 
   @override
@@ -648,6 +681,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get phone => 'فون';
+
+  @override
+  String get unableToOpenLink => 'لنک نہیں کھولا جا سکا۔';
 
   @override
   String get viewOnlineGuide => 'آن لائن گائیڈ دیکھیں';
@@ -1566,6 +1602,12 @@ class AppLocalizationsUr extends AppLocalizations {
   String get preferencesSaved => 'ترجیحات کامیابی سے محفوظ ہو گئیں';
 
   @override
+  String get databaseOptimized => 'ڈیٹا بیس بہتر کر دیا گیا';
+
+  @override
+  String get databaseOptimizationFailed => 'ڈیٹا بیس بہتر بنانے میں ناکامی';
+
+  @override
   String get checkingForUpdates => 'اپ ڈیٹس کے لیے چیک کر رہا ہے...';
 
   @override
@@ -1576,11 +1618,6 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get saveChangesSuccess => 'تبدیلی کامیابی سے محفوظ ہو گئی ہے';
-
-  @override
-  String fieldRequired(String field) {
-    return '$field لازمی ہے';
-  }
 
   @override
   String get noDataAvailable => 'کوئی ڈیٹا موجود نہیں';
@@ -1682,13 +1719,13 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get unitArchiveNote =>
-      'موجودہ مصنوعات کا ڈیٹا محفوظ رکھنے کے لیے اسے حذف کی بجاے ا۹ائیو کیا جائے گا۔';
+      'موجودہ مصنوعات کا ڈیٹا محفوظ رکھنے کے لیے اسے حذف کی بجاے آرکائیو کیا جائے گا۔';
 
   @override
   String get actionCannotBeUndone => 'یہ عمل واپس نہیں ہو سکتا۔';
 
   @override
-  String get archive => 'ا۹ائیو کریں';
+  String get archive => 'آرکائیو کریں';
 
   @override
   String get categoryLength => 'لمبائی';
@@ -2059,6 +2096,11 @@ class AppLocalizationsUr extends AppLocalizations {
   String get unknownError => 'ایک نامعلوم خرابی پیش آئی';
 
   @override
+  String fieldRequired(String field) {
+    return '$field لازمی ہے';
+  }
+
+  @override
   String get invalidPhone => 'فون نمبر غلط ہے';
 
   @override
@@ -2250,4 +2292,20 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get paymentFailed =>
       'ادائیگی کی کارروائی ناکام ہوگئی۔ براہ کرم دوبارہ کوشش کریں یا معاونت سے رابطہ کریں۔';
+
+  @override
+  String get shopProfileSubtitle => 'دکان کا نام، پتہ، رابطہ اور لوگو';
+
+  @override
+  String get backupSubtitle => 'ڈیٹا بیس بیک اپ، ری اسٹور اور مرمتی ٹولز';
+
+  @override
+  String get receiptSubtitle =>
+      'پرنٹر کی قسم، فونٹ سائز اور ٹیمپلیٹ کے اختیارات';
+
+  @override
+  String get preferencesSubtitle => 'زبان، تھیم، سیکیورٹی اور نوٹیفیکیشنز';
+
+  @override
+  String get aboutSubtitle => 'ایپ ورژن، سسٹم کی معلومات اور ڈویلپر سپورٹ';
 }

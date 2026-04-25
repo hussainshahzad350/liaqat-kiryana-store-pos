@@ -1052,6 +1052,12 @@ abstract class AppLocalizations {
   /// **'Import from USB'**
   String get importFromUsb;
 
+  /// No description provided for @functionalityComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Functionality coming soon'**
+  String get functionalityComingSoon;
+
   /// No description provided for @recentBackups.
   ///
   /// In en, this message translates to:
@@ -1165,6 +1171,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App Language'**
   String get appLanguage;
+
+  /// No description provided for @themeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get themeTitle;
+
+  /// No description provided for @themeColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Color'**
+  String get themeColor;
+
+  /// No description provided for @themeColorGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get themeColorGreen;
+
+  /// No description provided for @themeColorBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get themeColorBlue;
+
+  /// No description provided for @themeColorOrange.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get themeColorOrange;
+
+  /// No description provided for @themeMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Mode'**
+  String get themeMode;
+
+  /// No description provided for @themeModeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeModeLight;
+
+  /// No description provided for @themeModeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeModeDark;
+
+  /// No description provided for @themeModeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeModeSystem;
 
   /// No description provided for @dateFormat.
   ///
@@ -1298,6 +1358,12 @@ abstract class AppLocalizations {
   /// **'Developed by'**
   String get developedBy;
 
+  /// No description provided for @developedByCompanyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Khata Technologies'**
+  String get developedByCompanyName;
+
   /// No description provided for @systemInfo.
   ///
   /// In en, this message translates to:
@@ -1375,6 +1441,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get phone;
+
+  /// No description provided for @unableToOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open link.'**
+  String get unableToOpenLink;
 
   /// No description provided for @viewOnlineGuide.
   ///
@@ -3152,6 +3224,18 @@ abstract class AppLocalizations {
   /// **'Preferences saved successfully'**
   String get preferencesSaved;
 
+  /// No description provided for @databaseOptimized.
+  ///
+  /// In en, this message translates to:
+  /// **'Database optimized'**
+  String get databaseOptimized;
+
+  /// No description provided for @databaseOptimizationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimization failed'**
+  String get databaseOptimizationFailed;
+
   /// No description provided for @checkingForUpdates.
   ///
   /// In en, this message translates to:
@@ -3175,12 +3259,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Changes saved successfully'**
   String get saveChangesSuccess;
-
-  /// No description provided for @fieldRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'{field} is required'**
-  String fieldRequired(String field);
 
   /// No description provided for @noDataAvailable.
   ///
@@ -4034,6 +4112,12 @@ abstract class AppLocalizations {
   /// **'An unknown error occurred'**
   String get unknownError;
 
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} is required'**
+  String fieldRequired(String field);
+
   /// No description provided for @invalidPhone.
   ///
   /// In en, this message translates to:
@@ -4387,6 +4471,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Payment processing failed. Please try again or contact support.'**
   String get paymentFailed;
+
+  /// No description provided for @shopProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Store Name, Address, Contact, and Logo'**
+  String get shopProfileSubtitle;
+
+  /// No description provided for @backupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Database Backups, Restore, and Repair tools'**
+  String get backupSubtitle;
+
+  /// No description provided for @receiptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer Type, Font Size, and Template Options'**
+  String get receiptSubtitle;
+
+  /// No description provided for @preferencesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Language, Theme, Security, and Notifications'**
+  String get preferencesSubtitle;
+
+  /// No description provided for @aboutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App Version, System Info, and Developer Support'**
+  String get aboutSubtitle;
 }
 
 class _AppLocalizationsDelegate
