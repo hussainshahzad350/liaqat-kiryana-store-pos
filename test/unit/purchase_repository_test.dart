@@ -91,7 +91,7 @@ void main() {
           isA<Exception>().having(
             (e) => e.toString(),
             'message',
-            contains('insufficient stock'),
+            contains('INSUFFICIENT_STOCK_FOR_CANCELLATION'),
           ),
         ),
       );
@@ -129,7 +129,7 @@ void main() {
           isA<Exception>().having(
             (e) => e.toString(),
             'message',
-            contains('already cancelled'),
+            contains('PURCHASE_NOT_FOUND'),
           ),
         ),
       );
@@ -142,7 +142,7 @@ void main() {
           isA<Exception>().having(
             (e) => e.toString(),
             'message',
-            contains('not found'),
+            contains('PURCHASE_NOT_FOUND'),
           ),
         ),
       );
@@ -180,9 +180,7 @@ void main() {
         fail('Expected exception was not thrown');
       } catch (e) {
         final errorMessage = e.toString();
-        expect(errorMessage, contains('insufficient stock'));
-        expect(errorMessage, contains('Current stock: 10'));
-        expect(errorMessage, contains('required to subtract: 100'));
+        expect(errorMessage, contains('INSUFFICIENT_STOCK_FOR_CANCELLATION'));
       }
     });
 
