@@ -24,7 +24,8 @@ void main() {
       expect(find.text('42'), findsOneWidget);
     });
 
-    testWidgets('renders without optional icon when icon is null', (tester) async {
+    testWidgets('renders without optional icon when icon is null',
+        (tester) async {
       await tester.pumpWidget(buildTestApp(
         const InfoItem(label: 'DB Size', value: '1.5 MB'),
       ));
@@ -241,10 +242,10 @@ void main() {
 
     testWidgets('can render complex child widget', (tester) async {
       await tester.pumpWidget(buildTestApp(
-        SettingSection(
+        const SettingSection(
           title: 'Complex',
           child: Column(
-            children: const [
+            children: [
               Text('item 1'),
               Text('item 2'),
             ],

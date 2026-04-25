@@ -21,7 +21,12 @@ void main() {
   group('loadAll', () {
     final profile = {'name_english': 'Test Store', 'name_urdu': 'ٹیسٹ'};
     final backups = [
-      {'name': 'backup.db', 'path': '/path/backup.db', 'size': 1024, 'modified': DateTime(2024)}
+      {
+        'name': 'backup.db',
+        'path': '/path/backup.db',
+        'size': 1024,
+        'modified': DateTime(2024)
+      }
     ];
     final prefs = {'language': 'en', 'theme': 'green'};
     final stats = {'products': 10, 'databaseSize': 1.5};
@@ -29,15 +34,19 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'emits loading then populated state on success',
       build: () {
-        when(() => repository.getShopProfile()).thenAnswer((_) async => profile);
-        when(() => repository.getBackupFiles()).thenAnswer((_) async => backups);
-        when(() => repository.getAppPreferences()).thenAnswer((_) async => prefs);
-        when(() => repository.getDatabaseStats()).thenAnswer((_) async => stats);
+        when(() => repository.getShopProfile())
+            .thenAnswer((_) async => profile);
+        when(() => repository.getBackupFiles())
+            .thenAnswer((_) async => backups);
+        when(() => repository.getAppPreferences())
+            .thenAnswer((_) async => prefs);
+        when(() => repository.getDatabaseStats())
+            .thenAnswer((_) async => stats);
         return buildCubit();
       },
       act: (cubit) => cubit.loadAll(),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         SettingsState(
           isLoading: false,
           shopProfile: profile,
@@ -65,13 +74,13 @@ void main() {
       },
       act: (cubit) => cubit.loadAll(),
       expect: () => [
-        const SettingsState(isLoading: true),
-        const SettingsState(
+        SettingsState(isLoading: true),
+        SettingsState(
           isLoading: false,
-          shopProfile: {},
-          backups: [],
-          preferences: {},
-          databaseStats: {},
+          shopProfile: const {},
+          backups: const [],
+          preferences: const {},
+          databaseStats: const {},
         ),
       ],
     );
@@ -85,10 +94,11 @@ void main() {
       },
       act: (cubit) => cubit.loadAll(),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', contains('network error')),
+            .having((s) => s.errorMessage, 'errorMessage',
+                contains('network error')),
       ],
     );
   });
@@ -112,19 +122,23 @@ void main() {
 
   group('updateShopProfile', () {
     final profileData = {'name_english': 'Updated Store'};
-    final updatedProfile = {'name_english': 'Updated Store', 'address': '123 Main'};
+    final updatedProfile = {
+      'name_english': 'Updated Store',
+      'address': '123 Main'
+    };
 
     blocTest<SettingsCubit, SettingsState>(
       'emits loading then success state with refreshed profile',
       build: () {
-        when(() => repository.updateShopProfile(any())).thenAnswer((_) async => 1);
+        when(() => repository.updateShopProfile(any()))
+            .thenAnswer((_) async => 1);
         when(() => repository.getShopProfile())
             .thenAnswer((_) async => updatedProfile);
         return buildCubit();
       },
       act: (cubit) => cubit.updateShopProfile(profileData),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         SettingsState(
           isLoading: false,
           shopProfile: updatedProfile,
@@ -146,7 +160,7 @@ void main() {
       },
       act: (cubit) => cubit.updateShopProfile(profileData),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
             .having((s) => s.errorMessage, 'errorMessage', contains('db error'))
@@ -172,7 +186,7 @@ void main() {
       },
       act: (cubit) => cubit.updatePreferences(prefData),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         SettingsState(
           isLoading: false,
           preferences: updatedPrefs,
@@ -194,10 +208,11 @@ void main() {
       },
       act: (cubit) => cubit.updatePreferences(prefData),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', contains('prefs error')),
+            .having(
+                (s) => s.errorMessage, 'errorMessage', contains('prefs error')),
       ],
     );
   });
@@ -206,7 +221,12 @@ void main() {
 
   group('createBackup', () {
     final backupList = [
-      {'name': 'backup_new.db', 'path': '/path/backup_new.db', 'size': 2048, 'modified': DateTime(2024)}
+      {
+        'name': 'backup_new.db',
+        'path': '/path/backup_new.db',
+        'size': 2048,
+        'modified': DateTime(2024)
+      }
     ];
 
     blocTest<SettingsCubit, SettingsState>(
@@ -220,7 +240,7 @@ void main() {
       },
       act: (cubit) => cubit.createBackup(),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         SettingsState(
           isLoading: false,
           backups: backupList,
@@ -238,10 +258,11 @@ void main() {
       },
       act: (cubit) => cubit.createBackup(),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', equals('Backup failed')),
+            .having(
+                (s) => s.errorMessage, 'errorMessage', equals('Backup failed')),
       ],
     );
 
@@ -254,10 +275,11 @@ void main() {
       },
       act: (cubit) => cubit.createBackup(),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', contains('disk full')),
+            .having(
+                (s) => s.errorMessage, 'errorMessage', contains('disk full')),
       ],
     );
   });
@@ -270,16 +292,17 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'emits loading then success state when delete succeeds',
       build: () {
-        when(() => repository.deleteBackup(any())).thenAnswer((_) async => true);
+        when(() => repository.deleteBackup(any()))
+            .thenAnswer((_) async => true);
         when(() => repository.getBackupFiles()).thenAnswer((_) async => []);
         return buildCubit();
       },
       act: (cubit) => cubit.deleteBackup(backupPath),
       expect: () => [
-        const SettingsState(isLoading: true),
-        const SettingsState(
+        SettingsState(isLoading: true),
+        SettingsState(
           isLoading: false,
-          backups: [],
+          backups: const [],
           successMessage: 'Backup deleted',
         ),
       ],
@@ -291,15 +314,17 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'emits error state when delete returns false',
       build: () {
-        when(() => repository.deleteBackup(any())).thenAnswer((_) async => false);
+        when(() => repository.deleteBackup(any()))
+            .thenAnswer((_) async => false);
         return buildCubit();
       },
       act: (cubit) => cubit.deleteBackup(backupPath),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', equals('Delete failed')),
+            .having(
+                (s) => s.errorMessage, 'errorMessage', equals('Delete failed')),
       ],
     );
 
@@ -312,10 +337,11 @@ void main() {
       },
       act: (cubit) => cubit.deleteBackup(backupPath),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', contains('permission denied')),
+            .having((s) => s.errorMessage, 'errorMessage',
+                contains('permission denied')),
       ],
     );
   });
@@ -328,12 +354,13 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'emits loading then success state when restore succeeds',
       build: () {
-        when(() => repository.restoreBackup(any())).thenAnswer((_) async => true);
+        when(() => repository.restoreBackup(any()))
+            .thenAnswer((_) async => true);
         return buildCubit();
       },
       act: (cubit) => cubit.restoreBackup(backupPath),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
             .having((s) => s.successMessage, 'successMessage',
@@ -347,15 +374,17 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'emits error state when restore returns false',
       build: () {
-        when(() => repository.restoreBackup(any())).thenAnswer((_) async => false);
+        when(() => repository.restoreBackup(any()))
+            .thenAnswer((_) async => false);
         return buildCubit();
       },
       act: (cubit) => cubit.restoreBackup(backupPath),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', equals('Restore failed')),
+            .having((s) => s.errorMessage, 'errorMessage',
+                equals('Restore failed')),
       ],
     );
 
@@ -368,10 +397,11 @@ void main() {
       },
       act: (cubit) => cubit.restoreBackup(backupPath),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', contains('file not found')),
+            .having((s) => s.errorMessage, 'errorMessage',
+                contains('file not found')),
       ],
     );
   });
@@ -391,7 +421,7 @@ void main() {
       },
       act: (cubit) => cubit.optimizeDatabase(),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         SettingsState(
           isLoading: false,
           databaseStats: updatedStats,
@@ -412,10 +442,11 @@ void main() {
       },
       act: (cubit) => cubit.optimizeDatabase(),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', equals('Optimization failed')),
+            .having((s) => s.errorMessage, 'errorMessage',
+                equals('Optimization failed')),
       ],
     );
 
@@ -428,10 +459,11 @@ void main() {
       },
       act: (cubit) => cubit.optimizeDatabase(),
       expect: () => [
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', contains('vacuum error')),
+            .having((s) => s.errorMessage, 'errorMessage',
+                contains('vacuum error')),
       ],
     );
   });
@@ -442,23 +474,23 @@ void main() {
     blocTest<SettingsCubit, SettingsState>(
       'emits state with both messages set to null',
       build: buildCubit,
-      seed: () => const SettingsState(
+      seed: () => SettingsState(
         errorMessage: 'some error',
         successMessage: 'some success',
       ),
       act: (cubit) => cubit.clearMessages(),
       expect: () => [
-        const SettingsState(errorMessage: null, successMessage: null),
+        SettingsState(errorMessage: null, successMessage: null),
       ],
     );
 
     blocTest<SettingsCubit, SettingsState>(
       'is idempotent when messages are already null',
       build: buildCubit,
-      seed: () => const SettingsState(),
+      seed: () => SettingsState(),
       act: (cubit) => cubit.clearMessages(),
       expect: () => [
-        const SettingsState(errorMessage: null, successMessage: null),
+        SettingsState(errorMessage: null, successMessage: null),
       ],
     );
   });

@@ -41,7 +41,7 @@ void main() {
   setUp(() {
     cubit = MockSettingsCubit();
     // Default state: dashboard, not loading
-    when(() => cubit.state).thenReturn(const SettingsState());
+    when(() => cubit.state).thenReturn(SettingsState());
   });
 
   // Set a consistent screen size for grid layout tests
@@ -55,7 +55,8 @@ void main() {
   // ── Dashboard view ────────────────────────────────────────────────────────
 
   group('SettingsView – dashboard', () {
-    testWidgets('shows Settings title in header when on dashboard', (tester) async {
+    testWidgets('shows Settings title in header when on dashboard',
+        (tester) async {
       setDesktopSize(tester);
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
       await tester.pumpAndSettle();
@@ -107,10 +108,11 @@ void main() {
   // ── Non-dashboard views ───────────────────────────────────────────────────
 
   group('SettingsView – non-dashboard category', () {
-    testWidgets('shows back button when category is not dashboard', (tester) async {
+    testWidgets('shows back button when category is not dashboard',
+        (tester) async {
       setDesktopSize(tester);
       when(() => cubit.state).thenReturn(
-        const SettingsState(selectedCategory: SettingsCategory.profile),
+        SettingsState(selectedCategory: SettingsCategory.profile),
       );
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
       await tester.pumpAndSettle();
@@ -118,10 +120,11 @@ void main() {
       expect(find.byIcon(Icons.arrow_back), findsOneWidget);
     });
 
-    testWidgets('calls selectCategory(dashboard) when back button tapped', (tester) async {
+    testWidgets('calls selectCategory(dashboard) when back button tapped',
+        (tester) async {
       setDesktopSize(tester);
       when(() => cubit.state).thenReturn(
-        const SettingsState(selectedCategory: SettingsCategory.backup),
+        SettingsState(selectedCategory: SettingsCategory.backup),
       );
       when(() => cubit.selectCategory(any())).thenReturn(null);
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
@@ -133,10 +136,11 @@ void main() {
       verify(() => cubit.selectCategory(SettingsCategory.dashboard)).called(1);
     });
 
-    testWidgets('does not show dashboard grid when category is profile', (tester) async {
+    testWidgets('does not show dashboard grid when category is profile',
+        (tester) async {
       setDesktopSize(tester);
       when(() => cubit.state).thenReturn(
-        const SettingsState(selectedCategory: SettingsCategory.profile),
+        SettingsState(selectedCategory: SettingsCategory.profile),
       );
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
       await tester.pumpAndSettle();
@@ -148,10 +152,11 @@ void main() {
   // ── LoadingOverlay ────────────────────────────────────────────────────────
 
   group('LoadingOverlay', () {
-    testWidgets('shows CircularProgressIndicator when isLoading is true', (tester) async {
+    testWidgets('shows CircularProgressIndicator when isLoading is true',
+        (tester) async {
       setDesktopSize(tester);
       when(() => cubit.state).thenReturn(
-        const SettingsState(isLoading: true),
+        SettingsState(isLoading: true),
       );
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
       await tester.pump(); // Don't settle — we want to see loading state
@@ -159,10 +164,11 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('hides CircularProgressIndicator when isLoading is false', (tester) async {
+    testWidgets('hides CircularProgressIndicator when isLoading is false',
+        (tester) async {
       setDesktopSize(tester);
       when(() => cubit.state).thenReturn(
-        const SettingsState(isLoading: false),
+        SettingsState(isLoading: false),
       );
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
       await tester.pumpAndSettle();
@@ -191,20 +197,21 @@ void main() {
   // ── Snackbar messages ─────────────────────────────────────────────────────
 
   group('SettingsView – error and success messages', () {
-    testWidgets('shows error snackbar when errorMessage is emitted', (tester) async {
+    testWidgets('shows error snackbar when errorMessage is emitted',
+        (tester) async {
       setDesktopSize(tester);
 
       // Start with no error
-      when(() => cubit.state).thenReturn(const SettingsState());
+      when(() => cubit.state).thenReturn(SettingsState());
       when(() => cubit.clearMessages()).thenReturn(null);
 
       // Emit state with error
       whenListen(
         cubit,
         Stream.fromIterable([
-          const SettingsState(errorMessage: 'Something went wrong'),
+          SettingsState(errorMessage: 'Something went wrong'),
         ]),
-        initialState: const SettingsState(),
+        initialState: SettingsState(),
       );
 
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
@@ -213,18 +220,19 @@ void main() {
       expect(find.text('Something went wrong'), findsOneWidget);
     });
 
-    testWidgets('shows success snackbar when successMessage is emitted', (tester) async {
+    testWidgets('shows success snackbar when successMessage is emitted',
+        (tester) async {
       setDesktopSize(tester);
 
-      when(() => cubit.state).thenReturn(const SettingsState());
+      when(() => cubit.state).thenReturn(SettingsState());
       when(() => cubit.clearMessages()).thenReturn(null);
 
       whenListen(
         cubit,
         Stream.fromIterable([
-          const SettingsState(successMessage: 'Profile updated successfully'),
+          SettingsState(successMessage: 'Profile updated successfully'),
         ]),
-        initialState: const SettingsState(),
+        initialState: SettingsState(),
       );
 
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
@@ -236,15 +244,15 @@ void main() {
     testWidgets('calls clearMessages after showing error', (tester) async {
       setDesktopSize(tester);
 
-      when(() => cubit.state).thenReturn(const SettingsState());
+      when(() => cubit.state).thenReturn(SettingsState());
       when(() => cubit.clearMessages()).thenReturn(null);
 
       whenListen(
         cubit,
         Stream.fromIterable([
-          const SettingsState(errorMessage: 'Test error'),
+          SettingsState(errorMessage: 'Test error'),
         ]),
-        initialState: const SettingsState(),
+        initialState: SettingsState(),
       );
 
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));

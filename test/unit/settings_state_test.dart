@@ -10,14 +10,16 @@ void main() {
     });
 
     test('contains all expected categories', () {
-      expect(SettingsCategory.values, containsAll([
-        SettingsCategory.dashboard,
-        SettingsCategory.profile,
-        SettingsCategory.backup,
-        SettingsCategory.receipt,
-        SettingsCategory.preferences,
-        SettingsCategory.about,
-      ]));
+      expect(
+          SettingsCategory.values,
+          containsAll([
+            SettingsCategory.dashboard,
+            SettingsCategory.profile,
+            SettingsCategory.backup,
+            SettingsCategory.receipt,
+            SettingsCategory.preferences,
+            SettingsCategory.about,
+          ]));
     });
   });
 
@@ -25,7 +27,7 @@ void main() {
 
   group('SettingsState defaults', () {
     test('creates state with correct default values', () {
-      const state = SettingsState();
+      final state = SettingsState();
       expect(state.selectedCategory, SettingsCategory.dashboard);
       expect(state.isLoading, false);
       expect(state.errorMessage, isNull);
@@ -40,19 +42,20 @@ void main() {
   // ── SettingsState copyWith ───────────────────────────────────────────────
 
   group('SettingsState.copyWith', () {
-    const original = SettingsState(
+    final original = SettingsState(
       selectedCategory: SettingsCategory.dashboard,
       isLoading: false,
       errorMessage: null,
       successMessage: null,
-      preferences: {'theme': 'green'},
-      shopProfile: {'name_english': 'Store'},
-      backups: [],
-      databaseStats: {'products': 5},
+      preferences: const {'theme': 'green'},
+      shopProfile: const {'name_english': 'Store'},
+      backups: const [],
+      databaseStats: const {'products': 5},
     );
 
     test('copyWith updates selectedCategory only', () {
-      final updated = original.copyWith(selectedCategory: SettingsCategory.profile);
+      final updated =
+          original.copyWith(selectedCategory: SettingsCategory.profile);
       expect(updated.selectedCategory, SettingsCategory.profile);
       expect(updated.isLoading, false);
       expect(updated.preferences, {'theme': 'green'});
@@ -80,7 +83,9 @@ void main() {
     });
 
     test('copyWith updates backups only', () {
-      final newBackups = [{'name': 'backup.db', 'size': 1024}];
+      final newBackups = [
+        {'name': 'backup.db', 'size': 1024}
+      ];
       final updated = original.copyWith(backups: newBackups);
       expect(updated.backups, newBackups);
       expect(updated.databaseStats, {'products': 5});
@@ -105,20 +110,20 @@ void main() {
 
     // IMPORTANT: copyWith always overwrites messages with what is passed (or null)
     test('copyWith resets errorMessage to null when not provided', () {
-      const stateWithError = SettingsState(errorMessage: 'old error');
+      final stateWithError = SettingsState(errorMessage: 'old error');
       final updated = stateWithError.copyWith(isLoading: false);
       // errorMessage not passed → becomes null (implementation sets it directly)
       expect(updated.errorMessage, isNull);
     });
 
     test('copyWith resets successMessage to null when not provided', () {
-      const stateWithSuccess = SettingsState(successMessage: 'old success');
+      final stateWithSuccess = SettingsState(successMessage: 'old success');
       final updated = stateWithSuccess.copyWith(isLoading: false);
       expect(updated.successMessage, isNull);
     });
 
     test('copyWith with no arguments resets both messages to null', () {
-      const stateWithMessages = SettingsState(
+      final stateWithMessages = SettingsState(
         errorMessage: 'error',
         successMessage: 'success',
       );
@@ -141,11 +146,11 @@ void main() {
 
   group('SettingsState equality (Equatable)', () {
     test('two states with same values are equal', () {
-      const stateA = SettingsState(
+      final stateA = SettingsState(
         selectedCategory: SettingsCategory.profile,
         isLoading: true,
       );
-      const stateB = SettingsState(
+      final stateB = SettingsState(
         selectedCategory: SettingsCategory.profile,
         isLoading: true,
       );
@@ -153,55 +158,57 @@ void main() {
     });
 
     test('states with different selectedCategory are not equal', () {
-      const stateA = SettingsState(selectedCategory: SettingsCategory.profile);
-      const stateB = SettingsState(selectedCategory: SettingsCategory.backup);
+      final stateA = SettingsState(selectedCategory: SettingsCategory.profile);
+      final stateB = SettingsState(selectedCategory: SettingsCategory.backup);
       expect(stateA, isNot(equals(stateB)));
     });
 
     test('states with different isLoading are not equal', () {
-      const stateA = SettingsState(isLoading: true);
-      const stateB = SettingsState(isLoading: false);
+      final stateA = SettingsState(isLoading: true);
+      final stateB = SettingsState(isLoading: false);
       expect(stateA, isNot(equals(stateB)));
     });
 
     test('states with different errorMessage are not equal', () {
-      const stateA = SettingsState(errorMessage: 'error');
-      const stateB = SettingsState(errorMessage: null);
+      final stateA = SettingsState(errorMessage: 'error');
+      final stateB = SettingsState(errorMessage: null);
       expect(stateA, isNot(equals(stateB)));
     });
 
     test('states with different successMessage are not equal', () {
-      const stateA = SettingsState(successMessage: 'ok');
-      const stateB = SettingsState(successMessage: null);
+      final stateA = SettingsState(successMessage: 'ok');
+      final stateB = SettingsState(successMessage: null);
       expect(stateA, isNot(equals(stateB)));
     });
 
     test('states with different preferences are not equal', () {
-      const stateA = SettingsState(preferences: {'theme': 'green'});
-      const stateB = SettingsState(preferences: {'theme': 'blue'});
+      final stateA = SettingsState(preferences: const {'theme': 'green'});
+      final stateB = SettingsState(preferences: const {'theme': 'blue'});
       expect(stateA, isNot(equals(stateB)));
     });
 
     test('states with different shopProfile are not equal', () {
-      const stateA = SettingsState(shopProfile: {'name': 'A'});
-      const stateB = SettingsState(shopProfile: {'name': 'B'});
+      final stateA = SettingsState(shopProfile: const {'name': 'A'});
+      final stateB = SettingsState(shopProfile: const {'name': 'B'});
       expect(stateA, isNot(equals(stateB)));
     });
 
     test('states with different backups are not equal', () {
-      const stateA = SettingsState(backups: []);
-      final stateB = SettingsState(backups: [{'name': 'b.db'}]);
+      final stateA = SettingsState(backups: const []);
+      final stateB = SettingsState(backups: const [
+        {'name': 'b.db'}
+      ]);
       expect(stateA, isNot(equals(stateB)));
     });
 
     test('states with different databaseStats are not equal', () {
-      const stateA = SettingsState(databaseStats: {'products': 1});
-      const stateB = SettingsState(databaseStats: {'products': 2});
+      final stateA = SettingsState(databaseStats: const {'products': 1});
+      final stateB = SettingsState(databaseStats: const {'products': 2});
       expect(stateA, isNot(equals(stateB)));
     });
 
     test('props list has 8 elements', () {
-      const state = SettingsState();
+      final state = SettingsState();
       expect(state.props.length, 8);
     });
   });
@@ -220,7 +227,7 @@ void main() {
     });
 
     test('can hold deeply nested preferences map', () {
-      const state = SettingsState(preferences: {
+      final state = SettingsState(preferences: const {
         'theme': 'green',
         'receiptFontSize': 'medium',
         'showLogo': true,
@@ -230,10 +237,10 @@ void main() {
       expect(state.preferences['requirePassword'], false);
     });
 
-    test('default state is a const instance', () {
-      const s1 = SettingsState();
-      const s2 = SettingsState();
-      expect(identical(s1, s2), isTrue);
+    test('default states with same values are equal', () {
+      final s1 = SettingsState();
+      final s2 = SettingsState();
+      expect(s1, equals(s2));
     });
   });
 }
