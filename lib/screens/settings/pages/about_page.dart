@@ -40,17 +40,22 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _launchExternalUri(String uriString) async {
+    final loc = AppLocalizations.of(context)!;
+
     try {
-      final didLaunch = await launchUrl(Uri.parse(uriString));
+      final didLaunch = await launchUrl(
+        Uri.parse(uriString),
+        mode: LaunchMode.externalApplication,
+      );
       if (!didLaunch && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to open link.')),
+          SnackBar(content: Text(loc.unableToOpenLink)),
         );
       }
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to open link.')),
+        SnackBar(content: Text(loc.unableToOpenLink)),
       );
     }
   }

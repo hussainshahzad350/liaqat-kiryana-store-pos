@@ -27,6 +27,7 @@ import 'widgets/filter_panel_widget.dart';
 import 'widgets/stock_table_skeleton_widget.dart';
 import 'widgets/activity_table_skeleton_widget.dart';
 import '../../widgets/loading_overlay.dart';
+import '../../widgets/app_shell.dart';
 import 'widgets/kpi_strip_widget.dart';
 import 'utils/stock_shortcuts.dart';
 
@@ -71,7 +72,7 @@ class _StockScreenState extends State<StockScreen> {
   }
 
   void _navigateToPurchase(BuildContext context, StockItemEntity item) {
-    Navigator.pushNamed(context, AppRoutes.purchase);
+    AppShell.navigateTo(context, AppRoutes.purchase);
   }
 
   void _openCancelConfirmationPanel(StockActivityEntity activity) {
@@ -127,7 +128,7 @@ class _StockScreenState extends State<StockScreen> {
               _openAdjustStockPanel(overviewState.items[uiState.focusedIndex]);
             }
           },
-          onNewPurchase: () => Navigator.pushNamed(context, AppRoutes.purchase),
+          onNewPurchase: () => AppShell.navigateTo(context, AppRoutes.purchase),
         ),
         child: MultiBlocListener(
           listeners: [
@@ -223,7 +224,7 @@ class _StockScreenState extends State<StockScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           ElevatedButton.icon(
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.purchase),
+            onPressed: () => AppShell.navigateTo(context, AppRoutes.purchase),
             icon: const Icon(Icons.add_shopping_cart),
             label: Text(loc.newPurchase, style: textTheme.labelLarge),
             style: ElevatedButton.styleFrom(
@@ -372,7 +373,7 @@ class _StockScreenState extends State<StockScreen> {
                                     },
                               onBulkOrderSelected: uiState.selectedIds.isEmpty
                                   ? null
-                                  : () => Navigator.pushNamed(
+                                  : () => AppShell.navigateTo(
                                       context, AppRoutes.purchase),
                             ),
                           );

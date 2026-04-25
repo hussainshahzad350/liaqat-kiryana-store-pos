@@ -38,6 +38,10 @@ Widget buildSettingsApp({
 void main() {
   late MockSettingsCubit cubit;
 
+  setUpAll(() {
+    registerFallbackValue(SettingsCategory.dashboard);
+  });
+
   setUp(() {
     cubit = MockSettingsCubit();
     // Default state: dashboard, not loading
@@ -220,7 +224,7 @@ void main() {
       expect(find.text('Something went wrong'), findsOneWidget);
     });
 
-    testWidgets('shows success snackbar when successMessage is emitted',
+    testWidgets('shows localized success snackbar when messageKey is emitted',
         (tester) async {
       setDesktopSize(tester);
 
@@ -230,7 +234,10 @@ void main() {
       whenListen(
         cubit,
         Stream.fromIterable([
-          SettingsState(successMessage: 'Profile updated successfully'),
+          SettingsState(
+            messageKey: 'save_changes_success',
+            messageType: SettingsMessageType.success,
+          ),
         ]),
         initialState: SettingsState(),
       );
@@ -238,7 +245,7 @@ void main() {
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
       await tester.pump();
 
-      expect(find.text('Profile updated successfully'), findsOneWidget);
+      expect(find.text('Changes saved successfully'), findsOneWidget);
     });
 
     testWidgets('calls clearMessages after showing error', (tester) async {

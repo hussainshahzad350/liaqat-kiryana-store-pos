@@ -3,14 +3,14 @@ import '../repositories/settings_repository.dart';
 import 'app_themes.dart';
 
 /// Theme Provider with RTL Support
-/// 
+///
 /// This provider now tracks text direction and applies appropriate fonts:
 /// - NooriNastaleeq for Urdu (RTL)
 /// - Roboto for English (LTR)
 class ThemeProvider with ChangeNotifier {
   final SettingsRepository _settingsRepository;
-  static const String _colorKey = 'theme_color';
-  static const String _modeKey = 'theme_mode';
+  static const String _colorKey = 'theme';
+  static const String _modeKey = 'themeMode';
 
   String _color = 'green';
   ThemeMode _mode = ThemeMode.system;
@@ -74,7 +74,7 @@ class ThemeProvider with ChangeNotifier {
   }
 
   /// Update text direction (called when language changes)
-  /// 
+  ///
   /// This should be called from your language change logic:
   /// ```dart
   /// themeProvider.setTextDirection(isRTL: locale.languageCode == 'ur');

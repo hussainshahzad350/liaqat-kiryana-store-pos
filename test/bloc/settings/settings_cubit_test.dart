@@ -97,8 +97,9 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage',
-                contains('network error')),
+            .having((s) => s.messageKey, 'messageKey', equals('load_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
   });
@@ -142,7 +143,8 @@ void main() {
         SettingsState(
           isLoading: false,
           shopProfile: updatedProfile,
-          successMessage: 'Profile updated successfully',
+          messageKey: 'save_changes_success',
+          messageType: SettingsMessageType.success,
         ),
       ],
       verify: (_) {
@@ -163,7 +165,10 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage', contains('db error'))
+            .having((s) => s.messageKey, 'messageKey',
+                equals('save_changes_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error))
             .having((s) => s.successMessage, 'successMessage', isNull),
       ],
     );
@@ -190,7 +195,8 @@ void main() {
         SettingsState(
           isLoading: false,
           preferences: updatedPrefs,
-          successMessage: 'Preferences updated successfully',
+          messageKey: 'preferences_saved',
+          messageType: SettingsMessageType.success,
         ),
       ],
       verify: (_) {
@@ -212,7 +218,9 @@ void main() {
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
             .having(
-                (s) => s.errorMessage, 'errorMessage', contains('prefs error')),
+                (s) => s.messageKey, 'messageKey', equals('preferences_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
   });
@@ -244,7 +252,8 @@ void main() {
         SettingsState(
           isLoading: false,
           backups: backupList,
-          successMessage: 'Backup created successfully',
+          messageKey: 'backup_created',
+          messageType: SettingsMessageType.success,
         ),
       ],
     );
@@ -261,8 +270,9 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having(
-                (s) => s.errorMessage, 'errorMessage', equals('Backup failed')),
+            .having((s) => s.messageKey, 'messageKey', equals('backup_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
 
@@ -278,8 +288,9 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having(
-                (s) => s.errorMessage, 'errorMessage', contains('disk full')),
+            .having((s) => s.messageKey, 'messageKey', equals('backup_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
   });
@@ -303,7 +314,8 @@ void main() {
         SettingsState(
           isLoading: false,
           backups: const [],
-          successMessage: 'Backup deleted',
+          messageKey: 'backup_deleted',
+          messageType: SettingsMessageType.success,
         ),
       ],
       verify: (_) {
@@ -323,8 +335,9 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having(
-                (s) => s.errorMessage, 'errorMessage', equals('Delete failed')),
+            .having((s) => s.messageKey, 'messageKey', equals('delete_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
 
@@ -340,8 +353,9 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage',
-                contains('permission denied')),
+            .having((s) => s.messageKey, 'messageKey', equals('delete_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
   });
@@ -363,8 +377,10 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.successMessage, 'successMessage',
-                contains('Restore successful')),
+            .having(
+                (s) => s.messageKey, 'messageKey', equals('restore_success'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.success)),
       ],
       verify: (_) {
         verify(() => repository.restoreBackup(backupPath)).called(1);
@@ -383,8 +399,9 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage',
-                equals('Restore failed')),
+            .having((s) => s.messageKey, 'messageKey', equals('restore_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
 
@@ -400,8 +417,9 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage',
-                contains('file not found')),
+            .having((s) => s.messageKey, 'messageKey', equals('restore_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
   });
@@ -425,7 +443,8 @@ void main() {
         SettingsState(
           isLoading: false,
           databaseStats: updatedStats,
-          successMessage: 'Database optimized',
+          messageKey: 'database_optimized',
+          messageType: SettingsMessageType.success,
         ),
       ],
       verify: (_) {
@@ -445,8 +464,10 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage',
-                equals('Optimization failed')),
+            .having((s) => s.messageKey, 'messageKey',
+                equals('database_optimization_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
 
@@ -462,8 +483,10 @@ void main() {
         SettingsState(isLoading: true),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
-            .having((s) => s.errorMessage, 'errorMessage',
-                contains('vacuum error')),
+            .having((s) => s.messageKey, 'messageKey',
+                equals('database_optimization_failed'))
+            .having((s) => s.messageType, 'messageType',
+                equals(SettingsMessageType.error)),
       ],
     );
   });
@@ -477,10 +500,17 @@ void main() {
       seed: () => SettingsState(
         errorMessage: 'some error',
         successMessage: 'some success',
+        messageKey: 'backup_failed',
+        messageType: SettingsMessageType.error,
       ),
       act: (cubit) => cubit.clearMessages(),
       expect: () => [
-        SettingsState(errorMessage: null, successMessage: null),
+        SettingsState(
+          errorMessage: null,
+          successMessage: null,
+          messageKey: null,
+          messageType: null,
+        ),
       ],
     );
 
@@ -489,9 +519,7 @@ void main() {
       build: buildCubit,
       seed: () => SettingsState(),
       act: (cubit) => cubit.clearMessages(),
-      expect: () => [
-        SettingsState(errorMessage: null, successMessage: null),
-      ],
+      expect: () => <SettingsState>[],
     );
   });
 }

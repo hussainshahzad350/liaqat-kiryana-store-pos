@@ -1172,59 +1172,59 @@ abstract class AppLocalizations {
   /// **'App Language'**
   String get appLanguage;
 
-  /// No description provided for @theme_title.
+  /// No description provided for @themeTitle.
   ///
   /// In en, this message translates to:
   /// **'Theme'**
-  String get theme_title;
+  String get themeTitle;
 
-  /// No description provided for @theme_color.
+  /// No description provided for @themeColor.
   ///
   /// In en, this message translates to:
   /// **'Theme Color'**
-  String get theme_color;
+  String get themeColor;
 
-  /// No description provided for @theme_color_green.
+  /// No description provided for @themeColorGreen.
   ///
   /// In en, this message translates to:
   /// **'Green'**
-  String get theme_color_green;
+  String get themeColorGreen;
 
-  /// No description provided for @theme_color_blue.
+  /// No description provided for @themeColorBlue.
   ///
   /// In en, this message translates to:
   /// **'Blue'**
-  String get theme_color_blue;
+  String get themeColorBlue;
 
-  /// No description provided for @theme_color_orange.
+  /// No description provided for @themeColorOrange.
   ///
   /// In en, this message translates to:
   /// **'Orange'**
-  String get theme_color_orange;
+  String get themeColorOrange;
 
-  /// No description provided for @theme_mode.
+  /// No description provided for @themeMode.
   ///
   /// In en, this message translates to:
   /// **'Theme Mode'**
-  String get theme_mode;
+  String get themeMode;
 
-  /// No description provided for @theme_mode_light.
+  /// No description provided for @themeModeLight.
   ///
   /// In en, this message translates to:
   /// **'Light'**
-  String get theme_mode_light;
+  String get themeModeLight;
 
-  /// No description provided for @theme_mode_dark.
+  /// No description provided for @themeModeDark.
   ///
   /// In en, this message translates to:
   /// **'Dark'**
-  String get theme_mode_dark;
+  String get themeModeDark;
 
-  /// No description provided for @theme_mode_system.
+  /// No description provided for @themeModeSystem.
   ///
   /// In en, this message translates to:
   /// **'System'**
-  String get theme_mode_system;
+  String get themeModeSystem;
 
   /// No description provided for @dateFormat.
   ///
@@ -1441,6 +1441,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone'**
   String get phone;
+
+  /// No description provided for @unableToOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open link.'**
+  String get unableToOpenLink;
 
   /// No description provided for @viewOnlineGuide.
   ///

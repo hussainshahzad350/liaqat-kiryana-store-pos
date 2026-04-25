@@ -32,6 +32,8 @@ void main() {
       expect(state.isLoading, false);
       expect(state.errorMessage, isNull);
       expect(state.successMessage, isNull);
+      expect(state.messageKey, isNull);
+      expect(state.messageType, isNull);
       expect(state.preferences, isEmpty);
       expect(state.shopProfile, isEmpty);
       expect(state.backups, isEmpty);
@@ -108,28 +110,47 @@ void main() {
       expect(updated.successMessage, 'done!');
     });
 
-    // IMPORTANT: copyWith always overwrites messages with what is passed (or null)
-    test('copyWith resets errorMessage to null when not provided', () {
+    test('copyWith preserves errorMessage when not provided', () {
       final stateWithError = SettingsState(errorMessage: 'old error');
       final updated = stateWithError.copyWith(isLoading: false);
-      // errorMessage not passed → becomes null (implementation sets it directly)
-      expect(updated.errorMessage, isNull);
+      expect(updated.errorMessage, 'old error');
     });
 
-    test('copyWith resets successMessage to null when not provided', () {
+    test('copyWith preserves successMessage when not provided', () {
       final stateWithSuccess = SettingsState(successMessage: 'old success');
       final updated = stateWithSuccess.copyWith(isLoading: false);
-      expect(updated.successMessage, isNull);
+      expect(updated.successMessage, 'old success');
     });
 
-    test('copyWith with no arguments resets both messages to null', () {
+    test('copyWith with no arguments preserves both messages', () {
       final stateWithMessages = SettingsState(
         errorMessage: 'error',
         successMessage: 'success',
       );
       final updated = stateWithMessages.copyWith();
+      expect(updated.errorMessage, 'error');
+      expect(updated.successMessage, 'success');
+    });
+
+    test('copyWith clears all message fields when clear flags are set', () {
+      final stateWithMessages = SettingsState(
+        errorMessage: 'error',
+        successMessage: 'success',
+        messageKey: 'save_changes_success',
+        messageType: SettingsMessageType.success,
+      );
+
+      final updated = stateWithMessages.copyWith(
+        clearErrorMessage: true,
+        clearSuccessMessage: true,
+        clearMessageKey: true,
+        clearMessageType: true,
+      );
+
       expect(updated.errorMessage, isNull);
       expect(updated.successMessage, isNull);
+      expect(updated.messageKey, isNull);
+      expect(updated.messageType, isNull);
     });
 
     test('copyWith preserves all non-specified fields', () {
@@ -207,9 +228,9 @@ void main() {
       expect(stateA, isNot(equals(stateB)));
     });
 
-    test('props list has 8 elements', () {
+    test('props list has 10 elements', () {
       final state = SettingsState();
-      expect(state.props.length, 8);
+      expect(state.props.length, 10);
     });
   });
 

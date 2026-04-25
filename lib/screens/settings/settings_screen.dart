@@ -34,6 +34,11 @@ class SettingsView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return BlocConsumer<SettingsCubit, SettingsState>(
+      listenWhen: (previous, current) =>
+          previous.messageKey != current.messageKey ||
+          previous.messageType != current.messageType ||
+          previous.successMessage != current.successMessage ||
+          previous.errorMessage != current.errorMessage,
       listener: (context, state) {
         if (state.messageKey != null && state.messageType != null) {
           final localizedMessage = _resolveMessageKey(loc, state.messageKey!);
@@ -57,6 +62,7 @@ class SettingsView extends StatelessWidget {
                 backgroundColor: colorScheme.error),
           );
           context.read<SettingsCubit>().clearMessages();
+          return;
         }
         if (state.successMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -65,6 +71,7 @@ class SettingsView extends StatelessWidget {
                 backgroundColor: colorScheme.primary),
           );
           context.read<SettingsCubit>().clearMessages();
+          return;
         }
       },
       builder: (context, state) {
@@ -126,10 +133,16 @@ class SettingsView extends StatelessWidget {
 
   String _resolveMessageKey(AppLocalizations loc, String key) {
     switch (key) {
+      case 'load_failed':
+        return loc.failedToLoadDetails;
       case 'save_changes_success':
         return loc.saveChangesSuccess;
+      case 'save_changes_failed':
+        return loc.unknownError;
       case 'preferences_saved':
         return loc.preferencesSaved;
+      case 'preferences_failed':
+        return loc.unknownError;
       case 'backup_created':
         return loc.backupCreated;
       case 'backup_failed':
@@ -249,10 +262,12 @@ class LoadingOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
+        final showSpinner = isLoading || state.isLoading;
+
         return Stack(
           children: [
             child,
-            if (state.isLoading)
+            if (showSpinner)
               Container(
                 color: Colors.black.withValues(alpha: 0.35),
                 child: const Center(

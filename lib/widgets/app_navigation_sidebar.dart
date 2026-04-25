@@ -152,7 +152,11 @@ class AppNavigationSidebar extends StatelessWidget {
                     route: AppRoutes.logout,
                     color: colorScheme.error,
                     onTap: () {
-                      Navigator.pushReplacementNamed(context, AppRoutes.login);
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        AppRoutes.logout,
+                        (_) => false,
+                      );
                     },
                   ),
                 ],

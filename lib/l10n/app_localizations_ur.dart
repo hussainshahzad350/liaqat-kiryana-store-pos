@@ -548,31 +548,31 @@ class AppLocalizationsUr extends AppLocalizations {
   String get appLanguage => 'ایپ کی زبان';
 
   @override
-  String get theme_title => 'تھیم';
+  String get themeTitle => 'تھیم';
 
   @override
-  String get theme_color => 'تھیم کا رنگ';
+  String get themeColor => 'تھیم کا رنگ';
 
   @override
-  String get theme_color_green => 'سبز';
+  String get themeColorGreen => 'سبز';
 
   @override
-  String get theme_color_blue => 'نیلا';
+  String get themeColorBlue => 'نیلا';
 
   @override
-  String get theme_color_orange => 'نارنجی';
+  String get themeColorOrange => 'نارنجی';
 
   @override
-  String get theme_mode => 'تھیم موڈ';
+  String get themeMode => 'تھیم موڈ';
 
   @override
-  String get theme_mode_light => 'روشن';
+  String get themeModeLight => 'روشن';
 
   @override
-  String get theme_mode_dark => 'تاریک';
+  String get themeModeDark => 'تاریک';
 
   @override
-  String get theme_mode_system => 'سسٹم';
+  String get themeModeSystem => 'سسٹم';
 
   @override
   String get dateFormat => 'تاریخ کا فارمیٹ';
@@ -681,6 +681,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get phone => 'فون';
+
+  @override
+  String get unableToOpenLink => 'لنک نہیں کھولا جا سکا۔';
 
   @override
   String get viewOnlineGuide => 'آن لائن گائیڈ دیکھیں';

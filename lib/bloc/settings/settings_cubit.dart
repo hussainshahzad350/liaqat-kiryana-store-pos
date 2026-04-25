@@ -1,12 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/repositories/settings_repository.dart';
+import '../../core/utils/logger.dart';
 import 'settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
   final SettingsRepository _repository;
 
   static const String _msgSaveChangesSuccess = 'save_changes_success';
+  static const String _msgSaveChangesFailed = 'save_changes_failed';
   static const String _msgPreferencesSaved = 'preferences_saved';
+  static const String _msgPreferencesFailed = 'preferences_failed';
+  static const String _msgLoadFailed = 'load_failed';
   static const String _msgBackupCreated = 'backup_created';
   static const String _msgBackupFailed = 'backup_failed';
   static const String _msgBackupDeleted = 'backup_deleted';
@@ -28,10 +32,17 @@ class SettingsCubit extends Cubit<SettingsState> {
       clearMessageType: true,
     ));
     try {
-      final profile = await _repository.getShopProfile() ?? {};
-      final backups = await _repository.getBackupFiles();
-      final prefs = await _repository.getAppPreferences();
-      final stats = await _repository.getDatabaseStats();
+      final results = await Future.wait<dynamic>([
+        _repository.getShopProfile(),
+        _repository.getBackupFiles(),
+        _repository.getAppPreferences(),
+        _repository.getDatabaseStats(),
+      ]);
+
+      final profile = (results[0] as Map<String, dynamic>?) ?? {};
+      final backups = results[1] as List<Map<String, dynamic>>;
+      final prefs = results[2] as Map<String, dynamic>;
+      final stats = results[3] as Map<String, dynamic>;
 
       emit(state.copyWith(
         isLoading: false,
@@ -41,12 +52,13 @@ class SettingsCubit extends Cubit<SettingsState> {
         databaseStats: stats,
       ));
     } catch (e) {
+      AppLogger.error('Failed to load settings data: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        messageKey: _msgLoadFailed,
+        messageType: SettingsMessageType.error,
+        clearErrorMessage: true,
         clearSuccessMessage: true,
-        clearMessageKey: true,
-        clearMessageType: true,
       ));
     }
   }
@@ -75,12 +87,14 @@ class SettingsCubit extends Cubit<SettingsState> {
         clearErrorMessage: true,
       ));
     } catch (e) {
+      AppLogger.error('Failed to update shop profile: $e',
+          tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        messageKey: _msgSaveChangesFailed,
+        messageType: SettingsMessageType.error,
+        clearErrorMessage: true,
         clearSuccessMessage: true,
-        clearMessageKey: true,
-        clearMessageType: true,
       ));
     }
   }
@@ -105,12 +119,13 @@ class SettingsCubit extends Cubit<SettingsState> {
         clearErrorMessage: true,
       ));
     } catch (e) {
+      AppLogger.error('Failed to update preferences: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        messageKey: _msgPreferencesFailed,
+        messageType: SettingsMessageType.error,
+        clearErrorMessage: true,
         clearSuccessMessage: true,
-        clearMessageKey: true,
-        clearMessageType: true,
       ));
     }
   }
@@ -145,12 +160,13 @@ class SettingsCubit extends Cubit<SettingsState> {
         ));
       }
     } catch (e) {
+      AppLogger.error('Failed to create backup: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        messageKey: _msgBackupFailed,
+        messageType: SettingsMessageType.error,
+        clearErrorMessage: true,
         clearSuccessMessage: true,
-        clearMessageKey: true,
-        clearMessageType: true,
       ));
     }
   }
@@ -185,12 +201,13 @@ class SettingsCubit extends Cubit<SettingsState> {
         ));
       }
     } catch (e) {
+      AppLogger.error('Failed to delete backup: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        messageKey: _msgDeleteFailed,
+        messageType: SettingsMessageType.error,
+        clearErrorMessage: true,
         clearSuccessMessage: true,
-        clearMessageKey: true,
-        clearMessageType: true,
       ));
     }
   }
@@ -223,12 +240,13 @@ class SettingsCubit extends Cubit<SettingsState> {
         ));
       }
     } catch (e) {
+      AppLogger.error('Failed to restore backup: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        messageKey: _msgRestoreFailed,
+        messageType: SettingsMessageType.error,
+        clearErrorMessage: true,
         clearSuccessMessage: true,
-        clearMessageKey: true,
-        clearMessageType: true,
       ));
     }
   }
@@ -263,12 +281,13 @@ class SettingsCubit extends Cubit<SettingsState> {
         ));
       }
     } catch (e) {
+      AppLogger.error('Failed to optimize database: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        messageKey: _msgDatabaseOptimizationFailed,
+        messageType: SettingsMessageType.error,
+        clearErrorMessage: true,
         clearSuccessMessage: true,
-        clearMessageKey: true,
-        clearMessageType: true,
       ));
     }
   }

@@ -4,6 +4,7 @@ import '../../../bloc/settings/settings_cubit.dart';
 import '../../../bloc/settings/settings_state.dart';
 import '../widgets/setting_section.dart';
 import '../../../core/res/app_tokens.dart';
+import '../../../core/utils/validators.dart';
 import '../../../l10n/app_localizations.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -26,6 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String _lastSyncedAddress = '';
   String _lastSyncedPrimaryPhone = '';
   String _lastSyncedSecondaryPhone = '';
+  String? _primaryPhoneError;
 
   @override
   void initState() {
@@ -96,15 +98,38 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _save() {
-    if (_formKey.currentState!.validate()) {
-      context.read<SettingsCubit>().updateShopProfile({
-        'name_urdu': _nameUrduController.text,
-        'name_english': _nameEnglishController.text,
-        'address': _addressController.text,
-        'phone_primary': _primaryPhoneController.text,
-        'phone_secondary': _secondaryPhoneController.text,
+    if (!_formKey.currentState!.validate()) return;
+
+    final loc = AppLocalizations.of(context)!;
+    final nameUrdu = _nameUrduController.text.trim();
+    final nameEnglish = _nameEnglishController.text.trim();
+    final address = _addressController.text.trim();
+    final primaryPhone = _primaryPhoneController.text.trim();
+    final secondaryPhone = _secondaryPhoneController.text.trim();
+
+    final phoneError = Validators.validatePhone(primaryPhone, loc) ??
+        (primaryPhone.isEmpty ? loc.fieldRequired(loc.primaryPhone) : null);
+
+    if (phoneError != null) {
+      setState(() {
+        _primaryPhoneError = phoneError;
+      });
+      return;
+    }
+
+    if (_primaryPhoneError != null) {
+      setState(() {
+        _primaryPhoneError = null;
       });
     }
+
+    context.read<SettingsCubit>().updateShopProfile({
+      'name_urdu': nameUrdu,
+      'name_english': nameEnglish,
+      'address': address,
+      'phone_primary': primaryPhone,
+      'phone_secondary': secondaryPhone,
+    });
   }
 
   @override
@@ -182,6 +207,15 @@ class _ProfilePageState extends State<ProfilePage> {
                             label: loc.primaryPhone,
                             hint: '0300-1234567',
                             required: true,
+                            forceErrorText: _primaryPhoneError,
+                            validator: (value) {
+                              final trimmed = value?.trim() ?? '';
+                              if (trimmed.isEmpty) {
+                                return AppLocalizations.of(context)!
+                                    .fieldRequired(loc.primaryPhone);
+                              }
+                              return Validators.validatePhone(trimmed, loc);
+                            },
                           ),
                         ),
                         const SizedBox(width: AppTokens.spacingMedium),
@@ -226,23 +260,27 @@ class _ProfilePageState extends State<ProfilePage> {
     int maxLines = 1,
     bool required = false,
     bool isRTL = false,
+    String? forceErrorText,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
       textAlign: isRTL ? TextAlign.right : TextAlign.left,
       textDirection: isRTL ? TextDirection.rtl : TextDirection.ltr,
+      forceErrorText: forceErrorText,
       decoration: InputDecoration(
         labelText: required ? '$label *' : label,
         hintText: hint,
         border: const OutlineInputBorder(),
         isDense: true,
       ),
-      validator: required
-          ? (value) => value == null || value.isEmpty
-              ? AppLocalizations.of(context)!.fieldRequired(label)
-              : null
-          : null,
+      validator: validator ??
+          (required
+              ? (value) => value == null || value.trim().isEmpty
+                  ? AppLocalizations.of(context)!.fieldRequired(label)
+                  : null
+              : null),
     );
   }
 }

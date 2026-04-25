@@ -1,12 +1,51 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:liaqat_store/core/repositories/settings_repository.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  const secureStorageChannel =
+      MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+
   late SettingsRepository repository;
+  late Map<String, String> secureStorageValues;
+
+  Future<Object?> secureStorageHandler(MethodCall call) async {
+    final arguments = (call.arguments as Map<Object?, Object?>?) ??
+        const <Object?, Object?>{};
+    final key = arguments['key'] as String?;
+
+    switch (call.method) {
+      case 'read':
+        return key == null ? null : secureStorageValues[key];
+      case 'write':
+        final value = arguments['value'] as String?;
+        if (key != null && value != null) {
+          secureStorageValues[key] = value;
+        }
+        return null;
+      case 'delete':
+        if (key != null) {
+          secureStorageValues.remove(key);
+        }
+        return null;
+      default:
+        return null;
+    }
+  }
 
   setUp(() {
+    secureStorageValues = {};
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(secureStorageChannel, secureStorageHandler);
     repository = SettingsRepository();
+  });
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(secureStorageChannel, null);
   });
 
   // ── getAppPreferences – default values ───────────────────────────────────
@@ -51,9 +90,9 @@ void main() {
       expect(prefs['requirePassword'], false);
     });
 
-    test('returns default password empty string', () async {
+    test('returns default password null', () async {
       final prefs = await repository.getAppPreferences();
-      expect(prefs['password'], '');
+      expect(prefs['password'], isNull);
     });
 
     test('returns default autoBackupEnabled false', () async {
@@ -133,17 +172,33 @@ void main() {
 
     test('returns map with all 23 expected keys', () async {
       final prefs = await repository.getAppPreferences();
-      expect(prefs.keys, containsAll([
-        'language', 'theme', 'themeMode', 'dateFormat',
-        'currencySymbol', 'currencyPosition',
-        'requirePassword', 'password',
-        'autoBackupEnabled', 'backupFrequency',
-        'lowStockAlert', 'dayCloseReminder',
-        'soundEnabled', 'printOnSale',
-        'showLogo', 'showAddress', 'showPhone', 'showDateTime',
-        'showCustomer', 'showPayment',
-        'receiptFontSize', 'paperWidth', 'printerType',
-      ]));
+      expect(
+          prefs.keys,
+          containsAll([
+            'language',
+            'theme',
+            'themeMode',
+            'dateFormat',
+            'currencySymbol',
+            'currencyPosition',
+            'requirePassword',
+            'password',
+            'autoBackupEnabled',
+            'backupFrequency',
+            'lowStockAlert',
+            'dayCloseReminder',
+            'soundEnabled',
+            'printOnSale',
+            'showLogo',
+            'showAddress',
+            'showPhone',
+            'showDateTime',
+            'showCustomer',
+            'showPayment',
+            'receiptFontSize',
+            'paperWidth',
+            'printerType',
+          ]));
     });
   });
 
@@ -159,7 +214,6 @@ void main() {
         'currency_symbol': '\$',
         'currency_position': 'after',
         'require_password': true,
-        'app_password': 'secret123',
         'auto_backup_enabled': true,
         'backup_frequency': 'Weekly',
         'low_stock_alert': false,
@@ -176,6 +230,7 @@ void main() {
         'receipt_paper_width': '58mm',
         'receipt_printer_type': 'network',
       });
+      secureStorageValues['app_password'] = 'secret123';
     });
 
     test('returns stored language', () async {
@@ -310,6 +365,15 @@ void main() {
       expect(prefs['password'], 'newpass');
     });
 
+    test('does not overwrite password when value is empty string', () async {
+      secureStorageValues['app_password'] = 'existingSecret';
+
+      await repository.updateAppPreferences({'password': ''});
+
+      final prefs = await repository.getAppPreferences();
+      expect(prefs['password'], 'existingSecret');
+    });
+
     test('updates autoBackupEnabled key', () async {
       await repository.updateAppPreferences({'autoBackupEnabled': true});
       final prefs = await repository.getAppPreferences();
@@ -440,7 +504,8 @@ void main() {
     test('ignores unknown keys without error', () async {
       // Should complete without throwing
       await expectLater(
-        repository.updateAppPreferences({'unknownKey': 'value', 'anotherUnknown': 42}),
+        repository.updateAppPreferences(
+            {'unknownKey': 'value', 'anotherUnknown': 42}),
         completes,
       );
     });
@@ -458,6 +523,52 @@ void main() {
       final prefs = await repository.getAppPreferences();
       expect(prefs['theme'], 'green');
       expect(prefs['theme'], isNot('lightGreen'));
+    });
+  });
+
+  group('getAppPreferences – secure storage failures', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
+    test('throws SecureStorageException when secure storage is unavailable',
+        () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(secureStorageChannel, (call) async {
+        throw MissingPluginException('secure storage unavailable');
+      });
+
+      await expectLater(
+        repository.getAppPreferences(),
+        throwsA(isA<SecureStorageException>()),
+      );
+    });
+  });
+
+  group('getAppPreferences – legacy password migration', () {
+    test('removes legacy app_password once and sets migration flag', () async {
+      SharedPreferences.setMockInitialValues({
+        'app_password': 'legacySecret',
+      });
+
+      await repository.getAppPreferences();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('app_password'), isNull);
+      expect(prefs.getBool('legacy_password_migrated'), true);
+    });
+
+    test('does not re-run migration when already flagged', () async {
+      SharedPreferences.setMockInitialValues({
+        'legacy_password_migrated': true,
+        'app_password': 'legacySecret',
+      });
+
+      await repository.getAppPreferences();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('app_password'), 'legacySecret');
+      expect(prefs.getBool('legacy_password_migrated'), true);
     });
   });
 }

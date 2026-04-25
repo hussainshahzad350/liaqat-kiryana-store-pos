@@ -5,12 +5,29 @@ import 'package:path/path.dart' as p;
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class SecureStorageException implements Exception {
+  final String operation;
+  final Object cause;
+
+  const SecureStorageException({
+    required this.operation,
+    required this.cause,
+  });
+
+  @override
+  String toString() =>
+      'SecureStorageException($operation): ${cause.toString()}';
+}
 
 class SettingsRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  static const String _legacyPasswordKey = 'app_password';
+  static const String _legacyPasswordMigratedKey = 'legacy_password_migrated';
 
   // ========================================
   // BACKUP MANAGEMENT
@@ -404,8 +421,11 @@ class SettingsRepository {
   /// These could be stored in SharedPreferences or a settings table
   /// Placeholder methods for future implementation
 
+  /// Throws [SecureStorageException] when secure storage is unavailable while
+  /// reading the startup password.
   Future<Map<String, dynamic>> getAppPreferences() async {
     final prefs = await SharedPreferences.getInstance();
+    await _migrateLegacyPasswordIfNeeded(prefs);
     final password = await _readAppPassword();
     return {
       'language': prefs.getString('app_language') ?? 'en',
@@ -448,8 +468,12 @@ class SettingsRepository {
     await _setStringIf(
         preferences, prefs, 'currencyPosition', 'currency_position');
     await _setBoolIf(preferences, prefs, 'requirePassword', 'require_password');
-    await _writeAppPassword(preferences['password']);
-    await prefs.remove('app_password');
+    if (preferences.containsKey('password')) {
+      final password = preferences['password'];
+      if (password is String && password.trim().isNotEmpty) {
+        await _writeAppPassword(password.trim());
+      }
+    }
     await _setBoolIf(
         preferences, prefs, 'autoBackupEnabled', 'auto_backup_enabled');
     await _setStringIf(
@@ -504,14 +528,46 @@ class SettingsRepository {
     }
   }
 
-  Future<String> _readAppPassword() async {
+  Future<void> _migrateLegacyPasswordIfNeeded(SharedPreferences prefs) async {
+    final alreadyMigrated = prefs.getBool(_legacyPasswordMigratedKey) ?? false;
+    if (alreadyMigrated) return;
+
+    await prefs.remove(_legacyPasswordKey);
+    await prefs.setBool(_legacyPasswordMigratedKey, true);
+  }
+
+  /// Returns the configured startup password, or `null` when no password is
+  /// stored.
+  ///
+  /// Throws [SecureStorageException] if secure storage cannot be accessed.
+  Future<String?> _readAppPassword() async {
     try {
-      return await _secureStorage.read(key: 'app_password') ?? '';
-    } catch (e) {
+      return await _secureStorage.read(key: 'app_password');
+    } on PlatformException catch (e) {
+      if (_isExpectedSecureStorageMiss(e)) {
+        return null;
+      }
+
       AppLogger.error('Error reading secure app password: $e',
           tag: 'SettingsRepo');
-      return '';
+      throw SecureStorageException(operation: 'read', cause: e);
+    } on MissingPluginException catch (e) {
+      AppLogger.error(
+          'Secure storage plugin unavailable while reading app password: $e',
+          tag: 'SettingsRepo');
+      throw SecureStorageException(operation: 'read', cause: e);
     }
+  }
+
+  bool _isExpectedSecureStorageMiss(PlatformException exception) {
+    final code = exception.code.toLowerCase();
+    final message = (exception.message ?? '').toLowerCase();
+
+    return code.contains('notfound') ||
+        code.contains('not_found') ||
+        message.contains('not found') ||
+        message.contains('no value') ||
+        message.contains('does not exist');
   }
 
   Future<void> _writeAppPassword(dynamic value) async {

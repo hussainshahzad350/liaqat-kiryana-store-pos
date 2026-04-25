@@ -16,6 +16,27 @@ class ReceiptPage extends StatelessWidget {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
         final prefs = state.preferences;
+        const allowedFontSizes = ['small', 'medium', 'large'];
+        const allowedPaperWidths = ['58mm', '80mm', 'A4'];
+        const allowedPrinterTypes = ['default', 'usb', 'network', 'pdf'];
+
+        final fontSizePref = (prefs['receiptFontSize'] as String?)?.toLowerCase();
+        final selectedFontSize = allowedFontSizes.contains(fontSizePref)
+            ? fontSizePref!
+            : 'medium';
+
+        final paperWidthPref = (prefs['paperWidth'] as String?)?.toLowerCase();
+        final selectedPaperWidth = paperWidthPref == null
+            ? '80mm'
+            : allowedPaperWidths.firstWhere(
+                (value) => value.toLowerCase() == paperWidthPref,
+                orElse: () => '80mm',
+              );
+
+        final printerTypePref = (prefs['printerType'] as String?)?.toLowerCase();
+        final selectedPrinterType = allowedPrinterTypes.contains(printerTypePref)
+            ? printerTypePref!
+            : 'usb';
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(AppTokens.spacingLarge),
@@ -80,7 +101,7 @@ class ReceiptPage extends StatelessWidget {
                   children: [
                     Text(loc.fontSize, style: const TextStyle(fontSize: 14)),
                     DropdownButton<String>(
-                      value: prefs['receiptFontSize'] ?? 'medium',
+                      value: selectedFontSize,
                       isExpanded: true,
                       items: [
                         DropdownMenuItem(
@@ -100,7 +121,7 @@ class ReceiptPage extends StatelessWidget {
                     const SizedBox(height: AppTokens.spacingMedium),
                     Text(loc.paperWidth, style: const TextStyle(fontSize: 14)),
                     DropdownButton<String>(
-                      value: prefs['paperWidth'] ?? '80mm',
+                      value: selectedPaperWidth,
                       isExpanded: true,
                       items: [
                         DropdownMenuItem(
@@ -120,7 +141,7 @@ class ReceiptPage extends StatelessWidget {
                     Text(loc.selectPrinter,
                         style: const TextStyle(fontSize: 14)),
                     DropdownButton<String>(
-                      value: prefs['printerType'] ?? 'usb',
+                      value: selectedPrinterType,
                       isExpanded: true,
                       items: [
                         DropdownMenuItem(

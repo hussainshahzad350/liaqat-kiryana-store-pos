@@ -33,7 +33,6 @@ import '../core/repositories/stock_repository.dart';
 import '../core/repositories/suppliers_repository.dart';
 import '../core/repositories/units_repository.dart';
 import '../core/routes/app_routes.dart';
-import '../l10n/app_localizations.dart';
 import '../screens/about/about_screen.dart';
 import '../screens/cash_ledger/cash_ledger_screen.dart';
 import '../screens/categories/categories_screen.dart';
@@ -51,40 +50,82 @@ import 'app_header.dart';
 import 'app_navigation_sidebar.dart';
 
 // ---------------------------------------------------------------------------
-// Route → index mapping (used by both AppShell and AppNavigationSidebar)
+// Canonical route registry (ordered). All index/route lookups derive from this.
 // ---------------------------------------------------------------------------
 
-const _kRouteIndex = <String, int>{
-  AppRoutes.home: 0,
-  AppRoutes.sales: 1,
-  AppRoutes.stock: 2,
-  AppRoutes.purchase: 3,
-  AppRoutes.items: 4,
-  AppRoutes.customers: 5,
-  AppRoutes.suppliers: 6,
-  AppRoutes.categories: 7,
-  AppRoutes.units: 8,
-  AppRoutes.reports: 9,
-  AppRoutes.cashLedger: 10,
-  AppRoutes.settings: 11,
-  AppRoutes.about: 12,
+final Map<String, Widget Function(BuildContext)> _kRouteBuilders = {
+  AppRoutes.home: (_) => const HomeScreen(),
+  AppRoutes.sales: (ctx) => BlocProvider(
+        create: (context) => SalesBloc(
+          invoiceRepository: context.read<InvoiceRepository>(),
+          itemsRepository: context.read<ItemsRepository>(),
+          customersRepository: context.read<CustomersRepository>(),
+          settingsRepository: context.read<SettingsRepository>(),
+          receiptRepository: context.read<ReceiptRepository>(),
+        ),
+        child: const SalesScreen(),
+      ),
+  AppRoutes.stock: (ctx) => MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => StockUiCubit()),
+          BlocProvider(
+            create: (context) =>
+                StockOverviewBloc(context.read<StockRepository>())
+                  ..add(const LoadStockOverview()),
+          ),
+          BlocProvider(
+            create: (context) => StockFilterBloc(
+              context.read<SuppliersRepository>(),
+              context.read<CategoriesRepository>(),
+            )..add(LoadFilters()),
+          ),
+          BlocProvider(
+            create: (context) => StockActivityBloc(
+              context.read<StockActivityRepository>(),
+              context.read<ItemsRepository>(),
+              context.read<PurchaseRepository>(),
+              context.read<InvoiceRepository>(),
+            )..add(const LoadStockActivities()),
+          ),
+        ],
+        child: const StockScreen(),
+      ),
+  AppRoutes.purchase: (ctx) => BlocProvider(
+        create: (context) => PurchaseBloc(
+          purchaseRepository: context.read<PurchaseRepository>(),
+          suppliersRepository: context.read<SuppliersRepository>(),
+          itemsRepository: context.read<ItemsRepository>(),
+        )..add(InitializePurchase()),
+        child: const PurchaseScreen(),
+      ),
+  AppRoutes.items: (_) => const ItemsScreen(),
+  AppRoutes.customers: (_) => const CustomersScreen(),
+  AppRoutes.suppliers: (_) => const SuppliersScreen(),
+  AppRoutes.categories: (_) => const CategoriesScreen(),
+  AppRoutes.units: (ctx) => BlocProvider(
+        create: (context) =>
+            UnitsBloc(context.read<UnitsRepository>())..add(LoadUnits()),
+        child: const UnitsScreen(),
+      ),
+  AppRoutes.reports: (_) => const ReportsScreen(),
+  AppRoutes.cashLedger: (_) => const CashLedgerScreen(),
+  AppRoutes.settings: (_) => const SettingsScreen(),
+  AppRoutes.about: (_) => const AboutScreen(),
 };
 
-const _kIndexRoute = <int, String>{
-  0: AppRoutes.home,
-  1: AppRoutes.sales,
-  2: AppRoutes.stock,
-  3: AppRoutes.purchase,
-  4: AppRoutes.items,
-  5: AppRoutes.customers,
-  6: AppRoutes.suppliers,
-  7: AppRoutes.categories,
-  8: AppRoutes.units,
-  9: AppRoutes.reports,
-  10: AppRoutes.cashLedger,
-  11: AppRoutes.settings,
-  12: AppRoutes.about,
-};
+final List<String> _kRoutes = List.unmodifiable(_kRouteBuilders.keys);
+
+int? _routeToIndex(String route) {
+  final index = _kRoutes.indexOf(route);
+  return index >= 0 ? index : null;
+}
+
+String _indexToRoute(int index) {
+  if (index >= 0 && index < _kRoutes.length) {
+    return _kRoutes[index];
+  }
+  return AppRoutes.home;
+}
 
 // ---------------------------------------------------------------------------
 // AppShell
@@ -106,7 +147,7 @@ class AppShell extends StatefulWidget {
     final state = context.findAncestorStateOfType<_AppShellState>();
     if (state == null) return;
 
-    final index = _kRouteIndex[route];
+    final index = _routeToIndex(route);
     if (index == null) return;
 
     state._setIndex(index);
@@ -123,7 +164,7 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
-    _currentIndex = _kRouteIndex[widget.initialRoute] ?? 0;
+    _currentIndex = _routeToIndex(widget.initialRoute) ?? 0;
   }
 
   void _setIndex(int index) {
@@ -131,7 +172,7 @@ class _AppShellState extends State<AppShell> {
     setState(() => _currentIndex = index);
   }
 
-  String get _currentRoute => _kIndexRoute[_currentIndex] ?? AppRoutes.home;
+  String get _currentRoute => _indexToRoute(_currentIndex);
 
   Widget _getOrCreateScreen(int index, BuildContext context) {
     return _screenCache.putIfAbsent(index, () => _buildScreen(index, context));
@@ -140,34 +181,21 @@ class _AppShellState extends State<AppShell> {
   // ── Keyboard shortcuts ──────────────────────────────────────────────────
   static const _shortcuts = <ShortcutActivator, Intent>{
     SingleActivator(LogicalKeyboardKey.keyN, control: true): _NewSaleIntent(),
-    SingleActivator(LogicalKeyboardKey.keyR, control: true): _RefreshIntent(),
     SingleActivator(LogicalKeyboardKey.keyB, control: true):
         _ToggleSidebarIntent(),
   };
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Shortcuts(
       shortcuts: _shortcuts,
       child: Actions(
         actions: <Type, Action<Intent>>{
           _NewSaleIntent: CallbackAction<_NewSaleIntent>(onInvoke: (_) {
-            _setIndex(_kRouteIndex[AppRoutes.sales]!);
-            return null;
-          }),
-          _RefreshIntent: CallbackAction<_RefreshIntent>(onInvoke: (_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  localizations.refreshingData,
-                  style: TextStyle(color: colorScheme.onInverseSurface),
-                ),
-                backgroundColor: colorScheme.inverseSurface,
-              ),
-            );
+            final salesIndex = _routeToIndex(AppRoutes.sales);
+            if (salesIndex != null) {
+              _setIndex(salesIndex);
+            }
             return null;
           }),
           _ToggleSidebarIntent:
@@ -195,7 +223,7 @@ class _AppShellState extends State<AppShell> {
                         child: IndexedStack(
                           index: _currentIndex,
                           children: List.generate(
-                            _kIndexRoute.length,
+                            _kRoutes.length,
                             (index) {
                               if (index == _currentIndex) {
                                 return _getOrCreateScreen(index, context);
@@ -220,79 +248,12 @@ class _AppShellState extends State<AppShell> {
   /// Lazily builds one screen wrapped in its required BlocProviders.
   /// Each screen is created only on first visit and then kept in [_screenCache].
   Widget _buildScreen(int index, BuildContext context) {
-    switch (index) {
-      case 0:
-        return const HomeScreen();
-      case 1:
-        return BlocProvider(
-          create: (ctx) => SalesBloc(
-            invoiceRepository: ctx.read<InvoiceRepository>(),
-            itemsRepository: ctx.read<ItemsRepository>(),
-            customersRepository: ctx.read<CustomersRepository>(),
-            settingsRepository: ctx.read<SettingsRepository>(),
-            receiptRepository: ctx.read<ReceiptRepository>(),
-          ),
-          child: const SalesScreen(),
-        );
-      case 2:
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider(create: (_) => StockUiCubit()),
-            BlocProvider(
-              create: (ctx) => StockOverviewBloc(ctx.read<StockRepository>())
-                ..add(const LoadStockOverview()),
-            ),
-            BlocProvider(
-              create: (ctx) => StockFilterBloc(
-                ctx.read<SuppliersRepository>(),
-                ctx.read<CategoriesRepository>(),
-              )..add(LoadFilters()),
-            ),
-            BlocProvider(
-              create: (ctx) => StockActivityBloc(
-                ctx.read<StockActivityRepository>(),
-                ctx.read<ItemsRepository>(),
-                ctx.read<PurchaseRepository>(),
-                ctx.read<InvoiceRepository>(),
-              )..add(const LoadStockActivities()),
-            ),
-          ],
-          child: const StockScreen(),
-        );
-      case 3:
-        return BlocProvider(
-          create: (ctx) => PurchaseBloc(
-            purchaseRepository: ctx.read<PurchaseRepository>(),
-            suppliersRepository: ctx.read<SuppliersRepository>(),
-            itemsRepository: ctx.read<ItemsRepository>(),
-          )..add(InitializePurchase()),
-          child: const PurchaseScreen(),
-        );
-      case 4:
-        return const ItemsScreen();
-      case 5:
-        return const CustomersScreen();
-      case 6:
-        return const SuppliersScreen();
-      case 7:
-        return const CategoriesScreen();
-      case 8:
-        return BlocProvider(
-          create: (ctx) =>
-              UnitsBloc(ctx.read<UnitsRepository>())..add(LoadUnits()),
-          child: const UnitsScreen(),
-        );
-      case 9:
-        return const ReportsScreen();
-      case 10:
-        return const CashLedgerScreen();
-      case 11:
-        return const SettingsScreen();
-      case 12:
-        return const AboutScreen();
-      default:
-        return const HomeScreen();
+    final route = _indexToRoute(index);
+    final builder = _kRouteBuilders[route];
+    if (builder == null) {
+      return const HomeScreen();
     }
+    return builder(context);
   }
 }
 
@@ -302,10 +263,6 @@ class _AppShellState extends State<AppShell> {
 
 class _NewSaleIntent extends Intent {
   const _NewSaleIntent();
-}
-
-class _RefreshIntent extends Intent {
-  const _RefreshIntent();
 }
 
 class _ToggleSidebarIntent extends Intent {

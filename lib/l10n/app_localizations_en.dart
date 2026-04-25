@@ -549,31 +549,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appLanguage => 'App Language';
 
   @override
-  String get theme_title => 'Theme';
+  String get themeTitle => 'Theme';
 
   @override
-  String get theme_color => 'Theme Color';
+  String get themeColor => 'Theme Color';
 
   @override
-  String get theme_color_green => 'Green';
+  String get themeColorGreen => 'Green';
 
   @override
-  String get theme_color_blue => 'Blue';
+  String get themeColorBlue => 'Blue';
 
   @override
-  String get theme_color_orange => 'Orange';
+  String get themeColorOrange => 'Orange';
 
   @override
-  String get theme_mode => 'Theme Mode';
+  String get themeMode => 'Theme Mode';
 
   @override
-  String get theme_mode_light => 'Light';
+  String get themeModeLight => 'Light';
 
   @override
-  String get theme_mode_dark => 'Dark';
+  String get themeModeDark => 'Dark';
 
   @override
-  String get theme_mode_system => 'System';
+  String get themeModeSystem => 'System';
 
   @override
   String get dateFormat => 'Date Format';
@@ -682,6 +682,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phone => 'Phone';
+
+  @override
+  String get unableToOpenLink => 'Unable to open link.';
 
   @override
   String get viewOnlineGuide => 'View Online Guide';

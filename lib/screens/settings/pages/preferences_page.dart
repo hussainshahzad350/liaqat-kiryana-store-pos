@@ -19,6 +19,12 @@ class PreferencesPage extends StatelessWidget {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
         final prefs = state.preferences;
+        const allowedFormats = ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD'];
+        final dateFormatPref = prefs['dateFormat'];
+        final selectedDateFormat =
+            dateFormatPref is String && allowedFormats.contains(dateFormatPref)
+                ? dateFormatPref
+                : 'DD-MM-YYYY';
         final String currentLangCode =
             Localizations.localeOf(context).languageCode;
         String langLabel = currentLangCode == 'ur' ? 'اردو' : 'English';
@@ -55,15 +61,19 @@ class PreferencesPage extends StatelessWidget {
                     const SizedBox(height: AppTokens.spacingMedium),
                     Text(loc.dateFormat, style: const TextStyle(fontSize: 14)),
                     DropdownButton<String>(
-                      value: prefs['dateFormat'] ?? 'DD-MM-YYYY',
+                      value: selectedDateFormat,
                       isExpanded: true,
-                      items: const ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD']
+                      items: allowedFormats
                           .map(
                               (f) => DropdownMenuItem(value: f, child: Text(f)))
                           .toList(),
-                      onChanged: (v) => context
-                          .read<SettingsCubit>()
-                          .updatePreferences({'dateFormat': v}),
+                      onChanged: (v) {
+                        if (v != null) {
+                          context
+                              .read<SettingsCubit>()
+                              .updatePreferences({'dateFormat': v});
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -72,12 +82,12 @@ class PreferencesPage extends StatelessWidget {
               Consumer<ThemeProvider>(
                 builder: (context, themeProvider, child) {
                   return SettingSection(
-                    title: loc.theme_title,
+                    title: loc.themeTitle,
                     icon: Icons.palette_outlined,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(loc.theme_color,
+                        Text(loc.themeColor,
                             style: const TextStyle(fontSize: 14)),
                         DropdownButton<String>(
                           value: themeProvider.currentColor,
@@ -85,20 +95,19 @@ class PreferencesPage extends StatelessWidget {
                           items: [
                             DropdownMenuItem(
                                 value: 'green',
-                                child: Text(loc.theme_color_green)),
+                                child: Text(loc.themeColorGreen)),
                             DropdownMenuItem(
-                                value: 'blue',
-                                child: Text(loc.theme_color_blue)),
+                                value: 'blue', child: Text(loc.themeColorBlue)),
                             DropdownMenuItem(
                                 value: 'orange',
-                                child: Text(loc.theme_color_orange)),
+                                child: Text(loc.themeColorOrange)),
                           ],
                           onChanged: (v) {
                             if (v != null) themeProvider.setColor(v);
                           },
                         ),
                         const SizedBox(height: AppTokens.spacingMedium),
-                        Text(loc.theme_mode,
+                        Text(loc.themeMode,
                             style: const TextStyle(fontSize: 14)),
                         Row(
                           children: [
@@ -106,19 +115,19 @@ class PreferencesPage extends StatelessWidget {
                               mode: ThemeMode.light,
                               currentMode: themeProvider.themeMode,
                               onChanged: themeProvider.setMode,
-                              label: loc.theme_mode_light,
+                              label: loc.themeModeLight,
                             ),
                             _ThemeModeButton(
                               mode: ThemeMode.dark,
                               currentMode: themeProvider.themeMode,
                               onChanged: themeProvider.setMode,
-                              label: loc.theme_mode_dark,
+                              label: loc.themeModeDark,
                             ),
                             _ThemeModeButton(
                               mode: ThemeMode.system,
                               currentMode: themeProvider.themeMode,
                               onChanged: themeProvider.setMode,
-                              label: loc.theme_mode_system,
+                              label: loc.themeModeSystem,
                             ),
                           ],
                         ),
