@@ -115,6 +115,15 @@ final Map<String, Widget Function(BuildContext)> _kRouteBuilders = {
 
 final List<String> _kRoutes = List.unmodifiable(_kRouteBuilders.keys);
 
+/// Routes whose BlocProviders use one-shot `..add(...)` initializations.
+/// These screens are evicted from [_AppShellState._screenCache] and rebuilt
+/// on every navigation so their blocs always start with fresh data.
+const Set<String> _kNoCacheRoutes = {
+  AppRoutes.stock,
+  AppRoutes.purchase,
+  AppRoutes.units,
+};
+
 int? _routeToIndex(String route) {
   final index = _kRoutes.indexOf(route);
   return index >= 0 ? index : null;
@@ -161,15 +170,43 @@ class _AppShellState extends State<AppShell> {
   late int _currentIndex;
   final Map<int, Widget> _screenCache = {};
 
+  /// Per-route rebuild generation counter for [_kNoCacheRoutes].
+  /// Incrementing a route's count forces [_buildScreen] to produce a widget
+  /// with a new [ValueKey], which tells Flutter to dispose the old subtree
+  /// (and its BlocProviders/blocs) and mount a completely fresh one.
+  final Map<String, int> _refreshCounts = {};
+
+  /// Incremented every time the Home tab (index 0) becomes the active tab.
+  /// Passed to [HomeScreen] so it can trigger a data refresh via listener.
+  final ValueNotifier<int> _homeRefreshNotifier = ValueNotifier<int>(0);
+
   @override
   void initState() {
     super.initState();
     _currentIndex = _routeToIndex(widget.initialRoute) ?? 0;
   }
 
+  @override
+  void dispose() {
+    _homeRefreshNotifier.dispose();
+    super.dispose();
+  }
+
   void _setIndex(int index) {
     if (index == _currentIndex) return;
+    final route = _indexToRoute(index);
+    if (_kNoCacheRoutes.contains(route)) {
+      // Evict the stale cached widget so _buildScreen runs again with a new
+      // generation key, causing Flutter to fully dispose the old BlocProvider
+      // subtree and create fresh blocs with their one-shot ..add() calls.
+      _refreshCounts[route] = (_refreshCounts[route] ?? 0) + 1;
+      _screenCache.remove(index);
+    }
     setState(() => _currentIndex = index);
+    // Notify HomeScreen so it can refresh its dashboard data.
+    if (index == (_routeToIndex(AppRoutes.home) ?? 0)) {
+      _homeRefreshNotifier.value++;
+    }
   }
 
   String get _currentRoute => _indexToRoute(_currentIndex);
@@ -246,14 +283,31 @@ class _AppShellState extends State<AppShell> {
   }
 
   /// Lazily builds one screen wrapped in its required BlocProviders.
-  /// Each screen is created only on first visit and then kept in [_screenCache].
+  /// For [_kNoCacheRoutes], the returned widget is wrapped in a [KeyedSubtree]
+  /// whose key includes the current generation counter; when the counter
+  /// increments (in [_setIndex]) Flutter sees a new key and fully tears down
+  /// and remounts the subtree, re-running every BlocProvider `create:` callback
+  /// and every chained `..add(...)` initialization.
   Widget _buildScreen(int index, BuildContext context) {
     final route = _indexToRoute(index);
+    // HomeScreen receives the refresh notifier so it can reload dashboard data
+    // whenever the home tab becomes active (e.g. after completing a sale).
+    if (route == AppRoutes.home) {
+      return HomeScreen(refreshSignal: _homeRefreshNotifier);
+    }
     final builder = _kRouteBuilders[route];
     if (builder == null) {
       return const HomeScreen();
     }
-    return builder(context);
+    final child = builder(context);
+    if (_kNoCacheRoutes.contains(route)) {
+      final generation = _refreshCounts[route] ?? 0;
+      return KeyedSubtree(
+        key: ValueKey('$route-$generation'),
+        child: child,
+      );
+    }
+    return child;
   }
 }
 

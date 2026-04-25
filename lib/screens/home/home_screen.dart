@@ -24,6 +24,7 @@ class HomeScreen extends StatefulWidget {
     this.invoiceRepository,
     this.customersRepository,
     this.itemsRepository,
+    this.refreshSignal,
   });
 
   final Future<int> Function()? todaySalesLoader;
@@ -34,6 +35,12 @@ class HomeScreen extends StatefulWidget {
   final InvoiceRepository? invoiceRepository;
   final CustomersRepository? customersRepository;
   final ItemsRepository? itemsRepository;
+
+  /// Optional [Listenable] that signals the dashboard to reload its data.
+  /// [AppShell] increments this notifier each time the Home tab becomes active,
+  /// ensuring the dashboard is always fresh after navigating away and back
+  /// (e.g. after completing a sale on the Sales screen).
+  final Listenable? refreshSignal;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -69,11 +76,15 @@ class _HomeScreenState extends State<HomeScreen> {
         widget.itemsRepository ?? context.read<ItemsRepository>();
 
     dataTimer = Timer.periodic(const Duration(minutes: 5), (_) => _loadData());
+    widget.refreshSignal?.addListener(_onRefreshSignal);
     _loadData();
   }
 
+  void _onRefreshSignal() => _loadData();
+
   @override
   void dispose() {
+    widget.refreshSignal?.removeListener(_onRefreshSignal);
     _leftPanelScroller.dispose();
     _activitiesScroller.dispose();
     dataTimer?.cancel();
