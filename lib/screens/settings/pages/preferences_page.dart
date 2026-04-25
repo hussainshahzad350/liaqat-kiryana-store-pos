@@ -10,8 +10,50 @@ import '../../../core/theme/theme_provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../main.dart';
 
-class PreferencesPage extends StatelessWidget {
+class PreferencesPage extends StatefulWidget {
   const PreferencesPage({super.key});
+
+  @override
+  State<PreferencesPage> createState() => _PreferencesPageState();
+}
+
+class _PreferencesPageState extends State<PreferencesPage> {
+  late final TextEditingController _passwordController;
+  bool _isPasswordDirty = false;
+  String _lastSyncedPassword = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _syncPasswordDraft(Map<String, dynamic> prefs) {
+    final incomingPassword = (prefs['password'] as String?) ?? '';
+    if (_isPasswordDirty) return;
+    if (_passwordController.text == incomingPassword) {
+      _lastSyncedPassword = incomingPassword;
+      return;
+    }
+
+    _passwordController.text = incomingPassword;
+    _lastSyncedPassword = incomingPassword;
+  }
+
+  void _savePasswordDraft(BuildContext context) {
+    final value = _passwordController.text;
+    _lastSyncedPassword = value;
+    setState(() {
+      _isPasswordDirty = false;
+    });
+    context.read<SettingsCubit>().updatePreferences({'password': value});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +61,7 @@ class PreferencesPage extends StatelessWidget {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
         final prefs = state.preferences;
+        _syncPasswordDraft(prefs);
         const allowedFormats = ['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD'];
         final dateFormatPref = prefs['dateFormat'];
         final selectedDateFormat =
@@ -153,17 +196,36 @@ class PreferencesPage extends StatelessWidget {
                       Padding(
                         padding:
                             const EdgeInsets.only(top: AppTokens.spacingSmall),
-                        child: TextFormField(
-                          initialValue: prefs['password'],
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            labelText: loc.password,
-                            border: const OutlineInputBorder(),
-                            isDense: true,
-                          ),
-                          onChanged: (v) => context
-                              .read<SettingsCubit>()
-                              .updatePreferences({'password': v}),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: true,
+                              textInputAction: TextInputAction.done,
+                              decoration: InputDecoration(
+                                labelText: loc.password,
+                                border: const OutlineInputBorder(),
+                                isDense: true,
+                              ),
+                              onChanged: (_) {
+                                _isPasswordDirty = _passwordController.text !=
+                                    _lastSyncedPassword;
+                              },
+                              onFieldSubmitted: (_) =>
+                                  _savePasswordDraft(context),
+                            ),
+                            const SizedBox(height: AppTokens.spacingSmall),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: FilledButton(
+                                onPressed: _isPasswordDirty
+                                    ? () => _savePasswordDraft(context)
+                                    : null,
+                                child: Text(loc.save),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                   ],

@@ -1620,11 +1620,6 @@ class AppLocalizationsUr extends AppLocalizations {
   String get saveChangesSuccess => 'تبدیلی کامیابی سے محفوظ ہو گئی ہے';
 
   @override
-  String fieldRequired(String field) {
-    return '$field لازمی ہے';
-  }
-
-  @override
   String get noDataAvailable => 'کوئی ڈیٹا موجود نہیں';
 
   @override
@@ -2099,6 +2094,11 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get unknownError => 'ایک نامعلوم خرابی پیش آئی';
+
+  @override
+  String fieldRequired(String field) {
+    return '$field لازمی ہے';
+  }
 
   @override
   String get invalidPhone => 'فون نمبر غلط ہے';

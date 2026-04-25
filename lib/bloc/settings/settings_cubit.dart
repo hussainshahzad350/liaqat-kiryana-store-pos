@@ -32,17 +32,39 @@ class SettingsCubit extends Cubit<SettingsState> {
       clearMessageType: true,
     ));
     try {
-      final results = await Future.wait<dynamic>([
-        _repository.getShopProfile(),
-        _repository.getBackupFiles(),
-        _repository.getAppPreferences(),
-        _repository.getDatabaseStats(),
-      ]);
+      final profileFuture =
+          _repository.getShopProfile().then<Map<String, dynamic>>((value) {
+        if (value == null) return <String, dynamic>{};
+        return Map<String, dynamic>.from(value);
+      });
+      final backupsFuture = _repository
+          .getBackupFiles()
+          .then<List<Map<String, dynamic>>>((value) {
+        return List<Map<String, dynamic>>.from(
+          List.from(value).map((item) => Map<String, dynamic>.from(item)),
+        );
+      });
+      final prefsFuture =
+          _repository.getAppPreferences().then<Map<String, dynamic>>((value) {
+        return Map<String, dynamic>.from(value);
+      });
+      final statsFuture =
+          _repository.getDatabaseStats().then<Map<String, dynamic>>((value) {
+        return Map<String, dynamic>.from(value);
+      });
 
-      final profile = (results[0] as Map<String, dynamic>?) ?? {};
-      final backups = results[1] as List<Map<String, dynamic>>;
-      final prefs = results[2] as Map<String, dynamic>;
-      final stats = results[3] as Map<String, dynamic>;
+      await Future.wait<dynamic>([
+        profileFuture,
+        backupsFuture,
+        prefsFuture,
+        statsFuture,
+      ]);
+      if (isClosed) return;
+
+      final profile = await profileFuture;
+      final backups = await backupsFuture;
+      final prefs = await prefsFuture;
+      final stats = await statsFuture;
 
       emit(state.copyWith(
         isLoading: false,
@@ -52,6 +74,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         databaseStats: stats,
       ));
     } catch (e) {
+      if (isClosed) return;
       AppLogger.error('Failed to load settings data: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
@@ -77,7 +100,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     ));
     try {
       await _repository.updateShopProfile(data);
+      if (isClosed) return;
       final profile = await _repository.getShopProfile() ?? {};
+      if (isClosed) return;
       emit(state.copyWith(
         isLoading: false,
         shopProfile: profile,
@@ -87,6 +112,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         clearErrorMessage: true,
       ));
     } catch (e) {
+      if (isClosed) return;
       AppLogger.error('Failed to update shop profile: $e',
           tag: 'SettingsCubit');
       emit(state.copyWith(
@@ -109,7 +135,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     ));
     try {
       await _repository.updateAppPreferences(data);
+      if (isClosed) return;
       final prefs = await _repository.getAppPreferences();
+      if (isClosed) return;
       emit(state.copyWith(
         isLoading: false,
         preferences: prefs,
@@ -119,6 +147,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         clearErrorMessage: true,
       ));
     } catch (e) {
+      if (isClosed) return;
       AppLogger.error('Failed to update preferences: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
@@ -140,8 +169,10 @@ class SettingsCubit extends Cubit<SettingsState> {
     ));
     try {
       final path = await _repository.createManualBackup();
+      if (isClosed) return;
       if (path != null) {
         final backups = await _repository.getBackupFiles();
+        if (isClosed) return;
         emit(state.copyWith(
           isLoading: false,
           backups: backups,
@@ -160,6 +191,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         ));
       }
     } catch (e) {
+      if (isClosed) return;
       AppLogger.error('Failed to create backup: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
@@ -181,8 +213,10 @@ class SettingsCubit extends Cubit<SettingsState> {
     ));
     try {
       final success = await _repository.deleteBackup(path);
+      if (isClosed) return;
       if (success) {
         final backups = await _repository.getBackupFiles();
+        if (isClosed) return;
         emit(state.copyWith(
           isLoading: false,
           backups: backups,
@@ -201,6 +235,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         ));
       }
     } catch (e) {
+      if (isClosed) return;
       AppLogger.error('Failed to delete backup: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
@@ -222,7 +257,10 @@ class SettingsCubit extends Cubit<SettingsState> {
     ));
     try {
       final success = await _repository.restoreBackup(path);
+      if (isClosed) return;
       if (success) {
+        await loadAll();
+        if (isClosed) return;
         emit(state.copyWith(
           isLoading: false,
           messageKey: _msgRestoreSuccess,
@@ -240,6 +278,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         ));
       }
     } catch (e) {
+      if (isClosed) return;
       AppLogger.error('Failed to restore backup: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,
@@ -261,8 +300,10 @@ class SettingsCubit extends Cubit<SettingsState> {
     ));
     try {
       final success = await _repository.vacuumDatabase();
+      if (isClosed) return;
       if (success) {
         final stats = await _repository.getDatabaseStats();
+        if (isClosed) return;
         emit(state.copyWith(
           isLoading: false,
           databaseStats: stats,
@@ -281,6 +322,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         ));
       }
     } catch (e) {
+      if (isClosed) return;
       AppLogger.error('Failed to optimize database: $e', tag: 'SettingsCubit');
       emit(state.copyWith(
         isLoading: false,

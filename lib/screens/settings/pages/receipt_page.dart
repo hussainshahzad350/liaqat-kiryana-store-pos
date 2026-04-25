@@ -49,42 +49,42 @@ class ReceiptPage extends StatelessWidget {
                   children: [
                     OptionSwitch(
                       title: loc.showLogo,
-                      value: prefs['showLogo'] ?? true,
+                      value: (prefs['showLogo'] as bool?) ?? true,
                       onChanged: (v) => context
                           .read<SettingsCubit>()
                           .updatePreferences({'showLogo': v}),
                     ),
                     OptionSwitch(
                       title: loc.showShopAddress,
-                      value: prefs['showAddress'] ?? true,
+                      value: (prefs['showAddress'] as bool?) ?? true,
                       onChanged: (v) => context
                           .read<SettingsCubit>()
                           .updatePreferences({'showAddress': v}),
                     ),
                     OptionSwitch(
                       title: loc.showPhone,
-                      value: prefs['showPhone'] ?? true,
+                      value: (prefs['showPhone'] as bool?) ?? true,
                       onChanged: (v) => context
                           .read<SettingsCubit>()
                           .updatePreferences({'showPhone': v}),
                     ),
                     OptionSwitch(
                       title: loc.showDateTime,
-                      value: prefs['showDateTime'] ?? true,
+                      value: (prefs['showDateTime'] as bool?) ?? true,
                       onChanged: (v) => context
                           .read<SettingsCubit>()
                           .updatePreferences({'showDateTime': v}),
                     ),
                     OptionSwitch(
                       title: loc.showCustomerDetails,
-                      value: prefs['showCustomer'] ?? true,
+                      value: (prefs['showCustomer'] as bool?) ?? true,
                       onChanged: (v) => context
                           .read<SettingsCubit>()
                           .updatePreferences({'showCustomer': v}),
                     ),
                     OptionSwitch(
                       title: loc.showPaymentDetails,
-                      value: prefs['showPayment'] ?? true,
+                      value: (prefs['showPayment'] as bool?) ?? true,
                       onChanged: (v) => context
                           .read<SettingsCubit>()
                           .updatePreferences({'showPayment': v}),

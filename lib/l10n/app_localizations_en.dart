@@ -1623,11 +1623,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveChangesSuccess => 'Changes saved successfully';
 
   @override
-  String fieldRequired(String field) {
-    return '$field is required';
-  }
-
-  @override
   String get noDataAvailable => 'No Data Available';
 
   @override
@@ -2102,6 +2097,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknownError => 'An unknown error occurred';
+
+  @override
+  String fieldRequired(String field) {
+    return '$field is required';
+  }
 
   @override
   String get invalidPhone => 'Invalid phone number';

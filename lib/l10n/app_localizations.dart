@@ -3260,12 +3260,6 @@ abstract class AppLocalizations {
   /// **'Changes saved successfully'**
   String get saveChangesSuccess;
 
-  /// No description provided for @fieldRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'{field} is required'**
-  String fieldRequired(String field);
-
   /// No description provided for @noDataAvailable.
   ///
   /// In en, this message translates to:
@@ -4117,6 +4111,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An unknown error occurred'**
   String get unknownError;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} is required'**
+  String fieldRequired(String field);
 
   /// No description provided for @invalidPhone.
   ///

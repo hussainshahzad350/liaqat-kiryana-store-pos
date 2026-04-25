@@ -49,7 +49,7 @@ void main() async {
 
   final SettingsRepository settingsRepository = SettingsRepository();
   final initialPrefs = await settingsRepository.getAppPreferences();
-  final String languageCode = initialPrefs['languageCode'] ?? 'en';
+  final String languageCode = initialPrefs['language'] ?? 'en';
 
   runApp(
     MultiProvider(
@@ -114,7 +114,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
     }
 
     final repo = SettingsRepository();
-    await repo.updateAppPreferences({'languageCode': locale.languageCode});
+    await repo.updateAppPreferences({'language': locale.languageCode});
   }
 
   @override
@@ -146,10 +146,33 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
             AppRoutes.home: (context) => const AppShell(
                   initialRoute: AppRoutes.home,
                 ),
-            AppRoutes.logout: (context) => const LoginScreen(),
+            AppRoutes.logout: (context) => const LogoutScreen(),
           },
         );
       },
     );
+  }
+}
+
+class LogoutScreen extends StatefulWidget {
+  const LogoutScreen({super.key});
+
+  @override
+  State<LogoutScreen> createState() => _LogoutScreenState();
+}
+
+class _LogoutScreenState extends State<LogoutScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
   }
 }
