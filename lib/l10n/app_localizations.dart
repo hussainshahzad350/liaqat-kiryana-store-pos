@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'Product'**
   String get product;
 
+  /// No description provided for @accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get accounts;
+
   /// No description provided for @customers.
   ///
   /// In en, this message translates to:

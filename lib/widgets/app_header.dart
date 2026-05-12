@@ -23,6 +23,10 @@ class AppHeader extends StatelessWidget {
         return localizations.stockManagement;
       case AppRoutes.customers:
         return localizations.customers;
+      case AppRoutes.suppliers:
+        return localizations.suppliers;
+      case AppRoutes.accounts:
+        return localizations.accounts;
       case AppRoutes.reports:
         return localizations.reports;
       case AppRoutes.settings:

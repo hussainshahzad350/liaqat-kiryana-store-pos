@@ -10,6 +10,7 @@ class AppRoutes {
   static const String stock = '/stock';
   static const String purchase = '/purchase';
   static const String product = '/product';
+  static const String accounts = '/accounts';
   static const String customers = '/customers';
   static const String suppliers = '/suppliers';
   static const String reports = '/reports';

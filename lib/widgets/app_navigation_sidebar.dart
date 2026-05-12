@@ -90,16 +90,9 @@ class AppNavigationSidebar extends StatelessWidget {
                   _buildMenuItem(
                     context,
                     isExpanded: isExpanded,
-                    icon: Icons.people,
-                    title: localizations.customers,
-                    route: AppRoutes.customers,
-                  ),
-                  _buildMenuItem(
-                    context,
-                    isExpanded: isExpanded,
-                    icon: Icons.business,
-                    title: localizations.suppliers,
-                    route: AppRoutes.suppliers,
+                    icon: Icons.account_balance_wallet,
+                    title: localizations.accounts,
+                    route: AppRoutes.accounts,
                   ),
                   _buildMenuItem(
                     context,
