@@ -53,6 +53,7 @@ void main() {
               any(),
               reason: any(named: 'reason'),
               reference: any(named: 'reference'),
+              user: any(named: 'user'),
             )).thenAnswer((_) async => 1);
         return buildBloc();
       },
@@ -65,6 +66,7 @@ void main() {
         ),
       ),
       expect: () => [
+        isA<StockActivityProcessing>(),
         isA<StockActivityActionSuccess>(),
         isA<StockActivityLoading>(),
         isA<StockActivityLoaded>(),
@@ -75,6 +77,7 @@ void main() {
               2,
               reason: 'manual',
               reference: 'ref-1',
+              user: 'SYSTEM',
             )).called(1);
       },
     );
@@ -89,6 +92,7 @@ void main() {
               any(),
               reason: any(named: 'reason'),
               reference: any(named: 'reference'),
+              user: any(named: 'user'),
             )).thenThrow(Exception('adjust failed'));
         return buildBloc();
       },
@@ -101,6 +105,7 @@ void main() {
         ),
       ),
       expect: () => [
+        isA<StockActivityProcessing>(),
         isA<StockActivityActionError>(),
       ],
       verify: (_) {
@@ -109,6 +114,7 @@ void main() {
               -999,
               reason: 'manual',
               reference: 'ref-2',
+              user: 'SYSTEM',
             )).called(1);
       },
     );

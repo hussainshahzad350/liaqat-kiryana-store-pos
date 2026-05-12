@@ -370,11 +370,20 @@ void main() {
       build: () {
         when(() => repository.restoreBackup(any()))
             .thenAnswer((_) async => true);
+        when(() => repository.getShopProfile())
+            .thenAnswer((_) async => <String, dynamic>{});
+        when(() => repository.getBackupFiles())
+            .thenAnswer((_) async => <Map<String, dynamic>>[]);
+        when(() => repository.getAppPreferences())
+            .thenAnswer((_) async => <String, dynamic>{});
+        when(() => repository.getDatabaseStats())
+            .thenAnswer((_) async => <String, dynamic>{});
         return buildCubit();
       },
       act: (cubit) => cubit.restoreBackup(backupPath),
       expect: () => [
         SettingsState(isLoading: true),
+        SettingsState(isLoading: false),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
             .having(

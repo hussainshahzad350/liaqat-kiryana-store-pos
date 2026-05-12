@@ -96,6 +96,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get items => 'Items';
 
   @override
+  String get product => 'Product';
+
+  @override
   String get customers => 'Customers';
 
   @override

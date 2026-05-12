@@ -37,6 +37,11 @@ void main() {
         isA<StockFilterState>().having(
           (s) => s.searchQuery,
           'searchQuery',
+          'r',
+        ),
+        isA<StockFilterState>().having(
+          (s) => s.searchQuery,
+          'searchQuery',
           'rice',
         ),
       ],

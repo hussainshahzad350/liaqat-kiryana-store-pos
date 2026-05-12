@@ -84,8 +84,8 @@ class AppNavigationSidebar extends StatelessWidget {
                     context,
                     isExpanded: isExpanded,
                     icon: Icons.inventory,
-                    title: localizations.items,
-                    route: AppRoutes.items,
+                    title: localizations.product,
+                    route: AppRoutes.product,
                   ),
                   _buildMenuItem(
                     context,
@@ -100,20 +100,6 @@ class AppNavigationSidebar extends StatelessWidget {
                     icon: Icons.business,
                     title: localizations.suppliers,
                     route: AppRoutes.suppliers,
-                  ),
-                  _buildMenuItem(
-                    context,
-                    isExpanded: isExpanded,
-                    icon: Icons.category,
-                    title: localizations.categories,
-                    route: AppRoutes.categories,
-                  ),
-                  _buildMenuItem(
-                    context,
-                    isExpanded: isExpanded,
-                    icon: Icons.square_foot,
-                    title: localizations.units,
-                    route: AppRoutes.units,
                   ),
                   _buildMenuItem(
                     context,

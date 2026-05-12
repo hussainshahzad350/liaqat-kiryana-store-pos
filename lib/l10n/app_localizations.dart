@@ -272,6 +272,12 @@ abstract class AppLocalizations {
   /// **'Items'**
   String get items;
 
+  /// No description provided for @product.
+  ///
+  /// In en, this message translates to:
+  /// **'Product'**
+  String get product;
+
   /// No description provided for @customers.
   ///
   /// In en, this message translates to:

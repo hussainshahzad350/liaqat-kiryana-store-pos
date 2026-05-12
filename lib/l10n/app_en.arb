@@ -29,6 +29,7 @@
   "current": "Current",
   "required": "Required",
   "items": "Items",
+  "product": "Product",
   "customers": "Customers",
   "suppliers": "Suppliers",
   "categories": "Categories",

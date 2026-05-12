@@ -978,11 +978,15 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Icon(Icons.people, color: colorScheme.tertiary, size: 28),
                 const SizedBox(width: AppTokens.spacingStandard),
-                Text(
-                  localizations.todaysCustomers,
-                  style: textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface),
+                Expanded(
+                  child: Text(
+                    localizations.todaysCustomers,
+                    style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -1181,13 +1185,16 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Icon(Icons.timeline, color: colorScheme.primary, size: 28),
                 const SizedBox(width: AppTokens.spacingStandard),
-                Text(
-                  localizations.recentActivities,
-                  style: textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface),
+                Expanded(
+                  child: Text(
+                    localizations.recentActivities,
+                    style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const Spacer(),
                 if (_isRefreshing)
                   SizedBox(
                     width: 16,

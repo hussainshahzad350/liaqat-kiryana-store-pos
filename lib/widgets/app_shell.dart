@@ -18,8 +18,6 @@ import '../bloc/stock/stock_filter/stock_filter_event.dart';
 import '../bloc/stock/stock_overview/stock_overview_bloc.dart';
 import '../bloc/stock/stock_overview/stock_overview_event.dart';
 import '../bloc/stock/stock_ui/stock_ui_cubit.dart';
-import '../bloc/units/units_bloc.dart';
-import '../bloc/units/units_event.dart';
 import '../core/cubits/sidebar_cubit.dart';
 import '../core/repositories/categories_repository.dart';
 import '../core/repositories/customers_repository.dart';
@@ -31,21 +29,18 @@ import '../core/repositories/settings_repository.dart';
 import '../core/repositories/stock_activity_repository.dart';
 import '../core/repositories/stock_repository.dart';
 import '../core/repositories/suppliers_repository.dart';
-import '../core/repositories/units_repository.dart';
 import '../core/routes/app_routes.dart';
 import '../screens/about/about_screen.dart';
 import '../screens/cash_ledger/cash_ledger_screen.dart';
-import '../screens/categories/categories_screen.dart';
 import '../screens/customers/customers_screen.dart';
 import '../screens/home/home_screen.dart';
-import '../screens/items/items_screen.dart';
 import '../screens/purchase/purchase_screen.dart';
 import '../screens/reports/reports_screen.dart';
 import '../screens/sales/sales_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/stock/stock_screen.dart';
 import '../screens/suppliers/suppliers_screen.dart';
-import '../screens/units/units_screen.dart';
+import '../screens/product/product_screen.dart';
 import 'app_header.dart';
 import 'app_navigation_sidebar.dart';
 
@@ -98,15 +93,13 @@ final Map<String, Widget Function(BuildContext)> _kRouteBuilders = {
         )..add(InitializePurchase()),
         child: const PurchaseScreen(),
       ),
-  AppRoutes.items: (_) => const ItemsScreen(),
+  AppRoutes.product: (_) => const ProductScreen(),
+  // Backward compatibility: redirect legacy master-data routes to Product tabs.
+  '/items': (_) => const ProductScreen(initialTabIndex: 0),
+  '/categories': (_) => const ProductScreen(initialTabIndex: 1),
+  '/units': (_) => const ProductScreen(initialTabIndex: 2),
   AppRoutes.customers: (_) => const CustomersScreen(),
   AppRoutes.suppliers: (_) => const SuppliersScreen(),
-  AppRoutes.categories: (_) => const CategoriesScreen(),
-  AppRoutes.units: (ctx) => BlocProvider(
-        create: (context) =>
-            UnitsBloc(context.read<UnitsRepository>())..add(LoadUnits()),
-        child: const UnitsScreen(),
-      ),
   AppRoutes.reports: (_) => const ReportsScreen(),
   AppRoutes.cashLedger: (_) => const CashLedgerScreen(),
   AppRoutes.settings: (_) => const SettingsScreen(),
@@ -121,7 +114,6 @@ final List<String> _kRoutes = List.unmodifiable(_kRouteBuilders.keys);
 const Set<String> _kNoCacheRoutes = {
   AppRoutes.stock,
   AppRoutes.purchase,
-  AppRoutes.units,
 };
 
 int? _routeToIndex(String route) {

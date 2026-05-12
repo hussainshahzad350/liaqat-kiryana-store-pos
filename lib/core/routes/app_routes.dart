@@ -9,11 +9,9 @@ class AppRoutes {
   static const String sales = '/sales';
   static const String stock = '/stock';
   static const String purchase = '/purchase';
-  static const String items = '/items';
+  static const String product = '/product';
   static const String customers = '/customers';
   static const String suppliers = '/suppliers';
-  static const String categories = '/categories';
-  static const String units = '/units';
   static const String reports = '/reports';
   static const String cashLedger = '/cash-ledger';
   static const String settings = '/settings';
