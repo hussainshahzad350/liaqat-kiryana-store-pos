@@ -119,6 +119,7 @@ void main() {
       final tabBarElement = tester.element(find.byType(TabBar));
       final tabController = DefaultTabController.of(tabBarElement);
       expect(tabController.index, 2);
+      expect(find.text('Product'), findsWidgets);
       expect(find.text('UNITS'), findsNothing);
     });
   });

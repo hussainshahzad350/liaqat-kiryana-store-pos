@@ -14,11 +14,11 @@ class AppRoutes {
   static const String legacyCategories = '/categories';
   static const String legacyUnits = '/units';
 
-  @Deprecated('Use AppRoutes.product and ProductScreen(initialTabIndex: 0).')
+  @Deprecated('Use AppRoutes.product with AppShell navigation.')
   static const String items = legacyItems;
-  @Deprecated('Use AppRoutes.product and ProductScreen(initialTabIndex: 1).')
+  @Deprecated('Use AppRoutes.product with AppShell navigation.')
   static const String categories = legacyCategories;
-  @Deprecated('Use AppRoutes.product and ProductScreen(initialTabIndex: 2).')
+  @Deprecated('Use AppRoutes.product with AppShell navigation.')
   static const String units = legacyUnits;
 
   static const String accounts = '/accounts';

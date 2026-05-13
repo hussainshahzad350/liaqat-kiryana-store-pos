@@ -205,12 +205,15 @@ class _AppShellState extends State<AppShell> {
 
   void _setIndex(int index, {int? productTabIndex}) {
     final route = _indexToRoute(index);
+    final previousProductTabIndex = _productTabIndex;
     if (route == AppRoutes.product) {
       _productTabIndex = productTabIndex ?? 0;
     }
 
     if (index == _currentIndex) {
-      if (route == AppRoutes.product && productTabIndex != null) {
+      if (route == AppRoutes.product &&
+          productTabIndex != null &&
+          _productTabIndex != previousProductTabIndex) {
         _refreshCounts[route] = (_refreshCounts[route] ?? 0) + 1;
         _screenCache.remove(index);
         setState(() {});
