@@ -1,20 +1,29 @@
 // test/integration/repository_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:liaqat_store/core/database/database_helper.dart';
+import 'package:liaqat_store/core/repositories/cash_repository.dart';
 import 'package:liaqat_store/core/repositories/customers_repository.dart';
 import 'package:liaqat_store/core/repositories/invoice_repository.dart';
 import 'package:liaqat_store/core/repositories/items_repository.dart';
-import 'package:liaqat_store/core/repositories/cash_repository.dart';
 import 'package:liaqat_store/core/repositories/stock_repository.dart';
 import 'package:liaqat_store/domain/entities/money.dart';
 import 'package:liaqat_store/models/customer_model.dart';
+import 'package:sqflite_common/sqlite_api.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+@Tags(['database'])
 void main() {
+  late DatabaseFactory previousDatabaseFactory;
+
   // Initialize FFI for desktop testing
   setUpAll(() {
     sqfliteFfiInit();
+    previousDatabaseFactory = databaseFactory;
     databaseFactory = databaseFactoryFfi;
+  });
+
+  tearDownAll(() {
+    databaseFactory = previousDatabaseFactory;
   });
 
   setUp(() async {

@@ -1,17 +1,25 @@
 // test/unit/purchase_repository_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:liaqat_store/core/database/database_helper.dart';
-import 'package:liaqat_store/core/repositories/purchase_repository.dart';
 import 'package:liaqat_store/core/repositories/items_repository.dart';
+import 'package:liaqat_store/core/repositories/purchase_repository.dart';
+import 'package:sqflite_common/sqlite_api.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+@Tags(['database'])
 void main() {
   late PurchaseRepository purchaseRepo;
   late ItemsRepository itemsRepo;
+  late DatabaseFactory previousDatabaseFactory;
 
   setUpAll(() {
     sqfliteFfiInit();
+    previousDatabaseFactory = databaseFactory;
     databaseFactory = databaseFactoryFfi;
+  });
+
+  tearDownAll(() {
+    databaseFactory = previousDatabaseFactory;
   });
 
   setUp(() async {
@@ -148,7 +156,8 @@ void main() {
       );
     });
 
-    test('should provide helpful error message with product name', () async {
+    test('should include cancellation error code when stock is insufficient',
+        () async {
       // Create a purchase
       final purchaseId = await purchaseRepo.createPurchase(
         supplierId: 1,

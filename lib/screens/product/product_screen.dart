@@ -16,10 +16,11 @@ class ProductScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final safeTabIndex = initialTabIndex.clamp(0, 2).toInt();
 
     return DefaultTabController(
       length: 3,
-      initialIndex: initialTabIndex,
+      initialIndex: safeTabIndex,
       child: Padding(
         padding: const EdgeInsets.all(AppTokens.spacingLarge),
         child: Column(
