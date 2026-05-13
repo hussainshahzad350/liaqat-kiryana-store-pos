@@ -99,6 +99,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get product => 'پروڈکٹ';
 
   @override
+  String get accounts => 'کھاتے';
+
+  @override
   String get customers => 'گاہک';
 
   @override

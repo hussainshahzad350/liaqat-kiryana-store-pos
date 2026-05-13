@@ -30,6 +30,7 @@
   "required": "Required",
   "items": "Items",
   "product": "Product",
+  "accounts": "Accounts",
   "customers": "Customers",
   "suppliers": "Suppliers",
   "categories": "Categories",

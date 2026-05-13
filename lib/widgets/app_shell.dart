@@ -32,15 +32,14 @@ import '../core/repositories/suppliers_repository.dart';
 import '../core/routes/app_routes.dart';
 import '../screens/about/about_screen.dart';
 import '../screens/cash_ledger/cash_ledger_screen.dart';
-import '../screens/customers/customers_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/purchase/purchase_screen.dart';
 import '../screens/reports/reports_screen.dart';
 import '../screens/sales/sales_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/stock/stock_screen.dart';
-import '../screens/suppliers/suppliers_screen.dart';
 import '../screens/product/product_screen.dart';
+import '../screens/accounts/accounts_screen.dart';
 import 'app_header.dart';
 import 'app_navigation_sidebar.dart';
 
@@ -98,8 +97,10 @@ final Map<String, Widget Function(BuildContext)> _kRouteBuilders = {
   '/items': (_) => const ProductScreen(initialTabIndex: 0),
   '/categories': (_) => const ProductScreen(initialTabIndex: 1),
   '/units': (_) => const ProductScreen(initialTabIndex: 2),
-  AppRoutes.customers: (_) => const CustomersScreen(),
-  AppRoutes.suppliers: (_) => const SuppliersScreen(),
+  AppRoutes.accounts: (_) => const AccountsScreen(),
+  // Backward compatibility: redirect legacy account routes to Accounts tabs.
+  AppRoutes.customers: (_) => const AccountsScreen(initialTabIndex: 0),
+  AppRoutes.suppliers: (_) => const AccountsScreen(initialTabIndex: 1),
   AppRoutes.reports: (_) => const ReportsScreen(),
   AppRoutes.cashLedger: (_) => const CashLedgerScreen(),
   AppRoutes.settings: (_) => const SettingsScreen(),
