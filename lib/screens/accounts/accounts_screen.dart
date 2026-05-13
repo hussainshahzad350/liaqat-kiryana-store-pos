@@ -19,35 +19,46 @@ class AccountsScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       initialIndex: initialTabIndex,
-      child: Padding(
-        padding: const EdgeInsets.all(AppTokens.spacingLarge),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              localizations.accounts,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Only the header area is padded — the embedded screens handle
+          // their own inner padding, so we must not double-wrap them.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTokens.spacingLarge,
+              AppTokens.spacingLarge,
+              AppTokens.spacingLarge,
+              0,
             ),
-            const SizedBox(height: AppTokens.spacingMedium),
-            TabBar(
-              tabs: [
-                Tab(text: localizations.customers),
-                Tab(text: localizations.suppliers),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  localizations.accounts,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: AppTokens.spacingMedium),
+                TabBar(
+                  tabs: [
+                    Tab(text: localizations.customers),
+                    Tab(text: localizations.suppliers),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(height: AppTokens.spacingMedium),
-            const Expanded(
-              child: TabBarView(
-                children: [
-                  CustomersManagementView(),
-                  SuppliersManagementView(),
-                ],
-              ),
+          ),
+          const Expanded(
+            child: TabBarView(
+              children: [
+                CustomersManagementView(),
+                SuppliersManagementView(),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

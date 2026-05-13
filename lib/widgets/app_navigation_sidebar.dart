@@ -93,6 +93,7 @@ class AppNavigationSidebar extends StatelessWidget {
                     icon: Icons.account_balance_wallet,
                     title: localizations.accounts,
                     route: AppRoutes.accounts,
+                    activeRoutes: const {AppRoutes.customers, AppRoutes.suppliers},
                   ),
                   _buildMenuItem(
                     context,
@@ -215,10 +216,12 @@ class AppNavigationSidebar extends StatelessWidget {
     required IconData icon,
     required String title,
     required String route,
+    Set<String>? activeRoutes,
     Color? color,
     VoidCallback? onTap,
   }) {
-    final isActive = currentRoute == route;
+    final isActive = currentRoute == route ||
+        (activeRoutes != null && activeRoutes.contains(currentRoute));
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
