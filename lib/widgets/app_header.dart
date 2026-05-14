@@ -33,8 +33,6 @@ class AppHeader extends StatelessWidget {
         return localizations.settings;
       case AppRoutes.cashLedger:
         return localizations.cashLedger;
-      case AppRoutes.about:
-        return localizations.about;
       default:
         // Try to capitalize and format unknown routes or return empty
         return route.replaceAll('/', '').replaceAll('_', ' ').toUpperCase();

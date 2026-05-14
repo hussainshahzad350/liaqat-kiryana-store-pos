@@ -27,7 +27,6 @@ class AppRoutes {
   static const String reports = '/reports';
   static const String cashLedger = '/cash-ledger';
   static const String settings = '/settings';
-  static const String about = '/about';
   static const String login = '/';
   static const String logout = '/logout';
 }

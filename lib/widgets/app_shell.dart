@@ -30,7 +30,6 @@ import '../core/repositories/stock_activity_repository.dart';
 import '../core/repositories/stock_repository.dart';
 import '../core/repositories/suppliers_repository.dart';
 import '../core/routes/app_routes.dart';
-import '../screens/about/about_screen.dart';
 import '../screens/cash_ledger/cash_ledger_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/purchase/purchase_screen.dart';
@@ -100,7 +99,6 @@ final Map<String, Widget Function(BuildContext)> _kRouteBuilders = {
   AppRoutes.reports: (_) => const ReportsScreen(),
   AppRoutes.cashLedger: (_) => const CashLedgerScreen(),
   AppRoutes.settings: (_) => const SettingsScreen(),
-  AppRoutes.about: (_) => const AboutScreen(),
 };
 
 final List<String> _kRoutes = List.unmodifiable(_kRouteBuilders.keys);
