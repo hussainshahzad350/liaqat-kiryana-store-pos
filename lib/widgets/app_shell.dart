@@ -93,10 +93,6 @@ final Map<String, Widget Function(BuildContext)> _kRouteBuilders = {
         child: const PurchaseScreen(),
       ),
   AppRoutes.product: (_) => const ProductScreen(),
-  // Backward compatibility: redirect legacy master-data routes to Product tabs.
-  '/items': (_) => const ProductScreen(initialTabIndex: 0),
-  '/categories': (_) => const ProductScreen(initialTabIndex: 1),
-  '/units': (_) => const ProductScreen(initialTabIndex: 2),
   AppRoutes.accounts: (_) => const AccountsScreen(),
   // Backward compatibility: redirect legacy account routes to Accounts tabs.
   AppRoutes.customers: (_) => const AccountsScreen(initialTabIndex: 0),
@@ -115,10 +111,26 @@ final List<String> _kRoutes = List.unmodifiable(_kRouteBuilders.keys);
 const Set<String> _kNoCacheRoutes = {
   AppRoutes.stock,
   AppRoutes.purchase,
+  AppRoutes.product,
 };
 
+const Map<String, int> _kLegacyProductTabRoutes = {
+  AppRoutes.legacyItems: 0,
+  AppRoutes.legacyCategories: 1,
+  AppRoutes.legacyUnits: 2,
+};
+
+({String route, int? productTabIndex}) _canonicalizeRoute(String route) {
+  final tabIndex = _kLegacyProductTabRoutes[route];
+  if (tabIndex != null) {
+    return (route: AppRoutes.product, productTabIndex: tabIndex);
+  }
+  return (route: route, productTabIndex: null);
+}
+
 int? _routeToIndex(String route) {
-  final index = _kRoutes.indexOf(route);
+  final canonicalRoute = _canonicalizeRoute(route).route;
+  final index = _kRoutes.indexOf(canonicalRoute);
   return index >= 0 ? index : null;
 }
 
@@ -148,11 +160,7 @@ class AppShell extends StatefulWidget {
   static void navigateTo(BuildContext context, String route) {
     final state = context.findAncestorStateOfType<_AppShellState>();
     if (state == null) return;
-
-    final index = _routeToIndex(route);
-    if (index == null) return;
-
-    state._setIndex(index);
+    state._navigateToRoute(route);
   }
 
   @override
@@ -161,6 +169,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   late int _currentIndex;
+  late int _productTabIndex;
   final Map<int, Widget> _screenCache = {};
 
   /// Per-route rebuild generation counter for [_kNoCacheRoutes].
@@ -176,7 +185,9 @@ class _AppShellState extends State<AppShell> {
   @override
   void initState() {
     super.initState();
-    _currentIndex = _routeToIndex(widget.initialRoute) ?? 0;
+    final initialRoute = _canonicalizeRoute(widget.initialRoute);
+    _currentIndex = _routeToIndex(initialRoute.route) ?? 0;
+    _productTabIndex = initialRoute.productTabIndex ?? 0;
   }
 
   @override
@@ -185,9 +196,30 @@ class _AppShellState extends State<AppShell> {
     super.dispose();
   }
 
-  void _setIndex(int index) {
-    if (index == _currentIndex) return;
+  void _navigateToRoute(String route) {
+    final canonicalRoute = _canonicalizeRoute(route);
+    final index = _routeToIndex(canonicalRoute.route);
+    if (index == null) return;
+    _setIndex(index, productTabIndex: canonicalRoute.productTabIndex);
+  }
+
+  void _setIndex(int index, {int? productTabIndex}) {
     final route = _indexToRoute(index);
+    final previousProductTabIndex = _productTabIndex;
+    if (route == AppRoutes.product) {
+      _productTabIndex = productTabIndex ?? 0;
+    }
+
+    if (index == _currentIndex) {
+      if (route == AppRoutes.product &&
+          productTabIndex != null &&
+          _productTabIndex != previousProductTabIndex) {
+        _refreshCounts[route] = (_refreshCounts[route] ?? 0) + 1;
+        _screenCache.remove(index);
+        setState(() {});
+      }
+      return;
+    }
     if (_kNoCacheRoutes.contains(route)) {
       // Evict the stale cached widget so _buildScreen runs again with a new
       // generation key, causing Flutter to fully dispose the old BlocProvider
@@ -287,6 +319,9 @@ class _AppShellState extends State<AppShell> {
     // whenever the home tab becomes active (e.g. after completing a sale).
     if (route == AppRoutes.home) {
       return HomeScreen(refreshSignal: _homeRefreshNotifier);
+    }
+    if (route == AppRoutes.product) {
+      return ProductScreen(initialTabIndex: _productTabIndex);
     }
     final builder = _kRouteBuilders[route];
     if (builder == null) {

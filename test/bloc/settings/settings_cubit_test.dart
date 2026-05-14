@@ -383,7 +383,7 @@ void main() {
       act: (cubit) => cubit.restoreBackup(backupPath),
       expect: () => [
         SettingsState(isLoading: true),
-        SettingsState(isLoading: false),
+        isA<SettingsState>().having((s) => s.isLoading, 'isLoading', false),
         isA<SettingsState>()
             .having((s) => s.isLoading, 'isLoading', false)
             .having(

@@ -5,9 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:liaqat_store/core/cubits/sidebar_cubit.dart';
 import 'package:liaqat_store/core/repositories/categories_repository.dart';
 import 'package:liaqat_store/core/repositories/units_repository.dart';
+import 'package:liaqat_store/core/routes/app_routes.dart';
 import 'package:liaqat_store/l10n/app_localizations.dart';
 import 'package:liaqat_store/screens/product/product_screen.dart';
 import 'package:liaqat_store/widgets/app_shell.dart';
+import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 Widget _buildLocalizedApp(Widget child) {
@@ -24,10 +26,18 @@ Widget _buildLocalizedApp(Widget child) {
   );
 }
 
+@Tags(['database'])
 void main() {
+  late DatabaseFactory previousDatabaseFactory;
+
   setUpAll(() {
     sqfliteFfiInit();
+    previousDatabaseFactory = databaseFactory;
     databaseFactory = databaseFactoryFfi;
+  });
+
+  tearDownAll(() {
+    databaseFactory = previousDatabaseFactory;
   });
 
   group('Product screen tab routing', () {
@@ -60,6 +70,29 @@ void main() {
       expect(tabController.index, 2);
     });
 
+    testWidgets('clamps invalid initial tab index to available tabs',
+        (tester) async {
+      setDesktopSize(tester);
+      await tester.pumpWidget(
+        MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<CategoriesRepository>(
+              create: (_) => CategoriesRepository(),
+            ),
+            RepositoryProvider<UnitsRepository>(
+              create: (_) => UnitsRepository(),
+            ),
+          ],
+          child: _buildLocalizedApp(const ProductScreen(initialTabIndex: 99)),
+        ),
+      );
+      await tester.pump();
+
+      final tabBarElement = tester.element(find.byType(TabBar));
+      final tabController = DefaultTabController.of(tabBarElement);
+      expect(tabController.index, 2);
+    });
+
     testWidgets('legacy /units route opens Product with units tab',
         (tester) async {
       setDesktopSize(tester);
@@ -75,7 +108,9 @@ void main() {
           ],
           child: BlocProvider(
             create: (_) => SidebarCubit(),
-            child: _buildLocalizedApp(const AppShell(initialRoute: '/units')),
+            child: _buildLocalizedApp(
+              const AppShell(initialRoute: AppRoutes.legacyUnits),
+            ),
           ),
         ),
       );
@@ -84,6 +119,8 @@ void main() {
       final tabBarElement = tester.element(find.byType(TabBar));
       final tabController = DefaultTabController.of(tabBarElement);
       expect(tabController.index, 2);
+      expect(find.text('Product'), findsWidgets);
+      expect(find.text('UNITS'), findsNothing);
     });
   });
 }
