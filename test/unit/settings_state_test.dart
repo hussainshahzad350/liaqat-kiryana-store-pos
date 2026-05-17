@@ -5,8 +5,8 @@ void main() {
   // ── SettingsCategory enum ────────────────────────────────────────────────
 
   group('SettingsCategory', () {
-    test('has expected 6 values', () {
-      expect(SettingsCategory.values.length, 6);
+    test('has expected 5 values', () {
+      expect(SettingsCategory.values.length, 5);
     });
 
     test('contains all expected categories', () {
@@ -18,7 +18,6 @@ void main() {
             SettingsCategory.backup,
             SettingsCategory.receipt,
             SettingsCategory.preferences,
-            SettingsCategory.about,
           ]));
     });
   });

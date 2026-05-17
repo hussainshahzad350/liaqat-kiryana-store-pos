@@ -120,13 +120,6 @@ class AppNavigationSidebar extends StatelessWidget {
                   _buildMenuItem(
                     context,
                     isExpanded: isExpanded,
-                    icon: Icons.info,
-                    title: localizations.aboutApp,
-                    route: AppRoutes.about,
-                  ),
-                  _buildMenuItem(
-                    context,
-                    isExpanded: isExpanded,
                     icon: Icons.logout,
                     title: localizations.logout,
                     route: AppRoutes.logout,
