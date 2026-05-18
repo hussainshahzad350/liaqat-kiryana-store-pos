@@ -23,7 +23,6 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
   /// Keep KPIs near-live without re-querying every frame.
   static const Duration _refreshInterval = Duration(minutes: 5);
 
-  final CashRepository _cashRepository = CashRepository();
   Timer? _timer;
 
   int _todaySales = 0;
@@ -48,6 +47,7 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
 
   Future<void> _loadData() async {
     if (!mounted) return;
+    final cashRepository = context.read<CashRepository>();
     final invoiceRepository = context.read<InvoiceRepository>();
     final itemsRepository = context.read<ItemsRepository>();
 
@@ -56,7 +56,7 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
         invoiceRepository.getTodaySalesTotal(),
         itemsRepository.getLowStockCount(),
         invoiceRepository.getRecentInvoicesWithCustomer(limit: 1),
-        _cashRepository.getCurrentCashBalance(),
+        cashRepository.getCurrentCashBalance(),
       ]);
 
       if (!mounted) return;

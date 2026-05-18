@@ -7,6 +7,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:window_manager/window_manager.dart';
 import 'core/cubits/sidebar_cubit.dart';
 import 'core/repositories/categories_repository.dart';
+import 'core/repositories/cash_repository.dart';
 import 'core/repositories/customers_repository.dart';
 import 'core/repositories/invoice_repository.dart';
 import 'core/repositories/items_repository.dart';
@@ -58,6 +59,7 @@ void main() async {
         ChangeNotifierProvider(
             create: (_) => ThemeProvider(settingsRepository)),
         RepositoryProvider(create: (context) => settingsRepository),
+        RepositoryProvider(create: (context) => CashRepository()),
         RepositoryProvider(create: (context) => ItemsRepository()),
         RepositoryProvider(create: (context) => CustomersRepository()),
         RepositoryProvider(
