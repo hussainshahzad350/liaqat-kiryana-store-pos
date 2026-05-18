@@ -2,7 +2,6 @@ import 'items_repository.dart';
 import '../database/database_helper.dart';
 import '../../models/purchase_models.dart';
 import '../utils/logger.dart';
-import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 
 class PurchaseRepository {
@@ -108,7 +107,7 @@ class PurchaseRepository {
     }
 
     final now = DateTime.now();
-    final String purchaseDate = DateFormat('yyyy-MM-dd HH:mm').format(now);
+    final String purchaseDate = now.toUtc().toIso8601String();
 
     final purchaseId = await db.transaction<int>((txn) async {
       // 1. Insert Purchase
@@ -175,7 +174,8 @@ class PurchaseRepository {
         'debit': totalAmount,
         'credit': 0,
         'balance': newBalance,
-        'created_at': DateTime.now().toIso8601String(),
+        'transaction_id': 'PURCHASE:$id:SUPPLIER_LEDGER',
+        'created_at': DateTime.now().toUtc().toIso8601String(),
       });
 
       // 4. Update the actual Supplier table's outstanding_balance
@@ -292,6 +292,8 @@ class PurchaseRepository {
         throw Exception('PURCHASE_LEDGER_NOT_FOUND');
       }
 
+      final originalLedgerEntryId =
+          (originalPurchaseLedger.first['id'] as num?)?.toInt();
       final originalDebit =
           (originalPurchaseLedger.first['debit'] as num?)?.toInt() ?? 0;
       final originalCredit =
@@ -310,16 +312,19 @@ class PurchaseRepository {
           : 0;
       final newBalance = prevBalance - reversalAmount;
 
+      final cancelNow = DateTime.now().toUtc().toIso8601String();
       await txn.insert('supplier_ledger', {
         'supplier_id': supplierId,
-        'transaction_date': DateTime.now().toIso8601String(),
+        'transaction_date': cancelNow,
         'description': 'Purchase Cancelled: #$purchaseId',
         'ref_type': 'PURCHASE_RETURN',
         'ref_id': purchaseId,
         'debit': 0,
         'credit': reversalAmount,
         'balance': newBalance,
-        'created_at': DateTime.now().toIso8601String(),
+        'transaction_id': 'PURCHASE_CANCEL:$purchaseId:SUPPLIER_LEDGER',
+        'reversal_of_supplier_ledger_id': originalLedgerEntryId,
+        'created_at': cancelNow,
       });
 
       // 5. Reverse Supplier outstanding_balance to ledger balance

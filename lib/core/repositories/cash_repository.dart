@@ -102,8 +102,11 @@ class CashRepository {
   // CASH ENTRY MANAGEMENT
   // ========================================
 
-  /// Add cash entry (IN or OUT)
-  /// Moved from DatabaseHelper.addCashEntry()
+  /// Add cash entry (IN or OUT).
+  ///
+  /// A unique `transaction_id` is automatically generated for every manual
+  /// entry so that the cash_ledger satisfies the identity-enforcement rule
+  /// (Rule 4) and the unique-constraint on transaction_id (Rule 11).
   Future<void> addCashEntry(
     String description,
     String type,
@@ -138,6 +141,9 @@ class CashRepository {
         newBalance = currentBalance;
       }
 
+      // Generate a stable, unique transaction_id for this manual entry.
+      final txnId = 'MANUAL_CASH:${now.microsecondsSinceEpoch}';
+
       await txn.insert('cash_ledger', {
         'transaction_date': dateStr,
         'transaction_time': timeStr,
@@ -147,6 +153,7 @@ class CashRepository {
         'balance_after': newBalance.paisas,
         'remarks': remarks,
         'payment_mode': normalizedPaymentMode,
+        'transaction_id': txnId,
       });
     });
   }
@@ -431,91 +438,30 @@ class CashRepository {
     return CashLedger.fromMap(result.first);
   }
 
-  /// Update cash ledger entry (for corrections)
+  /// Update cash ledger entry.
+  ///
+  /// BLOCKED: Mutating existing cash_ledger rows violates the event-immutability
+  /// rule (Rule 3) and delete-safety rule (Rule 8).  To correct a cash entry,
+  /// create a reversal event and then insert a new correcting event.
   Future<int> updateCashEntry(
     int id,
     Map<String, dynamic> updates,
-  ) async {
-    final db = await _dbHelper.database;
-
-    // Recalculate balance if amount changes
-    if (updates.containsKey('amount') || updates.containsKey('type')) {
-      if (updates.containsKey('type')) {
-        updates['type'] = (updates['type'] as String).toUpperCase();
-      }
-      await _recalculateBalancesFrom(id);
-    }
-
-    return await db.update(
-      'cash_ledger',
-      updates,
-      where: 'id = ?',
-      whereArgs: [id],
+  ) {
+    throw UnsupportedError(
+      'RULE_VIOLATION: updateCashEntry() mutates an immutable cash_ledger row. '
+      'Create a reversal event instead (Rule 3).',
     );
   }
 
-  /// Delete cash entry (and recalculate subsequent balances)
-  Future<int> deleteCashEntry(int id) async {
-    final db = await _dbHelper.database;
-
-    final deleted = await db.delete(
-      'cash_ledger',
-      where: 'id = ?',
-      whereArgs: [id],
+  /// Delete cash entry.
+  ///
+  /// BLOCKED: Deleting cash_ledger rows violates the event-immutability rule
+  /// (Rule 3) and delete-safety rule (Rule 8).  Use a reversal event instead.
+  Future<int> deleteCashEntry(int id) {
+    throw UnsupportedError(
+      'RULE_VIOLATION: deleteCashEntry() deletes an immutable cash_ledger row. '
+      'Create a reversal event instead (Rule 3 / Rule 8).',
     );
-
-    if (deleted > 0) {
-      await _recalculateBalancesFrom(id);
-    }
-
-    return deleted;
-  }
-
-  /// Recalculate all balances from a specific entry onwards
-  Future<void> _recalculateBalancesFrom(int fromId) async {
-    final db = await _dbHelper.database;
-
-    await db.transaction((txn) async {
-      // Get all entries from this point onwards
-      final entries = await txn.query(
-        'cash_ledger',
-        where: 'id >= ?',
-        whereArgs: [fromId],
-        orderBy: 'id ASC',
-      );
-
-      // Get the balance before this entry
-      final prevEntries = await txn.query(
-        'cash_ledger',
-        where: 'id < ?',
-        whereArgs: [fromId],
-        orderBy: 'id DESC',
-        limit: 1,
-      );
-
-      Money runningBalance = prevEntries.isNotEmpty
-          ? _moneyFromDb(prevEntries.first, 'balance_after')
-          : Money.zero;
-
-      // Recalculate balances for all subsequent entries
-      for (var entry in entries) {
-        final type = entry['type'] as String;
-        final amount = _moneyFromDb(entry, 'amount');
-
-        if (type == 'IN') {
-          runningBalance += amount;
-        } else if (type == 'OUT') {
-          runningBalance -= amount;
-        }
-
-        await txn.update(
-          'cash_ledger',
-          {'balance_after': runningBalance.paisas},
-          where: 'id = ?',
-          whereArgs: [entry['id']],
-        );
-      }
-    });
   }
 
   // ========================================

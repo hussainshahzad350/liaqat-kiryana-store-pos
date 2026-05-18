@@ -18,6 +18,8 @@ class Product {
   final Money salePrice;
   final DateTime? expiryDate;
   final DateTime createdAt;
+  /// Whether this product is active (not soft-deleted). Defaults to true.
+  final bool isActive;
 
   Product({
     this.id,
@@ -37,6 +39,7 @@ class Product {
     this.salePrice = const Money(0),
     this.expiryDate,
     DateTime? createdAt,
+    this.isActive = true,
   }) : createdAt = createdAt ?? DateTime.now();
 
   /// Create a Product from database map
@@ -61,6 +64,7 @@ class Product {
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'] as String) ?? DateTime.now()
           : DateTime.now(),
+      isActive: (map['is_active'] as int? ?? 1) == 1,
     );
   }
 
@@ -84,6 +88,7 @@ class Product {
       'sale_price': salePrice.paisas,
       'expiry_date': expiryDate?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
+      'is_active': isActive ? 1 : 0,
     };
   }
 
@@ -106,6 +111,7 @@ class Product {
     Money? salePrice,
     DateTime? expiryDate,
     DateTime? createdAt,
+    bool? isActive,
   }) {
     return Product(
       id: id ?? this.id,
@@ -125,6 +131,7 @@ class Product {
       salePrice: salePrice ?? this.salePrice,
       expiryDate: expiryDate ?? this.expiryDate,
       createdAt: createdAt ?? this.createdAt,
+      isActive: isActive ?? this.isActive,
     );
   }
 

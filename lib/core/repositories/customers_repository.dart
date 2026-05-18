@@ -104,11 +104,13 @@ class CustomersRepository {
     );
   }
 
-  /// Delete customer
+  /// Soft-delete a customer (Rule 8: hard deletes of business entities are
+  /// prohibited; set is_active = 0 instead).
   Future<int> deleteCustomer(int id) async {
     final db = await _dbHelper.database;
-    return await db.delete(
+    return await db.update(
       'customers',
+      {'is_active': 0},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -198,14 +200,16 @@ class CustomersRepository {
     );
   }
 
-  /// Update customer outstanding balance
-  Future<int> updateCustomerBalance(int customerId, int balance) async {
-    final db = await _dbHelper.database;
-    return await db.update(
-      'customers',
-      {'outstanding_balance': balance},
-      where: 'id = ?',
-      whereArgs: [customerId],
+  /// Update customer outstanding balance.
+  ///
+  /// BLOCKED: Direct mutations of customer balance are prohibited by the
+  /// No-Direct-Mutation rule (Rule 2).  All balance changes must flow through
+  /// ledger events inside a transaction (e.g. addPayment, createInvoice).
+  /// Calling this method throws [UnsupportedError].
+  Future<int> updateCustomerBalance(int customerId, int balance) {
+    throw UnsupportedError(
+      'RULE_VIOLATION: updateCustomerBalance() is a direct mutation of '
+      'customer.outstanding_balance. Use ledger-based flows instead (Rule 2).',
     );
   }
 
@@ -300,6 +304,7 @@ class CustomersRepository {
           'debit': 0,
           'credit': amount,
           'balance': newBalance,
+          'transaction_id': 'CUSTOMER_RECEIPT:$receiptId:CUSTOMER_LEDGER',
         });
 
         // 3. Update Customer Cache
