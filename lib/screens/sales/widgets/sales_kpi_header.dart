@@ -20,6 +20,7 @@ class SalesKpiHeader extends StatefulWidget {
 }
 
 class _SalesKpiHeaderState extends State<SalesKpiHeader> {
+  /// Keep KPIs near-live without re-querying every frame.
   static const Duration _refreshInterval = Duration(minutes: 5);
 
   final CashRepository _cashRepository = CashRepository();
@@ -30,6 +31,7 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
   Money _cashBalance = Money.zero;
   Invoice? _latestInvoice;
   bool _loading = true;
+  bool _hasError = false;
 
   @override
   void initState() {
@@ -65,10 +67,15 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
         _latestInvoice = recentInvoices.isNotEmpty ? recentInvoices.first : null;
         _cashBalance = results[3] as Money;
         _loading = false;
+        _hasError = false;
       });
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('SalesKpiHeader load failed: $e\n$st');
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _hasError = true;
+      });
     }
   }
 
@@ -100,6 +107,14 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
+                  if (_hasError) ...[
+                    Icon(
+                      Icons.error_outline,
+                      size: 14,
+                      color: colorScheme.error,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   _KpiChip(
                     icon: Icons.point_of_sale,
                     label: loc.todaySales,

@@ -300,6 +300,7 @@ class _AppShellState extends State<AppShell> {
     }
     final builder = _kRouteBuilders[route];
     if (builder == null) {
+      debugPrint('AppShell: no route builder found for $route');
       return const SizedBox.shrink();
     }
     final child = builder(context);
