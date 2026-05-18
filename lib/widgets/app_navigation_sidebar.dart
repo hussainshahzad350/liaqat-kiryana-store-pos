@@ -55,13 +55,6 @@ class AppNavigationSidebar extends StatelessWidget {
                   _buildMenuItem(
                     context,
                     isExpanded: isExpanded,
-                    icon: Icons.dashboard,
-                    title: localizations.home,
-                    route: AppRoutes.home,
-                  ),
-                  _buildMenuItem(
-                    context,
-                    isExpanded: isExpanded,
                     icon: Icons.shopping_cart,
                     title: localizations.salesPos,
                     route: AppRoutes.sales,
@@ -70,7 +63,7 @@ class AppNavigationSidebar extends StatelessWidget {
                     context,
                     isExpanded: isExpanded,
                     icon: Icons.warehouse,
-                    title: localizations.stockManagement,
+                    title: localizations.productsAndStock,
                     route: AppRoutes.stock,
                   ),
                   _buildMenuItem(
@@ -83,31 +76,10 @@ class AppNavigationSidebar extends StatelessWidget {
                   _buildMenuItem(
                     context,
                     isExpanded: isExpanded,
-                    icon: Icons.inventory,
-                    title: localizations.product,
-                    route: AppRoutes.product,
-                  ),
-                  _buildMenuItem(
-                    context,
-                    isExpanded: isExpanded,
                     icon: Icons.account_balance_wallet,
                     title: localizations.accounts,
                     route: AppRoutes.accounts,
                     activeRoutes: const {AppRoutes.customers, AppRoutes.suppliers},
-                  ),
-                  _buildMenuItem(
-                    context,
-                    isExpanded: isExpanded,
-                    icon: Icons.analytics,
-                    title: localizations.reports,
-                    route: AppRoutes.reports,
-                  ),
-                  _buildMenuItem(
-                    context,
-                    isExpanded: isExpanded,
-                    icon: Icons.attach_money,
-                    title: localizations.cashLedger,
-                    route: AppRoutes.cashLedger,
                   ),
                   _buildMenuItem(
                     context,

@@ -143,8 +143,8 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
             '/': (context) => const LoginScreen(),
             // Single post-login shell route — feature navigation happens
             // inside AppShell so sidebar/header/blocs stay alive.
-            AppRoutes.home: (context) => const AppShell(
-                  initialRoute: AppRoutes.home,
+            AppRoutes.sales: (context) => const AppShell(
+                  initialRoute: AppRoutes.sales,
                 ),
             AppRoutes.logout: (context) => const LogoutScreen(),
           },

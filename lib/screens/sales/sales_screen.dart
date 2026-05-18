@@ -24,6 +24,7 @@ import 'dialogs/cancel_sale_dialog.dart';
 import 'dialogs/exit_confirmation_dialog.dart';
 import 'widgets/product_card.dart';
 import 'widgets/recent_sales_section.dart';
+import 'widgets/sales_kpi_header.dart';
 import 'widgets/customer_section.dart';
 import 'widgets/sales_totals_section.dart';
 import 'widgets/cart_item_row.dart';
@@ -452,6 +453,7 @@ class _SalesScreenState extends State<SalesScreen> {
                   children: [
                     Column(
                       children: [
+                        const SalesKpiHeader(),
                         // Actions Toolbar
                         Container(
                           padding: const EdgeInsets.symmetric(

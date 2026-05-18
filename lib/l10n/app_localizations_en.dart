@@ -33,6 +33,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get salesPos => 'Sales / POS';
 
   @override
+  String get productsAndStock => 'Products & Stock';
+
+  @override
   String get stockManagement => 'Stock Management';
 
   @override
@@ -67,6 +70,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lowStock => 'Low Stock';
+
+  @override
+  String get lowStockCount => 'Low Stock Items';
+
+  @override
+  String get kpiHeader => 'Live Summary';
+
+  @override
+  String get cashSnapshot => 'Cash Snapshot';
 
   @override
   String get allStockAvailable => 'All items in stock';

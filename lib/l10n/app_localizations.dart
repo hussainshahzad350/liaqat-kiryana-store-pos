@@ -146,6 +146,12 @@ abstract class AppLocalizations {
   /// **'Sales / POS'**
   String get salesPos;
 
+  /// No description provided for @productsAndStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Products & Stock'**
+  String get productsAndStock;
+
   /// No description provided for @stockManagement.
   ///
   /// In en, this message translates to:
@@ -217,6 +223,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Low Stock'**
   String get lowStock;
+
+  /// No description provided for @lowStockCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stock Items'**
+  String get lowStockCount;
+
+  /// No description provided for @kpiHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Live Summary'**
+  String get kpiHeader;
+
+  /// No description provided for @cashSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Snapshot'**
+  String get cashSnapshot;
 
   /// No description provided for @allStockAvailable.
   ///

@@ -5,6 +5,7 @@ class AppRoutes {
   AppRoutes._();
   
   // Route names
+  @Deprecated('HomeScreen is removed from navigation. Use AppRoutes.sales.')
   static const String home = '/home';
   static const String sales = '/sales';
   static const String stock = '/stock';
@@ -24,6 +25,7 @@ class AppRoutes {
   static const String accounts = '/accounts';
   static const String customers = '/customers';
   static const String suppliers = '/suppliers';
+  @Deprecated('ReportsScreen is removed from navigation.')
   static const String reports = '/reports';
   static const String cashLedger = '/cash-ledger';
   static const String settings = '/settings';

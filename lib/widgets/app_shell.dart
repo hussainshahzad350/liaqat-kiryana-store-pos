@@ -31,9 +31,7 @@ import '../core/repositories/stock_repository.dart';
 import '../core/repositories/suppliers_repository.dart';
 import '../core/routes/app_routes.dart';
 import '../screens/cash_ledger/cash_ledger_screen.dart';
-import '../screens/home/home_screen.dart';
 import '../screens/purchase/purchase_screen.dart';
-import '../screens/reports/reports_screen.dart';
 import '../screens/sales/sales_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/stock/stock_screen.dart';
@@ -47,7 +45,6 @@ import 'app_navigation_sidebar.dart';
 // ---------------------------------------------------------------------------
 
 final Map<String, Widget Function(BuildContext)> _kRouteBuilders = {
-  AppRoutes.home: (_) => const HomeScreen(),
   AppRoutes.sales: (ctx) => BlocProvider(
         create: (context) => SalesBloc(
           invoiceRepository: context.read<InvoiceRepository>(),
@@ -96,7 +93,6 @@ final Map<String, Widget Function(BuildContext)> _kRouteBuilders = {
   // Backward compatibility: redirect legacy account routes to Accounts tabs.
   AppRoutes.customers: (_) => const AccountsScreen(initialTabIndex: 0),
   AppRoutes.suppliers: (_) => const AccountsScreen(initialTabIndex: 1),
-  AppRoutes.reports: (_) => const ReportsScreen(),
   AppRoutes.cashLedger: (_) => const CashLedgerScreen(),
   AppRoutes.settings: (_) => const SettingsScreen(),
 };
@@ -136,7 +132,7 @@ String _indexToRoute(int index) {
   if (index >= 0 && index < _kRoutes.length) {
     return _kRoutes[index];
   }
-  return AppRoutes.home;
+  return AppRoutes.sales;
 }
 
 // ---------------------------------------------------------------------------
@@ -148,7 +144,7 @@ class AppShell extends StatefulWidget {
 
   const AppShell({
     super.key,
-    this.initialRoute = AppRoutes.home,
+    this.initialRoute = AppRoutes.sales,
   });
 
   // ── Static navigation helper ────────────────────────────────────────────
@@ -176,22 +172,12 @@ class _AppShellState extends State<AppShell> {
   /// (and its BlocProviders/blocs) and mount a completely fresh one.
   final Map<String, int> _refreshCounts = {};
 
-  /// Incremented every time the Home tab (index 0) becomes the active tab.
-  /// Passed to [HomeScreen] so it can trigger a data refresh via listener.
-  final ValueNotifier<int> _homeRefreshNotifier = ValueNotifier<int>(0);
-
   @override
   void initState() {
     super.initState();
     final initialRoute = _canonicalizeRoute(widget.initialRoute);
     _currentIndex = _routeToIndex(initialRoute.route) ?? 0;
     _productTabIndex = initialRoute.productTabIndex ?? 0;
-  }
-
-  @override
-  void dispose() {
-    _homeRefreshNotifier.dispose();
-    super.dispose();
   }
 
   void _navigateToRoute(String route) {
@@ -226,10 +212,6 @@ class _AppShellState extends State<AppShell> {
       _screenCache.remove(index);
     }
     setState(() => _currentIndex = index);
-    // Notify HomeScreen so it can refresh its dashboard data.
-    if (index == (_routeToIndex(AppRoutes.home) ?? 0)) {
-      _homeRefreshNotifier.value++;
-    }
   }
 
   String get _currentRoute => _indexToRoute(_currentIndex);
@@ -313,17 +295,12 @@ class _AppShellState extends State<AppShell> {
   /// and every chained `..add(...)` initialization.
   Widget _buildScreen(int index, BuildContext context) {
     final route = _indexToRoute(index);
-    // HomeScreen receives the refresh notifier so it can reload dashboard data
-    // whenever the home tab becomes active (e.g. after completing a sale).
-    if (route == AppRoutes.home) {
-      return HomeScreen(refreshSignal: _homeRefreshNotifier);
-    }
     if (route == AppRoutes.product) {
       return ProductScreen(initialTabIndex: _productTabIndex);
     }
     final builder = _kRouteBuilders[route];
     if (builder == null) {
-      return const HomeScreen();
+      return const SizedBox.shrink();
     }
     final child = builder(context);
     if (_kNoCacheRoutes.contains(route)) {
