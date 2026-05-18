@@ -8,6 +8,39 @@ import '../../models/customer_model.dart';
 class CustomersRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
+  Future<void> _assertCustomerLedgerConsistency(
+    DatabaseExecutor txn,
+    int customerId,
+  ) async {
+    final customerRes = await txn.query(
+      'customers',
+      columns: ['outstanding_balance'],
+      where: 'id = ?',
+      whereArgs: [customerId],
+      limit: 1,
+    );
+    if (customerRes.isEmpty) {
+      throw Exception('CUSTOMER_NOT_FOUND');
+    }
+
+    final cached =
+        (customerRes.first['outstanding_balance'] as num?)?.toInt() ?? 0;
+    final ledgerRes = await txn.rawQuery(
+      'SELECT COALESCE(SUM(debit - credit), 0) as ledger_balance FROM customer_ledger WHERE customer_id = ?',
+      [customerId],
+    );
+    final ledgerBalance =
+        (ledgerRes.first['ledger_balance'] as num?)?.toInt() ?? 0;
+
+    if (cached != ledgerBalance) {
+      AppLogger.error(
+        'Customer ledger drift detected (customerId=$customerId, cached=$cached, ledger=$ledgerBalance)',
+        tag: 'CustomersRepo',
+      );
+      throw Exception('CUSTOMER_BALANCE_MISMATCH');
+    }
+  }
+
   // ========================================
   // CUSTOMER CRUD OPERATIONS
   // ========================================
@@ -231,6 +264,8 @@ class CustomersRepository {
 
     try {
       return await db.transaction((txn) async {
+        await _assertCustomerLedgerConsistency(txn, customerId);
+
         // 1. Record the Receipt (Financial Event)
         final receiptNumber = 'RCP-${DateTime.now().millisecondsSinceEpoch}';
         int receiptId = await txn.insert('receipts', {
@@ -268,9 +303,12 @@ class CustomersRepository {
         });
 
         // 3. Update Customer Cache
-        await txn.rawUpdate(
-            'UPDATE customers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
-            [amount, customerId]);
+        await txn.update(
+          'customers',
+          {'outstanding_balance': newBalance},
+          where: 'id = ?',
+          whereArgs: [customerId],
+        );
 
         // 4. Record in cash ledger as an 'IN' entry (Shop Cash Flow)
         final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -284,11 +322,16 @@ class CustomersRepository {
         await txn.insert('cash_ledger', {
           'transaction_date': dateStr,
           'transaction_time': timeStr,
-          'description': 'Payment from Customer (ID: $customerId)',
+          'description': 'Customer Payment #$receiptId',
           'type': 'IN',
           'amount': amount,
           'balance_after': currentBalance + amount,
           'remarks': notes,
+          'payment_mode': paymentMode,
+          'ref_type': 'CUSTOMER_RECEIPT',
+          'ref_id': receiptId,
+          'transaction_id': 'CUSTOMER_RECEIPT:$receiptId',
+          'reversal_of_cash_ledger_id': null,
         });
 
         return receiptId;

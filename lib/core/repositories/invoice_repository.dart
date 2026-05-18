@@ -5,6 +5,7 @@ import '../../models/invoice_item_model.dart';
 import '../../domain/entities/money.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart';
 import 'dart:convert';
 import 'dart:math' as math;
 import '../../features/sales/domain/entities/sale_status.dart';
@@ -15,6 +16,41 @@ class InvoiceRepository {
   static const int _walkInCustomerId = 1;
 
   InvoiceRepository(this._itemsRepository);
+
+  Future<void> _assertCustomerLedgerConsistency(
+    DatabaseExecutor txn,
+    int customerId,
+  ) async {
+    if (customerId == _walkInCustomerId) return;
+
+    final customerRes = await txn.query(
+      'customers',
+      columns: ['outstanding_balance'],
+      where: 'id = ?',
+      whereArgs: [customerId],
+      limit: 1,
+    );
+    if (customerRes.isEmpty) {
+      throw Exception('CUSTOMER_NOT_FOUND');
+    }
+
+    final cached =
+        (customerRes.first['outstanding_balance'] as num?)?.toInt() ?? 0;
+    final ledgerRes = await txn.rawQuery(
+      'SELECT COALESCE(SUM(debit - credit), 0) as ledger_balance FROM customer_ledger WHERE customer_id = ?',
+      [customerId],
+    );
+    final ledgerBalance =
+        (ledgerRes.first['ledger_balance'] as num?)?.toInt() ?? 0;
+
+    if (cached != ledgerBalance) {
+      AppLogger.error(
+        'Customer ledger drift detected (customerId=$customerId, cached=$cached, ledger=$ledgerBalance)',
+        tag: 'InvoiceRepo',
+      );
+      throw Exception('CUSTOMER_BALANCE_MISMATCH');
+    }
+  }
 
   // ========================================
   // INVOICE CREATION (Full Transaction)
@@ -62,6 +98,7 @@ class InvoiceRepository {
           throw Exception('CREDIT_LIMIT_EXCEEDED');
         }
       }
+      await _assertCustomerLedgerConsistency(txn, customerId);
 
       // 2. Validate Invoice Math
       int calculatedSubTotal = 0;
@@ -269,6 +306,10 @@ class InvoiceRepository {
           'balance_after': currentCashBalance + effectiveCashAmount,
           'remarks': notes ?? '',
           'payment_mode': 'CASH',
+          'ref_type': 'INVOICE',
+          'ref_id': invoiceId,
+          'transaction_id': 'INVOICE:$invoiceId:CASH',
+          'reversal_of_cash_ledger_id': null,
         });
       }
 
@@ -288,6 +329,10 @@ class InvoiceRepository {
           'balance_after': currentCashBalance + effectiveBankAmount,
           'remarks': notes ?? '',
           'payment_mode': 'BANK',
+          'ref_type': 'INVOICE',
+          'ref_id': invoiceId,
+          'transaction_id': 'INVOICE:$invoiceId:BANK',
+          'reversal_of_cash_ledger_id': null,
         });
       }
 
@@ -329,6 +374,7 @@ class InvoiceRepository {
       final invoice = invoiceRes.first;
       final customerId = invoice['customer_id'] as int;
       final invoiceNumber = invoice['invoice_number'] as String;
+      await _assertCustomerLedgerConsistency(txn, customerId);
 
       // 2. Mark as CANCELLED — preserve JSON notes structure
       final rawNotes = invoice['notes'] as String?;
@@ -430,8 +476,9 @@ class InvoiceRepository {
       // 6. Reverse Cash Ledger Entries
       final cashEntries = await txn.query(
         'cash_ledger',
-        where: 'description LIKE ?',
-        whereArgs: ['Sale $invoiceNumber%'],
+        where:
+            'ref_type = ? AND ref_id = ? AND reversal_of_cash_ledger_id IS NULL',
+        whereArgs: ['INVOICE', invoiceId],
       );
 
       for (var entry in cashEntries) {
@@ -459,6 +506,10 @@ class InvoiceRepository {
               : currentCashBalance - entryAmount,
           'remarks': 'Auto-reversal for cancelled invoice',
           'payment_mode': entryMode,
+          'ref_type': 'INVOICE',
+          'ref_id': invoiceId,
+          'transaction_id': "INVOICE_CANCEL:$invoiceId:${entry['id']}",
+          'reversal_of_cash_ledger_id': entry['id'],
         });
       }
 
