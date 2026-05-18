@@ -120,7 +120,7 @@ class DatabaseHelper {
     }
     // Back-fill legacy rows with stable, unique identifiers.
     await db.execute(
-        "UPDATE customer_ledger SET transaction_id = 'LEGACY_CUST_LEDGER:' || id WHERE TRIM(COALESCE(transaction_id, '')) = ''");
+        "UPDATE customer_ledger SET transaction_id = 'LEGACY_CUST_LEDGER:' || id WHERE transaction_id IS NULL OR transaction_id = ''");
     await db.execute(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_customer_ledger_transaction_id ON customer_ledger(transaction_id)');
     await db.execute(
@@ -137,7 +137,7 @@ class DatabaseHelper {
           'ALTER TABLE supplier_ledger ADD COLUMN reversal_of_supplier_ledger_id INTEGER');
     }
     await db.execute(
-        "UPDATE supplier_ledger SET transaction_id = 'LEGACY_SUPP_LEDGER:' || id WHERE TRIM(COALESCE(transaction_id, '')) = ''");
+        "UPDATE supplier_ledger SET transaction_id = 'LEGACY_SUPP_LEDGER:' || id WHERE transaction_id IS NULL OR transaction_id = ''");
     await db.execute(
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_supplier_ledger_transaction_id ON supplier_ledger(transaction_id)');
     await db.execute(
