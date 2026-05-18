@@ -85,7 +85,7 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final latestInvoiceDisplay = _latestInvoice?.invoiceNumber ?? loc.noSalesYet;
+    final latestInvoiceText = _latestInvoice?.invoiceNumber ?? loc.noSalesYet;
 
     return Container(
       height: 46,
@@ -126,7 +126,7 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
                   _KpiChip(
                     icon: Icons.receipt_long,
                     label: loc.recentSales,
-                    value: latestInvoiceDisplay,
+                    value: latestInvoiceText,
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),
