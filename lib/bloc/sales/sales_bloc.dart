@@ -299,7 +299,9 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
 
     if (state.selectedCustomer != null && !state.selectedCustomer!.isWalkIn) {
       final Money creditLimit = Money(state.selectedCustomer!.creditLimit);
-      if (potentialBalance > creditLimit) {
+      // Only warn when a positive credit limit is set AND would be exceeded.
+      // creditLimit == 0 means "no limit" (mirrors DB rule: only enforced when limit > 0).
+      if (creditLimit > Money.zero && potentialBalance > creditLimit) {
         shouldShowCreditWarning = true;
       }
     }
@@ -450,11 +452,11 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         cancelledBy: event.performedBy,
         reason: event.reason,
       );
-      add(SalesStarted()); // Refresh
       emit(state.copyWith(
           status: SalesStatus.success,
           successMessage: 'Invoice Cancelled',
           clearCompletedInvoice: true));
+      add(SalesStarted()); // Refresh
     } catch (e) {
       emit(state.copyWith(
           status: SalesStatus.error,

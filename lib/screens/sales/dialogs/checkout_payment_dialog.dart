@@ -175,11 +175,17 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
           return;
         }
 
-        // Use BLoC logic for warning check
-        if (state.shouldShowCreditWarning) {
+        // Check credit limit against the ACTUAL credit amount entered,
+        // not the full grand total. Mirrors the DB rule: only enforced when
+        // credit_limit > 0 (0 means no limit).
+        final Money custCreditLimit = Money(customer?.creditLimit ?? 0);
+        final bool wouldExceedLimit = custCreditLimit > Money.zero &&
+            (oldBalance + credit) > custCreditLimit;
+
+        if (wouldExceedLimit) {
           Navigator.pop(context);
           _showCreditLimitWarning(
-            creditLimit: Money(customer!.creditLimit),
+            creditLimit: custCreditLimit,
             currentBalance: oldBalance,
             billTotal: credit,
             potentialBalance: oldBalance + credit,

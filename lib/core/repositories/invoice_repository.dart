@@ -330,13 +330,32 @@ class InvoiceRepository {
       final customerId = invoice['customer_id'] as int;
       final invoiceNumber = invoice['invoice_number'] as String;
 
-      // 2. Mark as CANCELLED
+      // 2. Mark as CANCELLED — preserve JSON notes structure
+      final rawNotes = invoice['notes'] as String?;
+      String updatedNotes;
+      try {
+        final notesMap = rawNotes != null && rawNotes.isNotEmpty
+            ? Map<String, dynamic>.from(jsonDecode(rawNotes) as Map)
+            : <String, dynamic>{};
+        notesMap['cancellation'] = {
+          'by': cancelledBy,
+          'reason': reason ?? 'No reason',
+          'at': DateTime.now().toIso8601String(),
+        };
+        updatedNotes = jsonEncode(notesMap);
+      } catch (e) {
+        // Fallback: notes was not valid JSON; append as plain text
+        AppLogger.warning(
+          'cancelInvoice: could not parse notes JSON for invoice $invoiceId — falling back to text append. Error: $e',
+          tag: 'InvoiceRepo',
+        );
+        updatedNotes = '${rawNotes ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]';
+      }
       await txn.update(
         'invoices',
         {
           'status': SaleStatus.cancelled.dbValue,
-          'notes':
-              '${invoice['notes'] ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]',
+          'notes': updatedNotes,
         },
         where: 'id = ?',
         whereArgs: [invoiceId],
