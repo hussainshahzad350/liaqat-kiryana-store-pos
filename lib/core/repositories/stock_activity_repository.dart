@@ -25,7 +25,7 @@ class StockActivityRepository {
         sa.created_at,
         p.name_english as product_name,
         CASE
-          WHEN sa.reversal_of_stock_activity_id IS NOT NULL THEN 'COMPLETED'
+          WHEN sa.reversal_of_stock_activity_id IS NOT NULL THEN 'REVERSAL'
           WHEN EXISTS (
             SELECT 1
             FROM stock_activities rev
