@@ -23,7 +23,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
@@ -38,6 +38,9 @@ class DatabaseHelper {
         }
         if (oldVersion < 3) {
           await _addCashLedgerReferenceColumns(db);
+        }
+        if (oldVersion < 4) {
+          await _addStockActivityEventColumns(db);
         }
       },
       onOpen: (db) async {
@@ -66,6 +69,35 @@ class DatabaseHelper {
         'CREATE INDEX IF NOT EXISTS idx_cash_ledger_transaction_id ON cash_ledger(transaction_id)');
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_cash_ledger_reversal_of ON cash_ledger(reversal_of_cash_ledger_id)');
+  }
+
+  Future<void> _addStockActivityEventColumns(Database db) async {
+    if (!await _hasColumn(db, 'stock_activities', 'ref_type')) {
+      await db.execute('ALTER TABLE stock_activities ADD COLUMN ref_type TEXT');
+    }
+    if (!await _hasColumn(db, 'stock_activities', 'ref_id')) {
+      await db.execute('ALTER TABLE stock_activities ADD COLUMN ref_id INTEGER');
+    }
+    if (!await _hasColumn(db, 'stock_activities', 'transaction_id')) {
+      await db
+          .execute('ALTER TABLE stock_activities ADD COLUMN transaction_id TEXT');
+    }
+    if (!await _hasColumn(db, 'stock_activities', 'reversal_of_stock_activity_id')) {
+      await db.execute(
+          'ALTER TABLE stock_activities ADD COLUMN reversal_of_stock_activity_id INTEGER');
+    }
+    await db.execute(
+        'UPDATE stock_activities SET ref_type = reference_type WHERE ref_type IS NULL');
+    await db.execute(
+        'UPDATE stock_activities SET ref_id = reference_id WHERE ref_id IS NULL');
+    await db.execute(
+        "UPDATE stock_activities SET transaction_id = 'LEGACY_STOCK_EVENT:' || id WHERE TRIM(COALESCE(transaction_id, '')) = ''");
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_stock_activities_ref ON stock_activities(ref_type, ref_id)');
+    await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_stock_activities_transaction_id ON stock_activities(transaction_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_stock_activities_reversal_of ON stock_activities(reversal_of_stock_activity_id)');
   }
 
   Future<bool> _hasColumn(Database db, String table, String column) async {
@@ -506,6 +538,10 @@ class DatabaseHelper {
         product_id INTEGER NOT NULL,
         quantity_change REAL NOT NULL,
         transaction_type TEXT NOT NULL,
+        ref_type TEXT,
+        ref_id INTEGER,
+        transaction_id TEXT,
+        reversal_of_stock_activity_id INTEGER,
         reference_type TEXT NOT NULL,
         reference_id INTEGER NOT NULL,
         batch_number TEXT,
@@ -520,6 +556,12 @@ class DatabaseHelper {
       CREATE INDEX IF NOT EXISTS idx_stock_activities_product
       ON stock_activities(product_id)
     ''');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_stock_activities_ref ON stock_activities(ref_type, ref_id)');
+    await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_stock_activities_transaction_id ON stock_activities(transaction_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_stock_activities_reversal_of ON stock_activities(reversal_of_stock_activity_id)');
 
     // Performance Indexes (Ensure these exist on fresh install)
     await db.execute(

@@ -3,12 +3,93 @@ import '../database/database_helper.dart';
 import '../../models/purchase_models.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
+import 'package:sqflite/sqflite.dart';
 
 class PurchaseRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final ItemsRepository _itemsRepository;
 
   PurchaseRepository(this._itemsRepository);
+
+  Future<double> _getEventStock(
+    DatabaseExecutor txn,
+    int productId,
+  ) async {
+    final rows = await txn.rawQuery(
+      'SELECT COALESCE(SUM(quantity_change), 0) AS stock_total FROM stock_activities WHERE product_id = ?',
+      [productId],
+    );
+    return (rows.first['stock_total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  Future<void> _assertProductStockConsistency(
+    DatabaseExecutor txn,
+    int productId,
+  ) async {
+    final productRows = await txn.query(
+      'products',
+      columns: ['current_stock'],
+      where: 'id = ?',
+      whereArgs: [productId],
+      limit: 1,
+    );
+    if (productRows.isEmpty) {
+      throw Exception('PRODUCT_NOT_FOUND');
+    }
+    final cachedStock = (productRows.first['current_stock'] as num?)?.toDouble() ?? 0.0;
+    final eventStock = await _getEventStock(txn, productId);
+    if ((cachedStock - eventStock).abs() > 0.000001) {
+      AppLogger.error(
+        'Stock inconsistency detected (productId=$productId, cached=$cachedStock, events=$eventStock)',
+        tag: 'PurchaseRepo',
+      );
+      throw Exception('STOCK_INCONSISTENCY_REPORTED');
+    }
+  }
+
+  Future<void> _recordStockEvent(
+    DatabaseExecutor txn, {
+    required int productId,
+    required double quantityChange,
+    required String transactionType,
+    required String refType,
+    required int refId,
+    required String transactionId,
+    required String user,
+    int? reversalOfStockActivityId,
+    String? batchNumber,
+    String? expiryDate,
+  }) async {
+    await _assertProductStockConsistency(txn, productId);
+    final currentStock = await _getEventStock(txn, productId);
+    final nextStock = currentStock + quantityChange;
+    if (nextStock < 0) {
+      throw Exception('NEGATIVE_STOCK');
+    }
+
+    await txn.insert('stock_activities', {
+      'product_id': productId,
+      'quantity_change': quantityChange,
+      'transaction_type': transactionType,
+      'ref_type': refType,
+      'ref_id': refId,
+      'transaction_id': transactionId,
+      'reversal_of_stock_activity_id': reversalOfStockActivityId,
+      'reference_type': refType,
+      'reference_id': refId,
+      'batch_number': batchNumber,
+      'expiry_date': expiryDate,
+      'user': user,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    await txn.update(
+      'products',
+      {'current_stock': nextStock},
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+  }
 
   // ========================================
   // CREATE PURCHASE WITH TRANSACTION
@@ -42,7 +123,7 @@ class PurchaseRepository {
 
       // 2. Insert Items & Update Stock
       for (var item in items) {
-        final productId = item['product_id'];
+        final productId = item['product_id'] as int;
         final quantity = (item['quantity'] as num).toDouble();
         final costPrice = (item['cost_price'] as num).toInt();
         final total = (item['total_amount'] as num).toInt();
@@ -52,7 +133,7 @@ class PurchaseRepository {
             ? DateTime.tryParse(expiryDate)
             : (expiryDate is DateTime ? expiryDate : null);
 
-        await txn.insert('purchase_items', {
+        final purchaseItemId = await txn.insert('purchase_items', {
           'purchase_id': id,
           'product_id': productId,
           'quantity': quantity,
@@ -62,23 +143,17 @@ class PurchaseRepository {
           'expiry_date': parsedExpiry?.toIso8601String(),
         });
 
-        // Batch-level stock activity
-        await txn.insert('stock_activities', {
-          'product_id': productId,
-          'quantity_change': quantity,
-          'transaction_type': 'PURCHASE',
-          'reference_type': 'PURCHASE',
-          'reference_id': id,
-          'batch_number': batchNumber,
-          'expiry_date': parsedExpiry?.toIso8601String(),
-          'user': 'SYSTEM',
-          'created_at': DateTime.now().toIso8601String(),
-        });
-
-        // Update total stock
-        await txn.rawUpdate(
-          'UPDATE products SET current_stock = current_stock + ? WHERE id = ?',
-          [quantity, productId],
+        await _recordStockEvent(
+          txn,
+          productId: productId,
+          quantityChange: quantity,
+          transactionType: 'PURCHASE',
+          refType: 'PURCHASE',
+          refId: id,
+          transactionId: 'PURCHASE:$id:ITEM:$purchaseItemId',
+          user: 'SYSTEM',
+          batchNumber: batchNumber,
+          expiryDate: parsedExpiry?.toIso8601String(),
         );
       }
 
@@ -173,67 +248,35 @@ class PurchaseRepository {
         whereArgs: [purchaseId],
       );
 
-      // 3. Revert Stock & Stock Activities
-      final items = await txn.query(
-        'purchase_items',
-        where: 'purchase_id = ?',
-        whereArgs: [purchaseId],
+      // 3. Revert Stock by reversing original stock events
+      final purchaseEvents = await txn.query(
+        'stock_activities',
+        columns: ['id', 'product_id', 'quantity_change', 'batch_number', 'expiry_date'],
+        where:
+            'ref_type = ? AND ref_id = ? AND transaction_type = ? AND reversal_of_stock_activity_id IS NULL',
+        whereArgs: ['PURCHASE', purchaseId, 'PURCHASE'],
       );
+      if (purchaseEvents.isEmpty) {
+        throw Exception('STOCK_EVENTS_NOT_FOUND');
+      }
 
-      for (var item in items) {
-        final productId = item['product_id'] as int;
-        final quantity = (item['quantity'] as num).toDouble();
-        final batchNumber = item['batch_number'] as String?;
-        final expiryRaw = item['expiry_date']?.toString();
-        final expiryDate =
-            expiryRaw != null ? DateTime.tryParse(expiryRaw) : null;
-
-        // Verify product exists and has sufficient stock
-        final productRes = await txn.query(
-          'products',
-          columns: ['current_stock'],
-          where: 'id = ?',
-          whereArgs: [productId],
-          limit: 1,
+      for (final event in purchaseEvents) {
+        final originalEventId = event['id'] as int;
+        final productId = event['product_id'] as int;
+        final quantity = (event['quantity_change'] as num).toDouble();
+        await _recordStockEvent(
+          txn,
+          productId: productId,
+          quantityChange: -quantity,
+          transactionType: 'PURCHASE_CANCEL',
+          refType: 'PURCHASE',
+          refId: purchaseId,
+          transactionId: 'PURCHASE_CANCEL:$purchaseId:EVENT:$originalEventId',
+          user: cancelledBy,
+          reversalOfStockActivityId: originalEventId,
+          batchNumber: event['batch_number'] as String?,
+          expiryDate: event['expiry_date']?.toString(),
         );
-
-        if (productRes.isEmpty) {
-          AppLogger.error(
-            'Cancel purchase failed: product not found (purchaseId=$purchaseId, productId=$productId)',
-            tag: 'PurchaseRepository',
-          );
-          throw Exception('PRODUCT_NOT_FOUND');
-        }
-
-        final currentStock =
-            (productRes.first['current_stock'] as num).toDouble();
-
-        if (currentStock < quantity) {
-          AppLogger.error(
-            'Cancel purchase failed: insufficient stock (purchaseId=$purchaseId, productId=$productId, available=$currentStock, required=$quantity)',
-            tag: 'PurchaseRepository',
-          );
-          throw Exception('INSUFFICIENT_STOCK_FOR_CANCELLATION');
-        }
-
-        // Reduce total stock
-        await txn.rawUpdate(
-          'UPDATE products SET current_stock = current_stock - ? WHERE id = ?',
-          [quantity, productId],
-        );
-
-        // Log stock activity
-        await txn.insert('stock_activities', {
-          'product_id': productId,
-          'quantity_change': -quantity,
-          'transaction_type': 'PURCHASE_CANCEL',
-          'reference_type': 'PURCHASE',
-          'reference_id': purchaseId,
-          'batch_number': batchNumber,
-          'expiry_date': expiryDate?.toIso8601String(),
-          'user': cancelledBy,
-          'created_at': DateTime.now().toIso8601String(),
-        });
       }
 
       // 4. Reverse Supplier Ledger using original purchase ledger entry
