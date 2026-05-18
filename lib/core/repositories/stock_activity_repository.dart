@@ -6,39 +6,36 @@ class StockActivityRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   /// Fetch paginated stock activities (Audit Log)
-  /// Combines Sales (Stock Out) and Purchases (Stock In)
+  /// Uses stock event ledger as the single activity source.
   Future<List<StockActivityEntity>> getActivities({
     int limit = 50,
     int offset = 0,
   }) async {
     final db = await _dbHelper.database;
 
-    // Union Query to get chronological events
+    // Chronological stock events with cancellation state derived from reversals.
     final result = await db.rawQuery('''
       SELECT 
-        'SALE' as type,
-        id,
-        invoice_number as ref_no,
-        invoice_date as date,
-        grand_total as amount,
-        'Sale to Customer' as description,
-        status
-      FROM invoices
-      WHERE status IN ('COMPLETED', 'CANCELLED')
-
-      UNION ALL
-
-      SELECT 
-        'PURCHASE' as type,
-        id,
-        invoice_number as ref_no,
-        purchase_date as date,
-        total_amount as amount,
-        'Purchase from Supplier' as description,
-        status
-      FROM purchases
-
-      ORDER BY date DESC
+        sa.id,
+        sa.transaction_type,
+        sa.ref_type,
+        sa.ref_id,
+        sa.quantity_change,
+        sa.user,
+        sa.created_at,
+        p.name_english as product_name,
+        CASE
+          WHEN sa.reversal_of_stock_activity_id IS NOT NULL THEN 'COMPLETED'
+          WHEN EXISTS (
+            SELECT 1
+            FROM stock_activities rev
+            WHERE rev.reversal_of_stock_activity_id = sa.id
+          ) THEN 'CANCELLED'
+          ELSE 'COMPLETED'
+        END as status
+      FROM stock_activities sa
+      LEFT JOIN products p ON p.id = sa.product_id
+      ORDER BY datetime(sa.created_at) DESC, sa.id DESC
       LIMIT ? OFFSET ?
     ''', [limit, offset]);
 
@@ -46,16 +43,20 @@ class StockActivityRepository {
   }
 
   StockActivityEntity _mapToEntity(Map<String, dynamic> row) {
-    final typeStr = row['type'] as String;
+    final typeStr = (row['transaction_type'] as String?) ?? 'ADJUSTMENT';
+    final refType = (row['ref_type'] as String?) ?? 'ADJUSTMENT';
+    final refId = (row['ref_id'] as num?)?.toInt();
+    final qtyChange = (row['quantity_change'] as num?)?.toDouble() ?? 0;
     ActivityType type;
-    double qtyChange = 0; // Aggregate not available in summary view
 
     if (typeStr == 'SALE') {
       type = ActivityType.sale;
-      qtyChange = -1; // Indicative
     } else if (typeStr == 'PURCHASE') {
       type = ActivityType.purchase;
-      qtyChange = 1; // Indicative
+    } else if (typeStr == 'SALE_CANCEL') {
+      type = ActivityType.returnIn;
+    } else if (typeStr == 'PURCHASE_CANCEL') {
+      type = ActivityType.returnOut;
     } else {
       type = ActivityType.adjustment;
     }
@@ -63,21 +64,21 @@ class StockActivityRepository {
     // Handle date parsing safely
     DateTime timestamp;
     try {
-      timestamp = DateTime.parse(row['date']?.toString() ?? '');
+      timestamp = DateTime.parse(row['created_at']?.toString() ?? '');
     } catch (_) {
       timestamp = DateTime.now();
     }
 
     return StockActivityEntity(
-      id: "${typeStr}_${row['id']}",
+      id: "EVENT_${row['id']}",
       timestamp: timestamp,
       type: type,
-      referenceNumber: row['ref_no'] as String? ?? '-',
-      referenceId: (row['id'] as num?)?.toInt(),
-      description: row['description']?.toString() ?? '-',
+      referenceNumber: '$refType #${refId ?? '-'}',
+      referenceId: refId,
+      description: row['product_name']?.toString() ?? '-',
       quantityChange: qtyChange,
-      financialImpact: Money((row['amount'] as num?)?.toInt() ?? 0),
-      user: 'Admin', // Placeholder until Auth system is linked
+      financialImpact: const Money(0),
+      user: (row['user'] as String?) ?? 'SYSTEM',
       status: (row['status'] as String?) ?? 'COMPLETED',
     );
   }

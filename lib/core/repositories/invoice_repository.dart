@@ -52,6 +52,86 @@ class InvoiceRepository {
     }
   }
 
+  Future<double> _getEventStock(
+    DatabaseExecutor txn,
+    int productId,
+  ) async {
+    final rows = await txn.rawQuery(
+      'SELECT COALESCE(SUM(quantity_change), 0) AS stock_total FROM stock_activities WHERE product_id = ?',
+      [productId],
+    );
+    return (rows.first['stock_total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  Future<void> _assertProductStockConsistency(
+    DatabaseExecutor txn,
+    int productId,
+  ) async {
+    final productRows = await txn.query(
+      'products',
+      columns: ['current_stock'],
+      where: 'id = ?',
+      whereArgs: [productId],
+      limit: 1,
+    );
+    if (productRows.isEmpty) {
+      throw Exception('PRODUCT_NOT_FOUND');
+    }
+    final cachedStock = (productRows.first['current_stock'] as num?)?.toDouble() ?? 0.0;
+    final eventStock = await _getEventStock(txn, productId);
+    if ((cachedStock - eventStock).abs() > 0.000001) {
+      AppLogger.error(
+        'Stock inconsistency detected (productId=$productId, cached=$cachedStock, events=$eventStock)',
+        tag: 'InvoiceRepo',
+      );
+      throw Exception('STOCK_INCONSISTENCY_REPORTED');
+    }
+  }
+
+  Future<void> _recordStockEvent(
+    DatabaseExecutor txn, {
+    required int productId,
+    required double quantityChange,
+    required String transactionType,
+    required String refType,
+    required int refId,
+    required String transactionId,
+    required String user,
+    int? reversalOfStockActivityId,
+    String? batchNumber,
+    String? expiryDate,
+  }) async {
+    await _assertProductStockConsistency(txn, productId);
+    final currentStock = await _getEventStock(txn, productId);
+    final nextStock = currentStock + quantityChange;
+    if (nextStock < 0) {
+      throw Exception('NEGATIVE_STOCK');
+    }
+
+    await txn.insert('stock_activities', {
+      'product_id': productId,
+      'quantity_change': quantityChange,
+      'transaction_type': transactionType,
+      'ref_type': refType,
+      'ref_id': refId,
+      'transaction_id': transactionId,
+      'reversal_of_stock_activity_id': reversalOfStockActivityId,
+      'reference_type': refType,
+      'reference_id': refId,
+      'batch_number': batchNumber,
+      'expiry_date': expiryDate,
+      'user': user,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    await txn.update(
+      'products',
+      {'current_stock': nextStock},
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+  }
+
   // ========================================
   // INVOICE CREATION (Full Transaction)
   // ========================================
@@ -167,10 +247,10 @@ class InvoiceRepository {
 
       // 5. Insert Items & Update Stock
       for (var item in items) {
-        final productId = item['product_id'];
+        final productId = item['product_id'] as int;
         final quantity = (item['quantity'] as num).toDouble();
 
-        await txn.insert('invoice_items', {
+        final invoiceItemId = await txn.insert('invoice_items', {
           'invoice_id': invoiceId,
           'product_id': productId,
           'item_name_snapshot': item['name_english'],
@@ -179,29 +259,27 @@ class InvoiceRepository {
           'total_price': item['total'],
         });
 
-        // Atomic Stock Update
-        int updated = await txn.rawUpdate(
-          'UPDATE products SET current_stock = current_stock - ? WHERE id = ? AND current_stock >= ?',
-          [quantity, productId, quantity],
-        );
-
-        if (updated == 0) {
+        try {
+          await _recordStockEvent(
+            txn,
+            productId: productId,
+            quantityChange: -quantity,
+            transactionType: 'SALE',
+            refType: 'INVOICE',
+            refId: invoiceId,
+            transactionId: 'INVOICE:$invoiceId:ITEM:$invoiceItemId',
+            user: 'SYSTEM',
+          );
+        } catch (e) {
+          if (e.toString().contains('STOCK_INCONSISTENCY_REPORTED')) {
+            rethrow;
+          }
           final itemLabel =
               (item['name_english']?.toString().trim().isNotEmpty ?? false)
                   ? item['name_english'].toString().trim()
                   : productId.toString();
           throw Exception('INSUFFICIENT_STOCK:$itemLabel');
         }
-
-        await txn.insert('stock_activities', {
-          'product_id': productId,
-          'quantity_change': -quantity,
-          'transaction_type': 'SALE',
-          'reference_type': 'INVOICE',
-          'reference_id': invoiceId,
-          'user': 'SYSTEM',
-          'created_at': DateTime.now().toIso8601String(),
-        });
       }
 
       // 6. Update Customer Ledger (Only if there is a credit portion)
@@ -407,31 +485,32 @@ class InvoiceRepository {
         whereArgs: [invoiceId],
       );
 
-      // 3. Revert Stock
-      final items = await txn.query(
-        'invoice_items',
-        where: 'invoice_id = ?',
-        whereArgs: [invoiceId],
+      // 3. Revert Stock by reversing original stock events
+      final saleEvents = await txn.query(
+        'stock_activities',
+        columns: ['id', 'product_id', 'quantity_change'],
+        where:
+            'ref_type = ? AND ref_id = ? AND transaction_type = ? AND reversal_of_stock_activity_id IS NULL',
+        whereArgs: ['INVOICE', invoiceId, 'SALE'],
       );
-
-      for (var item in items) {
-        final productId = item['product_id'] as int;
-        final quantity = (item['quantity'] as num).toDouble();
-
-        await txn.rawUpdate(
-          'UPDATE products SET current_stock = current_stock + ? WHERE id = ?',
-          [quantity, productId],
+      if (saleEvents.isEmpty) {
+        throw Exception('STOCK_EVENTS_NOT_FOUND');
+      }
+      for (final event in saleEvents) {
+        final originalEventId = event['id'] as int;
+        final productId = event['product_id'] as int;
+        final quantity = (event['quantity_change'] as num).toDouble();
+        await _recordStockEvent(
+          txn,
+          productId: productId,
+          quantityChange: -quantity,
+          transactionType: 'SALE_CANCEL',
+          refType: 'INVOICE',
+          refId: invoiceId,
+          transactionId: 'INVOICE_CANCEL:$invoiceId:EVENT:$originalEventId',
+          user: cancelledBy,
+          reversalOfStockActivityId: originalEventId,
         );
-
-        await txn.insert('stock_activities', {
-          'product_id': productId,
-          'quantity_change': quantity,
-          'transaction_type': 'SALE_CANCEL',
-          'reference_type': 'INVOICE',
-          'reference_id': invoiceId,
-          'user': cancelledBy,
-          'created_at': DateTime.now().toIso8601String(),
-        });
       }
 
       // 4. Reverse Customer Ledger
@@ -672,8 +751,27 @@ class InvoiceRepository {
         };
       }
 
-      final currentStock = (result.first['current_stock'] as num).toDouble();
+      final cachedStock = (result.first['current_stock'] as num).toDouble();
+      final stockRows = await db.rawQuery(
+        'SELECT COALESCE(SUM(quantity_change), 0) AS stock_total FROM stock_activities WHERE product_id = ?',
+        [productId],
+      );
+      final currentStock = (stockRows.first['stock_total'] as num?)?.toDouble() ?? 0.0;
       final productName = result.first['name_english'];
+
+      if ((cachedStock - currentStock).abs() > 0.000001) {
+        AppLogger.error(
+          'Stock inconsistency detected (productId=$productId, cached=$cachedStock, events=$currentStock)',
+          tag: 'InvoiceRepo',
+        );
+        return {
+          'valid': false,
+          'error': 'Stock inconsistency reported',
+          'productName': productName,
+          'cached': cachedStock,
+          'events': currentStock,
+        };
+      }
 
       if (currentStock < requestedQty) {
         return {
