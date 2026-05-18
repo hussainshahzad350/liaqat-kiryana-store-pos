@@ -74,6 +74,8 @@ class DatabaseHelper {
         !identifierPattern.hasMatch(column)) {
       throw ArgumentError('Invalid SQL identifier');
     }
+    // PRAGMA table_info does not support bound identifiers, so validated
+    // interpolation is required here.
     final cols = await db.rawQuery('PRAGMA table_info($table)');
     return cols.any((row) => row['name'] == column);
   }

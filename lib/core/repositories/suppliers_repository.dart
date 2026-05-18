@@ -206,7 +206,8 @@ class SuppliersRepository {
 
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
-      final paymentDate = DateTime.now().toIso8601String();
+      final now = DateTime.now();
+      final paymentDate = now.toIso8601String();
       final paymentId = await txn.insert('supplier_payments', {
         'supplier_id': supplierId,
         'amount': amount,
@@ -241,9 +242,8 @@ class SuppliersRepository {
         whereArgs: [supplierId],
       );
 
-      final cashTxnNow = DateTime.now();
-      final dateStr = DateFormat('yyyy-MM-dd').format(cashTxnNow);
-      final timeStr = DateFormat('hh:mm a').format(cashTxnNow);
+      final dateStr = DateFormat('yyyy-MM-dd').format(now);
+      final timeStr = DateFormat('hh:mm a').format(now);
       final lastCash = await txn.rawQuery(
           'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
       final currentCashBalance = lastCash.isNotEmpty
