@@ -343,8 +343,12 @@ class InvoiceRepository {
           'at': DateTime.now().toIso8601String(),
         };
         updatedNotes = jsonEncode(notesMap);
-      } catch (_) {
+      } catch (e) {
         // Fallback: notes was not valid JSON; append as plain text
+        AppLogger.warning(
+          'cancelInvoice: could not parse notes JSON for invoice $invoiceId — falling back to text append. Error: $e',
+          tag: 'InvoiceRepo',
+        );
         updatedNotes = '${rawNotes ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]';
       }
       await txn.update(
