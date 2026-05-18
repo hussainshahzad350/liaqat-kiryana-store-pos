@@ -1,6 +1,7 @@
 import '../database/database_helper.dart';
 import '../entity/stock_activity_entity.dart';
 import '../../domain/entities/money.dart';
+import '../utils/logger.dart';
 
 class StockActivityRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -43,7 +44,14 @@ class StockActivityRepository {
   }
 
   StockActivityEntity _mapToEntity(Map<String, dynamic> row) {
-    final typeStr = (row['transaction_type'] as String?) ?? 'ADJUSTMENT';
+    final rawType = row['transaction_type']?.toString().trim();
+    if (rawType == null || rawType.isEmpty) {
+      AppLogger.warning(
+        'Stock event missing transaction_type for eventId=${row['id']}',
+        tag: 'StockActivityRepository',
+      );
+    }
+    final typeStr = (rawType == null || rawType.isEmpty) ? 'ADJUSTMENT' : rawType;
     final refType = (row['ref_type'] as String?) ?? 'ADJUSTMENT';
     final refId = (row['ref_id'] as num?)?.toInt();
     final qtyChange = (row['quantity_change'] as num?)?.toDouble() ?? 0;

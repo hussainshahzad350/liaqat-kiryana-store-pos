@@ -91,7 +91,9 @@ class DatabaseHelper {
     await db.execute(
         'UPDATE stock_activities SET ref_id = reference_id WHERE ref_id IS NULL');
     await db.execute(
-        "UPDATE stock_activities SET transaction_id = 'LEGACY_STOCK_EVENT:' || id WHERE transaction_id IS NULL OR transaction_id = ''");
+        "UPDATE stock_activities SET transaction_id = NULL WHERE TRIM(COALESCE(transaction_id, '')) = ''");
+    await db.execute(
+        "UPDATE stock_activities SET transaction_id = 'LEGACY_STOCK_EVENT:' || id WHERE transaction_id IS NULL");
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_stock_activities_ref ON stock_activities(ref_type, ref_id)');
     await db.execute(
