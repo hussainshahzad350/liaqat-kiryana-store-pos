@@ -305,7 +305,9 @@ class _AppShellState extends State<AppShell> {
       if (salesBuilder != null) {
         return salesBuilder(context);
       }
-      return const SizedBox.shrink();
+      return const Center(
+        child: Text('Screen unavailable'),
+      );
     }
     final child = builder(context);
     if (_kNoCacheRoutes.contains(route)) {
