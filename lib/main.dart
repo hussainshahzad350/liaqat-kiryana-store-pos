@@ -7,6 +7,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:window_manager/window_manager.dart';
 import 'core/cubits/sidebar_cubit.dart';
 import 'core/repositories/categories_repository.dart';
+import 'core/repositories/cash_repository.dart';
 import 'core/repositories/customers_repository.dart';
 import 'core/repositories/invoice_repository.dart';
 import 'core/repositories/items_repository.dart';
@@ -18,6 +19,7 @@ import 'core/repositories/stock_repository.dart';
 import 'core/repositories/suppliers_repository.dart';
 import 'core/repositories/units_repository.dart';
 import 'core/routes/app_routes.dart';
+import 'core/services/sales_kpi_service.dart';
 import 'core/theme/theme_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/auth/login_screen.dart';
@@ -58,6 +60,7 @@ void main() async {
         ChangeNotifierProvider(
             create: (_) => ThemeProvider(settingsRepository)),
         RepositoryProvider(create: (context) => settingsRepository),
+        RepositoryProvider(create: (context) => CashRepository()),
         RepositoryProvider(create: (context) => ItemsRepository()),
         RepositoryProvider(create: (context) => CustomersRepository()),
         RepositoryProvider(
@@ -72,6 +75,13 @@ void main() async {
                 PurchaseRepository(context.read<ItemsRepository>())),
         RepositoryProvider(create: (context) => SuppliersRepository()),
         RepositoryProvider(create: (context) => CategoriesRepository()),
+        RepositoryProvider(
+          create: (context) => SalesKpiService(
+            invoiceRepository: context.read<InvoiceRepository>(),
+            itemsRepository: context.read<ItemsRepository>(),
+            cashRepository: context.read<CashRepository>(),
+          ),
+        ),
       ],
       child: LiaqatStoreApp(initialLanguage: languageCode),
     ),
@@ -143,8 +153,8 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
             '/': (context) => const LoginScreen(),
             // Single post-login shell route — feature navigation happens
             // inside AppShell so sidebar/header/blocs stay alive.
-            AppRoutes.home: (context) => const AppShell(
-                  initialRoute: AppRoutes.home,
+            AppRoutes.sales: (context) => const AppShell(
+                  initialRoute: AppRoutes.sales,
                 ),
             AppRoutes.logout: (context) => const LogoutScreen(),
           },

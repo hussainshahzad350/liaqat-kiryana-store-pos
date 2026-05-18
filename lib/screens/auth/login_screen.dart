@@ -111,7 +111,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: AppTokens.buttonHeight,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, AppRoutes.home);
+                        Navigator.pushReplacementNamed(
+                            context, AppRoutes.sales);
                       },
                       child: Text(
                         localizations.login,

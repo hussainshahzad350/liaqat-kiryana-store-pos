@@ -5,7 +5,6 @@ class AppRoutes {
   AppRoutes._();
   
   // Route names
-  static const String home = '/home';
   static const String sales = '/sales';
   static const String stock = '/stock';
   static const String purchase = '/purchase';
@@ -24,7 +23,6 @@ class AppRoutes {
   static const String accounts = '/accounts';
   static const String customers = '/customers';
   static const String suppliers = '/suppliers';
-  static const String reports = '/reports';
   static const String cashLedger = '/cash-ledger';
   static const String settings = '/settings';
   static const String login = '/';

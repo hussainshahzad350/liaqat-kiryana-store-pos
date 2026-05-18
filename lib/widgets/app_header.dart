@@ -13,8 +13,6 @@ class AppHeader extends StatelessWidget {
   String _getScreenTitle(BuildContext context, String route) {
     final localizations = AppLocalizations.of(context)!;
     switch (route) {
-      case AppRoutes.home:
-        return localizations.dashboard;
       case AppRoutes.sales:
         return localizations.sales;
       case AppRoutes.purchase:
@@ -27,8 +25,6 @@ class AppHeader extends StatelessWidget {
       case AppRoutes.suppliers:
       case AppRoutes.accounts:
         return localizations.accounts;
-      case AppRoutes.reports:
-        return localizations.reports;
       case AppRoutes.settings:
         return localizations.settings;
       case AppRoutes.cashLedger:

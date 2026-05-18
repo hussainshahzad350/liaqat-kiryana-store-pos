@@ -27,13 +27,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get forgotPassword => 'پاسورڈ بھول گئے؟';
 
   @override
-  String get home => 'ہوم';
+  String get home => 'مرکزی صفحہ';
 
   @override
   String get salesPos => 'فروخت / پوائنٹ آف سیل';
 
   @override
-  String get stockManagement => 'اسٹاک کا انتظام';
+  String get productsAndStock => 'اشیاء اور اسٹاک';
+
+  @override
+  String get stockManagement => 'اسٹاک مینجمنٹ';
 
   @override
   String get masterData => 'بنیادی ڈیٹا';
@@ -42,7 +45,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get reports => 'رپورٹس';
 
   @override
-  String get cashLedger => 'کیش لیجر';
+  String get cashLedger => 'نقد بہی';
 
   @override
   String get settings => 'ترتیبات';
@@ -69,10 +72,22 @@ class AppLocalizationsUr extends AppLocalizations {
   String get lowStock => 'کم اسٹاک';
 
   @override
+  String get lowStockCount => 'کم اسٹاک اشیاء';
+
+  @override
+  String get kpiHeader => 'لائیو خلاصہ';
+
+  @override
+  String get cashSnapshot => 'نقد کی صورتحال';
+
+  @override
   String get allStockAvailable => 'سب آئٹمز اسٹاک میں ہیں';
 
   @override
   String get recentSales => 'حالیہ فروخت';
+
+  @override
+  String get latestInvoice => 'تازہ ترین رسید';
 
   @override
   String get noSalesYet => 'ابھی تک کوئی فروخت نہیں ہوئی';
