@@ -23,7 +23,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
@@ -36,11 +36,48 @@ class DatabaseHelper {
             WHERE is_system = 1
           ''');
         }
+        if (oldVersion < 3) {
+          await _addCashLedgerReferenceColumns(db);
+        }
       },
       onOpen: (db) async {
         await ensureStandardUnits(db);
       },
     );
+  }
+
+  Future<void> _addCashLedgerReferenceColumns(Database db) async {
+    if (!await _hasColumn(db, 'cash_ledger', 'ref_type')) {
+      await db.execute('ALTER TABLE cash_ledger ADD COLUMN ref_type TEXT');
+    }
+    if (!await _hasColumn(db, 'cash_ledger', 'ref_id')) {
+      await db.execute('ALTER TABLE cash_ledger ADD COLUMN ref_id INTEGER');
+    }
+    if (!await _hasColumn(db, 'cash_ledger', 'transaction_id')) {
+      await db.execute('ALTER TABLE cash_ledger ADD COLUMN transaction_id TEXT');
+    }
+    if (!await _hasColumn(db, 'cash_ledger', 'reversal_of_cash_ledger_id')) {
+      await db.execute(
+          'ALTER TABLE cash_ledger ADD COLUMN reversal_of_cash_ledger_id INTEGER');
+    }
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_cash_ledger_ref ON cash_ledger(ref_type, ref_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_cash_ledger_transaction_id ON cash_ledger(transaction_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_cash_ledger_reversal_of ON cash_ledger(reversal_of_cash_ledger_id)');
+  }
+
+  Future<bool> _hasColumn(Database db, String table, String column) async {
+    final identifierPattern = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$');
+    if (!identifierPattern.hasMatch(table) ||
+        !identifierPattern.hasMatch(column)) {
+      throw ArgumentError('Invalid SQL identifier');
+    }
+    // PRAGMA table_info does not support bound identifiers, so validated
+    // interpolation is required here.
+    final cols = await db.rawQuery('PRAGMA table_info($table)');
+    return cols.any((row) => row['name'] == column);
   }
 
   static Future<void> ensureStandardUnits(Database db) async {
@@ -290,7 +327,11 @@ class DatabaseHelper {
         amount INTEGER NOT NULL,
         balance_after INTEGER,
         remarks TEXT,
-        payment_mode TEXT DEFAULT 'CASH'
+        payment_mode TEXT DEFAULT 'CASH',
+        ref_type TEXT,
+        ref_id INTEGER,
+        transaction_id TEXT,
+        reversal_of_cash_ledger_id INTEGER
       )
     ''');
 
@@ -509,6 +550,12 @@ class DatabaseHelper {
         'CREATE INDEX IF NOT EXISTS idx_supplier_ledger_supplier_date ON supplier_ledger(supplier_id, transaction_date)');
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_supplier_ledger_ref ON supplier_ledger(ref_type, ref_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_cash_ledger_ref ON cash_ledger(ref_type, ref_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_cash_ledger_transaction_id ON cash_ledger(transaction_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_cash_ledger_reversal_of ON cash_ledger(reversal_of_cash_ledger_id)');
   }
 
   Future<void> _insertSampleData(Database db) async {

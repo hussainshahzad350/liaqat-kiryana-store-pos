@@ -1,5 +1,6 @@
 // lib/core/repositories/suppliers_repository.dart
 import 'package:sqflite/sqflite.dart';
+import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
 import '../../models/supplier_model.dart';
@@ -199,18 +200,70 @@ class SuppliersRepository {
 
   /// Add payment and update balance transactionally
   Future<void> addPayment(int supplierId, int amount, String notes) async {
+    if (amount <= 0) {
+      throw ArgumentError('Payment amount must be greater than zero');
+    }
+
     final db = await _dbHelper.database;
     await db.transaction((txn) async {
-      await txn.insert('supplier_payments', {
+      final now = DateTime.now();
+      final paymentDate = now.toIso8601String();
+      final paymentId = await txn.insert('supplier_payments', {
         'supplier_id': supplierId,
         'amount': amount,
-        'payment_date': DateTime.now().toIso8601String(),
+        'payment_date': paymentDate,
         'notes': notes,
       });
 
-      await txn.rawUpdate(
-          'UPDATE suppliers SET outstanding_balance = outstanding_balance - ? WHERE id = ?',
-          [amount, supplierId]);
+      final lastSupplierLedger = await txn.rawQuery(
+        'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+        [supplierId],
+      );
+      final previousSupplierBalance = lastSupplierLedger.isNotEmpty
+          ? (lastSupplierLedger.first['balance'] as num?)?.toInt() ?? 0
+          : 0;
+      final newSupplierBalance = previousSupplierBalance - amount;
+
+      await txn.insert('supplier_ledger', {
+        'supplier_id': supplierId,
+        'transaction_date': paymentDate,
+        'description': 'Supplier Payment #$paymentId',
+        'ref_type': 'PAYMENT',
+        'ref_id': paymentId,
+        'debit': 0,
+        'credit': amount,
+        'balance': newSupplierBalance,
+      });
+
+      await txn.update(
+        'suppliers',
+        {'outstanding_balance': newSupplierBalance},
+        where: 'id = ?',
+        whereArgs: [supplierId],
+      );
+
+      final dateStr = DateFormat('yyyy-MM-dd').format(now);
+      final timeStr = DateFormat('hh:mm a').format(now);
+      final lastCash = await txn.rawQuery(
+          'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
+      final currentCashBalance = lastCash.isNotEmpty
+          ? (lastCash.first['balance_after'] as num?)?.toInt() ?? 0
+          : 0;
+
+      await txn.insert('cash_ledger', {
+        'transaction_date': dateStr,
+        'transaction_time': timeStr,
+        'description': 'Supplier Payment #$paymentId',
+        'type': 'OUT',
+        'amount': amount,
+        'balance_after': currentCashBalance - amount,
+        'remarks': notes,
+        'payment_mode': 'CASH',
+        'ref_type': 'SUPPLIER_PAYMENT',
+        'ref_id': paymentId,
+        'transaction_id': 'SUPPLIER_PAYMENT:$paymentId',
+        'reversal_of_cash_ledger_id': null,
+      });
     });
   }
 
@@ -454,74 +507,39 @@ class SuppliersRepository {
       {DateTime? startDate, DateTime? endDate}) async {
     final db = await _dbHelper.database;
 
-    // 1. Fetch Purchases (Bills)
-    final purchases = await db.rawQuery('''
-        SELECT 
-          'BILL' as type,
-          id as ref_id,
-          purchase_date as date,
-          invoice_number as bill_no,
-          total_amount as cr, -- We owe them (Credit)
-          0 as dr,
-          'Bill #' || COALESCE(invoice_number, '-') as desc
-        FROM purchases 
-        WHERE supplier_id = ?
-      ''', [supplierId]);
-
-    // 2. Fetch Payments
-    final payments = await db.rawQuery('''
-        SELECT 
-          'PAYMENT' as type,
-          id as ref_id,
-          payment_date as date,
-          'Payment Sent' as bill_no,
-          0 as cr,
-          amount as dr, -- We paid them (Debit)
-          notes as desc
-        FROM supplier_payments
-        WHERE supplier_id = ?
-      ''', [supplierId]);
-
-    // Combine
-    List<Map<String, dynamic>> timeline = [...purchases, ...payments];
-
-    // Sort by Date
-    timeline.sort((a, b) {
-      DateTime dA = DateTime.tryParse(a['date'].toString()) ?? DateTime(1900);
-      DateTime dB = DateTime.tryParse(b['date'].toString()) ?? DateTime(1900);
-      return dA.compareTo(dB);
-    });
-
-    // Calculate Running Balance
-    double runningBal = 0.0;
-    List<Map<String, dynamic>> finalLedger = [];
-
-    for (var row in timeline) {
-      int cr = (row['cr'] as num).toInt(); // Bill
-      int dr = (row['dr'] as num).toInt(); // Payment
-      runningBal += (cr - dr); // Payable Balance
-      if (runningBal < 0) runningBal = 0; // Balance always >= 0
-
-      Map<String, dynamic> newRow = Map.from(row);
-      newRow['balance'] = runningBal;
-      finalLedger.add(newRow);
+    String whereClause = 'supplier_id = ?';
+    final args = <dynamic>[supplierId];
+    if (startDate != null) {
+      whereClause += ' AND DATE(transaction_date) >= DATE(?)';
+      args.add(DateFormat('yyyy-MM-dd').format(startDate));
+    }
+    if (endDate != null) {
+      whereClause += ' AND DATE(transaction_date) <= DATE(?)';
+      args.add(DateFormat('yyyy-MM-dd').format(endDate));
     }
 
-    // Filter by date after calculation to preserve running balance
-    if (startDate != null || endDate != null) {
-      final start = startDate ?? DateTime(1900);
-      final end = endDate != null
-          ? DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
-          : DateTime(2100);
-      finalLedger = finalLedger.where((row) {
-        final date =
-            DateTime.tryParse(row['date'].toString()) ?? DateTime.now();
-        return date.isAfter(start.subtract(const Duration(seconds: 1))) &&
-            date.isBefore(end);
-      }).toList();
-    }
-
-    return finalLedger.reversed.toList();
+    return await db.rawQuery('''
+      SELECT
+        CASE
+          WHEN ref_type = 'PURCHASE' THEN 'BILL'
+          WHEN ref_type = 'PAYMENT' THEN 'PAYMENT'
+          ELSE ref_type
+        END as type,
+        ref_id as ref_id,
+        transaction_date as date,
+        CASE
+          WHEN ref_type = 'PURCHASE' THEN 'Bill #' || ref_id
+          WHEN ref_type = 'PAYMENT' THEN 'Payment #' || ref_id
+          ELSE ref_type || ' #' || ref_id
+        END as bill_no,
+        debit as cr,
+        credit as dr,
+        description as desc,
+        balance
+      FROM supplier_ledger
+      WHERE $whereClause
+      ORDER BY transaction_date DESC, id DESC
+    ''', args);
   }
 
   /// Get items for a specific purchase bill
