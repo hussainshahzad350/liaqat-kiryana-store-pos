@@ -6,11 +6,13 @@ import '../../domain/entities/money.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
+import 'dart:math' as math;
 import '../../features/sales/domain/entities/sale_status.dart';
 
 class InvoiceRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
   final ItemsRepository _itemsRepository;
+  static const int _walkInCustomerId = 1;
 
   InvoiceRepository(this._itemsRepository);
 
@@ -56,7 +58,7 @@ class InvoiceRepository {
       if (custRes.isNotEmpty) {
         final limit = (custRes.first['credit_limit'] as num).toInt();
         final balance = (custRes.first['outstanding_balance'] as num).toInt();
-        if (limit > 0 && (balance + grandTotal) > limit) {
+        if (limit > 0 && (balance + creditAmount) > limit) {
           throw Exception('CREDIT_LIMIT_EXCEEDED');
         }
       }
@@ -72,8 +74,34 @@ class InvoiceRepository {
       if (cashAmount < 0 || bankAmount < 0 || creditAmount < 0) {
         throw Exception('PAYMENT_NEGATIVE');
       }
-      if ((cashAmount + bankAmount + creditAmount) != grandTotal) {
+      final bool isWalkInCustomer = customerId == _walkInCustomerId;
+      if (isWalkInCustomer) {
+        if (creditAmount != 0) {
+          throw Exception('WALK_IN_CREDIT_NOT_ALLOWED');
+        }
+        if ((cashAmount + bankAmount) < grandTotal) {
+          throw Exception('PAYMENT_SPLIT_MISMATCH');
+        }
+      } else if ((cashAmount + bankAmount + creditAmount) != grandTotal) {
         throw Exception('PAYMENT_SPLIT_MISMATCH');
+      }
+
+      // Walk-in sales can include overpayment.
+      // For accounting persistence we store only net inflow (= grand total),
+      // while change remains a POS-side settlement concern.
+      final int effectiveCashAmount;
+      final int effectiveBankAmount;
+      if (isWalkInCustomer) {
+        // Apply cash first, then bank, so any returned change is implicitly
+        // treated as cash-drawer settlement.
+        final cappedCash = math.min(cashAmount, grandTotal);
+        final remaining = grandTotal - cappedCash;
+        final cappedBank = math.min(bankAmount, remaining);
+        effectiveCashAmount = cappedCash;
+        effectiveBankAmount = cappedBank;
+      } else {
+        effectiveCashAmount = cashAmount;
+        effectiveBankAmount = bankAmount;
       }
 
       // 3. Insert Invoice with Temp Number
@@ -225,7 +253,7 @@ class InvoiceRepository {
       final dateStr = DateFormat('yyyy-MM-dd').format(now);
       final timeStr = DateFormat('hh:mm a').format(now);
 
-      if (cashAmount > 0) {
+      if (effectiveCashAmount > 0) {
         final res = await txn.rawQuery(
             'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
         int currentCashBalance = res.isNotEmpty
@@ -237,14 +265,14 @@ class InvoiceRepository {
           'transaction_time': timeStr,
           'description': 'Sale $finalNumber (Cash)',
           'type': 'IN',
-          'amount': cashAmount,
-          'balance_after': currentCashBalance + cashAmount,
+          'amount': effectiveCashAmount,
+          'balance_after': currentCashBalance + effectiveCashAmount,
           'remarks': notes ?? '',
           'payment_mode': 'CASH',
         });
       }
 
-      if (bankAmount > 0) {
+      if (effectiveBankAmount > 0) {
         final res = await txn.rawQuery(
             'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
         int currentCashBalance = res.isNotEmpty
@@ -256,8 +284,8 @@ class InvoiceRepository {
           'transaction_time': timeStr,
           'description': 'Sale $finalNumber (Bank/Digital)',
           'type': 'IN',
-          'amount': bankAmount,
-          'balance_after': currentCashBalance + bankAmount,
+          'amount': effectiveBankAmount,
+          'balance_after': currentCashBalance + effectiveBankAmount,
           'remarks': notes ?? '',
           'payment_mode': 'BANK',
         });
@@ -299,7 +327,6 @@ class InvoiceRepository {
       }
 
       final invoice = invoiceRes.first;
-      final grandTotal = (invoice['grand_total'] as num).toInt();
       final customerId = invoice['customer_id'] as int;
       final invoiceNumber = invoice['invoice_number'] as String;
 
@@ -343,33 +370,43 @@ class InvoiceRepository {
       }
 
       // 4. Reverse Customer Ledger
-      final lastEntry = await txn.rawQuery(
-        'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
-        [customerId],
+      final originalInvoiceLedger = await txn.rawQuery(
+        'SELECT debit FROM customer_ledger WHERE customer_id = ? AND ref_type = ? AND ref_id = ? ORDER BY id ASC LIMIT 1',
+        [customerId, 'INVOICE', invoiceId],
       );
-      int prevBalance = lastEntry.isNotEmpty
-          ? (lastEntry.first['balance'] as num?)?.toInt() ?? 0
+      final creditedAmount = originalInvoiceLedger.isNotEmpty
+          ? (originalInvoiceLedger.first['debit'] as num?)?.toInt() ?? 0
           : 0;
-      int newBalance = prevBalance - grandTotal;
 
-      await txn.insert('customer_ledger', {
-        'customer_id': customerId,
-        'transaction_date': DateTime.now().toIso8601String(),
-        'description': 'Invoice Cancelled: #$invoiceNumber',
-        'ref_type': 'ADJUSTMENT',
-        'ref_id': invoiceId,
-        'debit': 0,
-        'credit': grandTotal,
-        'balance': newBalance,
-      });
+      if (creditedAmount > 0) {
+        final lastEntry = await txn.rawQuery(
+          'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+          [customerId],
+        );
+        int prevBalance = lastEntry.isNotEmpty
+            ? (lastEntry.first['balance'] as num?)?.toInt() ?? 0
+            : 0;
+        int newBalance = prevBalance - creditedAmount;
 
-      // 5. Update Customer Balance
-      await txn.update(
-        'customers',
-        {'outstanding_balance': newBalance},
-        where: 'id = ?',
-        whereArgs: [customerId],
-      );
+        await txn.insert('customer_ledger', {
+          'customer_id': customerId,
+          'transaction_date': DateTime.now().toIso8601String(),
+          'description': 'Invoice Cancelled: #$invoiceNumber',
+          'ref_type': 'ADJUSTMENT',
+          'ref_id': invoiceId,
+          'debit': 0,
+          'credit': creditedAmount,
+          'balance': newBalance,
+        });
+
+        // 5. Update Customer Balance
+        await txn.update(
+          'customers',
+          {'outstanding_balance': newBalance},
+          where: 'id = ?',
+          whereArgs: [customerId],
+        );
+      }
 
       // 6. Reverse Cash Ledger Entries
       final cashEntries = await txn.query(
