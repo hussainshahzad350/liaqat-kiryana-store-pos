@@ -87,6 +87,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get recentSales => 'حالیہ فروخت';
 
   @override
+  String get latestInvoice => 'تازہ ترین رسید';
+
+  @override
   String get noSalesYet => 'ابھی تک کوئی فروخت نہیں ہوئی';
 
   @override

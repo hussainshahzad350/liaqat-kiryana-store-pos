@@ -26,6 +26,7 @@
   "cashSnapshot": "Cash Snapshot",
   "allStockAvailable": "All items in stock",
   "recentSales": "Recent Sales",
+  "latestInvoice": "Latest Invoice",
   "noSalesYet": "No sales yet",
   "customer": "Customer",
   "amount": "Amount",

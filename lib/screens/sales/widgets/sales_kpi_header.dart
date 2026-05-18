@@ -22,6 +22,7 @@ class SalesKpiHeader extends StatefulWidget {
 class _SalesKpiHeaderState extends State<SalesKpiHeader> {
   /// Keep KPIs near-live without re-querying every frame.
   static const Duration _refreshInterval = Duration(minutes: 5);
+  static const double _headerHeight = 46;
 
   Timer? _timer;
 
@@ -85,10 +86,10 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final latestInvoiceText = _latestInvoice?.invoiceNumber ?? loc.noSalesYet;
+    final recentInvoiceLabel = _latestInvoice?.invoiceNumber ?? loc.noSalesYet;
 
     return Container(
-      height: 46,
+      height: _headerHeight,
       width: double.infinity,
       color: colorScheme.surfaceContainerLow,
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -125,8 +126,8 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
                   const SizedBox(width: 8),
                   _KpiChip(
                     icon: Icons.receipt_long,
-                    label: loc.recentSales,
-                    value: latestInvoiceText,
+                    label: loc.latestInvoice,
+                    value: recentInvoiceLabel,
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),

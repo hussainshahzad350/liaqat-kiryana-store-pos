@@ -87,6 +87,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentSales => 'Recent Sales';
 
   @override
+  String get latestInvoice => 'Latest Invoice';
+
+  @override
   String get noSalesYet => 'No sales yet';
 
   @override

@@ -254,6 +254,12 @@ abstract class AppLocalizations {
   /// **'Recent Sales'**
   String get recentSales;
 
+  /// No description provided for @latestInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest Invoice'**
+  String get latestInvoice;
+
   /// No description provided for @noSalesYet.
   ///
   /// In en, this message translates to:
