@@ -167,7 +167,7 @@ class ItemsRepository {
   Future<int> addProduct(Product product) async {
     final db = await _dbHelper.database;
     final id = await db.transaction<int>((txn) async {
-      final map = product.toMap();
+      final map = Map<String, dynamic>.from(product.toMap());
       map['current_stock'] = 0;
       final productId = await txn.insert('products', map);
       if (product.currentStock > 0) {
