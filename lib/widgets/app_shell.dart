@@ -305,8 +305,8 @@ class _AppShellState extends State<AppShell> {
       if (salesBuilder != null) {
         return salesBuilder(context);
       }
-      return const Center(
-        child: Text('Screen unavailable'),
+      return Center(
+        child: Text("Screen '$route' unavailable"),
       );
     }
     final child = builder(context);
