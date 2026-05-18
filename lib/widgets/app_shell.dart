@@ -221,8 +221,14 @@ class _AppShellState extends State<AppShell> {
     setState(() => _currentIndex = index);
   }
 
-  String get _currentRoute =>
-      _indexToRoute(_currentIndex) ?? _kRoutes.first;
+  String get _currentRoute {
+    final route = _indexToRoute(_currentIndex);
+    if (route == null) {
+      debugPrint('Unknown route detected: index=$_currentIndex');
+      return AppRoutes.sales;
+    }
+    return route;
+  }
 
   Widget _getOrCreateScreen(int index, BuildContext context) {
     return _screenCache.putIfAbsent(index, () => _buildScreen(index, context));

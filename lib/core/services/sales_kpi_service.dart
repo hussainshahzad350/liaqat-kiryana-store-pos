@@ -21,11 +21,13 @@ class SalesKpiSnapshot {
 }
 
 class SalesKpiService {
+  static const Duration defaultCacheTtl = Duration(seconds: 90);
+
   SalesKpiService({
     required InvoiceRepository invoiceRepository,
     required ItemsRepository itemsRepository,
     required CashRepository cashRepository,
-    this.cacheTtl = const Duration(seconds: 90),
+    this.cacheTtl = defaultCacheTtl,
   })  : _invoiceRepository = invoiceRepository,
         _itemsRepository = itemsRepository,
         _cashRepository = cashRepository;

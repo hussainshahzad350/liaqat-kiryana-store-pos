@@ -20,6 +20,7 @@ class SalesKpiHeader extends StatefulWidget {
 
 class _SalesKpiHeaderState extends State<SalesKpiHeader> {
   static const double _headerHeight = 46;
+  final String _zeroCashDisplay = Money.zero.formattedNoDecimal;
 
   SalesKpiSnapshot? _snapshot;
   bool _loading = true;
@@ -64,7 +65,7 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
     final todaySalesValue = _snapshot?.todaySalesTotal ?? 0;
     final lowStockValue = _snapshot?.lowStockCount ?? 0;
     final cashSnapshotValue =
-        _snapshot?.cashSnapshot.formattedNoDecimal ?? Money.zero.formattedNoDecimal;
+        _snapshot?.cashSnapshot.formattedNoDecimal ?? _zeroCashDisplay;
 
     return Container(
       height: _headerHeight,
