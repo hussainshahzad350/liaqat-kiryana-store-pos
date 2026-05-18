@@ -92,6 +92,8 @@ class InvoiceRepository {
       final int effectiveCashAmount;
       final int effectiveBankAmount;
       if (isWalkInCustomer) {
+        // Apply cash first, then bank, so any returned change is implicitly
+        // treated as cash-drawer settlement.
         final cappedCash = math.min(cashAmount, grandTotal);
         final remaining = grandTotal - cappedCash;
         final cappedBank = math.min(bankAmount, remaining);
