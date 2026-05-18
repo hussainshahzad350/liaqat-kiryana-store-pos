@@ -6,6 +6,7 @@ import '../../domain/entities/money.dart';
 import '../utils/logger.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
+import 'dart:math' as math;
 import '../../features/sales/domain/entities/sale_status.dart';
 
 class InvoiceRepository {
@@ -85,14 +86,15 @@ class InvoiceRepository {
         throw Exception('PAYMENT_SPLIT_MISMATCH');
       }
 
-      // Walk-in sales can include overpayment for change.
-      // Persist only net inflow (= grand total) into cash/bank ledgers.
+      // Walk-in sales can include overpayment.
+      // For accounting persistence we store only net inflow (= grand total),
+      // while change remains a POS-side settlement concern.
       final int effectiveCashAmount;
       final int effectiveBankAmount;
       if (isWalkInCustomer) {
-        final cappedCash = cashAmount > grandTotal ? grandTotal : cashAmount;
+        final cappedCash = math.min(cashAmount, grandTotal);
         final remaining = grandTotal - cappedCash;
-        final cappedBank = bankAmount > remaining ? remaining : bankAmount;
+        final cappedBank = math.min(bankAmount, remaining);
         effectiveCashAmount = cappedCash;
         effectiveBankAmount = cappedBank;
       } else {
