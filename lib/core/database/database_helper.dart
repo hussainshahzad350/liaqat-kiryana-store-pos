@@ -23,7 +23,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
@@ -41,6 +41,9 @@ class DatabaseHelper {
         }
         if (oldVersion < 4) {
           await _addStockActivityEventColumns(db);
+        }
+        if (oldVersion < 5) {
+          await _addLedgerIdentityColumns(db);
         }
       },
       onOpen: (db) async {
@@ -98,6 +101,62 @@ class DatabaseHelper {
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_stock_activities_transaction_id ON stock_activities(transaction_id)');
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_stock_activities_reversal_of ON stock_activities(reversal_of_stock_activity_id)');
+  }
+
+  /// Migration v4 → v5: Add identity (transaction_id / reversal_of_*_id) columns
+  /// to customer_ledger and supplier_ledger (Rule 4 + 5) and soft-delete support
+  /// for products (Rule 8), plus a partial unique index on cash_ledger for
+  /// duplicate-entry prevention (Rule 11).
+  Future<void> _addLedgerIdentityColumns(Database db) async {
+    // --- customer_ledger ---
+    if (!await _hasColumn(db, 'customer_ledger', 'transaction_id')) {
+      await db.execute(
+          'ALTER TABLE customer_ledger ADD COLUMN transaction_id TEXT');
+    }
+    if (!await _hasColumn(
+        db, 'customer_ledger', 'reversal_of_customer_ledger_id')) {
+      await db.execute(
+          'ALTER TABLE customer_ledger ADD COLUMN reversal_of_customer_ledger_id INTEGER');
+    }
+    // Back-fill legacy rows with stable, unique identifiers.
+    await db.execute(
+        "UPDATE customer_ledger SET transaction_id = 'LEGACY_CUST_LEDGER:' || id WHERE TRIM(COALESCE(transaction_id, '')) = ''");
+    await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_customer_ledger_transaction_id ON customer_ledger(transaction_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_customer_ledger_reversal_of ON customer_ledger(reversal_of_customer_ledger_id)');
+
+    // --- supplier_ledger ---
+    if (!await _hasColumn(db, 'supplier_ledger', 'transaction_id')) {
+      await db.execute(
+          'ALTER TABLE supplier_ledger ADD COLUMN transaction_id TEXT');
+    }
+    if (!await _hasColumn(
+        db, 'supplier_ledger', 'reversal_of_supplier_ledger_id')) {
+      await db.execute(
+          'ALTER TABLE supplier_ledger ADD COLUMN reversal_of_supplier_ledger_id INTEGER');
+    }
+    await db.execute(
+        "UPDATE supplier_ledger SET transaction_id = 'LEGACY_SUPP_LEDGER:' || id WHERE TRIM(COALESCE(transaction_id, '')) = ''");
+    await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_supplier_ledger_transaction_id ON supplier_ledger(transaction_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_supplier_ledger_reversal_of ON supplier_ledger(reversal_of_supplier_ledger_id)');
+
+    // --- products: soft-delete support (Rule 8) ---
+    if (!await _hasColumn(db, 'products', 'is_active')) {
+      await db.execute(
+          'ALTER TABLE products ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1');
+    }
+
+    // --- cash_ledger: partial unique index on (ref_type, ref_id, transaction_id)
+    //     to prevent duplicate entries for the same business document (Rule 11).
+    //     SQLite partial-index syntax is used so that NULL columns are excluded.
+    await db.execute('''
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_cash_ledger_ref_txn_unique
+      ON cash_ledger(ref_type, ref_id, transaction_id)
+      WHERE ref_type IS NOT NULL AND ref_id IS NOT NULL AND transaction_id IS NOT NULL
+    ''');
   }
 
   Future<bool> _hasColumn(Database db, String table, String column) async {
@@ -277,6 +336,7 @@ class DatabaseHelper {
         sale_price INTEGER DEFAULT 0,
         barcode TEXT,
         expiry_date TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL,
         FOREIGN KEY (sub_category_id) REFERENCES subcategories(id) ON DELETE SET NULL,
@@ -489,6 +549,8 @@ class DatabaseHelper {
         debit INTEGER DEFAULT 0,
         credit INTEGER DEFAULT 0,
         balance INTEGER NOT NULL,
+        transaction_id TEXT,
+        reversal_of_customer_ledger_id INTEGER,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
       )
@@ -526,6 +588,8 @@ class DatabaseHelper {
         debit INTEGER DEFAULT 0,
         credit INTEGER DEFAULT 0,
         balance INTEGER NOT NULL,
+        transaction_id TEXT,
+        reversal_of_supplier_ledger_id INTEGER,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
       )
@@ -589,15 +653,28 @@ class DatabaseHelper {
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_ledger_ref ON customer_ledger(ref_type, ref_id)');
     await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_customer_ledger_transaction_id ON customer_ledger(transaction_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_customer_ledger_reversal_of ON customer_ledger(reversal_of_customer_ledger_id)');
+    await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_supplier_ledger_supplier_date ON supplier_ledger(supplier_id, transaction_date)');
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_supplier_ledger_ref ON supplier_ledger(ref_type, ref_id)');
+    await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_supplier_ledger_transaction_id ON supplier_ledger(transaction_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_supplier_ledger_reversal_of ON supplier_ledger(reversal_of_supplier_ledger_id)');
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_cash_ledger_ref ON cash_ledger(ref_type, ref_id)');
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_cash_ledger_transaction_id ON cash_ledger(transaction_id)');
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_cash_ledger_reversal_of ON cash_ledger(reversal_of_cash_ledger_id)');
+    await db.execute('''
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_cash_ledger_ref_txn_unique
+      ON cash_ledger(ref_type, ref_id, transaction_id)
+      WHERE ref_type IS NOT NULL AND ref_id IS NOT NULL AND transaction_id IS NOT NULL
+    ''');
   }
 
   Future<void> _insertSampleData(Database db) async {

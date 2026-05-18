@@ -159,7 +159,7 @@ class InvoiceRepository {
     final now = DateTime.now();
     final String yy = (now.year % 100).toString().padLeft(2, '0');
     final String mm = now.month.toString().padLeft(2, '0');
-    final String invoiceDate = DateFormat('yyyy-MM-dd HH:mm').format(now);
+    final String invoiceDate = now.toUtc().toIso8601String();
 
     final invoiceId = await db.transaction<int>((txn) async {
       // 1. Validate Customer Credit Limit
@@ -308,6 +308,7 @@ class InvoiceRepository {
           'debit': creditAmount,
           'credit': 0,
           'balance': newBalance,
+          'transaction_id': 'INVOICE:$invoiceId:CUSTOMER_LEDGER',
         });
 
         // 7. Update Customer Balance Cache
@@ -515,9 +516,12 @@ class InvoiceRepository {
 
       // 4. Reverse Customer Ledger
       final originalInvoiceLedger = await txn.rawQuery(
-        'SELECT debit FROM customer_ledger WHERE customer_id = ? AND ref_type = ? AND ref_id = ? ORDER BY id ASC LIMIT 1',
+        'SELECT id, debit FROM customer_ledger WHERE customer_id = ? AND ref_type = ? AND ref_id = ? ORDER BY id ASC LIMIT 1',
         [customerId, 'INVOICE', invoiceId],
       );
+      final originalLedgerEntryId = originalInvoiceLedger.isNotEmpty
+          ? (originalInvoiceLedger.first['id'] as num?)?.toInt()
+          : null;
       final creditedAmount = originalInvoiceLedger.isNotEmpty
           ? (originalInvoiceLedger.first['debit'] as num?)?.toInt() ?? 0
           : 0;
@@ -534,13 +538,15 @@ class InvoiceRepository {
 
         await txn.insert('customer_ledger', {
           'customer_id': customerId,
-          'transaction_date': DateTime.now().toIso8601String(),
+          'transaction_date': DateTime.now().toUtc().toIso8601String(),
           'description': 'Invoice Cancelled: #$invoiceNumber',
           'ref_type': 'ADJUSTMENT',
           'ref_id': invoiceId,
           'debit': 0,
           'credit': creditedAmount,
           'balance': newBalance,
+          'transaction_id': 'INVOICE_CANCEL:$invoiceId:CUSTOMER_LEDGER',
+          'reversal_of_customer_ledger_id': originalLedgerEntryId,
         });
 
         // 5. Update Customer Balance

@@ -59,11 +59,13 @@ class SuppliersRepository {
     );
   }
 
-  /// Delete supplier
+  /// Soft-delete a supplier (Rule 8: hard deletes of business entities are
+  /// prohibited; set is_active = 0 instead).
   Future<int> deleteSupplier(int id) async {
     final db = await _dbHelper.database;
-    return await db.delete(
+    return await db.update(
       'suppliers',
+      {'is_active': 0},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -152,50 +154,29 @@ class SuppliersRepository {
   // SUPPLIER BALANCE MANAGEMENT
   // ========================================
 
-  /// Update supplier outstanding balance
-  Future<int> updateSupplierBalance(int supplierId, int balance) async {
-    final db = await _dbHelper.database;
-    return await db.update(
-      'suppliers',
-      {'outstanding_balance': balance},
-      where: 'id = ?',
-      whereArgs: [supplierId],
+  /// Update supplier outstanding balance.
+  ///
+  /// BLOCKED: Direct mutations of supplier balance are prohibited (Rule 2).
+  /// All balance changes must flow through ledger events inside a transaction.
+  Future<int> updateSupplierBalance(int supplierId, int balance) {
+    throw UnsupportedError(
+      'RULE_VIOLATION: updateSupplierBalance() is a direct mutation of '
+      'suppliers.outstanding_balance. Use ledger-based flows instead (Rule 2).',
     );
   }
 
-  /// Adjust supplier balance (add or subtract)
+  /// Adjust supplier balance (add or subtract).
+  ///
+  /// BLOCKED: Direct mutations of supplier balance are prohibited (Rule 2).
+  /// Use addPayment() or a proper ledger event instead.
   Future<int> adjustSupplierBalance(
     int supplierId,
     int adjustment,
-  ) async {
-    final db = await _dbHelper.database;
-
-    return await db.transaction((txn) async {
-      // Get current balance
-      final result = await txn.query(
-        'suppliers',
-        columns: ['outstanding_balance'],
-        where: 'id = ?',
-        whereArgs: [supplierId],
-        limit: 1,
-      );
-
-      if (result.isEmpty) {
-        throw Exception('SUPPLIER_NOT_FOUND');
-      }
-
-      final currentBalance =
-          (result.first['outstanding_balance'] as num).toInt();
-      final newBalance = currentBalance + adjustment;
-
-      // Update balance
-      return await txn.update(
-        'suppliers',
-        {'outstanding_balance': newBalance},
-        where: 'id = ?',
-        whereArgs: [supplierId],
-      );
-    });
+  ) {
+    throw UnsupportedError(
+      'RULE_VIOLATION: adjustSupplierBalance() is a direct mutation of '
+      'suppliers.outstanding_balance. Use ledger-based flows instead (Rule 2).',
+    );
   }
 
   /// Add payment and update balance transactionally
@@ -233,6 +214,7 @@ class SuppliersRepository {
         'debit': 0,
         'credit': amount,
         'balance': newSupplierBalance,
+        'transaction_id': 'SUPPLIER_PAYMENT:$paymentId:SUPPLIER_LEDGER',
       });
 
       await txn.update(
@@ -417,15 +399,15 @@ class SuppliersRepository {
     );
   }
 
-  /// Bulk delete suppliers
+  /// Bulk soft-delete suppliers (Rule 8: hard deletes prohibited).
   Future<int> bulkDeleteSuppliers(List<int> supplierIds) async {
     if (supplierIds.isEmpty) return 0;
 
     final db = await _dbHelper.database;
     final placeholders = List.filled(supplierIds.length, '?').join(',');
 
-    return await db.rawDelete(
-      'DELETE FROM suppliers WHERE id IN ($placeholders)',
+    return await db.rawUpdate(
+      'UPDATE suppliers SET is_active = 0 WHERE id IN ($placeholders)',
       supplierIds,
     );
   }

@@ -109,10 +109,14 @@ class ItemsRepository {
   // PRODUCT CRUD OPERATIONS
   // ========================================
 
-  /// Get all products
+  /// Get all active products
   Future<List<Product>> getAllProducts() async {
     final db = await _dbHelper.database;
-    final result = await db.query('products', orderBy: 'name_english ASC');
+    final result = await db.query(
+      'products',
+      where: 'is_active = 1',
+      orderBy: 'name_english ASC',
+    );
     
     final products = result.map((map) => Product.fromMap(map)).toList();
 
@@ -205,6 +209,7 @@ class ItemsRepository {
     final db = await _dbHelper.database;
     final updates = product.toMap();
     updates.remove('current_stock');
+    updates.remove('is_active'); // is_active is managed only by deleteProduct()
     final result = await db.update(
       'products',
       updates,
@@ -219,11 +224,13 @@ class ItemsRepository {
     return result;
   }
 
-  /// Delete product
+  /// Soft-delete a product (Rule 8: hard deletes of business entities are
+  /// prohibited; set is_active = 0 instead).
   Future<int> deleteProduct(int id) async {
     final db = await _dbHelper.database;
-    final result = await db.delete(
+    final result = await db.update(
       'products',
+      {'is_active': 0},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -351,7 +358,7 @@ class ItemsRepository {
     return await db.transaction((txn) async {
       final result = await txn.query(
         'products',
-        columns: ['current_stock', 'avg_cost_price'],
+        columns: ['avg_cost_price'],
         where: 'id = ?',
         whereArgs: [id],
         limit: 1,
@@ -361,7 +368,8 @@ class ItemsRepository {
         throw Exception('PRODUCT_NOT_FOUND');
       }
 
-      final currentStock = (result.first['current_stock'] as num).toDouble();
+      // Derive current stock from events (Rule 13 — cache is not source of truth)
+      final currentStock = await _getEventStock(txn, id);
       final currentAvgPrice = (result.first['avg_cost_price'] as num).toInt();
 
       // Calculate new weighted average
@@ -403,6 +411,7 @@ class ItemsRepository {
         SELECT p.* FROM products p
         INNER JOIN products_fts ON p.id = products_fts.rowid
         WHERE products_fts MATCH ?
+        AND p.is_active = 1
         ORDER BY p.name_english ASC
         LIMIT ?
       ''', [ftsQuery, limit]);
@@ -418,9 +427,10 @@ class ItemsRepository {
     final q = '%${query.toLowerCase()}%';
     final result = await db.rawQuery('''
       SELECT * FROM products
-      WHERE LOWER(name_english) LIKE ?
+      WHERE (LOWER(name_english) LIKE ?
       OR LOWER(name_urdu) LIKE ?
-      OR LOWER(item_code) LIKE ?
+      OR LOWER(item_code) LIKE ?)
+      AND is_active = 1
       ORDER BY name_english ASC
       LIMIT ?
     ''', [q, q, q, limit]);
@@ -434,7 +444,7 @@ class ItemsRepository {
     final db = await _dbHelper.database;
     return await db.query(
       'products',
-      where: 'category_id = ?',
+      where: 'category_id = ? AND is_active = 1',
       whereArgs: [categoryId],
       orderBy: 'name_english ASC',
     );
@@ -454,6 +464,7 @@ class ItemsRepository {
           sale_price
         FROM products 
         WHERE current_stock > 0 AND current_stock <= min_stock_alert
+        AND is_active = 1
         ORDER BY (current_stock / min_stock_alert) ASC
         LIMIT 5
       ''');
@@ -468,7 +479,7 @@ class ItemsRepository {
     final db = await _dbHelper.database;
     return await db.query(
       'products',
-      where: 'current_stock = 0',
+      where: 'current_stock = 0 AND is_active = 1',
       orderBy: 'name_english ASC',
     );
   }
@@ -479,7 +490,7 @@ class ItemsRepository {
     final db = await _dbHelper.database;
     return await db.query(
       'products',
-      where: 'current_stock >= ?',
+      where: 'current_stock >= ? AND is_active = 1',
       whereArgs: [threshold],
       orderBy: 'current_stock DESC',
     );
@@ -493,7 +504,8 @@ class ItemsRepository {
   /// Moved from DatabaseHelper.getTotalProductsCount()
   Future<int> getTotalProductsCount() async {
     final db = await _dbHelper.database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM products');
+    final result = await db
+        .rawQuery('SELECT COUNT(*) as count FROM products WHERE is_active = 1');
     return (result.first['count'] as int?) ?? 0;
   }
 
@@ -502,7 +514,7 @@ class ItemsRepository {
   Future<int> getTotalStockValue() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
-        'SELECT SUM(current_stock * avg_cost_price) as total FROM products');
+        'SELECT SUM(current_stock * avg_cost_price) as total FROM products WHERE is_active = 1');
     return (result.first['total'] as num?)?.round() ?? 0;
   }
 
@@ -510,7 +522,7 @@ class ItemsRepository {
   Future<int> getTotalStockValueAtSalePrice() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
-        'SELECT SUM(current_stock * sale_price) as total FROM products');
+        'SELECT SUM(current_stock * sale_price) as total FROM products WHERE is_active = 1');
     return (result.first['total'] as num?)?.round() ?? 0;
   }
 
@@ -527,6 +539,7 @@ class ItemsRepository {
     final result = await db.rawQuery('''
       SELECT COUNT(*) as count FROM products 
       WHERE current_stock > 0 AND current_stock <= min_stock_alert
+      AND is_active = 1
     ''');
     return (result.first['count'] as int?) ?? 0;
   }
@@ -535,7 +548,7 @@ class ItemsRepository {
   Future<int> getOutOfStockCount() async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
-        'SELECT COUNT(*) as count FROM products WHERE current_stock = 0');
+        'SELECT COUNT(*) as count FROM products WHERE current_stock = 0 AND is_active = 1');
     return (result.first['count'] as int?) ?? 0;
   }
 
@@ -589,7 +602,7 @@ class ItemsRepository {
         FROM products p
         JOIN invoice_items si ON p.id = si.product_id
         JOIN invoices s ON si.invoice_id = s.id
-        WHERE s.status = 'COMPLETED'
+        WHERE s.status = 'COMPLETED' AND p.is_active = 1
       ''';
 
     List<dynamic> args = [];
@@ -630,7 +643,7 @@ class ItemsRepository {
       FROM products p
       LEFT JOIN invoice_items si ON p.id = si.product_id
       LEFT JOIN invoices s ON si.invoice_id = s.id AND s.invoice_date >= ? AND s.status = 'COMPLETED'
-      WHERE p.current_stock > 0
+      WHERE p.current_stock > 0 AND p.is_active = 1
       GROUP BY p.id
       ORDER BY total_sold ASC
       LIMIT ?
@@ -655,7 +668,7 @@ class ItemsRepository {
     final db = await _dbHelper.database;
     final result = await db.query(
       'products',
-      where: 'barcode = ?',
+      where: 'barcode = ? AND is_active = 1',
       whereArgs: [barcode],
       limit: 1,
     );
