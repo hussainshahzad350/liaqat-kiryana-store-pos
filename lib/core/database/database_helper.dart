@@ -69,6 +69,11 @@ class DatabaseHelper {
   }
 
   Future<bool> _hasColumn(Database db, String table, String column) async {
+    final identifierPattern = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$');
+    if (!identifierPattern.hasMatch(table) ||
+        !identifierPattern.hasMatch(column)) {
+      throw ArgumentError('Invalid SQL identifier');
+    }
     final cols = await db.rawQuery('PRAGMA table_info($table)');
     return cols.any((row) => row['name'] == column);
   }

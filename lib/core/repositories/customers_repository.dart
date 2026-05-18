@@ -322,7 +322,7 @@ class CustomersRepository {
         await txn.insert('cash_ledger', {
           'transaction_date': dateStr,
           'transaction_time': timeStr,
-          'description': 'Customer Payment #$receiptId',
+          'description': 'Customer Receipt #$receiptId',
           'type': 'IN',
           'amount': amount,
           'balance_after': currentBalance + amount,

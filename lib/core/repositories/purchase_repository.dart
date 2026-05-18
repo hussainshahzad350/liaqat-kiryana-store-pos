@@ -238,7 +238,7 @@ class PurchaseRepository {
 
       // 4. Reverse Supplier Ledger using original purchase ledger entry
       final originalPurchaseLedger = await txn.rawQuery(
-        'SELECT id, debit, credit FROM supplier_ledger WHERE supplier_id = ? AND ref_type = ? AND ref_id = ? ORDER BY id ASC LIMIT 1',
+        'SELECT id, debit, credit FROM supplier_ledger WHERE supplier_id = ? AND ref_type = ? AND ref_id = ? ORDER BY transaction_date ASC, id ASC LIMIT 1',
         [supplierId, 'PURCHASE', purchaseId],
       );
       if (originalPurchaseLedger.isEmpty) {

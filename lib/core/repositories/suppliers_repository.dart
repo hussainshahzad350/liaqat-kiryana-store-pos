@@ -241,8 +241,9 @@ class SuppliersRepository {
         whereArgs: [supplierId],
       );
 
-      final dateStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      final timeStr = DateFormat('hh:mm a').format(DateTime.now());
+      final cashTxnNow = DateTime.now();
+      final dateStr = DateFormat('yyyy-MM-dd').format(cashTxnNow);
+      final timeStr = DateFormat('hh:mm a').format(cashTxnNow);
       final lastCash = await txn.rawQuery(
           'SELECT balance_after FROM cash_ledger ORDER BY id DESC LIMIT 1');
       final currentCashBalance = lastCash.isNotEmpty
