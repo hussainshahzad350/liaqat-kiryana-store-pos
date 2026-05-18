@@ -1,35 +1,27 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/repositories/cash_repository.dart';
-import '../../../core/repositories/invoice_repository.dart';
-import '../../../core/repositories/items_repository.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/services/sales_kpi_service.dart';
 import '../../../domain/entities/money.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../models/invoice_model.dart';
 import '../../../widgets/app_shell.dart';
 
 class SalesKpiHeader extends StatefulWidget {
-  const SalesKpiHeader({super.key});
+  const SalesKpiHeader({
+    super.key,
+    required this.service,
+  });
+
+  final SalesKpiService service;
 
   @override
   State<SalesKpiHeader> createState() => _SalesKpiHeaderState();
 }
 
 class _SalesKpiHeaderState extends State<SalesKpiHeader> {
-  /// Keep KPIs near-live without re-querying every frame.
-  static const Duration _refreshInterval = Duration(minutes: 5);
   static const double _headerHeight = 46;
 
-  Timer? _timer;
-
-  int _todaySales = 0;
-  int _lowStockCount = 0;
-  Money _cashBalance = Money.zero;
-  Invoice? _latestInvoice;
+  SalesKpiSnapshot? _snapshot;
   bool _loading = true;
   bool _hasError = false;
 
@@ -37,36 +29,17 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
   void initState() {
     super.initState();
     _loadData();
-    _timer = Timer.periodic(_refreshInterval, (_) => _loadData());
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _loadData() async {
+  Future<void> _loadData({bool forceRefresh = false}) async {
     if (!mounted) return;
-    final cashRepository = context.read<CashRepository>();
-    final invoiceRepository = context.read<InvoiceRepository>();
-    final itemsRepository = context.read<ItemsRepository>();
-
     try {
-      final results = await Future.wait([
-        invoiceRepository.getTodaySalesTotal(),
-        itemsRepository.getLowStockCount(),
-        invoiceRepository.getRecentInvoicesWithCustomer(limit: 1),
-        cashRepository.getCurrentCashBalance(),
-      ]);
+      final snapshot =
+          await widget.service.getSnapshot(forceRefresh: forceRefresh);
 
       if (!mounted) return;
-      final recentInvoices = results[2] as List<Invoice>;
       setState(() {
-        _todaySales = results[0] as int;
-        _lowStockCount = results[1] as int;
-        _latestInvoice = recentInvoices.isNotEmpty ? recentInvoices.first : null;
-        _cashBalance = results[3] as Money;
+        _snapshot = snapshot;
         _loading = false;
         _hasError = false;
       });
@@ -86,7 +59,12 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    final recentInvoiceLabel = _latestInvoice?.invoiceNumber ?? loc.noSalesYet;
+    final recentInvoiceLabel =
+        _snapshot?.latestInvoice?.invoiceNumber ?? loc.noSalesYet;
+    final todaySalesValue = _snapshot?.todaySalesTotal ?? 0;
+    final lowStockValue = _snapshot?.lowStockCount ?? 0;
+    final cashSnapshotValue =
+        _snapshot?.cashSnapshot.formattedNoDecimal ?? Money.zero.formattedNoDecimal;
 
     return Container(
       height: _headerHeight,
@@ -108,6 +86,12 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
+                  IconButton(
+                    tooltip: loc.refresh,
+                    onPressed: () => _loadData(forceRefresh: true),
+                    icon:
+                        Icon(Icons.refresh, size: 16, color: colorScheme.primary),
+                  ),
                   if (_hasError) ...[
                     Icon(
                       Icons.error_outline,
@@ -119,7 +103,7 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
                   _KpiChip(
                     icon: Icons.point_of_sale,
                     label: loc.todaySales,
-                    value: Money(_todaySales).formattedNoDecimal,
+                    value: Money(todaySalesValue).formattedNoDecimal,
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                   ),
@@ -135,7 +119,7 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
                   _KpiChip(
                     icon: Icons.warning_amber_rounded,
                     label: loc.lowStockCount,
-                    value: _lowStockCount.toString(),
+                    value: lowStockValue.toString(),
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                     onTap: () => AppShell.navigateTo(context, AppRoutes.stock),
@@ -144,7 +128,7 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
                   _KpiChip(
                     icon: Icons.account_balance_wallet,
                     label: loc.cashSnapshot,
-                    value: _cashBalance.formattedNoDecimal,
+                    value: cashSnapshotValue,
                     colorScheme: colorScheme,
                     textTheme: textTheme,
                     onTap: () =>

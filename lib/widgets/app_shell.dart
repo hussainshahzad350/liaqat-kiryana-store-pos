@@ -128,11 +128,11 @@ int? _routeToIndex(String route) {
   return index >= 0 ? index : null;
 }
 
-String _indexToRoute(int index) {
+String? _indexToRoute(int index) {
   if (index >= 0 && index < _kRoutes.length) {
     return _kRoutes[index];
   }
-  return AppRoutes.sales;
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -183,12 +183,19 @@ class _AppShellState extends State<AppShell> {
   void _navigateToRoute(String route) {
     final canonicalRoute = _canonicalizeRoute(route);
     final index = _routeToIndex(canonicalRoute.route);
-    if (index == null) return;
+    if (index == null) {
+      debugPrint('Unknown route detected: ${canonicalRoute.route}');
+      return;
+    }
     _setIndex(index, productTabIndex: canonicalRoute.productTabIndex);
   }
 
   void _setIndex(int index, {int? productTabIndex}) {
     final route = _indexToRoute(index);
+    if (route == null) {
+      debugPrint('Unknown route detected: index=$index');
+      return;
+    }
     final previousProductTabIndex = _productTabIndex;
     if (route == AppRoutes.product) {
       _productTabIndex = productTabIndex ?? 0;
@@ -214,7 +221,8 @@ class _AppShellState extends State<AppShell> {
     setState(() => _currentIndex = index);
   }
 
-  String get _currentRoute => _indexToRoute(_currentIndex);
+  String get _currentRoute =>
+      _indexToRoute(_currentIndex) ?? _kRoutes.first;
 
   Widget _getOrCreateScreen(int index, BuildContext context) {
     return _screenCache.putIfAbsent(index, () => _buildScreen(index, context));
@@ -295,19 +303,17 @@ class _AppShellState extends State<AppShell> {
   /// and every chained `..add(...)` initialization.
   Widget _buildScreen(int index, BuildContext context) {
     final route = _indexToRoute(index);
+    if (route == null) {
+      debugPrint('Unknown route detected: index=$index');
+      return const SizedBox.shrink();
+    }
     if (route == AppRoutes.product) {
       return ProductScreen(initialTabIndex: _productTabIndex);
     }
     final builder = _kRouteBuilders[route];
     if (builder == null) {
-      debugPrint('AppShell: no route builder found for $route');
-      final salesBuilder = _kRouteBuilders[AppRoutes.sales];
-      if (salesBuilder != null) {
-        return salesBuilder(context);
-      }
-      return Center(
-        child: Text("Screen '$route' unavailable"),
-      );
+      debugPrint('Unknown route detected: $route');
+      return Center(child: Text("Screen '$route' unavailable"));
     }
     final child = builder(context);
     if (_kNoCacheRoutes.contains(route)) {

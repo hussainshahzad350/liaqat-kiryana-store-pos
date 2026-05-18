@@ -6,6 +6,7 @@ import '../../bloc/sales/sales_event.dart';
 import '../../bloc/sales/sales_state.dart';
 import '../../core/repositories/receipt_repository.dart';
 import '../../core/res/app_tokens.dart';
+import '../../core/services/sales_kpi_service.dart';
 import '../../core/utils/error_handler.dart';
 import '../../l10n/app_localizations.dart';
 import 'dart:async';
@@ -449,11 +450,12 @@ class _SalesScreenState extends State<SalesScreen> {
                 }
               },
               builder: (context, state) {
+                final salesKpiService = context.read<SalesKpiService>();
                 return Stack(
                   children: [
                     Column(
                       children: [
-                        const SalesKpiHeader(),
+                        SalesKpiHeader(service: salesKpiService),
                         // Actions Toolbar
                         Container(
                           padding: const EdgeInsets.symmetric(
