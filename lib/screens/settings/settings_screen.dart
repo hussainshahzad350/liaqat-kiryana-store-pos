@@ -8,6 +8,7 @@ import 'pages/profile_page.dart';
 import 'pages/backup_page.dart';
 import 'pages/receipt_page.dart';
 import 'pages/preferences_page.dart';
+import 'pages/security_page.dart';
 import '../../core/res/app_tokens.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -202,6 +203,14 @@ class SettingsView extends StatelessWidget {
               .read<SettingsCubit>()
               .selectCategory(SettingsCategory.preferences),
         ),
+        SettingsTile(
+          icon: Icons.lock_outlined,
+          title: loc.changePin,
+          subtitle: loc.securitySubtitle,
+          onTap: () => context
+              .read<SettingsCubit>()
+              .selectCategory(SettingsCategory.security),
+        ),
       ],
     );
   }
@@ -216,6 +225,8 @@ class SettingsView extends StatelessWidget {
         return loc.receiptFormat;
       case SettingsCategory.preferences:
         return loc.preferences;
+      case SettingsCategory.security:
+        return loc.changePin;
       default:
         return loc.settings;
     }
@@ -231,6 +242,8 @@ class SettingsView extends StatelessWidget {
         return const ReceiptPage(key: ValueKey('receipt'));
       case SettingsCategory.preferences:
         return const PreferencesPage(key: ValueKey('preferences'));
+      case SettingsCategory.security:
+        return const SecurityPage(key: ValueKey('security'));
       default:
         return const SizedBox.shrink();
     }

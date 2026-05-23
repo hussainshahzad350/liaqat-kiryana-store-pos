@@ -19,6 +19,7 @@ import 'core/repositories/stock_repository.dart';
 import 'core/repositories/suppliers_repository.dart';
 import 'core/repositories/units_repository.dart';
 import 'core/routes/app_routes.dart';
+import 'core/services/pin_auth_service.dart';
 import 'core/services/sales_kpi_service.dart';
 import 'core/theme/theme_provider.dart';
 import 'l10n/app_localizations.dart';
@@ -75,6 +76,7 @@ void main() async {
                 PurchaseRepository(context.read<ItemsRepository>())),
         RepositoryProvider(create: (context) => SuppliersRepository()),
         RepositoryProvider(create: (context) => CategoriesRepository()),
+        RepositoryProvider(create: (context) => PinAuthService()),
         RepositoryProvider(
           create: (context) => SalesKpiService(
             invoiceRepository: context.read<InvoiceRepository>(),

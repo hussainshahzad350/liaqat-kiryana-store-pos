@@ -24,7 +24,92 @@ class AppLocalizationsUr extends AppLocalizations {
   String get password => 'پاسورڈ';
 
   @override
-  String get forgotPassword => 'پاسورڈ بھول گئے؟';
+  String get forgotPassword => 'پن بھول گئے؟';
+
+  @override
+  String get enterPin => 'پن درج کریں';
+
+  @override
+  String get setPin => 'پن سیٹ کریں';
+
+  @override
+  String get confirmPin => 'پن کی تصدیق کریں';
+
+  @override
+  String get pinHint => '4 سے 6 ہندسوں کا پن';
+
+  @override
+  String get pinMismatch => 'پن میل نہیں کھاتے';
+
+  @override
+  String get pinTooShort => 'پن 4 سے 6 ہندسوں کا ہونا چاہیے';
+
+  @override
+  String get pinSetSuccess => 'پن کامیابی سے سیٹ ہو گیا';
+
+  @override
+  String get pinChanged => 'پن کامیابی سے تبدیل ہو گیا';
+
+  @override
+  String get pinIncorrect => 'غلط پن';
+
+  @override
+  String pinLockedOut(int seconds) =>
+      'بہت زیادہ کوششیں۔ ${seconds} سیکنڈ بعد دوبارہ کوشش کریں۔';
+
+  @override
+  String get recoveryCode => 'ریکوری کوڈ';
+
+  @override
+  String get recoveryCodeHint =>
+      'ریکوری کوڈ درج کریں (مثال: ABCD-EFGH-IJKL)';
+
+  @override
+  String get recoveryCodeInvalid => 'غلط ریکوری کوڈ';
+
+  @override
+  String get recoveryCodeTitle => 'اپنا ریکوری کوڈ محفوظ کریں';
+
+  @override
+  String get recoveryCodeInstructions =>
+      'یہ کوڈ لکھ لیں اور آف لائن محفوظ رکھیں۔ یہ دوبارہ نہیں دکھایا جائے گا۔';
+
+  @override
+  String get recoveryCodeCopied => 'ریکوری کوڈ کاپی ہو گیا';
+
+  @override
+  String get copyCode => 'کوڈ کاپی کریں';
+
+  @override
+  String get recover => 'اکاؤنٹ بحال کریں';
+
+  @override
+  String get useRecoveryCode => 'ریکوری کوڈ استعمال کریں';
+
+  @override
+  String get backToLogin => 'لاگ ان پر واپس جائیں';
+
+  @override
+  String get currentPin => 'موجودہ پن';
+
+  @override
+  String get newPin => 'نیا پن';
+
+  @override
+  String get confirmNewPin => 'نئے پن کی تصدیق کریں';
+
+  @override
+  String get changePin => 'پن تبدیل کریں';
+
+  @override
+  String get changePinSubtitle =>
+      'اپنا لاگ ان پن تبدیل کریں اور نیا ریکوری کوڈ حاصل کریں';
+
+  @override
+  String get securitySubtitle => 'پن لاگ ان اور اکاؤنٹ ریکوری';
+
+  @override
+  String attemptsRemaining(int count) => '$count کوشش(یں) باقی';
 
   @override
   String get home => 'مرکزی صفحہ';

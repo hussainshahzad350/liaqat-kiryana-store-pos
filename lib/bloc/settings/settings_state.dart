@@ -6,6 +6,7 @@ enum SettingsCategory {
   backup,
   receipt,
   preferences,
+  security,
 }
 
 enum SettingsMessageType {

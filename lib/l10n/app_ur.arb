@@ -5,7 +5,44 @@
   "posVersion": "POS سسٹم v1.0",
   "login": "لاگ ان",
   "password": "پاسورڈ",
-  "forgotPassword": "پاسورڈ بھول گئے؟",
+  "forgotPassword": "پن بھول گئے؟",
+  "enterPin": "پن درج کریں",
+  "setPin": "پن سیٹ کریں",
+  "confirmPin": "پن کی تصدیق کریں",
+  "pinHint": "4 سے 6 ہندسوں کا پن",
+  "pinMismatch": "پن میل نہیں کھاتے",
+  "pinTooShort": "پن 4 سے 6 ہندسوں کا ہونا چاہیے",
+  "pinSetSuccess": "پن کامیابی سے سیٹ ہو گیا",
+  "pinChanged": "پن کامیابی سے تبدیل ہو گیا",
+  "pinIncorrect": "غلط پن",
+  "pinLockedOut": "بہت زیادہ کوششیں۔ {seconds} سیکنڈ بعد دوبارہ کوشش کریں۔",
+  "@pinLockedOut": {
+    "placeholders": {
+      "seconds": {"type": "int"}
+    }
+  },
+  "recoveryCode": "ریکوری کوڈ",
+  "recoveryCodeHint": "ریکوری کوڈ درج کریں (مثال: ABCD-EFGH-IJKL)",
+  "recoveryCodeInvalid": "غلط ریکوری کوڈ",
+  "recoveryCodeTitle": "اپنا ریکوری کوڈ محفوظ کریں",
+  "recoveryCodeInstructions": "یہ کوڈ لکھ لیں اور آف لائن محفوظ رکھیں۔ یہ دوبارہ نہیں دکھایا جائے گا۔",
+  "recoveryCodeCopied": "ریکوری کوڈ کاپی ہو گیا",
+  "copyCode": "کوڈ کاپی کریں",
+  "recover": "اکاؤنٹ بحال کریں",
+  "useRecoveryCode": "ریکوری کوڈ استعمال کریں",
+  "backToLogin": "لاگ ان پر واپس جائیں",
+  "currentPin": "موجودہ پن",
+  "newPin": "نیا پن",
+  "confirmNewPin": "نئے پن کی تصدیق کریں",
+  "changePin": "پن تبدیل کریں",
+  "changePinSubtitle": "اپنا لاگ ان پن تبدیل کریں اور نیا ریکوری کوڈ حاصل کریں",
+  "securitySubtitle": "پن لاگ ان اور اکاؤنٹ ریکوری",
+  "attemptsRemaining": "{count} کوشش(یں) باقی",
+  "@attemptsRemaining": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "home": "مرکزی صفحہ",
   "salesPos": "فروخت / پوائنٹ آف سیل",
   "productsAndStock": "اشیاء اور اسٹاک",

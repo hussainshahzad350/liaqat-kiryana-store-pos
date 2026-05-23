@@ -5,7 +5,44 @@
   "posVersion": "POS System v1.0",
   "login": "Login",
   "password": "Password",
-  "forgotPassword": "Forgot Password?",
+  "forgotPassword": "Forgot PIN?",
+  "enterPin": "Enter PIN",
+  "setPin": "Set PIN",
+  "confirmPin": "Confirm PIN",
+  "pinHint": "4–6 digit PIN",
+  "pinMismatch": "PINs do not match",
+  "pinTooShort": "PIN must be 4–6 digits",
+  "pinSetSuccess": "PIN set successfully",
+  "pinChanged": "PIN changed successfully",
+  "pinIncorrect": "Incorrect PIN",
+  "pinLockedOut": "Too many attempts. Try again in {seconds}s.",
+  "@pinLockedOut": {
+    "placeholders": {
+      "seconds": {"type": "int"}
+    }
+  },
+  "recoveryCode": "Recovery Code",
+  "recoveryCodeHint": "Enter recovery code (e.g. ABCD-EFGH-IJKL)",
+  "recoveryCodeInvalid": "Invalid recovery code",
+  "recoveryCodeTitle": "Save Your Recovery Code",
+  "recoveryCodeInstructions": "Write this code down and keep it offline. It cannot be shown again.",
+  "recoveryCodeCopied": "Recovery code copied",
+  "copyCode": "Copy Code",
+  "recover": "Recover Account",
+  "useRecoveryCode": "Use Recovery Code",
+  "backToLogin": "Back to Login",
+  "currentPin": "Current PIN",
+  "newPin": "New PIN",
+  "confirmNewPin": "Confirm New PIN",
+  "changePin": "Change PIN",
+  "changePinSubtitle": "Update your login PIN and get a new recovery code",
+  "securitySubtitle": "PIN Login and Account Recovery",
+  "attemptsRemaining": "{count} attempt(s) remaining",
+  "@attemptsRemaining": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "home": "Home",
   "salesPos": "Sales / POS",
   "productsAndStock": "Products & Stock",

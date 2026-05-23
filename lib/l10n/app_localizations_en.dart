@@ -24,7 +24,91 @@ class AppLocalizationsEn extends AppLocalizations {
   String get password => 'Password';
 
   @override
-  String get forgotPassword => 'Forgot Password?';
+  String get forgotPassword => 'Forgot PIN?';
+
+  @override
+  String get enterPin => 'Enter PIN';
+
+  @override
+  String get setPin => 'Set PIN';
+
+  @override
+  String get confirmPin => 'Confirm PIN';
+
+  @override
+  String get pinHint => '4–6 digit PIN';
+
+  @override
+  String get pinMismatch => 'PINs do not match';
+
+  @override
+  String get pinTooShort => 'PIN must be 4–6 digits';
+
+  @override
+  String get pinSetSuccess => 'PIN set successfully';
+
+  @override
+  String get pinChanged => 'PIN changed successfully';
+
+  @override
+  String get pinIncorrect => 'Incorrect PIN';
+
+  @override
+  String pinLockedOut(int seconds) =>
+      'Too many attempts. Try again in ${seconds}s.';
+
+  @override
+  String get recoveryCode => 'Recovery Code';
+
+  @override
+  String get recoveryCodeHint => 'Enter recovery code (e.g. ABCD-EFGH-IJKL)';
+
+  @override
+  String get recoveryCodeInvalid => 'Invalid recovery code';
+
+  @override
+  String get recoveryCodeTitle => 'Save Your Recovery Code';
+
+  @override
+  String get recoveryCodeInstructions =>
+      'Write this code down and keep it offline. It cannot be shown again.';
+
+  @override
+  String get recoveryCodeCopied => 'Recovery code copied';
+
+  @override
+  String get copyCode => 'Copy Code';
+
+  @override
+  String get recover => 'Recover Account';
+
+  @override
+  String get useRecoveryCode => 'Use Recovery Code';
+
+  @override
+  String get backToLogin => 'Back to Login';
+
+  @override
+  String get currentPin => 'Current PIN';
+
+  @override
+  String get newPin => 'New PIN';
+
+  @override
+  String get confirmNewPin => 'Confirm New PIN';
+
+  @override
+  String get changePin => 'Change PIN';
+
+  @override
+  String get changePinSubtitle =>
+      'Update your login PIN and get a new recovery code';
+
+  @override
+  String get securitySubtitle => 'PIN Login and Account Recovery';
+
+  @override
+  String attemptsRemaining(int count) => '$count attempt(s) remaining';
 
   @override
   String get home => 'Home';
