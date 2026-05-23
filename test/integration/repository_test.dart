@@ -1,3 +1,6 @@
+@Tags(['database'])
+library repository_test;
+
 // test/integration/repository_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:liaqat_store/core/database/database_helper.dart';
@@ -8,10 +11,8 @@ import 'package:liaqat_store/core/repositories/items_repository.dart';
 import 'package:liaqat_store/core/repositories/stock_repository.dart';
 import 'package:liaqat_store/domain/entities/money.dart';
 import 'package:liaqat_store/models/customer_model.dart';
-import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-@Tags(['database'])
 void main() {
   late DatabaseFactory previousDatabaseFactory;
 

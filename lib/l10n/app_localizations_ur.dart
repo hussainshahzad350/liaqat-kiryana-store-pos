@@ -54,15 +54,15 @@ class AppLocalizationsUr extends AppLocalizations {
   String get pinIncorrect => 'غلط پن';
 
   @override
-  String pinLockedOut(int seconds) =>
-      'بہت زیادہ کوششیں۔ ${seconds} سیکنڈ بعد دوبارہ کوشش کریں۔';
+  String pinLockedOut(int seconds) {
+    return 'بہت زیادہ کوششیں۔ $seconds سیکنڈ بعد دوبارہ کوشش کریں۔';
+  }
 
   @override
   String get recoveryCode => 'ریکوری کوڈ';
 
   @override
-  String get recoveryCodeHint =>
-      'ریکوری کوڈ درج کریں (مثال: ABCD-EFGH-IJKL)';
+  String get recoveryCodeHint => 'ریکوری کوڈ درج کریں (مثال: ABCD-EFGH-IJKL)';
 
   @override
   String get recoveryCodeInvalid => 'غلط ریکوری کوڈ';
@@ -109,7 +109,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get securitySubtitle => 'پن لاگ ان اور اکاؤنٹ ریکوری';
 
   @override
-  String attemptsRemaining(int count) => '$count کوشش(یں) باقی';
+  String attemptsRemaining(int count) {
+    return '$count کوشش(یں) باقی';
+  }
 
   @override
   String get home => 'مرکزی صفحہ';

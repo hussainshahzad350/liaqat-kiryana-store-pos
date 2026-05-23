@@ -1,35 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:mocktail/mocktail.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:liaqat_store/core/services/sales_kpi_service.dart';
+import 'package:liaqat_store/domain/entities/money.dart';
 import 'package:liaqat_store/l10n/app_localizations.dart';
-import 'package:liaqat_store/screens/home/home_screen.dart';
-import 'package:liaqat_store/core/repositories/invoice_repository.dart';
-import 'package:liaqat_store/core/repositories/customers_repository.dart';
-import 'package:liaqat_store/core/repositories/items_repository.dart';
+import 'package:liaqat_store/models/invoice_model.dart';
+import 'package:liaqat_store/screens/sales/widgets/sales_kpi_header.dart';
+import 'package:mocktail/mocktail.dart';
 
-class MockInvoiceRepository extends Mock implements InvoiceRepository {}
-class MockCustomersRepository extends Mock implements CustomersRepository {}
-class MockItemsRepository extends Mock implements ItemsRepository {}
+class MockSalesKpiService extends Mock implements SalesKpiService {}
 
 void main() {
-  late MockInvoiceRepository mockInvoiceRepository;
-  late MockCustomersRepository mockCustomersRepository;
-  late MockItemsRepository mockItemsRepository;
+  late MockSalesKpiService mockSalesKpiService;
 
   setUp(() {
-    mockInvoiceRepository = MockInvoiceRepository();
-    mockCustomersRepository = MockCustomersRepository();
-    mockItemsRepository = MockItemsRepository();
+    mockSalesKpiService = MockSalesKpiService();
   });
 
-  testWidgets('HomeScreen renders dashboard data from injected loaders', (
+  testWidgets('SalesKpiHeader renders snapshot data', (
     WidgetTester tester,
   ) async {
     tester.view.physicalSize = const Size(1440, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+
+    when(
+      () => mockSalesKpiService.getSnapshot(
+          forceRefresh: any(named: 'forceRefresh')),
+    ).thenAnswer(
+      (_) async => SalesKpiSnapshot(
+        todaySalesTotal: 1234500,
+        lowStockCount: 2,
+        latestInvoice: Invoice(
+          invoiceNumber: 'INV-001',
+          customerId: 1,
+          date: DateTime(2024, 1, 1, 10, 30),
+          totalAmount: 4000,
+          status: Invoice.statusCompleted,
+        ),
+        cashSnapshot: const Money(500000),
+        fetchedAt: DateTime(2024, 1, 1, 10, 30),
+      ),
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -41,37 +54,17 @@ void main() {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('en'),
-        home: HomeScreen(
-          invoiceRepository: mockInvoiceRepository,
-          customersRepository: mockCustomersRepository,
-          itemsRepository: mockItemsRepository,
-          todaySalesLoader: () async => 1234500, // paisas
-          todayCustomersLoader: () async => [
-            {'name_english': 'Ali', 'total_amount': 4000},
-          ],
-          lowStockItemsLoader: () async => [
-            {'name_english': 'Sugar', 'current_stock': 2},
-          ],
-          recentSalesLoader: () async => [
-            {
-              'activity_type': 'SALE',
-              'title': 'INV-001',
-              'customer_name': 'Ali',
-              'amount': 4000,
-              'timestamp': DateTime(2024, 1, 1, 10, 30).toIso8601String(),
-              'status': 'COMPLETED',
-            },
-          ],
+        home: Scaffold(
+          body: SalesKpiHeader(service: mockSalesKpiService),
         ),
       ),
     );
 
-    // Pump for 2 seconds to allow timers/animations to settle without hitting infinite loops
-    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
 
-    expect(find.text('Rs 12,345'), findsOneWidget);
-    expect(find.text('Ali'), findsWidgets);
-    expect(find.text('Sugar'), findsOneWidget);
+    expect(find.textContaining('12,345'), findsOneWidget);
     expect(find.text('INV-001'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+    expect(find.textContaining('5,000'), findsOneWidget);
   });
 }

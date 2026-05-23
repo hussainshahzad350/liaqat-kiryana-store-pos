@@ -1,3 +1,6 @@
+@Tags(['database'])
+library product_screen_test;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -9,7 +12,6 @@ import 'package:liaqat_store/core/routes/app_routes.dart';
 import 'package:liaqat_store/l10n/app_localizations.dart';
 import 'package:liaqat_store/screens/product/product_screen.dart';
 import 'package:liaqat_store/widgets/app_shell.dart';
-import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 Widget _buildLocalizedApp(Widget child) {
@@ -26,7 +28,6 @@ Widget _buildLocalizedApp(Widget child) {
   );
 }
 
-@Tags(['database'])
 void main() {
   late DatabaseFactory previousDatabaseFactory;
 

@@ -1,12 +1,13 @@
+@Tags(['database'])
+library purchase_repository_test;
+
 // test/unit/purchase_repository_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:liaqat_store/core/database/database_helper.dart';
 import 'package:liaqat_store/core/repositories/items_repository.dart';
 import 'package:liaqat_store/core/repositories/purchase_repository.dart';
-import 'package:sqflite_common/sqlite_api.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-@Tags(['database'])
 void main() {
   late PurchaseRepository purchaseRepo;
   late ItemsRepository itemsRepo;
@@ -56,7 +57,9 @@ void main() {
 
       // Cancel the purchase - should succeed
       await purchaseRepo.cancelPurchase(
-          purchaseId: purchaseId, cancelledBy: 'test_user', reason: 'Test cancellation');
+          purchaseId: purchaseId,
+          cancelledBy: 'test_user',
+          reason: 'Test cancellation');
 
       // Verify stock decreased
       final stockAfterCancel = await itemsRepo.getProductStock(1);
@@ -94,7 +97,9 @@ void main() {
       // Try to cancel - should fail because we'd need to subtract 20 from 5
       expect(
         () => purchaseRepo.cancelPurchase(
-            purchaseId: purchaseId, reason: 'Should fail', cancelledBy: 'test_user'),
+            purchaseId: purchaseId,
+            reason: 'Should fail',
+            cancelledBy: 'test_user'),
         throwsA(
           isA<Exception>().having(
             (e) => e.toString(),
@@ -128,11 +133,13 @@ void main() {
         ],
       );
 
-      await purchaseRepo.cancelPurchase(purchaseId: purchaseId, cancelledBy: 'test_user');
+      await purchaseRepo.cancelPurchase(
+          purchaseId: purchaseId, cancelledBy: 'test_user');
 
       // Try to cancel again
       expect(
-        () => purchaseRepo.cancelPurchase(purchaseId: purchaseId, cancelledBy: 'test_user'),
+        () => purchaseRepo.cancelPurchase(
+            purchaseId: purchaseId, cancelledBy: 'test_user'),
         throwsA(
           isA<Exception>().having(
             (e) => e.toString(),
@@ -145,7 +152,8 @@ void main() {
 
     test('should throw exception for non-existent purchase', () async {
       expect(
-        () => purchaseRepo.cancelPurchase(purchaseId: 99999, cancelledBy: 'test_user'),
+        () => purchaseRepo.cancelPurchase(
+            purchaseId: 99999, cancelledBy: 'test_user'),
         throwsA(
           isA<Exception>().having(
             (e) => e.toString(),
@@ -185,7 +193,8 @@ void main() {
 
       // Try to cancel - error should include product name
       try {
-        await purchaseRepo.cancelPurchase(purchaseId: purchaseId, cancelledBy: 'test_user');
+        await purchaseRepo.cancelPurchase(
+            purchaseId: purchaseId, cancelledBy: 'test_user');
         fail('Expected exception was not thrown');
       } catch (e) {
         final errorMessage = e.toString();
@@ -252,7 +261,8 @@ void main() {
 
       // Try to cancel - should fail on product 2
       expect(
-        () => purchaseRepo.cancelPurchase(purchaseId: purchaseId, cancelledBy: 'test_user'),
+        () => purchaseRepo.cancelPurchase(
+            purchaseId: purchaseId, cancelledBy: 'test_user'),
         throwsA(isA<Exception>()),
       );
 

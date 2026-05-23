@@ -1,0 +1,1 @@
+Placeholder file to keep the assets/lang directory tracked.

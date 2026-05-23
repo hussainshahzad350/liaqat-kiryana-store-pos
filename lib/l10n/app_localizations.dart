@@ -134,32 +134,166 @@ abstract class AppLocalizations {
   /// **'Forgot PIN?'**
   String get forgotPassword;
 
+  /// No description provided for @enterPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter PIN'**
   String get enterPin;
+
+  /// No description provided for @setPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Set PIN'**
   String get setPin;
+
+  /// No description provided for @confirmPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm PIN'**
   String get confirmPin;
+
+  /// No description provided for @pinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'4–6 digit PIN'**
   String get pinHint;
+
+  /// No description provided for @pinMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'PINs do not match'**
   String get pinMismatch;
+
+  /// No description provided for @pinTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN must be 4–6 digits'**
   String get pinTooShort;
+
+  /// No description provided for @pinSetSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN set successfully'**
   String get pinSetSuccess;
+
+  /// No description provided for @pinChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN changed successfully'**
   String get pinChanged;
+
+  /// No description provided for @pinIncorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN'**
   String get pinIncorrect;
+
+  /// No description provided for @pinLockedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again in {seconds}s.'**
   String pinLockedOut(int seconds);
+
+  /// No description provided for @recoveryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery Code'**
   String get recoveryCode;
+
+  /// No description provided for @recoveryCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter recovery code (e.g. ABCD-EFGH-IJKL)'**
   String get recoveryCodeHint;
+
+  /// No description provided for @recoveryCodeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid recovery code'**
   String get recoveryCodeInvalid;
+
+  /// No description provided for @recoveryCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Your Recovery Code'**
   String get recoveryCodeTitle;
+
+  /// No description provided for @recoveryCodeInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Write this code down and keep it offline. It cannot be shown again.'**
   String get recoveryCodeInstructions;
+
+  /// No description provided for @recoveryCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery code copied'**
   String get recoveryCodeCopied;
+
+  /// No description provided for @copyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Code'**
   String get copyCode;
+
+  /// No description provided for @recover.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover Account'**
   String get recover;
+
+  /// No description provided for @useRecoveryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Recovery Code'**
   String get useRecoveryCode;
+
+  /// No description provided for @backToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Login'**
   String get backToLogin;
+
+  /// No description provided for @currentPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Current PIN'**
   String get currentPin;
+
+  /// No description provided for @newPin.
+  ///
+  /// In en, this message translates to:
+  /// **'New PIN'**
   String get newPin;
+
+  /// No description provided for @confirmNewPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm New PIN'**
   String get confirmNewPin;
+
+  /// No description provided for @changePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
   String get changePin;
+
+  /// No description provided for @changePinSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your login PIN and get a new recovery code'**
   String get changePinSubtitle;
+
+  /// No description provided for @securitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN Login and Account Recovery'**
   String get securitySubtitle;
+
+  /// No description provided for @attemptsRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} attempt(s) remaining'**
   String attemptsRemaining(int count);
 
   /// No description provided for @home.

@@ -54,8 +54,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pinIncorrect => 'Incorrect PIN';
 
   @override
-  String pinLockedOut(int seconds) =>
-      'Too many attempts. Try again in ${seconds}s.';
+  String pinLockedOut(int seconds) {
+    return 'Too many attempts. Try again in ${seconds}s.';
+  }
 
   @override
   String get recoveryCode => 'Recovery Code';
@@ -108,7 +109,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get securitySubtitle => 'PIN Login and Account Recovery';
 
   @override
-  String attemptsRemaining(int count) => '$count attempt(s) remaining';
+  String attemptsRemaining(int count) {
+    return '$count attempt(s) remaining';
+  }
 
   @override
   String get home => 'Home';
