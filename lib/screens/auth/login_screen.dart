@@ -327,7 +327,11 @@ class _LoginScreenState extends State<LoginScreen> {
       AppLocalizations loc, ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
       children: [
-        Icon(Icons.store, size: AppTokens.aboutIconSize, color: colorScheme.primary),
+        Icon(
+          Icons.store,
+          size: AppTokens.aboutIconSize,
+          color: colorScheme.primary,
+        ),
         const SizedBox(height: AppTokens.spacingLarge),
         Text(
           loc.appTitle,

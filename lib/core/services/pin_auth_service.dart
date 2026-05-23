@@ -154,6 +154,10 @@ class PinAuthService {
   }
 
   /// Returns a cryptographically random 12-character alphanumeric code.
+  ///
+  /// The character set deliberately excludes visually ambiguous characters
+  /// (I, O, 0, 1) to reduce transcription errors when the owner writes the
+  /// code down.
   String generateRecoveryCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final rng = Random.secure();
