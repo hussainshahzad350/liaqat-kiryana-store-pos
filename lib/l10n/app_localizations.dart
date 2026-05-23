@@ -131,8 +131,35 @@ abstract class AppLocalizations {
   /// No description provided for @forgotPassword.
   ///
   /// In en, this message translates to:
-  /// **'Forgot Password?'**
+  /// **'Forgot PIN?'**
   String get forgotPassword;
+
+  String get enterPin;
+  String get setPin;
+  String get confirmPin;
+  String get pinHint;
+  String get pinMismatch;
+  String get pinTooShort;
+  String get pinSetSuccess;
+  String get pinChanged;
+  String get pinIncorrect;
+  String pinLockedOut(int seconds);
+  String get recoveryCode;
+  String get recoveryCodeHint;
+  String get recoveryCodeInvalid;
+  String get recoveryCodeTitle;
+  String get recoveryCodeInstructions;
+  String get recoveryCodeCopied;
+  String get recover;
+  String get useRecoveryCode;
+  String get backToLogin;
+  String get currentPin;
+  String get newPin;
+  String get confirmNewPin;
+  String get changePin;
+  String get changePinSubtitle;
+  String get securitySubtitle;
+  String attemptsRemaining(int count);
 
   /// No description provided for @home.
   ///

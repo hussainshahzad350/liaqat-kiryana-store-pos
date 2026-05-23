@@ -48,6 +48,9 @@ dependencies:
 
   equatable: ^2.0.5
 
+  # Cryptography (SHA-256 PIN hashing)
+  crypto: ^3.0.7
+
 
 dev_dependencies:
   flutter_test:
