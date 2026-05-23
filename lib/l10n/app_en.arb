@@ -27,6 +27,7 @@
   "recoveryCodeTitle": "Save Your Recovery Code",
   "recoveryCodeInstructions": "Write this code down and keep it offline. It cannot be shown again.",
   "recoveryCodeCopied": "Recovery code copied",
+  "copyCode": "Copy Code",
   "recover": "Recover Account",
   "useRecoveryCode": "Use Recovery Code",
   "backToLogin": "Back to Login",

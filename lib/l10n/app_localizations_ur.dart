@@ -78,6 +78,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get recoveryCodeCopied => 'ریکوری کوڈ کاپی ہو گیا';
 
   @override
+  String get copyCode => 'کوڈ کاپی کریں';
+
+  @override
   String get recover => 'اکاؤنٹ بحال کریں';
 
   @override

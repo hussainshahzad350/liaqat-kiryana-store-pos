@@ -257,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: AppTokens.spacingMedium),
             TextButton.icon(
               icon: const Icon(Icons.copy, size: 16),
-              label: Text(loc.recoveryCodeCopied),
+              label: Text(loc.copyCode),
               onPressed: () => Clipboard.setData(ClipboardData(text: code)),
             ),
           ],
@@ -553,19 +553,19 @@ class _PinField extends StatelessWidget {
       style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,
-          hintText: hint,
-          labelStyle: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-          ),
-          prefixIcon: const Icon(Icons.lock_outline),
-          suffixIcon: IconButton(
-            icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
-            onPressed: onToggleObscure,
-          ),
-          errorText: errorText,
-          border: const OutlineInputBorder(),
+        hintText: hint,
+        labelStyle: textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurfaceVariant,
         ),
-        onSubmitted: onSubmitted,
+        prefixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: IconButton(
+          icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
+          onPressed: onToggleObscure,
+        ),
+        errorText: errorText,
+        border: const OutlineInputBorder(),
+      ),
+      onSubmitted: onSubmitted,
     );
   }
 }

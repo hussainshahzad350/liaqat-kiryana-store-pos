@@ -150,6 +150,7 @@ abstract class AppLocalizations {
   String get recoveryCodeTitle;
   String get recoveryCodeInstructions;
   String get recoveryCodeCopied;
+  String get copyCode;
   String get recover;
   String get useRecoveryCode;
   String get backToLogin;

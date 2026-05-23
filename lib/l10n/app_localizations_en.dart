@@ -77,6 +77,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recoveryCodeCopied => 'Recovery code copied';
 
   @override
+  String get copyCode => 'Copy Code';
+
+  @override
   String get recover => 'Recover Account';
 
   @override

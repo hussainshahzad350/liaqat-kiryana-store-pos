@@ -125,7 +125,7 @@ class _SecurityPageState extends State<SecurityPage> {
             const SizedBox(height: AppTokens.spacingMedium),
             TextButton.icon(
               icon: const Icon(Icons.copy, size: 16),
-              label: Text(loc.recoveryCodeCopied),
+              label: Text(loc.copyCode),
               onPressed: () => Clipboard.setData(ClipboardData(text: code)),
             ),
           ],
