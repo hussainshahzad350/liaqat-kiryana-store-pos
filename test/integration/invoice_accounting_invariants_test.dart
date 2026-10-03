@@ -12,6 +12,7 @@ import 'package:liaqat_store/models/product_model.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
+  late DatabaseFactory previousDatabaseFactory;
   late ItemsRepository itemsRepository;
   late InvoiceRepository invoiceRepository;
   late int productId;
@@ -38,7 +39,12 @@ void main() {
 
   setUpAll(() {
     sqfliteFfiInit();
+    previousDatabaseFactory = databaseFactory;
     databaseFactory = databaseFactoryFfi;
+  });
+
+  tearDownAll(() {
+    databaseFactory = previousDatabaseFactory;
   });
 
   setUp(() async {
