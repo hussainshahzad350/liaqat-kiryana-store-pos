@@ -77,29 +77,3 @@ Phase 1.
 
 Do not silently update this document to make the baseline appear green. Append
 new dated verification results, and link fixes to their commit or pull request.
-
-## Verification update — 2026-10-03 (Windows)
-
-The following results were supplied from a Windows development checkout:
-
-- Flutter `3.44.4`, stable channel, framework revision `ad70ec4617`.
-- Dart SDK `3.12.2` on `windows_x64`.
-- `flutter gen-l10n` completed, reporting 14 untranslated Urdu messages.
-- `dart format --output=none --set-exit-if-changed lib test` reported 100 of
-  224 files as requiring formatting. Because `--output=none` was used, this was
-  a formatting check rather than a formatting commit.
-- `flutter analyze` passed with no issues.
-- `flutter test` did not start the suites because `dart_test.yaml` placed the
-  runner-only `concurrency` option inside a tag configuration. The configuration
-  has since been corrected by moving `concurrency: 1` to the top level while
-  retaining the `database` tag declaration.
-
-Still required after the test-configuration fix:
-
-```bash
-flutter test
-flutter run -d windows
-```
-
-The baseline is not fully green until both commands complete and the manual
-smoke-test results are recorded.

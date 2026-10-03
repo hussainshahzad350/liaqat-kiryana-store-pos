@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../core/res/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/product_model.dart';
-import '../../../widgets/app_state_view.dart';
 
 class ItemsTable extends StatelessWidget {
   const ItemsTable({
@@ -36,12 +35,11 @@ class ItemsTable extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (isInitialLoading) {
-      return const AppStateView.loading();
+      return const Center(child: CircularProgressIndicator());
     }
     if (items.isEmpty) {
-      return AppStateView.empty(
-        message: localizations.noItemsFound,
-        icon: Icons.inventory_2_outlined,
+      return Center(
+        child: Text(localizations.noItemsFound, style: textTheme.bodyLarge),
       );
     }
 

@@ -474,10 +474,16 @@ class _SalesScreenState extends State<SalesScreen> {
                             ),
                             child: LayoutBuilder(
                               builder: (context, constraints) {
-                                final rightPanelWidth =
-                                    AppLayout.salesSidePanelWidth(
-                                  constraints.maxWidth,
-                                );
+                                final double rightPanelWidth;
+                                if (constraints.maxWidth >= 2560) {
+                                  rightPanelWidth = 600;
+                                } else if (constraints.maxWidth >= 1920) {
+                                  rightPanelWidth = 550;
+                                } else if (constraints.maxWidth >= 1366) {
+                                  rightPanelWidth = 500;
+                                } else {
+                                  rightPanelWidth = 450;
+                                }
 
                                 return Row(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,

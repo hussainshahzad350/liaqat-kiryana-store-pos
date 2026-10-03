@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/res/app_layout.dart';
 import '../../../core/res/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/invoice_model.dart';
@@ -87,8 +86,8 @@ class SalesProductPanel extends StatelessWidget {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final crossAxisCount =
-                  AppLayout.productGridColumnCount(constraints.maxWidth);
+              int crossAxisCount = (constraints.maxWidth / 180).floor();
+              crossAxisCount = crossAxisCount.clamp(4, 8);
 
               return GridView.builder(
                 padding: const EdgeInsets.symmetric(

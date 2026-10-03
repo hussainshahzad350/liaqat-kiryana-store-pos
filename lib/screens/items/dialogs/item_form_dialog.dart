@@ -7,7 +7,6 @@ import '../../../l10n/app_localizations.dart';
 import '../../../models/category_models.dart';
 import '../../../models/product_model.dart';
 import '../../../models/unit_model.dart';
-import '../../../widgets/app_state_view.dart';
 
 class ItemFormDialog extends StatefulWidget {
   final Product? product;
@@ -142,17 +141,13 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const SizedBox(
-                height: AppTokens.dialogHeight,
-                child: AppStateView.loading(),
-              );
+                  height: AppTokens.dialogHeight,
+                  child: Center(child: CircularProgressIndicator()));
             }
             if (snapshot.hasError) {
               return SizedBox(
-                height: AppTokens.dialogHeight,
-                child: AppStateView.error(
-                  message: 'Error: ${snapshot.error}',
-                ),
-              );
+                  height: AppTokens.dialogHeight,
+                  child: Center(child: Text('Error: ${snapshot.error}')));
             }
 
             final categories = snapshot.data?[0] as List<Category>? ?? [];
