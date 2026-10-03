@@ -1,3 +1,7 @@
+# Database suites share a singleton database connection and reset the same file,
+# so test suites must run serially. Runner options such as concurrency are only
+# valid at the top level, not inside a tag configuration.
+concurrency: 1
+
 tags:
   database:
-    concurrency: 1
