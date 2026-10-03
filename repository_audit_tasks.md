@@ -1,5 +1,11 @@
 # Repository Issue Tasks
 
+> **Historical snapshot:** These tasks describe findings at the time of the
+> original audit. Some referenced screens or paths may have changed since then.
+> Do not treat unchecked items as automatically valid; verify them against the
+> current tree. See [`docs/RESTRUCTURE_PLAN.md`](docs/RESTRUCTURE_PLAN.md) for
+> the active plan.
+
 This document lists four actionable tasks discovered during a repository audit.
 Each task is intentionally scoped, measurable, and mapped to concrete files and
 commands so contributors can execute and verify the fixes quickly.
@@ -96,4 +102,3 @@ and provides no regression safety.
 - Loading state and dashboard rendering are both verified.
 - Tests fail when behavior breaks (not just when widgets are null).
 - Regression-focused checks are measurable and reproducible in CI.
-
