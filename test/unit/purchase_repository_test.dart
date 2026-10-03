@@ -11,16 +11,9 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 void main() {
   late PurchaseRepository purchaseRepo;
   late ItemsRepository itemsRepo;
-  late DatabaseFactory previousDatabaseFactory;
-
   setUpAll(() {
     sqfliteFfiInit();
-    previousDatabaseFactory = databaseFactory;
     databaseFactory = databaseFactoryFfi;
-  });
-
-  tearDownAll(() {
-    databaseFactory = previousDatabaseFactory;
   });
 
   setUp(() async {

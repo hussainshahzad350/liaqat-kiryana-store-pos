@@ -14,17 +14,10 @@ import 'package:liaqat_store/models/customer_model.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
-  late DatabaseFactory previousDatabaseFactory;
-
   // Initialize FFI for desktop testing
   setUpAll(() {
     sqfliteFfiInit();
-    previousDatabaseFactory = databaseFactory;
     databaseFactory = databaseFactoryFfi;
-  });
-
-  tearDownAll(() {
-    databaseFactory = previousDatabaseFactory;
   });
 
   setUp(() async {

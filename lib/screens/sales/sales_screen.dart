@@ -5,6 +5,7 @@ import '../../bloc/sales/sales_bloc.dart';
 import '../../bloc/sales/sales_event.dart';
 import '../../bloc/sales/sales_state.dart';
 import '../../core/repositories/receipt_repository.dart';
+import '../../core/res/app_layout.dart';
 import '../../core/res/app_tokens.dart';
 import '../../core/services/sales_kpi_service.dart';
 import '../../core/utils/error_handler.dart';
@@ -23,12 +24,10 @@ import 'dialogs/checkout_payment_dialog.dart';
 import 'dialogs/post_sale_dialog.dart';
 import 'dialogs/cancel_sale_dialog.dart';
 import 'dialogs/exit_confirmation_dialog.dart';
-import 'widgets/product_card.dart';
-import 'widgets/recent_sales_section.dart';
 import 'widgets/sales_kpi_header.dart';
-import 'widgets/customer_section.dart';
-import 'widgets/sales_totals_section.dart';
-import 'widgets/cart_item_row.dart';
+import 'widgets/sales_actions_toolbar.dart';
+import 'widgets/sales_cart_panel.dart';
+import 'widgets/sales_product_panel.dart';
 import '../../widgets/loading_overlay.dart';
 import 'utils/receipt_printer.dart';
 import 'utils/sales_shortcuts.dart';
@@ -146,6 +145,14 @@ class _SalesScreenState extends State<SalesScreen> {
     _customerSearchDebounce = Timer(const Duration(milliseconds: 300), () {
       context.read<SalesBloc>().add(CustomerSearchChanged(query));
     });
+  }
+
+  void _showCustomerSuggestions() {
+    if (selectedCustomerId == null &&
+        customerSearchController.text.isEmpty &&
+        filteredCustomers.isEmpty) {
+      context.read<SalesBloc>().add(const CustomerSearchChanged(' '));
+    }
   }
 
   // --- Customer Search & Add Logic ---
@@ -456,383 +463,76 @@ class _SalesScreenState extends State<SalesScreen> {
                     Column(
                       children: [
                         SalesKpiHeader(service: salesKpiService),
-                        // Actions Toolbar
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: AppTokens.spacingMedium,
-                              vertical: AppTokens.spacingSmall),
-                          color: colorScheme.surface,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.refresh,
-                                    size: AppTokens.kpiIconSize),
-                                color: colorScheme.primary,
-                                onPressed: _refreshAllData,
-                                tooltip: loc.refresh,
-                              ),
-                              const SizedBox(
-                                  width: AppTokens.spacingMedium),
-                              IconButton(
-                                icon: const Icon(Icons.delete_sweep,
-                                    size: AppTokens.kpiIconSize),
-                                color: colorScheme.error,
-                                onPressed: _clearCart,
-                                tooltip: loc.clearCartTitle,
-                              ),
-                            ],
-                          ),
+                        SalesActionsToolbar(
+                          onRefresh: _refreshAllData,
+                          onClearCart: _clearCart,
                         ),
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.all(
-                                AppTokens.spacingMedium),
+                              AppTokens.spacingMedium,
+                            ),
                             child: LayoutBuilder(
                               builder: (context, constraints) {
-                                // Responsive Right Panel Width
-                                double rightPanelWidth = 500;
-                                if (constraints.maxWidth >= 2560) {
-                                  rightPanelWidth = 600;
-                                } else if (constraints.maxWidth >= 1920) {
-                                  rightPanelWidth = 550;
-                                } else if (constraints.maxWidth >= 1366) {
-                                  rightPanelWidth = 500;
-                                } else {
-                                  rightPanelWidth = 450;
-                                }
+                                final rightPanelWidth =
+                                    AppLayout.salesSidePanelWidth(
+                                  constraints.maxWidth,
+                                );
 
                                 return Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    // LEFT PANEL (Fluid)
                                     Expanded(
-                                      child: Column(
-                                        children: [
-                                          // Item Search
-                                          Card(
-                                            elevation:
-                                                AppTokens.cardElevation,
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        AppTokens
-                                                            .cardBorderRadius)),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(
-                                                  AppTokens
-                                                      .cardPadding),
-                                              child: Focus(
-                                                onFocusChange: (hasFocus) {
-                                                  if (hasFocus) {
-                                                    _productSearchFocusNode
-                                                        .requestFocus();
-                                                  }
-                                                },
-                                                child: TextField(
-                                                  controller:
-                                                      productSearchController,
-                                                  focusNode:
-                                                      _productSearchFocusNode,
-                                                  decoration: InputDecoration(
-                                                    hintText:
-                                                        loc.searchItemHint,
-                                                    isDense: true,
-                                                    prefixIcon: Icon(
-                                                        Icons.search,
-                                                        color: colorScheme
-                                                            .onSurfaceVariant),
-                                                    border: OutlineInputBorder(
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                                AppTokens
-                                                                    .cardBorderRadius)),
-                                                    filled: true,
-                                                    fillColor: colorScheme
-                                                        .surfaceContainerHighest
-                                                        .withValues(alpha: 0.5),
-                                                    contentPadding:
-                                                        const EdgeInsets
-                                                            .symmetric(
-                                                            vertical: 14,
-                                                            horizontal: 12),
-                                                  ),
-                                                  onChanged: _filterProducts,
-                                                  onTap: () {
-                                                    if (productSearchController
-                                                        .text.isNotEmpty) {
-                                                      _filterProducts(
-                                                          productSearchController
-                                                              .text);
-                                                    }
-                                                  },
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                              height: AppTokens
-                                                  .spacingMedium),
-
-                                          // Product Grid
-                                          Expanded(
-                                            child: LayoutBuilder(
-                                              builder:
-                                                  (context, gridConstraints) {
-                                                int crossAxisCount =
-                                                    (gridConstraints.maxWidth /
-                                                            180)
-                                                        .floor();
-                                                crossAxisCount =
-                                                    crossAxisCount.clamp(4, 8);
-
-                                                return GridView.builder(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal:
-                                                          AppTokens
-                                                              .spacingMedium,
-                                                      vertical: AppTokens
-                                                          .spacingSmall),
-                                                  gridDelegate:
-                                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                                    crossAxisCount:
-                                                        crossAxisCount,
-                                                    childAspectRatio: 16 / 9,
-                                                    crossAxisSpacing:
-                                                        AppTokens
-                                                            .spacingStandard,
-                                                    mainAxisSpacing:
-                                                        AppTokens
-                                                            .spacingStandard,
-                                                  ),
-                                                  itemCount:
-                                                      filteredProducts.length,
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    final product =
-                                                        filteredProducts[index];
-                                                    return Focus(
-                                                      child: Builder(
-                                                          builder: (context) {
-                                                        return ProductCard(
-                                                          product: product,
-                                                          isFocused:
-                                                              Focus.of(context)
-                                                                  .hasFocus,
-                                                          onTap: () =>
-                                                              _addToCart(
-                                                                  product),
-                                                        );
-                                                      }),
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                            ),
-                                          ),
-
-                                          // Recent Sales
-                                          RecentSalesSection(
-                                            recentInvoices: recentInvoices,
-                                            onPrint: _handlePrintReceipt,
-                                            onEdit: _handleEditInvoice,
-                                            onCancel: _cancelSale,
-                                          ),
-                                        ],
+                                      child: SalesProductPanel(
+                                        searchController:
+                                            productSearchController,
+                                        searchFocusNode:
+                                            _productSearchFocusNode,
+                                        products: filteredProducts,
+                                        recentInvoices: recentInvoices,
+                                        onSearchChanged: _filterProducts,
+                                        onProductSelected: (product) =>
+                                            _addToCart(product),
+                                        onPrintInvoice: (invoice) {
+                                          _handlePrintReceipt(invoice);
+                                        },
+                                        onEditInvoice: _handleEditInvoice,
+                                        onCancelInvoice: (id, billNumber) {
+                                          _cancelSale(id, billNumber);
+                                        },
                                       ),
                                     ),
-
-                                    // Vertical Divider
                                     VerticalDivider(
-                                        width: 1,
-                                        thickness: 1,
-                                        color: colorScheme.outlineVariant),
-
-                                    // RIGHT PANEL (Fixed Width)
+                                      width: 1,
+                                      thickness: 1,
+                                      color: colorScheme.outlineVariant,
+                                    ),
                                     SizedBox(
                                       width: rightPanelWidth,
-                                      child: Container(
-                                        color: colorScheme.surface,
-                                        child: Column(
-                                          children: [
-                                            // Customer Section
-                                            CustomerSection(
-                                              searchController:
-                                                  customerSearchController,
-                                              filteredCustomers:
-                                                  filteredCustomers,
-                                              showCustomerList:
-                                                  showCustomerList,
-                                              selectedCustomerId:
-                                                  selectedCustomerId,
-                                              onSearchChanged: _filterCustomers,
-                                              onSearchTap: () async {
-                                                if (selectedCustomerId ==
-                                                    null) {
-                                                  if (customerSearchController
-                                                          .text.isEmpty &&
-                                                      filteredCustomers
-                                                          .isEmpty) {
-                                                    context.read<SalesBloc>().add(
-                                                        const CustomerSearchChanged(
-                                                            ' '));
-                                                  }
-                                                }
-                                              },
-                                              onSelectCustomer: _selectCustomer,
-                                              onAddCustomer:
-                                                  _showAddCustomerDialog,
-                                            ),
-                                            Divider(
-                                                height: 1,
-                                                color:
-                                                    colorScheme.outlineVariant),
-
-                                            // Cart Header
-                                            Container(
-                                              height: 32,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal:
-                                                          AppTokens
-                                                              .spacingMedium),
-                                              color: colorScheme.surfaceContainerHighest
-                                                  .withValues(alpha: 0.5),
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                      flex: 4,
-                                                      child: Text(loc.item,
-                                                          style: textTheme.labelSmall?.copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: colorScheme
-                                                                  .onSurfaceVariant))),
-                                                  SizedBox(
-                                                      width: 70,
-                                                      child: Text(loc.price,
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: textTheme.labelSmall?.copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: colorScheme
-                                                                  .onSurfaceVariant))),
-                                                  const SizedBox(
-                                                      width: AppTokens
-                                                          .spacingMedium),
-                                                  SizedBox(
-                                                      width: 60,
-                                                      child: Text(loc.qty,
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: textTheme.labelSmall?.copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: colorScheme
-                                                                  .onSurfaceVariant))),
-                                                  const SizedBox(
-                                                      width: AppTokens
-                                                          .spacingMedium),
-                                                  SizedBox(
-                                                      width: 70,
-                                                      child: Text(loc.total,
-                                                          textAlign:
-                                                              TextAlign.end,
-                                                          style: textTheme.labelSmall?.copyWith(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: colorScheme
-                                                                  .onSurfaceVariant))),
-                                                  const SizedBox(width: 32),
-                                                ],
-                                              ),
-                                            ),
-                                            Divider(
-                                                height: 1,
-                                                color:
-                                                    colorScheme.outlineVariant),
-
-                                            // Cart Items
-                                            Expanded(
-                                              child: cartItems.isEmpty
-                                                  ? Center(
-                                                      child: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Icon(
-                                                              Icons
-                                                                  .shopping_cart_outlined,
-                                                              size: 64,
-                                                              color: colorScheme
-                                                                  .outline
-                                                                  .withValues(alpha: 0.5)),
-                                                          const SizedBox(
-                                                              height: AppTokens
-                                                                  .spacingMedium),
-                                                          Text(loc.cartEmpty,
-                                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                                  color: colorScheme
-                                                                      .onSurfaceVariant)),
-                                                        ],
-                                                      ),
-                                                    )
-                                                  : ListView.separated(
-                                                      itemCount:
-                                                          cartItems.length,
-                                                      separatorBuilder: (c,
-                                                              i) =>
-                                                          const Divider(
-                                                              height: 1,
-                                                              thickness: 0.5),
-                                                      itemBuilder:
-                                                          (context, index) {
-                                                        final item =
-                                                            cartItems[index];
-                                                        return CartItemRow(
-                                                          item: item,
-                                                          index: index,
-                                                          isRTL: isRTL,
-                                                          colorScheme:
-                                                              colorScheme,
-                                                          onRemove:
-                                                              _removeCartItem,
-                                                          onUpdate:
-                                                              _updateCartItem,
-                                                        );
-                                                      },
-                                                    ),
-                                            ),
-
-                                            Divider(
-                                                height: 1,
-                                                color:
-                                                    colorScheme.outlineVariant),
-
-                                            // Totals Section
-                                            SalesTotalsSection(
-                                              discountController:
-                                                  discountController,
-                                              subtotal: subtotal,
-                                              discount: discount,
-                                              previousBalance: previousBalance,
-                                              grandTotal: grandTotal,
-                                              isCheckoutEnabled:
-                                                  cartItems.isNotEmpty,
-                                              onCheckout: _showCheckoutDialog,
-                                              onDiscountChanged: (_) =>
-                                                  _calculateTotals(),
-                                            ),
-                                          ],
-                                        ),
+                                      child: SalesCartPanel(
+                                        customerSearchController:
+                                            customerSearchController,
+                                        discountController: discountController,
+                                        filteredCustomers: filteredCustomers,
+                                        showCustomerList: showCustomerList,
+                                        selectedCustomerId: selectedCustomerId,
+                                        cartItems: cartItems,
+                                        isRTL: isRTL,
+                                        subtotal: subtotal,
+                                        discount: discount,
+                                        previousBalance: previousBalance,
+                                        grandTotal: grandTotal,
+                                        onCustomerSearchChanged:
+                                            _filterCustomers,
+                                        onCustomerSearchTap:
+                                            _showCustomerSuggestions,
+                                        onSelectCustomer: _selectCustomer,
+                                        onAddCustomer: _showAddCustomerDialog,
+                                        onRemoveCartItem: _removeCartItem,
+                                        onUpdateCartItem: _updateCartItem,
+                                        onCheckout: _showCheckoutDialog,
+                                        onDiscountChanged: (_) =>
+                                            _calculateTotals(),
                                       ),
                                     ),
                                   ],

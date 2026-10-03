@@ -68,12 +68,12 @@ void main() {
       expect(find.text('Settings'), findsWidgets);
     });
 
-    testWidgets('shows all 4 category tiles in dashboard', (tester) async {
+    testWidgets('shows all 5 category tiles in dashboard', (tester) async {
       setDesktopSize(tester);
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
       await tester.pumpAndSettle();
 
-      expect(find.byType(SettingsTile), findsNWidgets(4));
+      expect(find.byType(SettingsTile), findsNWidgets(5));
     });
 
     testWidgets('does not show back button on dashboard', (tester) async {

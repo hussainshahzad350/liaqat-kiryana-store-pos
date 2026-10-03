@@ -1,6 +1,14 @@
-🏪 Liaqat Kiryana Store - Modern POS
+# 🏪 Liaqat Kiryana Store POS
 
-A production-ready, bilingual (Urdu/English) Point of Sale system built with Flutter for small to medium retail businesses. Features real-time inventory management, customer debt tracking, and comprehensive sales reporting.
+A desktop-focused, bilingual (Urdu/English) Point of Sale system built with
+Flutter for small to medium retail businesses. The application is currently in
+a structured stabilization and UI/UX improvement cycle; production readiness
+must be established through the checks in the repository baseline.
+
+> **Current project direction:** preserve the existing business-critical core
+> and improve it incrementally rather than starting a full rewrite. See the
+> [restructuring plan](docs/RESTRUCTURE_PLAN.md) and
+> [recorded baseline](docs/BASELINE.md).
 
 📋 Table of Contents
 
@@ -146,6 +154,14 @@ Hussain Shahzad 📧 hussainshahzad350@gmail.com 📱 +92 310-4523235
 
 🙏 Acknowledgments
 
-Flutter Team: For the amazing cross-platform framework sqflite_ffi: Desktop SQLite support Material Design: Beautiful, accessible components Pakistani Retail Community: For feature requirements and testing 📊 Project Stats Metric Value Total Lines of Code ~8,000 Dart Files 25 Screens 15 Database Tables 8 Supported Languages 2 Translation Keys 250+ Test Coverage 0% (⚠️ Needs improvement) 🔗 Related Projects Flutter Desktop Samples sqflite_ffi Documentation Flutter Internationalization �
+Flutter Team: For the amazing cross-platform framework sqflite_ffi: Desktop SQLite support Material Design: Beautiful, accessible components Pakistani Retail Community: For feature requirements and testing
+
+📊 Project Stats
+
+Repository counts and test coverage change over time. Do not rely on historical
+counts in this README; use [the dated baseline](docs/BASELINE.md) and measured
+coverage from a Flutter-capable environment.
+
+🔗 Related Projects Flutter Desktop Samples sqflite_ffi Documentation Flutter Internationalization �
 
 ⭐ Star this repo if you find it useful! Made with ❤️ in Pakistan 🇵🇰 �
