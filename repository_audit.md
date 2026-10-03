@@ -1,5 +1,10 @@
 # Repository Function Audit
 
+> **Historical snapshot:** This call-site audit predates later restructuring
+> commits and is not the current source of truth. Re-run the audit before
+> deleting or changing any API. Current work is tracked in
+> [`docs/RESTRUCTURE_PLAN.md`](docs/RESTRUCTURE_PLAN.md).
+
 ## ItemsRepository Functions
 
 #### ✅ Used in UI/BLoC
