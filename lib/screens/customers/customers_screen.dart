@@ -32,11 +32,11 @@ class _CustomersScreenContent extends StatefulWidget {
   const _CustomersScreenContent();
 
   @override
-  State<_CustomersScreenContent> createState() => _CustomersScreenContentState();
+  State<_CustomersScreenContent> createState() =>
+      _CustomersScreenContentState();
 }
 
 class _CustomersScreenContentState extends State<_CustomersScreenContent> {
-
   void _showAddDialog({Customer? customer}) {
     showDialog(
       context: context,
@@ -74,7 +74,7 @@ class _CustomersScreenContentState extends State<_CustomersScreenContent> {
     if (confirmed != true) return;
 
     final success = await controller.deleteCustomer(customer);
-    
+
     if (!mounted) return;
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -117,10 +117,12 @@ class _CustomersScreenContentState extends State<_CustomersScreenContent> {
                     child: Card(
                       elevation: AppTokens.cardElevation,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.cardBorderRadius),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.cardBorderRadius),
                         child: CustomerList(
                           onEdit: (c) => _showAddDialog(customer: c),
                           onDelete: (c) => _deleteCustomer(c),

@@ -348,9 +348,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
     if (state.selectionLevel == 1 && state.selectedDepartment?.id != null) {
       bloc.add(DeleteDepartment(state.selectedDepartment!.id!));
-    } else if (state.selectionLevel == 2 && state.selectedCategory?.id != null) {
+    } else if (state.selectionLevel == 2 &&
+        state.selectedCategory?.id != null) {
       bloc.add(DeleteCategory(state.selectedCategory!.id!));
-    } else if (state.selectionLevel == 3 && state.selectedSubCategory?.id != null) {
+    } else if (state.selectionLevel == 3 &&
+        state.selectedSubCategory?.id != null) {
       bloc.add(DeleteSubCategory(state.selectedSubCategory!.id!));
     }
   }

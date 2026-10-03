@@ -18,8 +18,7 @@ class ClearCartDialog extends StatelessWidget {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(AppTokens.dialogBorderRadius)),
+          borderRadius: BorderRadius.circular(AppTokens.dialogBorderRadius)),
       child: Container(
         constraints: RTLHelper.getDialogConstraints(
           context: context,
@@ -27,7 +26,7 @@ class ClearCartDialog extends StatelessWidget {
         ),
         padding: EdgeInsets.symmetric(
           horizontal: AppTokens.dialogPadding,
-          vertical: RTLHelper.isRTL(context) 
+          vertical: RTLHelper.isRTL(context)
               ? AppTokens.dialogPadding + 12
               : AppTokens.dialogPadding,
         ),

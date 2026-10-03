@@ -1653,7 +1653,7 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get todaysCustomers => 'Today\'s Customers';
+  String get todaysCustomers => 'آج کے گاہک';
 
   @override
   String get activityType => 'سرگرمی';
@@ -1761,31 +1761,31 @@ class AppLocalizationsUr extends AppLocalizations {
   String get baseUnit => 'بنیادی یونٹ';
 
   @override
-  String get codeInputLabel => 'Code (e.g. BOX)';
+  String get codeInputLabel => 'کوڈ (مثلاً BOX)';
 
   @override
   String get multiplier => 'ضرب کنندہ';
 
   @override
-  String get viewUnit => 'View Unit';
+  String get viewUnit => 'یونٹ دیکھیں';
 
   @override
   String get systemUnitWarning => 'سسٹم یونٹس میں ترمیم نہیں کی جا سکتی';
 
   @override
-  String get codeUniqueError => 'Code must be unique';
+  String get codeUniqueError => 'کوڈ منفرد ہونا چاہیے';
 
   @override
-  String get numericError => 'Numeric only';
+  String get numericError => 'صرف اعداد درج کریں';
 
   @override
-  String get greaterThanOneError => 'Must be > 1';
+  String get greaterThanOneError => 'قدر 1 سے زیادہ ہونی چاہیے';
 
   @override
   String get close => 'بند کریں';
 
   @override
-  String get systemUnit => 'System Unit';
+  String get systemUnit => 'سسٹم یونٹ';
 
   @override
   String get edit => 'ترمیم کریں';
@@ -2137,10 +2137,10 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get descriptionRequired => 'Description is required';
+  String get descriptionRequired => 'تفصیل درج کرنا ضروری ہے';
 
   @override
-  String get activity => 'Activity';
+  String get activity => 'سرگرمی';
 
   @override
   String get shortcutCtrlN => 'Ctrl + N';
@@ -2149,19 +2149,19 @@ class AppLocalizationsUr extends AppLocalizations {
   String get shortcutF5 => 'F5';
 
   @override
-  String get insufficientStockError => 'Insufficient stock available';
+  String get insufficientStockError => 'مطلوبہ مقدار میں اسٹاک دستیاب نہیں';
 
   @override
-  String get outOfStockError => 'Product is out of stock';
+  String get outOfStockError => 'پروڈکٹ کا اسٹاک ختم ہو گیا ہے';
 
   @override
-  String get stockLimitError => 'Stock limit reached';
+  String get stockLimitError => 'دستیاب اسٹاک کی حد پوری ہو گئی ہے';
 
   @override
-  String get negativePriceError => 'Product sale price cannot be negative';
+  String get negativePriceError => 'پروڈکٹ کی فروخت کی قیمت منفی نہیں ہو سکتی';
 
   @override
-  String get itemNegativePriceError => 'Item price cannot be negative';
+  String get itemNegativePriceError => 'شے کی قیمت منفی نہیں ہو سکتی';
 
   @override
   String get cannotSaveCancelledInvoiceAsPdf =>

@@ -20,10 +20,10 @@ class ReceiptPage extends StatelessWidget {
         const allowedPaperWidths = ['58mm', '80mm', 'A4'];
         const allowedPrinterTypes = ['default', 'usb', 'network', 'pdf'];
 
-        final fontSizePref = (prefs['receiptFontSize'] as String?)?.toLowerCase();
-        final selectedFontSize = allowedFontSizes.contains(fontSizePref)
-            ? fontSizePref!
-            : 'medium';
+        final fontSizePref =
+            (prefs['receiptFontSize'] as String?)?.toLowerCase();
+        final selectedFontSize =
+            allowedFontSizes.contains(fontSizePref) ? fontSizePref! : 'medium';
 
         final paperWidthPref = (prefs['paperWidth'] as String?)?.toLowerCase();
         final selectedPaperWidth = paperWidthPref == null
@@ -33,10 +33,12 @@ class ReceiptPage extends StatelessWidget {
                 orElse: () => '80mm',
               );
 
-        final printerTypePref = (prefs['printerType'] as String?)?.toLowerCase();
-        final selectedPrinterType = allowedPrinterTypes.contains(printerTypePref)
-            ? printerTypePref!
-            : 'usb';
+        final printerTypePref =
+            (prefs['printerType'] as String?)?.toLowerCase();
+        final selectedPrinterType =
+            allowedPrinterTypes.contains(printerTypePref)
+                ? printerTypePref!
+                : 'usb';
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(AppTokens.spacingLarge),

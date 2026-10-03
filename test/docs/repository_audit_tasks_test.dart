@@ -14,21 +14,22 @@ void main() {
     group('File Existence and Basic Structure', () {
       test('repository_audit_tasks.md exists and is not empty', () {
         expect(auditTasksFile.existsSync(), true,
-            reason: 'repository_audit_tasks.md should exist in the repository root');
+            reason:
+                'repository_audit_tasks.md should exist in the repository root');
         expect(auditTasksContent.isNotEmpty, true,
             reason: 'repository_audit_tasks.md should have content');
       });
 
       test('file has a proper title', () {
-        expect(auditTasksContent.contains('# Repository Issue Tasks'),
-            true,
+        expect(auditTasksContent.contains('# Repository Issue Tasks'), true,
             reason: 'Document should have a clear main title');
       });
 
       test('file contains section dividers', () {
         final dividerCount = '---'.allMatches(auditTasksContent).length;
         expect(dividerCount, greaterThanOrEqualTo(3),
-            reason: 'Document should use section dividers (---) to separate tasks');
+            reason:
+                'Document should use section dividers (---) to separate tasks');
       });
     });
 
@@ -41,8 +42,8 @@ void main() {
       test('has a clear title for the typo fix', () {
         expect(auditTasksContent.contains('**Title:**'), true);
         expect(
-            auditTasksContent.contains(
-                'Rename `stock_overveiw` to `stock_overview`'),
+            auditTasksContent
+                .contains('Rename `stock_overveiw` to `stock_overview`'),
             true,
             reason: 'Task 1 should clearly state the typo being fixed');
       });
@@ -58,9 +59,7 @@ void main() {
       test('defines scope of changes', () {
         final task1Section = _extractTaskSection(auditTasksContent, 1);
         expect(task1Section.contains('**Scope:**'), true);
-        expect(
-            task1Section.contains('lib/bloc/stock/stock_overveiw/'),
-            true,
+        expect(task1Section.contains('lib/bloc/stock/stock_overveiw/'), true,
             reason: 'Task 1 should specify the folder to rename');
         expect(task1Section.contains('lib/bloc/stock/stock_overview/'), true,
             reason: 'Task 1 should specify the correct folder name');
@@ -70,7 +69,8 @@ void main() {
         final task1Section = _extractTaskSection(auditTasksContent, 1);
         expect(task1Section.contains('**Acceptance criteria:**'), true);
         expect(task1Section.contains('flutter analyze'), true,
-            reason: 'Task 1 acceptance criteria should mention flutter analyze');
+            reason:
+                'Task 1 acceptance criteria should mention flutter analyze');
         expect(task1Section.contains('No import paths include'), true,
             reason:
                 'Task 1 acceptance criteria should verify no typo remains in imports');
@@ -81,9 +81,9 @@ void main() {
         expect(task1Section.contains('lib/main.dart'), true,
             reason: 'Task 1 should mention main.dart as an affected file');
         expect(
-            task1Section.contains('lib/screens/stock/stock_screen.dart'),
-            true,
-            reason: 'Task 1 should mention stock_screen.dart as an affected file');
+            task1Section.contains('lib/screens/stock/stock_screen.dart'), true,
+            reason:
+                'Task 1 should mention stock_screen.dart as an affected file');
       });
     });
 
@@ -133,8 +133,8 @@ void main() {
         final task2Section = _extractTaskSection(auditTasksContent, 2);
         expect(task2Section.contains('Unit tests'), true,
             reason: 'Task 2 should require unit tests');
-        expect(task2Section.contains('10') && task2Section.contains('10.0'),
-            true,
+        expect(
+            task2Section.contains('10') && task2Section.contains('10.0'), true,
             reason: 'Task 2 should verify both int and double parsing');
       });
 
@@ -180,7 +180,8 @@ void main() {
             task3Section.contains('Technology Stack') ||
                 task3Section.contains('State Management'),
             true,
-            reason: 'Task 3 should specify which README section needs updating');
+            reason:
+                'Task 3 should specify which README section needs updating');
       });
 
       test('requires alignment between docs and code', () {
@@ -282,9 +283,8 @@ void main() {
       });
 
       test('all tasks have acceptance criteria', () {
-        final acceptanceMatches =
-            RegExp(r'\*\*Acceptance criteria:\*\*')
-                .allMatches(auditTasksContent);
+        final acceptanceMatches = RegExp(r'\*\*Acceptance criteria:\*\*')
+            .allMatches(auditTasksContent);
         expect(acceptanceMatches.length, equals(4),
             reason:
                 'Each of the 4 tasks should have clear acceptance criteria');
@@ -323,7 +323,8 @@ void main() {
         final pathPattern = RegExp(r'`lib/[^`]+`');
         final pathMatches = pathPattern.allMatches(auditTasksContent);
         expect(pathMatches.length, greaterThan(3),
-            reason: 'File paths should be consistently formatted with backticks');
+            reason:
+                'File paths should be consistently formatted with backticks');
       });
     });
 
@@ -416,7 +417,8 @@ void main() {
 
       test('no trailing whitespace on key lines', () {
         // Normalize line endings to handle both Unix (\n) and Windows (\r\n)
-        final normalizedContent = auditTasksContent.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+        final normalizedContent =
+            auditTasksContent.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
         final lines = normalizedContent.split('\n');
         final headerLines =
             lines.where((line) => line.startsWith('##')).toList();
@@ -431,7 +433,8 @@ void main() {
         final listItemPattern = RegExp(r'^- .+$', multiLine: true);
         final listItems = listItemPattern.allMatches(auditTasksContent);
         expect(listItems.length, greaterThan(8),
-            reason: 'Document should use markdown lists for scopes and criteria');
+            reason:
+                'Document should use markdown lists for scopes and criteria');
       });
 
       test('no broken markdown formatting', () {
@@ -488,14 +491,13 @@ void main() {
               section.split('**Acceptance criteria:**').last;
 
           // Should contain verifiable conditions
-          final hasMeasurableCriteria =
-              acceptanceSection.contains('passes') ||
-                  acceptanceSection.contains('succeeds') ||
-                  acceptanceSection.contains('includes') ||
-                  acceptanceSection.contains('No ') ||
-                  acceptanceSection.contains('fails') ||
-                  acceptanceSection.contains('verify') ||
-                  acceptanceSection.contains('align');
+          final hasMeasurableCriteria = acceptanceSection.contains('passes') ||
+              acceptanceSection.contains('succeeds') ||
+              acceptanceSection.contains('includes') ||
+              acceptanceSection.contains('No ') ||
+              acceptanceSection.contains('fails') ||
+              acceptanceSection.contains('verify') ||
+              acceptanceSection.contains('align');
 
           expect(hasMeasurableCriteria, true,
               reason:

@@ -91,24 +91,21 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
 
     return InputDecoration(
       labelText: label,
-      labelStyle: textTheme.bodyMedium
-          ?.copyWith(color: colorScheme.onSurfaceVariant),
+      labelStyle:
+          textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
       prefixIcon: Icon(icon, color: colorScheme.onSurfaceVariant),
       filled: true,
       fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       border: OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(AppTokens.formFieldBorderRadius),
+        borderRadius: BorderRadius.circular(AppTokens.formFieldBorderRadius),
         borderSide: BorderSide(color: colorScheme.outline),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(AppTokens.formFieldBorderRadius),
+        borderRadius: BorderRadius.circular(AppTokens.formFieldBorderRadius),
         borderSide: BorderSide(color: colorScheme.outline),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(AppTokens.formFieldBorderRadius),
+        borderRadius: BorderRadius.circular(AppTokens.formFieldBorderRadius),
         borderSide: BorderSide(color: colorScheme.primary),
       ),
       contentPadding: const EdgeInsets.symmetric(
@@ -205,7 +202,8 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                           ? _selectedSubCategoryId
                           : null,
                       decoration: _buildInputDecoration(
-                          localizations.subCategory, Icons.subdirectory_arrow_right),
+                          localizations.subCategory,
+                          Icons.subdirectory_arrow_right),
                       items: _subCategories
                           .where((s) => s.id != null)
                           .map((s) => DropdownMenuItem(
@@ -220,8 +218,8 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                     Expanded(
                         child: TextField(
                       controller: _brandCtrl,
-                      decoration: _buildInputDecoration(
-                          localizations.brand, Icons.branding_watermark_outlined),
+                      decoration: _buildInputDecoration(localizations.brand,
+                          Icons.branding_watermark_outlined),
                     )),
                     const SizedBox(width: AppTokens.spacingMedium),
                     Expanded(

@@ -77,7 +77,8 @@ class InvoiceRepository {
     if (productRows.isEmpty) {
       throw Exception('PRODUCT_NOT_FOUND');
     }
-    final cachedStock = (productRows.first['current_stock'] as num?)?.toDouble() ?? 0.0;
+    final cachedStock =
+        (productRows.first['current_stock'] as num?)?.toDouble() ?? 0.0;
     final eventStock = await _getEventStock(txn, productId);
     if ((cachedStock - eventStock).abs() > 0.000001) {
       AppLogger.error(
@@ -474,7 +475,8 @@ class InvoiceRepository {
           'cancelInvoice: could not parse notes JSON for invoice $invoiceId — falling back to text append. Error: $e',
           tag: 'InvoiceRepo',
         );
-        updatedNotes = '${rawNotes ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]';
+        updatedNotes =
+            '${rawNotes ?? ''}\n[Cancelled by $cancelledBy: ${reason ?? 'No reason'}]';
       }
       await txn.update(
         'invoices',
@@ -762,7 +764,8 @@ class InvoiceRepository {
         'SELECT COALESCE(SUM(quantity_change), 0) AS stock_total FROM stock_activities WHERE product_id = ?',
         [productId],
       );
-      final currentStock = (stockRows.first['stock_total'] as num?)?.toDouble() ?? 0.0;
+      final currentStock =
+          (stockRows.first['stock_total'] as num?)?.toDouble() ?? 0.0;
       final productName = result.first['name_english'];
 
       if ((cachedStock - currentStock).abs() > 0.000001) {

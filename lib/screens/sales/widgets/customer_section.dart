@@ -35,8 +35,7 @@ class CustomerSection extends StatelessWidget {
     return Card(
       elevation: AppTokens.cardElevation,
       shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(AppTokens.cardBorderRadius)),
+          borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
       child: Padding(
         padding: const EdgeInsets.all(AppTokens.cardPadding),
         child: Column(
@@ -88,13 +87,12 @@ class CustomerSection extends StatelessWidget {
             if (showCustomerList)
               Container(
                 constraints: const BoxConstraints(maxHeight: 200),
-                margin:
-                    const EdgeInsets.only(top: AppTokens.spacingXSmall),
+                margin: const EdgeInsets.only(top: AppTokens.spacingXSmall),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   border: Border.all(color: colorScheme.outline),
-                  borderRadius: BorderRadius.circular(
-                      AppTokens.buttonBorderRadius),
+                  borderRadius:
+                      BorderRadius.circular(AppTokens.buttonBorderRadius),
                   boxShadow: [
                     BoxShadow(
                         color: colorScheme.shadow.withValues(alpha: 0.1),
@@ -105,8 +103,11 @@ class CustomerSection extends StatelessWidget {
                     ? Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(loc.noCustomersFound,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant)),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant)),
                       )
                     : ListView.separated(
                         shrinkWrap: true,
@@ -122,15 +123,17 @@ class CustomerSection extends StatelessWidget {
                                 nameEnglish: c.nameEnglish,
                                 nameUrdu: c.nameUrdu,
                               ),
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text(c.contactPrimary ?? ''),
                             trailing: Text(
                                 '${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),
                             onTap: () => onSelectCustomer(c),
-                            hoverColor:
-                                colorScheme.primaryContainer.withValues(alpha: 0.1),
+                            hoverColor: colorScheme.primaryContainer
+                                .withValues(alpha: 0.1),
                           );
                         },
                       ),

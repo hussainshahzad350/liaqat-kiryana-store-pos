@@ -36,8 +36,10 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
         _receiptRepository = receiptRepository,
         super(const SalesState()) {
     on<SalesStarted>(_onStarted);
-    on<ProductSearchChanged>(_onProductSearchChanged, transformer: restartable());
-    on<CustomerSearchChanged>(_onCustomerSearchChanged, transformer: restartable());
+    on<ProductSearchChanged>(_onProductSearchChanged,
+        transformer: restartable());
+    on<CustomerSearchChanged>(_onCustomerSearchChanged,
+        transformer: restartable());
     on<CustomerSelected>(_onCustomerSelected);
     on<ProductAddedToCart>(_onProductAddedToCart);
     on<CartItemUpdated>(_onCartItemUpdated);
@@ -151,7 +153,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
     if (index != -1) {
       final currentQty = updatedCart[index].quantity;
       final newQty = currentQty + event.quantity;
- 
+
       if (newQty > availableStock) {
         emit(state.copyWith(
             status: SalesStatus.error,
@@ -159,7 +161,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
             clearCompletedInvoice: true));
         return;
       }
- 
+
       updatedCart[index] = updatedCart[index].copyWith(
         quantity: newQty,
         total: Money((newQty * updatedCart[index].unitPrice.paisas).round()),
@@ -181,7 +183,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
             clearCompletedInvoice: true));
         return;
       }
- 
+
       updatedCart.add(CartItem(
         id: event.product.id ?? 0,
         nameUrdu: event.product.nameUrdu ?? '',
@@ -334,7 +336,7 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
 
     // Corrected walk-in customer check
     final isWalkInCustomer = state.selectedCustomer == null ||
-      state.selectedCustomer?.id == _walkInCustomerId;
+        state.selectedCustomer?.id == _walkInCustomerId;
 
     // 2. Walk-in credit prevention
     if (isWalkInCustomer && event.credit > const Money(0)) {

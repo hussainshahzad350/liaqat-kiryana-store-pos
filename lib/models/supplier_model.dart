@@ -31,7 +31,9 @@ class Supplier {
       supplierType: map['supplier_type'] as String?,
       outstandingBalance: (map['outstanding_balance'] as num?)?.toInt() ?? 0,
       isActive: (map['is_active'] as int?) == 1,
-      createdAt: map['created_at'] != null ? DateTime.tryParse(map['created_at'] as String) : null,
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'] as String)
+          : null,
     );
   }
 

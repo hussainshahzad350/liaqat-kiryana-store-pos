@@ -47,7 +47,9 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
     return Consumer<CashLedgerController>(
       builder: (context, controller, child) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingLarge, vertical: AppTokens.spacingMedium),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppTokens.spacingLarge,
+              vertical: AppTokens.spacingMedium),
           child: Row(
             children: [
               // Search Input
@@ -55,7 +57,8 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
                 child: KeyboardListener(
                   focusNode: _focusNode,
                   onKeyEvent: (event) {
-                    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+                    if (event is KeyDownEvent &&
+                        event.logicalKey == LogicalKeyboardKey.escape) {
                       _searchCtrl.clear();
                       controller.setSearchQuery('');
                     }
@@ -63,7 +66,8 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
                   child: TextField(
                     controller: _searchCtrl,
                     decoration: InputDecoration(
-                      hintText: "Search ledger...", // Needs localization fallback
+                      hintText:
+                          "Search ledger...", // Needs localization fallback
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _searchCtrl.text.isNotEmpty
                           ? IconButton(
@@ -77,12 +81,15 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
                       filled: true,
                       fillColor: colorScheme.surface,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.buttonBorderRadius),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
-                        borderSide: BorderSide(color: colorScheme.outlineVariant),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.buttonBorderRadius),
+                        borderSide:
+                            BorderSide(color: colorScheme.outlineVariant),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         vertical: AppTokens.spacingMedium,
@@ -99,19 +106,24 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: colorScheme.outlineVariant),
-                  borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
+                  borderRadius:
+                      BorderRadius.circular(AppTokens.buttonBorderRadius),
                   color: colorScheme.surface,
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingMedium),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.spacingMedium),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: controller.paymentModeFilter,
-                    icon: Icon(Icons.filter_list, color: colorScheme.onSurfaceVariant),
+                    icon: Icon(Icons.filter_list,
+                        color: colorScheme.onSurfaceVariant),
                     dropdownColor: colorScheme.surface,
                     items: [
                       DropdownMenuItem(value: 'ALL', child: Text(loc.allModes)),
-                      DropdownMenuItem(value: 'CASH', child: Text(loc.physicalCash)),
-                      DropdownMenuItem(value: 'DIGITAL', child: Text(loc.digitalBank)),
+                      DropdownMenuItem(
+                          value: 'CASH', child: Text(loc.physicalCash)),
+                      DropdownMenuItem(
+                          value: 'DIGITAL', child: Text(loc.digitalBank)),
                     ],
                     onChanged: (val) {
                       if (val != null) controller.setPaymentModeFilter(val);
@@ -130,7 +142,8 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
                     firstDate: DateTime(2020),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                     builder: (context, child) => Theme(
-                        data: Theme.of(context).copyWith(colorScheme: colorScheme),
+                        data: Theme.of(context)
+                            .copyWith(colorScheme: colorScheme),
                         child: child!),
                   );
                   if (picked != null) {
@@ -143,18 +156,22 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
                     color: controller.selectedDate != null
                         ? colorScheme.primaryContainer
                         : colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
+                    borderRadius:
+                        BorderRadius.circular(AppTokens.buttonBorderRadius),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.calendar_today, size: AppTokens.iconSizeMedium,
+                      Icon(Icons.calendar_today,
+                          size: AppTokens.iconSizeMedium,
                           color: controller.selectedDate != null
                               ? colorScheme.onPrimaryContainer
                               : colorScheme.onSurfaceVariant),
                       const SizedBox(width: AppTokens.spacingStandard),
                       Text(
                         controller.selectedDate != null
-                            ? DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(controller.selectedDate!)
+                            ? DateFormat.yMMMd(
+                                    Localizations.localeOf(context).toString())
+                                .format(controller.selectedDate!)
                             : 'All Dates',
                         style: textTheme.bodyMedium?.copyWith(
                           color: controller.selectedDate != null
@@ -167,8 +184,8 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
                         const SizedBox(width: AppTokens.spacingSmall),
                         InkWell(
                           onTap: () => controller.updateDate(null),
-                          child: Icon(Icons.close, size: 16,
-                              color: colorScheme.onPrimaryContainer),
+                          child: Icon(Icons.close,
+                              size: 16, color: colorScheme.onPrimaryContainer),
                         ),
                       ],
                     ],

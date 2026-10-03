@@ -32,7 +32,8 @@ class AdjustStock extends StockActivityEvent {
   });
 
   @override
-  List<Object?> get props => [productId, quantityChange, reason, reference, performedBy];
+  List<Object?> get props =>
+      [productId, quantityChange, reason, reference, performedBy];
 }
 
 class CancelStockActivity extends StockActivityEvent {

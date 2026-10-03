@@ -12,7 +12,7 @@ class CustomerKpiSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    
+
     return Consumer<CustomerController>(
       builder: (context, controller, child) {
         return ConstrainedBox(

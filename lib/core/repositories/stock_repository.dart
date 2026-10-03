@@ -11,7 +11,8 @@ class StockRepository {
   Future<List<StockItemEntity>> getStockItems({
     String? query,
     String? status, // 'LOW', 'OUT', 'EXPIRED', 'OLD'
-    int? supplierId, // Note: Requires product-supplier link in DB, currently placeholder
+    int?
+        supplierId, // Note: Requires product-supplier link in DB, currently placeholder
     int? categoryId,
     int limit = 100,
     int offset = 0,
@@ -22,16 +23,19 @@ class StockRepository {
     List<dynamic> args = [];
 
     if (query != null && query.isNotEmpty) {
-      whereClause += ' AND (p.name_english LIKE ? OR p.name_urdu LIKE ? OR p.item_code LIKE ?)';
+      whereClause +=
+          ' AND (p.name_english LIKE ? OR p.name_urdu LIKE ? OR p.item_code LIKE ?)';
       args.addAll(['%$query%', '%$query%', '%$query%']);
     }
 
     if (status == 'LOW') {
-      whereClause += ' AND p.current_stock > 0 AND p.current_stock <= p.min_stock_alert';
+      whereClause +=
+          ' AND p.current_stock > 0 AND p.current_stock <= p.min_stock_alert';
     } else if (status == 'OUT') {
       whereClause += ' AND p.current_stock <= 0';
     } else if (status == 'EXPIRED') {
-      whereClause += " AND p.expiry_date IS NOT NULL AND DATE(p.expiry_date) <= DATE('now')";
+      whereClause +=
+          " AND p.expiry_date IS NOT NULL AND DATE(p.expiry_date) <= DATE('now')";
     } else if (status == 'OLD') {
       whereClause += " AND DATE(p.created_at) <= DATE('now', '-90 day')";
     } else if (status == 'DEAD') {
@@ -51,7 +55,7 @@ class StockRepository {
       whereClause += ' AND p.category_id = ?';
       args.add(categoryId);
     }
-    
+
     // supplierId filter is not implemented as the DB schema doesn't support it yet.
 
     final String sql = '''
@@ -73,7 +77,8 @@ class StockRepository {
     final db = await _dbHelper.database;
 
     // 1. Total Items
-    final countRes = await db.rawQuery('SELECT COUNT(*) as count FROM products');
+    final countRes =
+        await db.rawQuery('SELECT COUNT(*) as count FROM products');
     final totalItems = Sqflite.firstIntValue(countRes) ?? 0;
 
     // 2. Financials (Cost & Sales Value)
@@ -84,22 +89,19 @@ class StockRepository {
       FROM products
       WHERE current_stock > 0
     ''');
-    
+
     final totalCost = (valueRes.first['total_cost'] as num?)?.toInt() ?? 0;
     final totalSale = (valueRes.first['total_sale'] as num?)?.toInt() ?? 0;
 
     // 3. Risk Metrics
     final lowStockRes = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM products WHERE current_stock > 0 AND current_stock <= min_stock_alert'
-    );
+        'SELECT COUNT(*) as count FROM products WHERE current_stock > 0 AND current_stock <= min_stock_alert');
     final outStockRes = await db.rawQuery(
-      'SELECT COUNT(*) as count FROM products WHERE current_stock <= 0'
-    );
+        'SELECT COUNT(*) as count FROM products WHERE current_stock <= 0');
 
     // 4. Expiry Count
     final expiryRes = await db.rawQuery(
-      "SELECT COUNT(*) as count FROM products WHERE expiry_date IS NOT NULL AND DATE(expiry_date) <= DATE('now')"
-    );
+        "SELECT COUNT(*) as count FROM products WHERE expiry_date IS NOT NULL AND DATE(expiry_date) <= DATE('now')");
 
     // 5. Dead Stock Count
     final deadStockRes = await db.rawQuery('''
@@ -137,7 +139,7 @@ class StockRepository {
   Future<StockItemEntity?> getStockItemById(int id) async {
     final db = await _dbHelper.database;
     final result = await db.query('products', where: 'id = ?', whereArgs: [id]);
-    
+
     if (result.isEmpty) return null;
     return _mapToEntity(result.first);
   }

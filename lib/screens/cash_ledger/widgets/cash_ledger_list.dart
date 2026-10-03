@@ -41,8 +41,10 @@ class _CashLedgerListState extends State<CashLedgerList> {
 
     return Consumer<CashLedgerController>(
       builder: (context, controller, child) {
-        if (controller.state == CashLedgerState.loading && controller.allEntries.isEmpty) {
-          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+        if (controller.state == CashLedgerState.loading &&
+            controller.allEntries.isEmpty) {
+          return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (controller.state == CashLedgerState.error) {
@@ -58,25 +60,29 @@ class _CashLedgerListState extends State<CashLedgerList> {
           return Center(
             child: Text(
               loc.noData,
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           );
         }
 
         return Card(
           elevation: AppTokens.cardElevation,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
             child: ListView.builder(
               controller: _scrollController,
-              itemCount: controller.allEntries.length + (controller.isLoadMoreRunning ? 1 : 0),
+              itemCount: controller.allEntries.length +
+                  (controller.isLoadMoreRunning ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == controller.allEntries.length) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(AppTokens.spacingMedium),
-                      child: CircularProgressIndicator(color: colorScheme.primary),
+                      child:
+                          CircularProgressIndicator(color: colorScheme.primary),
                     ),
                   );
                 }

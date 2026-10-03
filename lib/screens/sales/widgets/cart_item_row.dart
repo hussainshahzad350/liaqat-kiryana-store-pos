@@ -143,8 +143,8 @@ class _CartItemRowState extends State<CartItemRow> {
                     vertical: AppTokens.spacingSmall,
                     horizontal: AppTokens.spacingXSmall),
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                        AppTokens.formFieldBorderRadius)),
+                    borderRadius:
+                        BorderRadius.circular(AppTokens.formFieldBorderRadius)),
               ),
               style:
                   textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),

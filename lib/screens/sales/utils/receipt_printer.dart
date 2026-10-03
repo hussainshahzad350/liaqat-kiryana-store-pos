@@ -11,7 +11,7 @@ class ReceiptPrinter {
       : _receiptRepository = receiptRepository ?? ReceiptRepository();
 
   /// Prints a receipt for the given invoice
-  /// 
+  ///
   /// Shows appropriate snackbar messages for success/error
   /// Returns true if printing was successful, false otherwise
   Future<bool> printReceipt(

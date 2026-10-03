@@ -75,7 +75,8 @@ class RecentActivitiesTableWidget extends StatelessWidget {
                   final qtyColor = qty > 0
                       ? colorScheme.secondary
                       : (qty < 0 ? colorScheme.error : colorScheme.onSurface);
-                  final dateStr = DateFormat('yyyy-MM-dd HH:mm').format(act.timestamp);
+                  final dateStr =
+                      DateFormat('yyyy-MM-dd HH:mm').format(act.timestamp);
 
                   return DataRow(
                     cells: [
@@ -104,8 +105,10 @@ class RecentActivitiesTableWidget extends StatelessWidget {
                             vertical: AppTokens.spacingXSmall),
                         decoration: BoxDecoration(
                           color: act.isCancelled
-                              ? colorScheme.errorContainer.withValues(alpha: 0.5)
-                              : colorScheme.primaryContainer.withValues(alpha: 0.5),
+                              ? colorScheme.errorContainer
+                                  .withValues(alpha: 0.5)
+                              : colorScheme.primaryContainer
+                                  .withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(
                               AppTokens.extraSmallBorderRadius),
                         ),

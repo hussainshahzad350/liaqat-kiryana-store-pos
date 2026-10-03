@@ -159,9 +159,8 @@ class _SecurityPageState extends State<SecurityPage> {
                     Text(
                       loc.changePinSubtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                     ),
                     const SizedBox(height: AppTokens.spacingLarge),

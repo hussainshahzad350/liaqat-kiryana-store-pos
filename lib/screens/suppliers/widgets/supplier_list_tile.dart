@@ -80,7 +80,8 @@ class SupplierListTile extends StatelessWidget {
             ),
             if (supplier.supplierType?.isNotEmpty == true)
               Text(
-                supplier.supplierType!, // Using Supplier Type instead of missing creditLimit
+                supplier
+                    .supplierType!, // Using Supplier Type instead of missing creditLimit
                 style:
                     textTheme.bodySmall?.copyWith(color: colorScheme.secondary),
               ),
@@ -89,35 +90,35 @@ class SupplierListTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-              Container(
-                margin: const EdgeInsets.symmetric(
-                    horizontal: AppTokens.spacingSmall),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTokens.spacingSmall,
-                  vertical: AppTokens.spacingXSmall,
-                ),
-                decoration: BoxDecoration(
+            Container(
+              margin: const EdgeInsets.symmetric(
+                  horizontal: AppTokens.spacingSmall),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.spacingSmall,
+                vertical: AppTokens.spacingXSmall,
+              ),
+              decoration: BoxDecoration(
+                color: balance > Money.zero
+                    ? colorScheme.errorContainer
+                    : colorScheme.primaryContainer,
+                borderRadius:
+                    BorderRadius.circular(AppTokens.buttonBorderRadius),
+                border: Border.all(
                   color: balance > Money.zero
-                      ? colorScheme.errorContainer
-                      : colorScheme.primaryContainer,
-                  borderRadius:
-                      BorderRadius.circular(AppTokens.buttonBorderRadius),
-                  border: Border.all(
-                    color: balance > Money.zero
-                        ? colorScheme.error
-                        : colorScheme.primary,
-                  ),
-                ),
-                child: Text(
-                  balance.toString(),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: balance > Money.zero
-                        ? colorScheme.onErrorContainer
-                        : colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      ? colorScheme.error
+                      : colorScheme.primary,
                 ),
               ),
+              child: Text(
+                balance.toString(),
+                style: textTheme.bodySmall?.copyWith(
+                  color: balance > Money.zero
+                      ? colorScheme.onErrorContainer
+                      : colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
             IconButton(
               icon: Icon(Icons.receipt_long, color: colorScheme.primary),
               tooltip: loc.viewLedgerTooltip,

@@ -47,7 +47,9 @@ class _CashLedgerScreenInternal extends StatelessWidget {
         children: [
           // Action Buttons
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingLarge, vertical: AppTokens.spacingMedium),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.spacingLarge,
+                vertical: AppTokens.spacingMedium),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -78,10 +80,10 @@ class _CashLedgerScreenInternal extends StatelessWidget {
 
           // KPI Cards
           const CashLedgerKpiSection(),
-          
+
           // Search & Filter Bar
           const CashLedgerSearchBar(),
-          
+
           // List
           const Expanded(
             child: Padding(

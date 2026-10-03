@@ -170,10 +170,9 @@ void main() {
       var ledgerCallCount = 0;
 
       when(() => mockRepo.getCashLedger(
-              limit: any(named: 'limit'),
-              offset: any(named: 'offset'),
-              paymentModeFilter: any(named: 'paymentModeFilter')))
-          .thenAnswer((_) {
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+          paymentModeFilter: any(named: 'paymentModeFilter'))).thenAnswer((_) {
         ledgerCallCount++;
         if (ledgerCallCount == 1) {
           return firstEntries.future;

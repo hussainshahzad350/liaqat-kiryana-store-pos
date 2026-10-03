@@ -11,11 +11,12 @@ class CashLedgerKpiSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    
+
     return Consumer<CashLedgerController>(
       builder: (context, controller, child) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingLarge),
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppTokens.spacingLarge),
           child: Row(
             children: [
               Expanded(
@@ -65,7 +66,9 @@ class _CashLedgerKpiCard extends StatelessWidget {
 
     return Card(
       elevation: AppTokens.cardElevation,
-      color: isPrimary ? colorScheme.primaryContainer : colorScheme.surfaceContainerHighest,
+      color: isPrimary
+          ? colorScheme.primaryContainer
+          : colorScheme.surfaceContainerHighest,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
       ),
@@ -78,7 +81,9 @@ class _CashLedgerKpiCard extends StatelessWidget {
               title,
               style: textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: isPrimary ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
+                color: isPrimary
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: AppTokens.spacingSmall),
@@ -86,7 +91,9 @@ class _CashLedgerKpiCard extends StatelessWidget {
               amount.formattedNoDecimal,
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: isPrimary ? colorScheme.onPrimaryContainer : colorScheme.onSurface,
+                color: isPrimary
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onSurface,
               ),
             ),
           ],

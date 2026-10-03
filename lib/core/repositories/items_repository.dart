@@ -43,7 +43,8 @@ class ItemsRepository {
     if (productRows.isEmpty) {
       throw Exception('PRODUCT_NOT_FOUND');
     }
-    final cachedStock = (productRows.first['current_stock'] as num?)?.toDouble() ?? 0.0;
+    final cachedStock =
+        (productRows.first['current_stock'] as num?)?.toDouble() ?? 0.0;
     final eventStock = await _getEventStock(txn, productId);
     if ((cachedStock - eventStock).abs() > 0.000001) {
       AppLogger.error(
@@ -117,16 +118,18 @@ class ItemsRepository {
       where: 'is_active = 1',
       orderBy: 'name_english ASC',
     );
-    
+
     final products = result.map((map) => Product.fromMap(map)).toList();
 
     _barcodeIndex.clear();
     for (final product in products) {
-      if (product.id != null && product.itemCode != null && product.itemCode!.isNotEmpty) {
+      if (product.id != null &&
+          product.itemCode != null &&
+          product.itemCode!.isNotEmpty) {
         _barcodeIndex[product.itemCode!] = product.id!;
       }
     }
-    
+
     for (final row in result) {
       if (row['id'] != null && row['barcode'] != null) {
         final code = row['barcode'].toString().trim();
@@ -216,7 +219,7 @@ class ItemsRepository {
       where: 'id = ?',
       whereArgs: [id],
     );
-    
+
     _barcodeIndex.removeWhere((key, value) => value == id);
     if (product.itemCode != null && product.itemCode!.isNotEmpty) {
       _barcodeIndex[product.itemCode!] = id;
@@ -330,7 +333,8 @@ class ItemsRepository {
         user: user ?? 'SYSTEM',
       );
 
-      final adjustmentId = await txn.insert('stock_adjustments', adjustmentRecord.toMap());
+      final adjustmentId =
+          await txn.insert('stock_adjustments', adjustmentRecord.toMap());
       await _recordStockEvent(
         txn,
         productId: id,
@@ -680,10 +684,10 @@ class ItemsRepository {
   /// Update product barcode
   Future<int> updateProductBarcode(int id, String barcode) async {
     final db = await _dbHelper.database;
-    
+
     // Fetch product first to preserve itemCode in cache
     final product = await getProductById(id);
-    
+
     final result = await db.update(
       'products',
       {'barcode': barcode},
@@ -694,12 +698,12 @@ class ItemsRepository {
     if (result > 0) {
       // Sync barcode index
       _barcodeIndex.removeWhere((key, value) => value == id);
-      
+
       // Re-add itemCode if it exists
       if (product?.itemCode != null && product!.itemCode!.isNotEmpty) {
         _barcodeIndex[product.itemCode!] = id;
       }
-      
+
       // Add new barcode
       if (barcode.trim().isNotEmpty) {
         _barcodeIndex[barcode.trim()] = id;

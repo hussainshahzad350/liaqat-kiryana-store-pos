@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 @immutable
 class StockFilterState {
   final String searchQuery;
-  final String statusFilter; // 'ALL', 'LOW', 'OUT', 'SOON', 'EXPIRED', 'OLD', 'DEAD'
+  final String
+      statusFilter; // 'ALL', 'LOW', 'OUT', 'SOON', 'EXPIRED', 'OLD', 'DEAD'
   final int? selectedSupplierId;
   final int? selectedCategoryId;
   final List<Map<String, dynamic>> availableSuppliers;
@@ -43,7 +44,7 @@ class StockFilterState {
       errorMessage: errorMessage,
     );
   }
-  
+
   // Helper to check if supplierId needs to be cleared (custom logic if needed)
   StockFilterState clearSupplier() {
     return StockFilterState(

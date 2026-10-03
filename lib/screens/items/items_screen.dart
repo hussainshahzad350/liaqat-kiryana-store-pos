@@ -259,8 +259,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
           TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text(localizations.no,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface))),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: colorScheme.onSurface))),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(

@@ -73,8 +73,7 @@ class ItemsToolbar extends StatelessWidget {
                 horizontal: AppTokens.spacingMedium,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(AppTokens.cardBorderRadius),
+                borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
               ),
               textStyle: textTheme.bodyLarge?.copyWith(
                 fontWeight: FontWeight.bold,

@@ -177,8 +177,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final service = context.read<PinAuthService>();
     final isReset = _mode == _LoginMode.resetAfterRecovery;
-    final recoveryCode =
-        isReset ? await service.resetPinWithNewPin(pin) : await service.setupPin(pin);
+    final recoveryCode = isReset
+        ? await service.resetPinWithNewPin(pin)
+        : await service.setupPin(pin);
 
     if (!mounted) return;
     setState(() => _loading = false);
@@ -573,4 +574,3 @@ class _PinField extends StatelessWidget {
     );
   }
 }
-

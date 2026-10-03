@@ -73,23 +73,26 @@ class _PurchaseItemListWidgetState extends State<PurchaseItemListWidget> {
                   hintText: loc.searchItems,
                   prefixIcon: const Icon(Icons.search),
                   border: const OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 12.0),
                 ),
               ),
             ),
-            
+
             // List View
             Expanded(
               child: filtered.isEmpty
                   ? Center(child: Text(loc.noItemsFound))
                   : ListView.separated(
                       itemCount: filtered.length,
-                      separatorBuilder: (context, index) => const Divider(height: 1),
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final product = filtered[index];
                         final productId = product.id ?? 0;
 
-                        final bool inCart = widget.cartItemIds.contains(productId);
+                        final bool inCart =
+                            widget.cartItemIds.contains(productId);
 
                         // Badge logic
                         String badgeText;
@@ -115,22 +118,27 @@ class _PurchaseItemListWidgetState extends State<PurchaseItemListWidget> {
 
                         return ListTile(
                           tileColor: inCart
-                              ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                              ? colorScheme.primaryContainer
+                                  .withValues(alpha: 0.15)
                               : null,
                           title: Text(
                             product.nameEnglish,
-                            style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                            style: textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          subtitle: product.itemCode != null && product.itemCode!.isNotEmpty
+                          subtitle: product.itemCode != null &&
+                                  product.itemCode!.isNotEmpty
                               ? Text(
                                   product.itemCode!,
-                                  style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
+                                  style: textTheme.bodySmall
+                                      ?.copyWith(color: colorScheme.outline),
                                 )
                               : null,
                           trailing: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0, vertical: 4.0),
                             decoration: BoxDecoration(
                               color: badgeColor,
                               borderRadius: BorderRadius.circular(12.0),

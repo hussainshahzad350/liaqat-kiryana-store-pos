@@ -48,7 +48,8 @@ class _DepartmentDialogState extends State<DepartmentDialog> {
     final nameEn = _nameEnController.text.trim();
     bool exists;
     try {
-      exists = await widget.onValidate(nameEn, excludeId: widget.department?.id);
+      exists =
+          await widget.onValidate(nameEn, excludeId: widget.department?.id);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

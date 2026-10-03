@@ -29,8 +29,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(AppTokens.dialogBorderRadius)),
+          borderRadius: BorderRadius.circular(AppTokens.dialogBorderRadius)),
       child: Container(
         constraints: RTLHelper.getDialogConstraints(
           context: context,
@@ -38,7 +37,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
         ),
         padding: EdgeInsets.symmetric(
           horizontal: AppTokens.dialogPadding,
-          vertical: RTLHelper.isRTL(context) 
+          vertical: RTLHelper.isRTL(context)
               ? AppTokens.dialogPadding + 16
               : AppTokens.dialogPadding,
         ),
@@ -79,12 +78,11 @@ class CreditLimitWarningDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: AppTokens.spacingLarge),
                     Container(
-                      padding:
-                          const EdgeInsets.all(AppTokens.cardPadding),
+                      padding: const EdgeInsets.all(AppTokens.cardPadding),
                       decoration: BoxDecoration(
                         color: colorScheme.errorContainer,
-                        borderRadius: BorderRadius.circular(
-                            AppTokens.cardBorderRadius),
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.cardBorderRadius),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -108,8 +106,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
                             isBold: true,
                             color: colorScheme.error,
                           ),
-                          const SizedBox(
-                              height: AppTokens.spacingSmall),
+                          const SizedBox(height: AppTokens.spacingSmall),
                           Text(
                             '${loc.excessAmount}: ${(potentialBalance - creditLimit).toString()}',
                             style: Theme.of(context)
@@ -191,8 +188,7 @@ class CreditLimitWarningDialog extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          vertical: AppTokens.spacingXXSmall),
+      padding: const EdgeInsets.symmetric(vertical: AppTokens.spacingXXSmall),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

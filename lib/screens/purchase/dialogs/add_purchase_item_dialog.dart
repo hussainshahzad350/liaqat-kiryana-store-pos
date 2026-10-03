@@ -31,8 +31,9 @@ class _AddPurchaseItemDialogState extends State<AddPurchaseItemDialog> {
     super.initState();
     _qtyCtrl = TextEditingController(text: '1');
     _costCtrl = TextEditingController(
-      text: (Money.tryParse(widget.product.avgCostPrice.toInputString()) ?? Money.zero).toInputString()
-    );
+        text: (Money.tryParse(widget.product.avgCostPrice.toInputString()) ??
+                Money.zero)
+            .toInputString());
     _batchCtrl = TextEditingController();
   }
 
@@ -110,7 +111,8 @@ class _AddPurchaseItemDialogState extends State<AddPurchaseItemDialog> {
               TextFormField(
                 controller: _qtyCtrl,
                 autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   labelText: loc.quantity,
                   border: const OutlineInputBorder(),
@@ -129,7 +131,8 @@ class _AddPurchaseItemDialogState extends State<AddPurchaseItemDialog> {
               // Cost Price
               TextFormField(
                 controller: _costCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   labelText: loc.costPrice,
                   prefixText: 'Rs ',
@@ -140,7 +143,9 @@ class _AddPurchaseItemDialogState extends State<AddPurchaseItemDialog> {
                     return loc.fieldRequired(loc.costPrice);
                   }
                   final money = Money.tryParse(val);
-                  if (money == null || money.isNegative) return loc.invalidAmount;
+                  if (money == null || money.isNegative) {
+                    return loc.invalidAmount;
+                  }
                   return null;
                 },
               ),
@@ -162,9 +167,11 @@ class _AddPurchaseItemDialogState extends State<AddPurchaseItemDialog> {
                 onTap: () async {
                   final picked = await showDatePicker(
                     context: context,
-                    initialDate: _expiryDate ?? DateTime.now().add(const Duration(days: 30)),
+                    initialDate: _expiryDate ??
+                        DateTime.now().add(const Duration(days: 30)),
                     firstDate: DateTime.now(),
-                    lastDate: DateTime.now().add(const Duration(days: 3650)), // 10 years
+                    lastDate: DateTime.now()
+                        .add(const Duration(days: 3650)), // 10 years
                   );
                   if (picked != null) {
                     if (!context.mounted) return;
@@ -196,7 +203,7 @@ class _AddPurchaseItemDialogState extends State<AddPurchaseItemDialog> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24.0),
               const Divider(),
               const SizedBox(height: 8.0),

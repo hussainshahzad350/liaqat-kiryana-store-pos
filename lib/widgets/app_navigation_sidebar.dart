@@ -79,7 +79,10 @@ class AppNavigationSidebar extends StatelessWidget {
                     icon: Icons.account_balance_wallet,
                     title: localizations.accounts,
                     route: AppRoutes.accounts,
-                    activeRoutes: const {AppRoutes.customers, AppRoutes.suppliers},
+                    activeRoutes: const {
+                      AppRoutes.customers,
+                      AppRoutes.suppliers
+                    },
                   ),
                   _buildMenuItem(
                     context,

@@ -12,7 +12,6 @@ import 'widgets/purchase_item_list_widget.dart';
 import 'widgets/purchase_cart_widget.dart';
 import 'dialogs/add_purchase_item_dialog.dart';
 
-
 class PurchaseScreen extends StatefulWidget {
   const PurchaseScreen({super.key});
 
@@ -34,9 +33,9 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
 
   void _save() {
     context.read<PurchaseBloc>().add(SubmitPurchase(
-      invoiceNumber: _invoiceCtrl.text,
-      notes: _notesCtrl.text,
-    ));
+          invoiceNumber: _invoiceCtrl.text,
+          notes: _notesCtrl.text,
+        ));
   }
 
   void _cancel() {
@@ -89,7 +88,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                 setState(() {
                   _purchaseDate = DateTime.now();
                 });
-                
+
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -102,7 +101,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                 final msg = state.error != null
                     ? ErrorHandler.getLocalizedMessage(state.error!, loc)
                     : loc.unknownError;
-                
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(msg),
@@ -135,23 +134,30 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                                 children: [
                                   // Toolbar equivalent
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 24.0, vertical: 16.0),
                                     decoration: BoxDecoration(
                                       color: colorScheme.surface,
                                       border: Border(
-                                        bottom: BorderSide(color: colorScheme.outlineVariant),
+                                        bottom: BorderSide(
+                                            color: colorScheme.outlineVariant),
                                       ),
                                     ),
                                     child: Text(
                                       loc.purchaseScreenTitle,
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                   ),
                                   Expanded(
                                     child: PurchaseItemListWidget(
-                                      cartItemIds: state.cartItems.map((e) => e.productId).toList(),
+                                      cartItemIds: state.cartItems
+                                          .map((e) => e.productId)
+                                          .toList(),
                                       onProductTapped: _onProductTapped,
                                     ),
                                   ),
@@ -160,7 +166,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                             ),
 
                             // DIVIDER
-                            Container(width: 0.5, color: colorScheme.outlineVariant),
+                            Container(
+                                width: 0.5, color: colorScheme.outlineVariant),
 
                             // RIGHT PANEL
                             SizedBox(
@@ -184,8 +191,8 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
                         );
                       },
                     ),
-
-                    if (state.status == PurchaseStatus.submitting) const LoadingOverlay(),
+                    if (state.status == PurchaseStatus.submitting)
+                      const LoadingOverlay(),
                   ],
                 );
               },

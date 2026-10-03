@@ -197,8 +197,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
 
       return Dialog(
         shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(AppTokens.cardBorderRadius)),
+            borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
         child: Container(
           constraints: RTLHelper.getDialogConstraints(
             context: context,
@@ -206,7 +205,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
           ),
           padding: EdgeInsets.symmetric(
             horizontal: AppTokens.dialogPadding,
-            vertical: RTLHelper.isRTL(context) 
+            vertical: RTLHelper.isRTL(context)
                 ? AppTokens.dialogPadding + 16
                 : AppTokens.dialogPadding,
           ),
@@ -223,9 +222,12 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                       alignment: AlignmentDirectional.centerStart,
                       fit: BoxFit.scaleDown,
                       child: Text(loc.checkoutButton,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const Spacer(),
@@ -253,8 +255,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                                 ?.copyWith(fontWeight: FontWeight.bold)),
                         const SizedBox(height: AppTokens.spacingSmall),
                         Container(
-                          padding: const EdgeInsets.all(
-                              AppTokens.spacingSmall),
+                          padding: const EdgeInsets.all(AppTokens.spacingSmall),
                           decoration: BoxDecoration(
                               color: colorScheme.secondaryContainer,
                               borderRadius: BorderRadius.circular(
@@ -265,8 +266,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                               Icon(Icons.info_outline,
                                   size: AppTokens.iconSizeSmall,
                                   color: colorScheme.secondary),
-                              const SizedBox(
-                                  width: AppTokens.spacingSmall),
+                              const SizedBox(width: AppTokens.spacingSmall),
                               Text(
                                   '${loc.prevBalance}: ${oldBalance.toString()}',
                                   style: Theme.of(context)
@@ -282,7 +282,11 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                       ],
                       _infoRow(context, loc.billTotal, billTotal.toString(),
                           isBold: true,
-                          size: Theme.of(context).textTheme.headlineSmall?.fontSize ?? 24.0,
+                          size: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.fontSize ??
+                              24.0,
                           color: colorScheme.onSurface),
                       const Divider(),
                       const SizedBox(height: AppTokens.spacingStandard),
@@ -404,8 +408,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
     );
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          vertical: AppTokens.spacingXXSmall),
+      padding: const EdgeInsets.symmetric(vertical: AppTokens.spacingXXSmall),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -429,8 +432,7 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
           SizedBox(
               width: AppTokens.labelWidthStandard,
               child: Text(label,
-                  style: textTheme.bodyLarge,
-                  overflow: TextOverflow.visible)),
+                  style: textTheme.bodyLarge, overflow: TextOverflow.visible)),
           Expanded(
             child: SizedBox(
               height: AppTokens.formFieldHeight,
@@ -438,18 +440,19 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                 controller: ctrl,
                 textAlign: TextAlign.center,
                 enabled: enabled,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppTokens.spacingStandard,
-                      vertical: 12),
+                      horizontal: AppTokens.spacingStandard, vertical: 12),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
                           AppTokens.formFieldBorderRadius)),
                   prefixText: 'Rs ',
                   filled: !enabled,
-                  fillColor: enabled ? null : colorScheme.surfaceContainerHighest,
+                  fillColor:
+                      enabled ? null : colorScheme.surfaceContainerHighest,
                   errorText: errorText,
                 ),
                 style: textTheme.bodyLarge?.copyWith(

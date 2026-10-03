@@ -60,7 +60,8 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE cash_ledger ADD COLUMN ref_id INTEGER');
     }
     if (!await _hasColumn(db, 'cash_ledger', 'transaction_id')) {
-      await db.execute('ALTER TABLE cash_ledger ADD COLUMN transaction_id TEXT');
+      await db
+          .execute('ALTER TABLE cash_ledger ADD COLUMN transaction_id TEXT');
     }
     if (!await _hasColumn(db, 'cash_ledger', 'reversal_of_cash_ledger_id')) {
       await db.execute(
@@ -79,13 +80,15 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE stock_activities ADD COLUMN ref_type TEXT');
     }
     if (!await _hasColumn(db, 'stock_activities', 'ref_id')) {
-      await db.execute('ALTER TABLE stock_activities ADD COLUMN ref_id INTEGER');
+      await db
+          .execute('ALTER TABLE stock_activities ADD COLUMN ref_id INTEGER');
     }
     if (!await _hasColumn(db, 'stock_activities', 'transaction_id')) {
-      await db
-          .execute('ALTER TABLE stock_activities ADD COLUMN transaction_id TEXT');
+      await db.execute(
+          'ALTER TABLE stock_activities ADD COLUMN transaction_id TEXT');
     }
-    if (!await _hasColumn(db, 'stock_activities', 'reversal_of_stock_activity_id')) {
+    if (!await _hasColumn(
+        db, 'stock_activities', 'reversal_of_stock_activity_id')) {
       await db.execute(
           'ALTER TABLE stock_activities ADD COLUMN reversal_of_stock_activity_id INTEGER');
     }
@@ -184,13 +187,14 @@ class DatabaseHelper {
 
   static Future<void> ensureStandardUnitsInTransaction(
       DatabaseExecutor txn) async {
+    await txn.execute(
+        'UPDATE unit_categories SET name = ? WHERE id = 1', ['Weight']);
+    await txn.execute(
+        'UPDATE unit_categories SET name = ? WHERE id = 2', ['Volume']);
     await txn
-        .execute('UPDATE unit_categories SET name = "Weight" WHERE id = 1');
-    await txn
-        .execute('UPDATE unit_categories SET name = "Volume" WHERE id = 2');
-    await txn.execute('UPDATE unit_categories SET name = "Count" WHERE id = 3');
-    await txn
-        .execute('UPDATE unit_categories SET name = "Length" WHERE id = 4');
+        .execute('UPDATE unit_categories SET name = ? WHERE id = 3', ['Count']);
+    await txn.execute(
+        'UPDATE unit_categories SET name = ? WHERE id = 4', ['Length']);
 
     await _upsertSystemUnit(txn, 'Gram', 'G', 1, null, 1);
     final gId = await _getSystemUnitId(txn, 'G');
@@ -679,6 +683,9 @@ class DatabaseHelper {
 
   Future<void> _insertSampleData(Database db) async {
     try {
+      final openingDate = DateTime.now().toUtc().toIso8601String();
+      const openingStock = 45;
+      const openingCustomerBalance = 250000;
       // Shop Profile
       await db.insert(
           'shop_profile',
@@ -718,7 +725,7 @@ class DatabaseHelper {
           conflictAlgorithm: ConflictAlgorithm.ignore);
 
       // Products
-      await db.insert(
+      final productId = await db.insert(
           'products',
           {
             'item_code': 'PRD001',
@@ -727,23 +734,61 @@ class DatabaseHelper {
             'category_id': 1,
             'unit_type': 'KG',
             'min_stock_alert': 50,
-            'current_stock': 45,
+            'current_stock': openingStock,
             'avg_cost_price': 17000, // 170 rupees in paisas
             'sale_price': 18000, // 180 rupees in paisas
           },
           conflictAlgorithm: ConflictAlgorithm.ignore);
 
+      // New-database sample stock must have the same event history as stock
+      // created through ItemsRepository. This does not backfill existing stores.
+      final adjustmentId = await db.insert('stock_adjustments', {
+        'product_id': productId,
+        'adjustment_date': openingDate,
+        'quantity_change': openingStock,
+        'reason': 'Initial sample stock',
+        'reference': 'PRODUCT_CREATE',
+        'user': 'SYSTEM',
+        'created_at': openingDate,
+      });
+      await db.insert('stock_activities', {
+        'product_id': productId,
+        'quantity_change': openingStock,
+        'transaction_type': 'ADJUSTMENT',
+        'ref_type': 'ADJUSTMENT',
+        'ref_id': adjustmentId,
+        'transaction_id': 'ADJUSTMENT:$adjustmentId:INITIAL',
+        'reference_type': 'ADJUSTMENT',
+        'reference_id': adjustmentId,
+        'user': 'SYSTEM',
+        'created_at': openingDate,
+      });
+
       // Customers
-      await db.insert(
+      final customerId = await db.insert(
           'customers',
           {
             'name_english': 'Ali Khan',
             'name_urdu': 'علی خان',
             'contact_primary': '0300-1111111',
             'credit_limit': 1000000,
-            'outstanding_balance': 250000,
+            'outstanding_balance': openingCustomerBalance,
           },
           conflictAlgorithm: ConflictAlgorithm.ignore);
+
+      // Preserve the sample opening balance and provide its ledger source.
+      await db.insert('customer_ledger', {
+        'customer_id': customerId,
+        'transaction_date': openingDate,
+        'description': 'Initial sample balance',
+        'ref_type': 'ADJUSTMENT',
+        'ref_id': customerId,
+        'debit': openingCustomerBalance,
+        'credit': 0,
+        'balance': openingCustomerBalance,
+        'transaction_id': 'CUSTOMER:$customerId:INITIAL',
+        'created_at': openingDate,
+      });
 
       // Suppliers
       await db.insert(

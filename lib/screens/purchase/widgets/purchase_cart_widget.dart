@@ -42,13 +42,16 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
         suppliers: state.suppliers,
         onSelected: (supplier) {
           if (!context.mounted) return;
-          context.read<PurchaseBloc>().add(SelectPurchaseSupplier(supplier['id'] as int));
+          context
+              .read<PurchaseBloc>()
+              .add(SelectPurchaseSupplier(supplier['id'] as int));
         },
       ),
     );
   }
 
-  Widget _buildSupplierSelector(BuildContext context, PurchaseState state, AppLocalizations loc) {
+  Widget _buildSupplierSelector(
+      BuildContext context, PurchaseState state, AppLocalizations loc) {
     final selectedId = state.selectedSupplierId;
     Map<String, dynamic>? selectedSupp;
     if (selectedId != null) {
@@ -78,7 +81,8 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
         decoration: InputDecoration(
           labelText: loc.supplier,
           border: const OutlineInputBorder(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
         ),
         child: Row(
           children: [
@@ -154,7 +158,8 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(DateFormat('yyyy-MM-dd').format(widget.purchaseDate)),
+                          Text(DateFormat('yyyy-MM-dd')
+                              .format(widget.purchaseDate)),
                           const Icon(Icons.calendar_today, size: 20),
                         ],
                       ),
@@ -176,10 +181,13 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
             // SECTION 2: Bill items label + count
             Row(
               children: [
-                Text(loc.billItems, style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(loc.billItems,
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold)),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 4.0),
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(12.0),
@@ -187,7 +195,7 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                   child: Text(
                     state.cartItems.length.toString(),
                     style: TextStyle(
-                      color: colorScheme.onPrimaryContainer, 
+                      color: colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -205,40 +213,49 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.shopping_cart_checkout, 
-                            size: 64, 
+                            Icons.shopping_cart_checkout,
+                            size: 64,
                             color: colorScheme.onSurface.withValues(alpha: 0.3),
                           ),
                           const SizedBox(height: 16.0),
                           Text(
-                            loc.addItemsToStart, 
-                            style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.5)),
+                            loc.addItemsToStart,
+                            style: TextStyle(
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.5)),
                           ),
                         ],
                       ),
                     )
                   : ListView.separated(
                       itemCount: state.cartItems.length,
-                      separatorBuilder: (context, index) => const Divider(height: 1),
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final item = state.cartItems[index];
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
-                          title: Text(item.productName, maxLines: 1, overflow: TextOverflow.ellipsis),
-                          subtitle: Text('${item.quantity} × Rs ${item.costPrice.formattedSmart}'),
+                          title: Text(item.productName,
+                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                          subtitle: Text(
+                              '${item.quantity} × Rs ${item.costPrice.formattedSmart}'),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 'Rs ${item.totalAmount.formattedSmart}',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                icon: const Icon(Icons.remove_circle_outline,
+                                    color: Colors.red),
                                 tooltip: loc.remove,
                                 onPressed: () {
                                   if (!context.mounted) return;
-                                  context.read<PurchaseBloc>().add(RemovePurchaseItem(index));
+                                  context
+                                      .read<PurchaseBloc>()
+                                      .add(RemovePurchaseItem(index));
                                 },
                               ),
                             ],
@@ -257,14 +274,17 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(loc.totalItems, style: textTheme.bodyLarge),
-                    Text(state.cartItems.length.toString(), style: textTheme.bodyLarge),
+                    Text(state.cartItems.length.toString(),
+                        style: textTheme.bodyLarge),
                   ],
                 ),
                 const SizedBox(height: 8.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(loc.totalPayable, style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                    Text(loc.totalPayable,
+                        style: textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.bold)),
                     Text(
                       state.totalAmount.formatted,
                       style: textTheme.titleLarge?.copyWith(
@@ -285,11 +305,15 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colorScheme.error,
                     side: BorderSide(
-                      color: state.cartItems.isEmpty ? Colors.transparent : colorScheme.error,
+                      color: state.cartItems.isEmpty
+                          ? Colors.transparent
+                          : colorScheme.error,
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16.0, horizontal: 24.0),
                   ),
-                  onPressed: state.cartItems.isEmpty ? null : () => _clearCart(state),
+                  onPressed:
+                      state.cartItems.isEmpty ? null : () => _clearCart(state),
                   child: Text(loc.clearAll),
                 ),
                 const SizedBox(width: 16.0),
@@ -298,9 +322,14 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                     ),
-                    onPressed: state.status == PurchaseStatus.submitting ? null : widget.onSave,
-                    icon: state.status == PurchaseStatus.submitting 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                    onPressed: state.status == PurchaseStatus.submitting
+                        ? null
+                        : widget.onSave,
+                    icon: state.status == PurchaseStatus.submitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.save),
                     label: Text(loc.savePurchase),
                   ),

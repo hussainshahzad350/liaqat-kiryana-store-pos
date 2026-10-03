@@ -5,7 +5,7 @@ import 'package:liaqat_store/domain/entities/money.dart';
 void main() {
   group('Product Model Tests', () {
     final testDate = DateTime(2023, 1, 1);
-    
+
     final testProduct = Product(
       id: 1,
       itemCode: 'CODE123',
@@ -58,7 +58,6 @@ void main() {
       expect(product.createdAt, testDate);
     });
 
-
     test('should parse numeric fields when SQLite returns doubles', () {
       final map = {
         'id': 2,
@@ -100,7 +99,9 @@ void main() {
       expect(updatedProduct.itemCode, testProduct.itemCode); // Unchanged field
     });
 
-    test('isLowStock should return true when stock is equal to or less than minStockAlert', () {
+    test(
+        'isLowStock should return true when stock is equal to or less than minStockAlert',
+        () {
       final lowStockProduct = testProduct.copyWith(
         currentStock: 10,
         minStockAlert: 10,
@@ -114,7 +115,9 @@ void main() {
       expect(veryLowStockProduct.isLowStock, true);
     });
 
-    test('isLowStock should return false when stock is greater than minStockAlert', () {
+    test(
+        'isLowStock should return false when stock is greater than minStockAlert',
+        () {
       final highStockProduct = testProduct.copyWith(
         currentStock: 11,
         minStockAlert: 10,
@@ -128,23 +131,11 @@ void main() {
 
     test('equality operator should work correctly', () {
       final product1 = Product(
-        id: 1, 
-        itemCode: 'A', 
-        nameEnglish: 'Name', 
-        createdAt: testDate
-      );
+          id: 1, itemCode: 'A', nameEnglish: 'Name', createdAt: testDate);
       final product2 = Product(
-        id: 1, 
-        itemCode: 'A', 
-        nameEnglish: 'Name', 
-        createdAt: testDate
-      );
+          id: 1, itemCode: 'A', nameEnglish: 'Name', createdAt: testDate);
       final product3 = Product(
-        id: 2, 
-        itemCode: 'B', 
-        nameEnglish: 'Other', 
-        createdAt: testDate
-      );
+          id: 2, itemCode: 'B', nameEnglish: 'Other', createdAt: testDate);
 
       expect(product1, equals(product2));
       expect(product1, isNot(equals(product3)));

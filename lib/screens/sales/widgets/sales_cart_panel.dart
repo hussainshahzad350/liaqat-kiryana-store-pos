@@ -143,7 +143,8 @@ class _CartHeader extends StatelessWidget {
           const SizedBox(width: AppTokens.spacingMedium),
           SizedBox(
             width: 60,
-            child: Text(loc.qty, textAlign: TextAlign.center, style: labelStyle),
+            child:
+                Text(loc.qty, textAlign: TextAlign.center, style: labelStyle),
           ),
           const SizedBox(width: AppTokens.spacingMedium),
           SizedBox(

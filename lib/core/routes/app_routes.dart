@@ -3,7 +3,7 @@
 class AppRoutes {
   // Prevent instantiation
   AppRoutes._();
-  
+
   // Route names
   static const String sales = '/sales';
   static const String stock = '/stock';

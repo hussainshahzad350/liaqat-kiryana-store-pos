@@ -51,7 +51,8 @@ class StockActivityRepository {
         tag: 'StockActivityRepository',
       );
     }
-    final typeStr = (rawType == null || rawType.isEmpty) ? 'ADJUSTMENT' : rawType;
+    final typeStr =
+        (rawType == null || rawType.isEmpty) ? 'ADJUSTMENT' : rawType;
     final refType = (row['ref_type'] as String?) ?? 'ADJUSTMENT';
     final refId = (row['ref_id'] as num?)?.toInt();
     final qtyChange = (row['quantity_change'] as num?)?.toDouble() ?? 0;

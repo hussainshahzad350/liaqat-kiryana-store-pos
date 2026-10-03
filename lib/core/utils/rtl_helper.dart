@@ -52,9 +52,8 @@ class RTLHelper {
   /// In RTL mode, left and right are swapped automatically by Flutter,
   /// but you can use this for explicit RTL-aware padding.
   @Deprecated(
-    'Use EdgeInsetsDirectional.fromSTEB() directly or RTLHelper.directionalInsets(). '
-    'Flutter handles RTL start/end automatically.'
-  )
+      'Use EdgeInsetsDirectional.fromSTEB() directly or RTLHelper.directionalInsets(). '
+      'Flutter handles RTL start/end automatically.')
   static EdgeInsets edgeInsets({
     required BuildContext context,
     double? all,

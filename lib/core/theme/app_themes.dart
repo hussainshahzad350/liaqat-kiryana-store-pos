@@ -3,7 +3,7 @@ import 'package:liaqat_store/core/res/app_colors.dart';
 import 'package:liaqat_store/core/res/app_tokens.dart';
 
 /// Defines the ThemeData for each theme in the app.
-/// 
+///
 /// CRYSTAL CLEAR MODERN THEME - Features:
 /// - Proper Urdu font (NooriNastaleeq) for RTL layouts
 /// - Roboto for LTR layouts
@@ -328,16 +328,16 @@ class AppThemes {
       colorScheme: colorScheme,
       scaffoldBackgroundColor: scaffoldBackgroundColor,
       cardColor: cardColor,
-      
+
       // CRITICAL: Apply correct font based on text direction
       fontFamily: isRTL ? 'NooriNastaleeq' : 'Roboto',
-      
+
       textTheme: textTheme.apply(
         bodyColor: textColor,
         displayColor: textColor,
         decorationColor: textColor,
       ),
-      
+
       // AppBar - Crystal clear with subtle elevation
       appBarTheme: AppBarTheme(
         backgroundColor: scaffoldBackgroundColor,
@@ -348,7 +348,7 @@ class AppThemes {
         iconTheme: IconThemeData(color: textColor),
         titleTextStyle: textTheme.titleLarge?.copyWith(color: textColor),
       ),
-      
+
       // Input Fields - Clean borders, no background tint
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -358,7 +358,8 @@ class AppThemes {
           vertical: isRTL ? 16 : 14,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppTokens.radius8), // Less rounded for modern look
+          borderRadius: BorderRadius.circular(
+              AppTokens.radius8), // Less rounded for modern look
           borderSide: BorderSide(color: dividerColor, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
@@ -386,7 +387,7 @@ class AppThemes {
         prefixIconColor: textColor.withValues(alpha: 0.7),
         suffixIconColor: textColor.withValues(alpha: 0.7),
       ),
-      
+
       // Scrollbar - Clean and minimal
       scrollbarTheme: ScrollbarThemeData(
         thumbVisibility: WidgetStateProperty.all(true),
@@ -396,7 +397,7 @@ class AppThemes {
         radius: const Radius.circular(AppTokens.radius4),
         thickness: WidgetStateProperty.all(6),
       ),
-      
+
       // Dialogs - Crystal clear with sharp corners
       dialogTheme: DialogThemeData(
         backgroundColor: cardColor,
@@ -404,7 +405,8 @@ class AppThemes {
         shadowColor: Colors.black.withValues(alpha: 0.2),
         elevation: 8,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTokens.radius12), // Modern sharp corners
+          borderRadius:
+              BorderRadius.circular(AppTokens.radius12), // Modern sharp corners
         ),
         titleTextStyle: textTheme.titleLarge?.copyWith(
           color: textColor,
@@ -414,7 +416,7 @@ class AppThemes {
           color: textColor,
         ),
       ),
-      
+
       // Cards - Flat and clean
       cardTheme: CardThemeData(
         color: cardColor,
@@ -426,19 +428,19 @@ class AppThemes {
           side: BorderSide(color: dividerColor, width: 1),
         ),
       ),
-      
+
       dividerColor: dividerColor,
       dividerTheme: DividerThemeData(
         color: dividerColor,
         thickness: 1,
         space: 1,
       ),
-      
+
       iconTheme: IconThemeData(
         color: textColor,
         size: isRTL ? 26 : 24, // Slightly larger icons for Urdu
       ),
-      
+
       listTileTheme: ListTileThemeData(
         iconColor: textColor,
         textColor: textColor,
@@ -447,7 +449,7 @@ class AppThemes {
           vertical: isRTL ? 12 : 8,
         ),
       ),
-      
+
       // Elevated Buttons - Flat modern style
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -468,7 +470,7 @@ class AppThemes {
           ),
         ),
       ),
-      
+
       // Text Buttons - Clean and minimal
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -480,7 +482,7 @@ class AppThemes {
           textStyle: textTheme.labelLarge,
         ),
       ),
-      
+
       // Floating Action Button - Crystal clear
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: primaryColor,

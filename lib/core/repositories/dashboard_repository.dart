@@ -16,14 +16,13 @@ class DashboardRepository {
     try {
       final db = await _dbHelper.database;
       final batch = db.batch();
-      
+
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
       // 1. Today's Sales Total
       batch.rawQuery(
-        'SELECT SUM(grand_total) as total FROM invoices WHERE invoice_date = ? AND status = ?',
-        [today, 'COMPLETED']
-      );
+          'SELECT SUM(grand_total) as total FROM invoices WHERE invoice_date = ? AND status = ?',
+          [today, 'COMPLETED']);
 
       // 2. Today's Top Customers
       batch.rawQuery('''
@@ -72,10 +71,11 @@ class DashboardRepository {
       final results = await batch.commit();
 
       return {
-        'todaySales': (results[0] as List).isNotEmpty 
+        'todaySales': (results[0] as List).isNotEmpty
             ? ((results[0] as List).first['total'] as num?)?.toInt() ?? 0
             : 0,
-        'todayCustomers': (results[1] as List).map((e) => e as Map<String, dynamic>).toList(),
+        'todayCustomers':
+            (results[1] as List).map((e) => e as Map<String, dynamic>).toList(),
         'lowStockItems': (results[2] as List).map((e) {
           final map = Map<String, dynamic>.from(e as Map);
           map['sale_price'] = (map['sale_price'] as num?)?.toInt() ?? 0;
@@ -107,11 +107,10 @@ class DashboardRepository {
     try {
       final db = await _dbHelper.database;
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
+
       final result = await db.rawQuery(
-        'SELECT SUM(grand_total) as total FROM invoices WHERE invoice_date = ? AND status = ?',
-        [today, 'COMPLETED']
-      );
+          'SELECT SUM(grand_total) as total FROM invoices WHERE invoice_date = ? AND status = ?',
+          [today, 'COMPLETED']);
       return (result.first['total'] as num?)?.toInt() ?? 0;
     } catch (e) {
       AppLogger.error("Error fetching today's sales: $e", tag: 'DashboardRepo');
@@ -127,13 +126,13 @@ class DashboardRepository {
       final weekStart = now.subtract(Duration(days: now.weekday - 1));
       final startDate = DateFormat('yyyy-MM-dd').format(weekStart);
       final endDate = DateFormat('yyyy-MM-dd').format(now);
-      
+
       final result = await db.rawQuery('''
         SELECT SUM(grand_total) as total 
         FROM invoices 
         WHERE invoice_date BETWEEN ? AND ? AND status = ?
       ''', [startDate, endDate, 'COMPLETED']);
-      
+
       return (result.first['total'] as num?)?.toInt() ?? 0;
     } catch (e) {
       AppLogger.error("Error fetching weekly sales: $e", tag: 'DashboardRepo');
@@ -146,17 +145,16 @@ class DashboardRepository {
     try {
       final db = await _dbHelper.database;
       final now = DateTime.now();
-      final startDate = DateFormat('yyyy-MM-dd').format(
-        DateTime(now.year, now.month, 1)
-      );
+      final startDate =
+          DateFormat('yyyy-MM-dd').format(DateTime(now.year, now.month, 1));
       final endDate = DateFormat('yyyy-MM-dd').format(now);
-      
+
       final result = await db.rawQuery('''
         SELECT SUM(grand_total) as total 
         FROM invoices 
         WHERE invoice_date BETWEEN ? AND ? AND status = ?
       ''', [startDate, endDate, 'COMPLETED']);
-      
+
       return (result.first['total'] as num?)?.toInt() ?? 0;
     } catch (e) {
       AppLogger.error("Error fetching monthly sales: $e", tag: 'DashboardRepo');
@@ -168,16 +166,17 @@ class DashboardRepository {
   Future<int> getSalesByDateRange(String startDate, String endDate) async {
     try {
       final db = await _dbHelper.database;
-      
+
       final result = await db.rawQuery('''
         SELECT SUM(grand_total) as total 
         FROM invoices 
         WHERE invoice_date BETWEEN ? AND ? AND status = ?
       ''', [startDate, endDate, 'COMPLETED']);
-      
+
       return (result.first['total'] as num?)?.toInt() ?? 0;
     } catch (e) {
-      AppLogger.error("Error fetching sales by date range: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching sales by date range: $e",
+          tag: 'DashboardRepo');
       return 0;
     }
   }
@@ -186,16 +185,16 @@ class DashboardRepository {
   Future<int> getSalesCount({String? startDate, String? endDate}) async {
     try {
       final db = await _dbHelper.database;
-      
+
       String query = 'SELECT COUNT(*) as count FROM invoices WHERE status = ?';
       List<dynamic> args = ['COMPLETED'];
-      
+
       if (startDate != null && endDate != null) {
         query += ' AND invoice_date BETWEEN ? AND ?';
         args.add(startDate);
         args.add(endDate);
       }
-      
+
       final result = await db.rawQuery(query, args);
       return (result.first['count'] as int?) ?? 0;
     } catch (e) {
@@ -209,11 +208,12 @@ class DashboardRepository {
   // ========================================
 
   /// Get today's top customers
-  Future<List<Map<String, dynamic>>> getTodayTopCustomers({int limit = 5}) async {
+  Future<List<Map<String, dynamic>>> getTodayTopCustomers(
+      {int limit = 5}) async {
     try {
       final db = await _dbHelper.database;
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
+
       return await db.rawQuery('''
         SELECT 
           c.id,
@@ -229,7 +229,8 @@ class DashboardRepository {
         LIMIT ?
       ''', [today, limit]);
     } catch (e) {
-      AppLogger.error("Error fetching today's customers: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching today's customers: $e",
+          tag: 'DashboardRepo');
       return [];
     }
   }
@@ -242,7 +243,7 @@ class DashboardRepository {
   }) async {
     try {
       final db = await _dbHelper.database;
-      
+
       String query = '''
         SELECT 
           p.id,
@@ -275,7 +276,8 @@ class DashboardRepository {
 
       return await db.rawQuery(query, args);
     } catch (e) {
-      AppLogger.error("Error fetching top selling products: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching top selling products: $e",
+          tag: 'DashboardRepo');
       return [];
     }
   }
@@ -288,7 +290,7 @@ class DashboardRepository {
   }) async {
     try {
       final db = await _dbHelper.database;
-      
+
       String query = '''
         SELECT 
           c.id,
@@ -330,11 +332,12 @@ class DashboardRepository {
   // ========================================
 
   /// Get recent activities (sales, payments, alerts)
-  Future<List<Map<String, dynamic>>> getRecentActivities({int limit = 10}) async {
+  Future<List<Map<String, dynamic>>> getRecentActivities(
+      {int limit = 10}) async {
     final db = await _dbHelper.database;
-    
+
     List<Map<String, dynamic>> activities = [];
-    
+
     try {
       // 1. Recent Sales (today)
       final sales = await db.rawQuery('''
@@ -351,7 +354,7 @@ class DashboardRepository {
         ORDER BY s.sale_time DESC
         LIMIT 5
       ''');
-      
+
       // 2. Recent Payments (today)
       final payments = await db.rawQuery('''
         SELECT 
@@ -367,7 +370,7 @@ class DashboardRepository {
         ORDER BY p.date DESC
         LIMIT 5
       ''');
-      
+
       // 3. Low Stock Alerts (current)
       final lowStockAlerts = await db.rawQuery('''
         SELECT 
@@ -383,7 +386,7 @@ class DashboardRepository {
         ORDER BY (p.current_stock * 1.0 / p.min_stock_alert) ASC
         LIMIT 3
       ''');
-      
+
       activities.addAll(sales.map((e) {
         final map = Map<String, dynamic>.from(e);
         map['amount'] = (map['amount'] as num?)?.toInt() ?? 0;
@@ -395,17 +398,17 @@ class DashboardRepository {
         return map;
       }));
       activities.addAll(lowStockAlerts);
-      
+
       activities.sort((a, b) {
         final aTime = a['timestamp']?.toString() ?? '';
         final bTime = b['timestamp']?.toString() ?? '';
         return bTime.compareTo(aTime);
       });
-      
+
       return activities.take(limit).toList();
-      
     } catch (e) {
-      AppLogger.error('Error getting recent activities: $e', tag: 'DashboardRepo');
+      AppLogger.error('Error getting recent activities: $e',
+          tag: 'DashboardRepo');
       return [];
     }
   }
@@ -431,7 +434,8 @@ class DashboardRepository {
         LIMIT ?
       ''', [limit]);
     } catch (e) {
-      AppLogger.error("Error fetching low stock items: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching low stock items: $e",
+          tag: 'DashboardRepo');
       return [];
     }
   }
@@ -441,11 +445,11 @@ class DashboardRepository {
     try {
       final db = await _dbHelper.database;
       final result = await db.rawQuery(
-        'SELECT COUNT(*) as count FROM products WHERE current_stock = 0'
-      );
+          'SELECT COUNT(*) as count FROM products WHERE current_stock = 0');
       return (result.first['count'] as int?) ?? 0;
     } catch (e) {
-      AppLogger.error("Error fetching out of stock count: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching out of stock count: $e",
+          tag: 'DashboardRepo');
       return 0;
     }
   }
@@ -474,7 +478,8 @@ class DashboardRepository {
         LIMIT ?
       ''', [threshold, limit]);
     } catch (e) {
-      AppLogger.error("Error fetching customers near limit: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching customers near limit: $e",
+          tag: 'DashboardRepo');
       return [];
     }
   }
@@ -489,7 +494,7 @@ class DashboardRepository {
       final db = await _dbHelper.database;
       final endDate = DateTime.now();
       final startDate = endDate.subtract(Duration(days: days));
-      
+
       return await db.rawQuery('''
         SELECT 
           invoice_date as date,
@@ -502,7 +507,8 @@ class DashboardRepository {
         ORDER BY invoice_date ASC
       ''', [DateFormat('yyyy-MM-dd').format(startDate)]);
     } catch (e) {
-      AppLogger.error("Error fetching daily sales trend: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching daily sales trend: $e",
+          tag: 'DashboardRepo');
       return [];
     }
   }
@@ -512,7 +518,7 @@ class DashboardRepository {
     try {
       final db = await _dbHelper.database;
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
+
       return await db.rawQuery('''
         SELECT 
           CAST(strftime('%H', sale_time) AS INTEGER) as hour,
@@ -524,7 +530,8 @@ class DashboardRepository {
         ORDER BY hour ASC
       ''', [today]);
     } catch (e) {
-      AppLogger.error("Error fetching hourly sales trend: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching hourly sales trend: $e",
+          tag: 'DashboardRepo');
       return [];
     }
   }
@@ -538,46 +545,53 @@ class DashboardRepository {
     try {
       final db = await _dbHelper.database;
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      
+
       // Get multiple metrics in one go
       final batch = db.batch();
-      
+
       // Total sales today
       batch.rawQuery(
-        'SELECT SUM(grand_total) as total FROM invoices WHERE invoice_date = ? AND status = ?',
-        [today, 'COMPLETED']
-      );
-      
+          'SELECT SUM(grand_total) as total FROM invoices WHERE invoice_date = ? AND status = ?',
+          [today, 'COMPLETED']);
+
       // Total customers
       batch.rawQuery('SELECT COUNT(*) as count FROM customers');
-      
+
       // Total products
       batch.rawQuery('SELECT COUNT(*) as count FROM products');
-      
+
       // Total stock value
-      batch.rawQuery('SELECT SUM(current_stock * avg_cost_price) as total FROM products');
-      
+      batch.rawQuery(
+          'SELECT SUM(current_stock * avg_cost_price) as total FROM products');
+
       // Outstanding balance
       batch.rawQuery('SELECT SUM(outstanding_balance) as total FROM customers');
-      
+
       // Low stock count
       batch.rawQuery('''
         SELECT COUNT(*) as count FROM products 
         WHERE current_stock > 0 AND current_stock <= min_stock_alert
       ''');
-      
+
       final results = await batch.commit();
-      
+
       return {
-        'todaySales': ((results[0] as List).first['total'] as num?)?.toInt() ?? 0,
-        'totalCustomers': ((results[1] as List).first['count'] as num?)?.toInt() ?? 0,
-        'totalProducts': ((results[2] as List).first['count'] as num?)?.toInt() ?? 0,
-        'stockValue': ((results[3] as List).first['total'] as num?)?.toInt() ?? 0,
-        'outstandingBalance': ((results[4] as List).first['total'] as num?)?.toInt() ?? 0,
-        'lowStockCount': ((results[5] as List).first['count'] as num?)?.toInt() ?? 0,
+        'todaySales':
+            ((results[0] as List).first['total'] as num?)?.toInt() ?? 0,
+        'totalCustomers':
+            ((results[1] as List).first['count'] as num?)?.toInt() ?? 0,
+        'totalProducts':
+            ((results[2] as List).first['count'] as num?)?.toInt() ?? 0,
+        'stockValue':
+            ((results[3] as List).first['total'] as num?)?.toInt() ?? 0,
+        'outstandingBalance':
+            ((results[4] as List).first['total'] as num?)?.toInt() ?? 0,
+        'lowStockCount':
+            ((results[5] as List).first['count'] as num?)?.toInt() ?? 0,
       };
     } catch (e) {
-      AppLogger.error("Error fetching business metrics: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching business metrics: $e",
+          tag: 'DashboardRepo');
       return {
         'todaySales': 0,
         'totalCustomers': 0,
@@ -596,7 +610,7 @@ class DashboardRepository {
   }) async {
     try {
       final db = await _dbHelper.database;
-      
+
       String query = '''
         SELECT 
           SUM(si.total_price) as revenue,
@@ -606,17 +620,17 @@ class DashboardRepository {
         JOIN invoices s ON si.invoice_id = s.id
         WHERE s.status = 'COMPLETED'
       ''';
-      
+
       List<dynamic> args = [];
-      
+
       if (startDate != null && endDate != null) {
         query += ' AND s.invoice_date BETWEEN ? AND ?';
         args.add(startDate);
         args.add(endDate);
       }
-      
+
       final result = await db.rawQuery(query, args);
-      
+
       if (result.isEmpty) {
         return {
           'revenue': 0.0,
@@ -625,12 +639,12 @@ class DashboardRepository {
           'margin': 0.0,
         };
       }
-      
+
       final revenue = (result.first['revenue'] as num?)?.toInt() ?? 0;
       final cost = (result.first['cost'] as num?)?.toInt() ?? 0;
       final profit = revenue - cost;
       final margin = revenue > 0 ? (profit / revenue) * 100 : 0.0;
-      
+
       return {
         'revenue': revenue,
         'cost': cost,
@@ -638,7 +652,8 @@ class DashboardRepository {
         'margin': margin,
       };
     } catch (e) {
-      AppLogger.error("Error fetching profit estimate: $e", tag: 'DashboardRepo');
+      AppLogger.error("Error fetching profit estimate: $e",
+          tag: 'DashboardRepo');
       return {
         'revenue': 0,
         'cost': 0,

@@ -53,7 +53,7 @@ class SubmitPurchase extends PurchaseEvent {
   final String performedBy;
 
   const SubmitPurchase({
-    required this.invoiceNumber, 
+    required this.invoiceNumber,
     required this.notes,
     this.performedBy = 'SYSTEM',
   });

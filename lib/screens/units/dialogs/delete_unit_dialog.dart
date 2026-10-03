@@ -89,7 +89,8 @@ class DeleteUnitDialog extends StatelessWidget {
                         children: [
                           Text(
                             inUse
-                                ? loc.unitInUseMessage(unit.name, unit.code, usageCount)
+                                ? loc.unitInUseMessage(
+                                    unit.name, unit.code, usageCount)
                                 : loc.confirmDeleteUnit(unit.name, unit.code),
                             style: textTheme.bodyLarge,
                           ),

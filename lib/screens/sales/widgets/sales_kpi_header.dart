@@ -90,8 +90,8 @@ class _SalesKpiHeaderState extends State<SalesKpiHeader> {
                   IconButton(
                     tooltip: loc.refresh,
                     onPressed: () => _loadData(forceRefresh: true),
-                    icon:
-                        Icon(Icons.refresh, size: 16, color: colorScheme.primary),
+                    icon: Icon(Icons.refresh,
+                        size: 16, color: colorScheme.primary),
                   ),
                   if (_hasError) ...[
                     Icon(

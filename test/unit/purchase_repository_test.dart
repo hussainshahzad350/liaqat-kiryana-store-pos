@@ -6,25 +6,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:liaqat_store/core/database/database_helper.dart';
 import 'package:liaqat_store/core/repositories/items_repository.dart';
 import 'package:liaqat_store/core/repositories/purchase_repository.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import '../support/test_database.dart';
 
 void main() {
   late PurchaseRepository purchaseRepo;
   late ItemsRepository itemsRepo;
-  late DatabaseFactory previousDatabaseFactory;
-
-  setUpAll(() {
-    sqfliteFfiInit();
-    previousDatabaseFactory = databaseFactory;
-    databaseFactory = databaseFactoryFfi;
-  });
-
-  tearDownAll(() {
-    databaseFactory = previousDatabaseFactory;
-  });
+  useTestDatabase();
 
   setUp(() async {
-    await DatabaseHelper.instance.resetDatabase();
+    await setTestStock(1, 45);
     itemsRepo = ItemsRepository();
     purchaseRepo = PurchaseRepository(itemsRepo);
   });
@@ -86,16 +76,11 @@ void main() {
         ],
       );
 
-      // Simulate selling more than the initial stock (but less than total)
-      // by manually reducing stock
-      final db = await DatabaseHelper.instance.database;
-      await db.rawUpdate(
-        'UPDATE products SET current_stock = ? WHERE id = ?',
-        [5, 1], // Set stock to 5, less than the 20 we purchased
-      );
+      // Simulate consumed stock with a matching fixture event and cache.
+      await setTestStock(1, 5);
 
       // Try to cancel - should fail because we'd need to subtract 20 from 5
-      expect(
+      await expectLater(
         () => purchaseRepo.cancelPurchase(
             purchaseId: purchaseId,
             reason: 'Should fail',
@@ -104,7 +89,7 @@ void main() {
           isA<Exception>().having(
             (e) => e.toString(),
             'message',
-            contains('INSUFFICIENT_STOCK_FOR_CANCELLATION'),
+            contains('NEGATIVE_STOCK'),
           ),
         ),
       );
@@ -137,7 +122,7 @@ void main() {
           purchaseId: purchaseId, cancelledBy: 'test_user');
 
       // Try to cancel again
-      expect(
+      await expectLater(
         () => purchaseRepo.cancelPurchase(
             purchaseId: purchaseId, cancelledBy: 'test_user'),
         throwsA(
@@ -148,10 +133,24 @@ void main() {
           ),
         ),
       );
+
+      final db = await DatabaseHelper.instance.database;
+      final stockReversals = await db.query('stock_activities',
+          where: 'ref_type = ? AND ref_id = ? AND transaction_type = ?',
+          whereArgs: ['PURCHASE', purchaseId, 'PURCHASE_CANCEL']);
+      final ledgerReversals = await db.query('supplier_ledger',
+          where: 'ref_type = ? AND ref_id = ?',
+          whereArgs: ['PURCHASE_RETURN', purchaseId]);
+      expect(stockReversals, hasLength(1));
+      expect(stockReversals.single['reversal_of_stock_activity_id'], isNotNull);
+      expect(ledgerReversals, hasLength(1));
+      expect(
+          ledgerReversals.single['reversal_of_supplier_ledger_id'], isNotNull);
+      expect(await itemsRepo.getProductStock(1), 45);
     });
 
     test('should throw exception for non-existent purchase', () async {
-      expect(
+      await expectLater(
         () => purchaseRepo.cancelPurchase(
             purchaseId: 99999, cancelledBy: 'test_user'),
         throwsA(
@@ -185,21 +184,17 @@ void main() {
       );
 
       // Reduce stock to simulate sales
-      final db = await DatabaseHelper.instance.database;
-      await db.rawUpdate(
-        'UPDATE products SET current_stock = ? WHERE id = ?',
-        [10, 1],
-      );
+      await setTestStock(1, 10);
 
-      // Try to cancel - error should include product name
-      try {
-        await purchaseRepo.cancelPurchase(
-            purchaseId: purchaseId, cancelledBy: 'test_user');
-        fail('Expected exception was not thrown');
-      } catch (e) {
-        final errorMessage = e.toString();
-        expect(errorMessage, contains('INSUFFICIENT_STOCK_FOR_CANCELLATION'));
-      }
+      await expectLater(
+        purchaseRepo.cancelPurchase(
+            purchaseId: purchaseId, cancelledBy: 'test_user'),
+        throwsA(isA<Exception>().having(
+          (error) => error.toString(),
+          'message',
+          contains('NEGATIVE_STOCK'),
+        )),
+      );
     });
 
     test('should validate all items before making any changes', () async {
@@ -222,6 +217,7 @@ void main() {
         whereArgs: ['TEST-PROD-2'],
       );
       final product2Id = product2Result.first['id'] as int;
+      await setTestStock(product2Id, 50);
 
       // Create a purchase with two items
       final purchaseId = await purchaseRepo.createPurchase(
@@ -254,13 +250,10 @@ void main() {
       // Product 2 stock is checked after modification below
 
       // Reduce stock of product 2 to make cancellation fail
-      await db.rawUpdate(
-        'UPDATE products SET current_stock = ? WHERE id = ?',
-        [10, product2Id], // Less than the 50 we purchased
-      );
+      await setTestStock(product2Id, 10);
 
       // Try to cancel - should fail on product 2
-      expect(
+      await expectLater(
         () => purchaseRepo.cancelPurchase(
             purchaseId: purchaseId, cancelledBy: 'test_user'),
         throwsA(isA<Exception>()),
@@ -272,6 +265,18 @@ void main() {
 
       final stock2Final = await itemsRepo.getProductStock(product2Id);
       expect(stock2Final, equals(10)); // Should still be 10 (what we set it to)
+
+      final purchase =
+          await db.query('purchases', where: 'id = ?', whereArgs: [purchaseId]);
+      expect(purchase.single['status'], 'COMPLETED');
+      final reversals = await db.query('stock_activities',
+          where: 'ref_type = ? AND ref_id = ? AND transaction_type = ?',
+          whereArgs: ['PURCHASE', purchaseId, 'PURCHASE_CANCEL']);
+      expect(reversals, isEmpty);
+      final ledgerReversals = await db.query('supplier_ledger',
+          where: 'ref_type = ? AND ref_id = ?',
+          whereArgs: ['PURCHASE_RETURN', purchaseId]);
+      expect(ledgerReversals, isEmpty);
     });
   });
 

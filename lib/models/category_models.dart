@@ -5,7 +5,12 @@ class Department {
   final bool isActive;
   final bool isVisibleInPOS;
 
-  Department({this.id, required this.nameEn, this.nameUr = '', this.isActive = true, this.isVisibleInPOS = true});
+  Department(
+      {this.id,
+      required this.nameEn,
+      this.nameUr = '',
+      this.isActive = true,
+      this.isVisibleInPOS = true});
 
   Map<String, dynamic> toMap() {
     return {
@@ -36,7 +41,13 @@ class Category {
   final bool isActive;
   final bool isVisibleInPOS;
 
-  Category({this.id, this.departmentId, required this.nameEn, this.nameUr = '', this.isActive = true, this.isVisibleInPOS = true});
+  Category(
+      {this.id,
+      this.departmentId,
+      required this.nameEn,
+      this.nameUr = '',
+      this.isActive = true,
+      this.isVisibleInPOS = true});
 
   Map<String, dynamic> toMap() {
     return {
@@ -69,7 +80,13 @@ class SubCategory {
   final bool isActive;
   final bool isVisibleInPOS;
 
-  SubCategory({this.id, required this.categoryId, required this.nameEn, this.nameUr = '', this.isActive = true, this.isVisibleInPOS = true});
+  SubCategory(
+      {this.id,
+      required this.categoryId,
+      required this.nameEn,
+      this.nameUr = '',
+      this.isActive = true,
+      this.isVisibleInPOS = true});
 
   Map<String, dynamic> toMap() {
     return {

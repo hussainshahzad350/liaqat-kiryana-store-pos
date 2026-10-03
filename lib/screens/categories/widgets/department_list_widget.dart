@@ -30,7 +30,10 @@ class DepartmentListWidget extends StatelessWidget {
 
     final filteredDepts = searchResults == null
         ? departments
-        : departments.where((d) => searchResults!['departments']?.contains(d.id) ?? false).toList();
+        : departments
+            .where(
+                (d) => searchResults!['departments']?.contains(d.id) ?? false)
+            .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -50,7 +53,8 @@ class DepartmentListWidget extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.add_circle_outline, size: AppTokens.iconSizeMedium),
+                icon: const Icon(Icons.add_circle_outline,
+                    size: AppTokens.iconSizeMedium),
                 onPressed: onAdd,
                 tooltip: loc.addDepartment,
                 padding: EdgeInsets.zero,
@@ -68,13 +72,15 @@ class DepartmentListWidget extends StatelessWidget {
 
               return ListTile(
                 selected: isSelected,
-                selectedTileColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
+                selectedTileColor:
+                    colorScheme.primaryContainer.withValues(alpha: 0.4),
                 onTap: () => onSelect(dept),
                 leading: Container(
                   width: 4,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: isSelected ? colorScheme.primary : Colors.transparent,
+                    color:
+                        isSelected ? colorScheme.primary : Colors.transparent,
                     borderRadius: BorderRadius.circular(AppTokens.radius8),
                   ),
                 ),
@@ -82,7 +88,8 @@ class DepartmentListWidget extends StatelessWidget {
                   dept.nameEn,
                   searchQuery,
                   (textTheme.bodyMedium ?? const TextStyle()).copyWith(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                     color: colorScheme.onSurface,
                   ),
                   colorScheme.primaryContainer,
@@ -91,14 +98,15 @@ class DepartmentListWidget extends StatelessWidget {
                   dept.nameUr,
                   searchQuery,
                   (textTheme.bodySmall ?? const TextStyle()).copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontFamily: 'NooriNastaleeq',
-                      height: 1.2,
+                    color: colorScheme.onSurfaceVariant,
+                    fontFamily: 'NooriNastaleeq',
+                    height: 1.2,
                   ),
                   colorScheme.primaryContainer,
                 ),
                 trailing: !dept.isActive
-                    ? Icon(Icons.visibility_off, size: 14, color: colorScheme.outline)
+                    ? Icon(Icons.visibility_off,
+                        size: 14, color: colorScheme.outline)
                     : null,
               );
             },

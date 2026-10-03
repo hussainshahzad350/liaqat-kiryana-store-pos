@@ -63,7 +63,8 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
           padding: const EdgeInsets.all(AppTokens.cardPadding),
           child: TextField(
             focusNode: _focusNode,
-            onChanged: (val) => context.read<CustomerController>().onSearchChanged(val),
+            onChanged: (val) =>
+                context.read<CustomerController>().onSearchChanged(val),
             style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
             decoration: InputDecoration(
               hintText: loc.searchPlaceholder,
@@ -71,7 +72,8 @@ class _CustomerSearchBarState extends State<CustomerSearchBar> {
               filled: true,
               fillColor: colorScheme.surfaceContainerHighest,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
+                borderRadius:
+                    BorderRadius.circular(AppTokens.buttonBorderRadius),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: AppTokens.spacingStandard,

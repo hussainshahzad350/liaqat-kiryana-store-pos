@@ -31,8 +31,7 @@ class _CancelSaleDialogState extends State<CancelSaleDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(AppTokens.dialogBorderRadius)),
+          borderRadius: BorderRadius.circular(AppTokens.dialogBorderRadius)),
       child: Container(
         constraints: RTLHelper.getDialogConstraints(
           context: context,
@@ -40,7 +39,7 @@ class _CancelSaleDialogState extends State<CancelSaleDialog> {
         ),
         padding: EdgeInsets.symmetric(
           horizontal: AppTokens.dialogPadding,
-          vertical: RTLHelper.isRTL(context) 
+          vertical: RTLHelper.isRTL(context)
               ? AppTokens.dialogPadding + 12
               : AppTokens.dialogPadding,
         ),

@@ -93,7 +93,8 @@ class Purchase {
     this.items = const [], // <- default empty list
   });
 
-  factory Purchase.fromMap(Map<String, dynamic> map, {List<PurchaseItem>? items}) {
+  factory Purchase.fromMap(Map<String, dynamic> map,
+      {List<PurchaseItem>? items}) {
     return Purchase(
       id: map['id'] as int?,
       supplierId: map['supplier_id'] as int,

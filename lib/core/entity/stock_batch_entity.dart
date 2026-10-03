@@ -25,6 +25,7 @@ class StockBatchEntity {
     required this.receivedDate,
   });
 
-  bool get isExpired => expiryDate != null && DateTime.now().isAfter(expiryDate!);
+  bool get isExpired =>
+      expiryDate != null && DateTime.now().isAfter(expiryDate!);
   bool get isActive => remainingQuantity > 0;
 }

@@ -3,7 +3,7 @@ import '../../../models/unit_model.dart';
 
 abstract class UnitsState extends Equatable {
   const UnitsState();
-  
+
   @override
   List<Object?> get props => [];
 }
@@ -28,7 +28,8 @@ class UnitsLoaded extends UnitsState {
   bool hasBaseUnit(int categoryId) => baseUnitByCategory[categoryId] != null;
 
   @override
-  List<Object?> get props => [units, categories, unitsByCategory, baseUnitByCategory];
+  List<Object?> get props =>
+      [units, categories, unitsByCategory, baseUnitByCategory];
 }
 
 class UnitsError extends UnitsState {

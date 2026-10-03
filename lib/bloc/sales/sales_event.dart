@@ -45,7 +45,8 @@ class CartItemUpdated extends SalesEvent {
   final int index;
   final double quantity;
   final Money price;
-  const CartItemUpdated({required this.index, required this.quantity, required this.price});
+  const CartItemUpdated(
+      {required this.index, required this.quantity, required this.price});
   @override
   List<Object?> get props => [index, quantity, price];
 }
@@ -87,13 +88,13 @@ class InvoiceCancelled extends SalesEvent {
   final int invoiceId;
   final String reason;
   final String performedBy;
-  
+
   const InvoiceCancelled({
-    required this.invoiceId, 
+    required this.invoiceId,
     required this.reason,
     this.performedBy = 'Cashier',
   });
-  
+
   @override
   List<Object?> get props => [invoiceId, reason, performedBy];
 }

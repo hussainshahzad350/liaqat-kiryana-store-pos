@@ -12,7 +12,7 @@ import 'package:liaqat_store/core/routes/app_routes.dart';
 import 'package:liaqat_store/l10n/app_localizations.dart';
 import 'package:liaqat_store/screens/product/product_screen.dart';
 import 'package:liaqat_store/widgets/app_shell.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import '../support/test_database.dart';
 
 Widget _buildLocalizedApp(Widget child) {
   return MaterialApp(
@@ -29,17 +29,7 @@ Widget _buildLocalizedApp(Widget child) {
 }
 
 void main() {
-  late DatabaseFactory previousDatabaseFactory;
-
-  setUpAll(() {
-    sqfliteFfiInit();
-    previousDatabaseFactory = databaseFactory;
-    databaseFactory = databaseFactoryFfi;
-  });
-
-  tearDownAll(() {
-    databaseFactory = previousDatabaseFactory;
-  });
+  useTestDatabase();
 
   group('Product screen tab routing', () {
     void setDesktopSize(WidgetTester tester) {

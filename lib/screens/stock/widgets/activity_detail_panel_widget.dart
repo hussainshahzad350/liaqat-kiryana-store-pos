@@ -94,17 +94,18 @@ class _ActivityDetailPanelWidgetState extends State<ActivityDetailPanelWidget> {
             children: [
               _buildDetailRow(context, loc.date,
                   DateFormat('yyyy-MM-dd').format(widget.activity.timestamp)),
-              _buildDetailRow(context, 
-                  loc.time, DateFormat('hh:mm a').format(widget.activity.timestamp)),
+              _buildDetailRow(context, loc.time,
+                  DateFormat('hh:mm a').format(widget.activity.timestamp)),
               _buildDetailRow(context, loc.customer, widget.activity.user),
               const Divider(),
-              _buildDetailRow(context, loc.description, widget.activity.description),
+              _buildDetailRow(
+                  context, loc.description, widget.activity.description),
               if (widget.activity.quantityChange != 0)
                 _buildDetailRow(context, loc.quantity,
                     '${widget.activity.quantityChange > 0 ? '+' : ''}${widget.activity.quantityChange}'),
               if (widget.activity.financialImpact != null)
-                _buildDetailRow(context, 
-                    loc.amount, widget.activity.financialImpact!.toString()),
+                _buildDetailRow(context, loc.amount,
+                    widget.activity.financialImpact!.toString()),
             ],
           ),
         ),
@@ -134,7 +135,8 @@ class _ActivityDetailPanelWidgetState extends State<ActivityDetailPanelWidget> {
                 onPressed: () async {
                   final locale = Localizations.localeOf(context);
                   try {
-                    await widget.pdfExportService.exportActivityPdf(widget.activity,
+                    await widget.pdfExportService.exportActivityPdf(
+                        widget.activity,
                         languageCode: locale.languageCode);
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(

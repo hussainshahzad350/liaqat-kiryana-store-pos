@@ -68,12 +68,26 @@ void main() {
       expect(find.text('Settings'), findsWidgets);
     });
 
-    testWidgets('shows all 4 category tiles in dashboard', (tester) async {
+    testWidgets('shows all 5 category tiles in dashboard', (tester) async {
       setDesktopSize(tester);
       await tester.pumpWidget(buildSettingsApp(cubit: cubit));
       await tester.pumpAndSettle();
 
-      expect(find.byType(SettingsTile), findsNWidgets(4));
+      expect(find.byType(SettingsTile), findsNWidgets(5));
+    });
+
+    testWidgets('security tile opens the security category', (tester) async {
+      setDesktopSize(tester);
+      await tester.pumpWidget(buildSettingsApp(cubit: cubit));
+      await tester.pumpAndSettle();
+
+      final securityTile = find.ancestor(
+        of: find.byIcon(Icons.lock_outlined),
+        matching: find.byType(SettingsTile),
+      );
+      expect(securityTile, findsOneWidget);
+      await tester.tap(securityTile);
+      verify(() => cubit.selectCategory(SettingsCategory.security)).called(1);
     });
 
     testWidgets('does not show back button on dashboard', (tester) async {
@@ -99,7 +113,6 @@ void main() {
 
       expect(find.text('Backup'), findsOneWidget);
     });
-
   });
 
   // ── Non-dashboard views ───────────────────────────────────────────────────

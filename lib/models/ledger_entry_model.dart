@@ -5,7 +5,7 @@ class LedgerEntry {
   final String description;
   final String refType; // INVOICE, RECEIPT, RETURN, ADJUSTMENT
   final int refId;
-  final int debit;  // Increases Balance (Receivable) - Paisas
+  final int debit; // Increases Balance (Receivable) - Paisas
   final int credit; // Decreases Balance (Received) - Paisas
   final int balance; // Running Balance Snapshot - Paisas
 
@@ -19,7 +19,8 @@ class LedgerEntry {
     required this.debit,
     required this.credit,
     required this.balance,
-  }) : assert(debit == 0 || credit == 0, 'Debit and Credit cannot both be non-zero');
+  }) : assert(debit == 0 || credit == 0,
+            'Debit and Credit cannot both be non-zero');
 
   /// Derived Type for Business Logic (SALE, RECEIPT)
   String get type {

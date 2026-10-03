@@ -108,8 +108,7 @@ class _ReceiveSupplierPaymentDialogState
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Make Payment to Supplier",
-                      style: textTheme.titleLarge),
+                  Text("Make Payment to Supplier", style: textTheme.titleLarge),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: _isSaving ? null : () => Navigator.pop(context),

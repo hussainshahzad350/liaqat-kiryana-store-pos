@@ -298,17 +298,41 @@ void main() {
     test('two entries with same id, date, amount are equal', () {
       final date = DateTime(2024, 1, 10);
       final a = CashLedger(
-        id: 1, transactionDate: date, description: 'A', type: 'IN', amount: 500, paymentMode: PaymentMode.cash);
+          id: 1,
+          transactionDate: date,
+          description: 'A',
+          type: 'IN',
+          amount: 500,
+          paymentMode: PaymentMode.cash);
       final b = CashLedger(
-        id: 1, transactionDate: date, description: 'B', type: 'OUT', amount: 500, paymentMode: PaymentMode.bank);
+          id: 1,
+          transactionDate: date,
+          description: 'B',
+          type: 'OUT',
+          amount: 500,
+          paymentMode: PaymentMode.bank);
       // Equality is based on id, transactionDate, and amount only
       expect(a, equals(b));
     });
 
-    test('entries differing in paymentMode but same id/date/amount have same hash', () {
+    test(
+        'entries differing in paymentMode but same id/date/amount have same hash',
+        () {
       final date = DateTime(2024, 1, 10);
-      final a = CashLedger(id: 1, transactionDate: date, description: 'X', type: 'IN', amount: 100, paymentMode: PaymentMode.cash);
-      final b = CashLedger(id: 1, transactionDate: date, description: 'X', type: 'IN', amount: 100, paymentMode: PaymentMode.bank);
+      final a = CashLedger(
+          id: 1,
+          transactionDate: date,
+          description: 'X',
+          type: 'IN',
+          amount: 100,
+          paymentMode: PaymentMode.cash);
+      final b = CashLedger(
+          id: 1,
+          transactionDate: date,
+          description: 'X',
+          type: 'IN',
+          amount: 100,
+          paymentMode: PaymentMode.bank);
       expect(a.hashCode, equals(b.hashCode));
     });
   });

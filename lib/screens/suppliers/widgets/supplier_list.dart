@@ -10,7 +10,7 @@ class SupplierList extends StatelessWidget {
   final Function(dynamic) onDelete;
 
   const SupplierList({
-    super.key, 
+    super.key,
     required this.onEdit,
     required this.onDelete,
   });
@@ -26,7 +26,8 @@ class SupplierList extends StatelessWidget {
         final suppliers = controller.visibleSuppliers;
 
         if (controller.isLoading) {
-          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+          return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (controller.listErrorMessage != null) {
@@ -38,7 +39,8 @@ class SupplierList extends StatelessWidget {
                 const SizedBox(height: AppTokens.spacingMedium),
                 Text(
                   controller.listErrorMessage!,
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+                  style:
+                      textTheme.bodyMedium?.copyWith(color: colorScheme.error),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppTokens.spacingMedium),
@@ -59,7 +61,8 @@ class SupplierList extends StatelessWidget {
           return Center(
             child: Text(
               loc.noSuppliersFound,
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           );
         }
@@ -72,7 +75,9 @@ class SupplierList extends StatelessWidget {
             final isSelected = controller.selectedIndex == i;
 
             return Container(
-              color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.3) : Colors.transparent,
+              color: isSelected
+                  ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                  : Colors.transparent,
               child: MouseRegion(
                 onEnter: (_) => controller.setSelectedIndex(i),
                 child: SupplierListTile(

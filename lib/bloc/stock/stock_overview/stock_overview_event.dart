@@ -14,7 +14,8 @@ class LoadStockOverview extends StockOverviewEvent {
   final int? supplierId;
   final int? categoryId;
 
-  const LoadStockOverview({this.query, this.status, this.supplierId, this.categoryId});
+  const LoadStockOverview(
+      {this.query, this.status, this.supplierId, this.categoryId});
 
   @override
   List<Object?> get props => [query, status, supplierId, categoryId];

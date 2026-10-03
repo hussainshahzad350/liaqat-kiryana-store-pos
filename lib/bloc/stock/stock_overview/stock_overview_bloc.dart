@@ -17,7 +17,11 @@ class StockOverviewBloc extends Bloc<StockOverviewEvent, StockOverviewState> {
     on<LoadStockOverview>(_onLoadStockOverview);
     on<LoadMoreStockOverview>(_onLoadMoreStockOverview);
     on<RefreshStockOverview>((event, emit) {
-      add(LoadStockOverview(query: _currentQuery, status: _currentStatus, supplierId: _currentSupplierId, categoryId: _currentCategoryId));
+      add(LoadStockOverview(
+          query: _currentQuery,
+          status: _currentStatus,
+          supplierId: _currentSupplierId,
+          categoryId: _currentCategoryId));
     });
   }
 

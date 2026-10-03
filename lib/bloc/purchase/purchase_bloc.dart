@@ -70,7 +70,8 @@ class PurchaseBloc extends Bloc<PurchaseEvent, PurchaseState> {
       return;
     }
     if (state.cartItems.isEmpty) {
-      emit(state.copyWith(status: PurchaseStatus.failure, error: 'Cart is empty'));
+      emit(state.copyWith(
+          status: PurchaseStatus.failure, error: 'Cart is empty'));
       emit(state.copyWith(status: PurchaseStatus.ready, clearError: true));
       return;
     }

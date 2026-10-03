@@ -48,12 +48,13 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
     return BlocListener<SalesBloc, SalesState>(
       listener: (context, state) {
         if (state.creditLimitUpdateCustomerId == widget.customerId) {
-          if (state.creditLimitUpdateStatus == CreditLimitUpdateStatus.success) {
-             // Close dialog first
+          if (state.creditLimitUpdateStatus ==
+              CreditLimitUpdateStatus.success) {
+            // Close dialog first
             if (Navigator.of(context).canPop()) {
               Navigator.pop(context);
             }
-            
+
             // Show success snackbar
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -64,7 +65,8 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
 
             // Trigger callback
             widget.onLimitUpdated();
-          } else if (state.creditLimitUpdateStatus == CreditLimitUpdateStatus.error) {
+          } else if (state.creditLimitUpdateStatus ==
+              CreditLimitUpdateStatus.error) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.creditLimitUpdateError ?? loc.error),
@@ -76,8 +78,7 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
       },
       child: Dialog(
         shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(AppTokens.dialogBorderRadius)),
+            borderRadius: BorderRadius.circular(AppTokens.dialogBorderRadius)),
         child: Container(
           constraints: RTLHelper.getDialogConstraints(
             context: context,
@@ -85,7 +86,7 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
           ),
           padding: EdgeInsets.symmetric(
             horizontal: AppTokens.dialogPadding,
-            vertical: RTLHelper.isRTL(context) 
+            vertical: RTLHelper.isRTL(context)
                 ? AppTokens.dialogPadding + 12
                 : AppTokens.dialogPadding,
           ),
@@ -122,8 +123,8 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
                       TextField(
                         controller: limitCtrl,
                         textAlign: TextAlign.center,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         decoration: InputDecoration(
                           labelText: loc.newCreditLimit,
                           border: const OutlineInputBorder(),
@@ -152,7 +153,8 @@ class _IncreaseLimitDialogState extends State<IncreaseLimitDialog> {
                       ),
                       onPressed: () {
                         try {
-                          final newLimit = Money.fromRupeesString(limitCtrl.text);
+                          final newLimit =
+                              Money.fromRupeesString(limitCtrl.text);
                           salesBloc.add(
                             CustomerCreditLimitUpdateRequested(
                               customerId: widget.customerId,

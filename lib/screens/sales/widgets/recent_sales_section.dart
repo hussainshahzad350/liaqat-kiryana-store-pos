@@ -28,14 +28,12 @@ class RecentSalesSection extends StatelessWidget {
       elevation: AppTokens.cardElevation,
       margin: const EdgeInsets.only(top: AppTokens.spacingMedium),
       shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(AppTokens.cardBorderRadius)),
+          borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
       child: Container(
         height: 200,
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius:
-              BorderRadius.circular(AppTokens.cardBorderRadius),
+          borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
         ),
         child: Column(
           children: [
@@ -44,7 +42,8 @@ class RecentSalesSection extends StatelessWidget {
                   horizontal: AppTokens.spacingStandard,
                   vertical: AppTokens.spacingSmall),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                color:
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(AppTokens.cardBorderRadius),
                   topRight: Radius.circular(AppTokens.cardBorderRadius),
@@ -120,7 +119,8 @@ class RecentSalesSection extends StatelessWidget {
                                         size: AppTokens.iconSizeSmall),
                                     const SizedBox(
                                         width: AppTokens.spacingSmall),
-                                    Text(loc.printReceipt, style: textTheme.bodyMedium)
+                                    Text(loc.printReceipt,
+                                        style: textTheme.bodyMedium)
                                   ])),
                               PopupMenuItem(
                                   value: 'cancel',

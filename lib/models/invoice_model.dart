@@ -100,9 +100,8 @@ class Invoice {
 
   factory Invoice.fromMap(Map<String, dynamic> map) {
     final invoiceDateRaw = map['invoice_date']?.toString();
-    final parsedDate = invoiceDateRaw != null
-        ? DateTime.tryParse(invoiceDateRaw)
-        : null;
+    final parsedDate =
+        invoiceDateRaw != null ? DateTime.tryParse(invoiceDateRaw) : null;
 
     return Invoice(
       id: map['id'] as int?,

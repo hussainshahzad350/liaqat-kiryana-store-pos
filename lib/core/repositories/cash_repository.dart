@@ -70,7 +70,8 @@ class CashRepository {
       }
       return Money.zero;
     } catch (e) {
-      AppLogger.error('Error getting physical cash balance: $e', tag: 'CashRepo');
+      AppLogger.error('Error getting physical cash balance: $e',
+          tag: 'CashRepo');
       return Money.zero;
     }
   }

@@ -14,23 +14,33 @@ class SkeletonLoader extends StatefulWidget {
 
   /// Single line of text
   const SkeletonLoader.text({super.key})
-      : width = double.infinity, height = 14, borderRadius = 4;
+      : width = double.infinity,
+        height = 14,
+        borderRadius = 4;
 
   /// Title / heading bar
   const SkeletonLoader.title({super.key})
-      : width = 200, height = 20, borderRadius = 4;
+      : width = 200,
+        height = 20,
+        borderRadius = 4;
 
   /// Circular avatar
   const SkeletonLoader.avatar({super.key})
-      : width = 40, height = 40, borderRadius = 20;
+      : width = 40,
+        height = 40,
+        borderRadius = 20;
 
   /// Full card placeholder
   const SkeletonLoader.card({super.key})
-      : width = double.infinity, height = 80, borderRadius = 10;
+      : width = double.infinity,
+        height = 80,
+        borderRadius = 10;
 
   /// Button placeholder
   const SkeletonLoader.button({super.key})
-      : width = 120, height = 36, borderRadius = 8;
+      : width = 120,
+        height = 36,
+        borderRadius = 8;
 
   @override
   State<SkeletonLoader> createState() => _SkeletonLoaderState();

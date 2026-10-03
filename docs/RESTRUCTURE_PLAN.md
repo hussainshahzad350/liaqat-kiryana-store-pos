@@ -72,13 +72,47 @@ Tasks:
 - [x] Record the restructuring strategy and protected boundaries.
 - [x] Record the initial repository inventory and known verification gap.
 - [x] Mark historical audit documents as snapshots rather than current truth.
-- [ ] Install/use a Flutter SDK compatible with the lockfile.
-- [ ] Run dependency resolution, localization generation, analysis, and all
-      tests from a clean checkout.
+- [x] Locate and use the installed Flutter SDK (3.44.4 / Dart 3.12.2).
+- [x] Run dependency resolution, localization generation, analysis, and all
+      tests in a fresh checkout with the candidate changes applied.
 - [ ] Launch a fresh desktop database and exercise the smoke-test checklist.
 - [ ] Test an upgrade using a copy of an existing store database.
 - [ ] Record failures without mixing fixes into the baseline commit.
 - [ ] Add CI for formatting, analysis, and tests after the baseline is green.
+
+Current evidence: see the **2026-10-03 Urdu completion and formatting cleanup** in
+`BASELINE.md`. Analysis is green and all 433 tests pass in the working tree.
+The preceding 425-test candidate also passed in a fresh checkout with its
+candidate changes applied.
+Dependency resolution with the existing lockfile and localization generation
+also pass, and the Windows debug build succeeds. Manual desktop and existing-
+database smoke-test gates remain open.
+
+Next bounded work items, in order:
+
+1. [x] Capture all eight failures and finish SDK, formatting, dependency, and
+   localization checks. The initial 99-file formatting drift and 14 missing Urdu
+   messages are resolved in item 8 below.
+2. [x] Repair test infrastructure: nullable factory restoration, temporary
+   databases, safe setup/teardown, and explicit consistent ledger fixtures.
+3. [x] Align settings tests with the Security category and verify its navigation.
+4. [x] Repair unit normalization SQL quoting, with a regression test covering
+   category names, stable unit IDs, repeated execution, and unchanged schema.
+5. [x] Give fresh sample stock and customer balances matching opening events;
+   verify sale/cancellation, purchase/cancellation, and payment on unmodified
+   fresh databases. Existing stores are not rewritten.
+6. [x] Repair nonzero opening balances in `CustomersRepository.addCustomer`:
+   atomic creation, signed opening entries, duplicate protection, and rollback
+   coverage. No existing customer data is rewritten.
+7. [ ] Diagnose pre-existing store inconsistencies on a backup copy.
+8. [x] Complete all 14 missing Urdu entries, regenerate localization, and apply
+   a separately recorded formatting pass. All 228 Dart files pass formatting.
+9. [x] Re-run dependency resolution, localization generation, analysis, and the
+   full suite in a fresh checkout with the candidate changes and the same SDK.
+10. [ ] Complete fresh-desktop and copied-database smoke checks, then add CI.
+
+Do not begin sales presentation restructuring until these baseline gates have
+recorded outcomes. Test repairs must retain existing financial expectations.
 
 Exit criteria:
 

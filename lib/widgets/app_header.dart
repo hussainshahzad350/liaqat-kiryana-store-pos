@@ -61,9 +61,9 @@ class AppHeader extends StatelessWidget {
               child: Text(
                 screenTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -121,8 +121,8 @@ class _LiveClockState extends State<LiveClock> {
       decoration: BoxDecoration(
         color: colorScheme.onPrimary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
-        border:
-            Border.all(color: colorScheme.onPrimary.withValues(alpha: 0.3), width: 1),
+        border: Border.all(
+            color: colorScheme.onPrimary.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -132,7 +132,8 @@ class _LiveClockState extends State<LiveClock> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.access_time,
-                  size: 12, color: colorScheme.onPrimary.withValues(alpha: 0.9)),
+                  size: 12,
+                  color: colorScheme.onPrimary.withValues(alpha: 0.9)),
               const SizedBox(width: 4),
               Text(
                 _currentTime,

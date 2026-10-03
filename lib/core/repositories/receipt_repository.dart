@@ -66,12 +66,13 @@ class ReceiptRepository {
     final pdf = pw.Document();
 
     // Use default shop info if not provided
-    final data = shopData ?? {
-      'name_en': 'Liaqat Kiryana Store',
-      'name_ur': 'لیاقت کریانہ اسٹور',
-      'address': '',
-      'contact': '',
-    };
+    final data = shopData ??
+        {
+          'name_en': 'Liaqat Kiryana Store',
+          'name_ur': 'لیاقت کریانہ اسٹور',
+          'address': '',
+          'contact': '',
+        };
 
     // Load font for Urdu support
     final fontData = await rootBundle.load('assets/fonts/NooriNastaleeq.ttf');
@@ -161,8 +162,12 @@ class ReceiptRepository {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
-        pw.Text(label, style: isBold ? pw.TextStyle(fontWeight: pw.FontWeight.bold) : null),
-        pw.Text(text, style: isBold ? pw.TextStyle(fontWeight: pw.FontWeight.bold) : null),
+        pw.Text(label,
+            style:
+                isBold ? pw.TextStyle(fontWeight: pw.FontWeight.bold) : null),
+        pw.Text(text,
+            style:
+                isBold ? pw.TextStyle(fontWeight: pw.FontWeight.bold) : null),
       ],
     );
   }
@@ -172,11 +177,12 @@ class ReceiptRepository {
   // ========================================
 
   /// Generate PDF data for an Invoice
-  Future<Uint8List> generateReceiptData(Invoice invoice, {Map<String, dynamic>? shopData}) async {
+  Future<Uint8List> generateReceiptData(Invoice invoice,
+      {Map<String, dynamic>? shopData}) async {
     // For now, reuse the PDF generation logic but for an Invoice
     // In a real app, this would have its own template
     final pdf = pw.Document();
-    
+
     // Load font for Urdu support
     final fontData = await rootBundle.load('assets/fonts/NooriNastaleeq.ttf');
     final font = pw.Font.ttf(fontData);
@@ -190,22 +196,28 @@ class ReceiptRepository {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             children: [
-              pw.Text(shopData?['name_en'] ?? 'Liaqat Kiryana Store', textAlign: pw.TextAlign.center, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-              pw.Text(shopData?['address'] ?? '', textAlign: pw.TextAlign.center, style: const pw.TextStyle(fontSize: 10)),
+              pw.Text(shopData?['name_en'] ?? 'Liaqat Kiryana Store',
+                  textAlign: pw.TextAlign.center,
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.Text(shopData?['address'] ?? '',
+                  textAlign: pw.TextAlign.center,
+                  style: const pw.TextStyle(fontSize: 10)),
               pw.Divider(),
               pw.Text('Invoice: ${invoice.invoiceNumber}'),
-              pw.Text('Date: ${DateFormat('dd/MM/yyyy HH:mm').format(invoice.date)}'),
+              pw.Text(
+                  'Date: ${DateFormat('dd/MM/yyyy HH:mm').format(invoice.date)}'),
               pw.Divider(),
               ...invoice.items.map((item) => pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Expanded(child: pw.Text(item.itemName)),
-                  pw.Text('${item.quantity} x ${Money(item.unitPrice)}'),
-                  pw.Text(Money(item.totalPrice).toString()),
-                ],
-              )),
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Expanded(child: pw.Text(item.itemName)),
+                      pw.Text('${item.quantity} x ${Money(item.unitPrice)}'),
+                      pw.Text(Money(item.totalPrice).toString()),
+                    ],
+                  )),
               pw.Divider(),
-              _buildRow('Total:', Money(invoice.totalAmount).toString(), isBold: true),
+              _buildRow('Total:', Money(invoice.totalAmount).toString(),
+                  isBold: true),
             ],
           );
         },
@@ -221,7 +233,8 @@ class ReceiptRepository {
 
   /// Print the receipt using the system print dialog
   Future<void> printReceipt(Uint8List receiptData) async {
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => receiptData);
+    await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => receiptData);
   }
 
   /// Save the invoice as a PDF file and return the path

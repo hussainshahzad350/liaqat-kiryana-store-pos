@@ -76,7 +76,8 @@ class InvoiceItemRepository {
     }
 
     await batch.commit(noResult: true);
-    AppLogger.info('Inserted ${items.length} invoice items', tag: 'InvoiceItemRepo');
+    AppLogger.info('Inserted ${items.length} invoice items',
+        tag: 'InvoiceItemRepo');
   }
 
   /// Delete all items for an invoice

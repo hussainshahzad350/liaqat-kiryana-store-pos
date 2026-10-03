@@ -40,7 +40,8 @@ class Receipt {
       id: map['id'] as int?,
       receiptNumber: map['receipt_number'] as String? ?? '',
       customerId: map['customer_id'] as int,
-      receiptDate: DateTime.tryParse(map['receipt_date'] as String? ?? '') ?? DateTime.now(),
+      receiptDate: DateTime.tryParse(map['receipt_date'] as String? ?? '') ??
+          DateTime.now(),
       amount: (map['amount'] as num).toInt(),
       paymentMode: map['payment_mode'] as String? ?? 'CASH',
       notes: map['notes'] as String?,
@@ -51,5 +52,6 @@ class Receipt {
   bool get isValid => amount > 0;
 
   @override
-  String toString() => 'Receipt($receiptNumber, Amt: $amount, Mode: $paymentMode)';
+  String toString() =>
+      'Receipt($receiptNumber, Amt: $amount, Mode: $paymentMode)';
 }

@@ -53,12 +53,13 @@ void main() {
     mockRepo = MockCustomersRepository();
 
     // Default stubs
-    when(() => mockRepo.getCustomerStats()).thenAnswer((_) async => _defaultStats());
+    when(() => mockRepo.getCustomerStats())
+        .thenAnswer((_) async => _defaultStats());
     when(() => mockRepo.getActiveCustomers())
         .thenAnswer((_) async => [_makeCustomer(id: 1), _makeCustomer(id: 2)]);
     when(() => mockRepo.getArchivedCustomers()).thenAnswer((_) async => []);
-    when(() => mockRepo.searchCustomers(any(), activeOnly: any(named: 'activeOnly')))
-        .thenAnswer((_) async => []);
+    when(() => mockRepo.searchCustomers(any(),
+        activeOnly: any(named: 'activeOnly'))).thenAnswer((_) async => []);
 
     controller = CustomerController(mockRepo);
   });
@@ -117,12 +118,14 @@ void main() {
       expect(controller.activeCustomers.first.nameEnglish, 'Alice');
     });
 
-    test('does not load archived customers when showArchive is false', () async {
+    test('does not load archived customers when showArchive is false',
+        () async {
       await controller.init();
       verifyNever(() => mockRepo.getArchivedCustomers());
     });
 
-    test('loads archived customers when showArchive is true before init', () async {
+    test('loads archived customers when showArchive is true before init',
+        () async {
       controller.showArchive = true;
       when(() => mockRepo.getArchivedCustomers())
           .thenAnswer((_) async => [_makeCustomer(id: 10, isActive: false)]);
@@ -139,14 +142,15 @@ void main() {
   // ---------------------------------------------------------------------------
   group('loadStats()', () {
     test('populates all stat fields from repository', () async {
-      when(() => mockRepo.getCustomerStats()).thenAnswer((_) async => _defaultStats(
-            countTotal: 10,
-            balTotal: 50000,
-            countActive: 7,
-            balActive: 30000,
-            countArchived: 3,
-            balArchived: 20000,
-          ));
+      when(() => mockRepo.getCustomerStats())
+          .thenAnswer((_) async => _defaultStats(
+                countTotal: 10,
+                balTotal: 50000,
+                countActive: 7,
+                balActive: 30000,
+                countArchived: 3,
+                balArchived: 20000,
+              ));
 
       await controller.loadStats();
 
@@ -177,7 +181,8 @@ void main() {
     });
 
     test('sets errorMessage on exception', () async {
-      when(() => mockRepo.getCustomerStats()).thenThrow(Exception('Stats DB error'));
+      when(() => mockRepo.getCustomerStats())
+          .thenThrow(Exception('Stats DB error'));
 
       await controller.loadStats();
 
@@ -192,10 +197,12 @@ void main() {
     test('with empty query calls getActiveCustomers', () async {
       await controller.loadActiveCustomers(query: '');
       verify(() => mockRepo.getActiveCustomers()).called(1);
-      verifyNever(() => mockRepo.searchCustomers(any(), activeOnly: any(named: 'activeOnly')));
+      verifyNever(() => mockRepo.searchCustomers(any(),
+          activeOnly: any(named: 'activeOnly')));
     });
 
-    test('with non-empty query calls searchCustomers with activeOnly=true', () async {
+    test('with non-empty query calls searchCustomers with activeOnly=true',
+        () async {
       await controller.loadActiveCustomers(query: 'Ali');
       verify(() => mockRepo.searchCustomers('Ali', activeOnly: true)).called(1);
       verifyNever(() => mockRepo.getActiveCustomers());
@@ -219,7 +226,8 @@ void main() {
     });
 
     test('on error: sets isLoading=false and stores errorMessage', () async {
-      when(() => mockRepo.getActiveCustomers()).thenThrow(Exception('Network error'));
+      when(() => mockRepo.getActiveCustomers())
+          .thenThrow(Exception('Network error'));
 
       await controller.loadActiveCustomers();
 
@@ -227,7 +235,9 @@ void main() {
       expect(controller.errorMessage, contains('Network error'));
     });
 
-    test('stale search token prevents stale result from overwriting fresh result', () async {
+    test(
+        'stale search token prevents stale result from overwriting fresh result',
+        () async {
       // This tests the race condition guard: if _searchToken increments between
       // an async call and its completion, the stale result is discarded.
       // We verify that a concurrent call does not corrupt state.
@@ -269,7 +279,8 @@ void main() {
     });
 
     test('on error: sets isArchivedLoading=false and errorMessage', () async {
-      when(() => mockRepo.getArchivedCustomers()).thenThrow(Exception('Archive error'));
+      when(() => mockRepo.getArchivedCustomers())
+          .thenThrow(Exception('Archive error'));
 
       await controller.loadArchivedCustomers();
 
@@ -324,7 +335,8 @@ void main() {
   // ---------------------------------------------------------------------------
   group('toggleArchiveStatus()', () {
     setUp(() {
-      when(() => mockRepo.updateCustomer(any(), any())).thenAnswer((_) async => 1);
+      when(() => mockRepo.updateCustomer(any(), any()))
+          .thenAnswer((_) async => 1);
     });
 
     test('calls updateCustomer with inverted isActive', () async {
@@ -348,7 +360,8 @@ void main() {
     });
 
     test('on error: sets errorMessage', () async {
-      when(() => mockRepo.updateCustomer(any(), any())).thenThrow(Exception('Update failed'));
+      when(() => mockRepo.updateCustomer(any(), any()))
+          .thenThrow(Exception('Update failed'));
       final customer = _makeCustomer(id: 5);
 
       await controller.toggleArchiveStatus(customer);
@@ -378,7 +391,8 @@ void main() {
     });
 
     test('returns false on error', () async {
-      when(() => mockRepo.deleteCustomer(any())).thenThrow(Exception('Delete failed'));
+      when(() => mockRepo.deleteCustomer(any()))
+          .thenThrow(Exception('Delete failed'));
       final customer = _makeCustomer(id: 8);
 
       final result = await controller.deleteCustomer(customer);
@@ -458,7 +472,8 @@ void main() {
 
     test('silently ignores error during background refresh', () async {
       controller.ledgerCustomer = _makeCustomer(id: 12);
-      when(() => mockRepo.getCustomerById(any())).thenThrow(Exception('Network error'));
+      when(() => mockRepo.getCustomerById(any()))
+          .thenThrow(Exception('Network error'));
 
       // Should not throw
       await controller.refreshLedgerCustomer();
@@ -480,8 +495,9 @@ void main() {
   // ---------------------------------------------------------------------------
   group('setSelectedIndex()', () {
     setUp(() async {
-      when(() => mockRepo.getActiveCustomers()).thenAnswer((_) async => List.generate(
-            5, (i) => _makeCustomer(id: i + 1, name: 'Customer ${i + 1}')));
+      when(() => mockRepo.getActiveCustomers()).thenAnswer((_) async =>
+          List.generate(
+              5, (i) => _makeCustomer(id: i + 1, name: 'Customer ${i + 1}')));
       await controller.loadActiveCustomers();
     });
 
@@ -513,8 +529,9 @@ void main() {
   // ---------------------------------------------------------------------------
   group('handleKeyboardNavigation()', () {
     setUp(() async {
-      when(() => mockRepo.getActiveCustomers()).thenAnswer((_) async => List.generate(
-            3, (i) => _makeCustomer(id: i + 1, name: 'Customer ${i + 1}')));
+      when(() => mockRepo.getActiveCustomers()).thenAnswer((_) async =>
+          List.generate(
+              3, (i) => _makeCustomer(id: i + 1, name: 'Customer ${i + 1}')));
       await controller.loadActiveCustomers();
     });
 
@@ -627,8 +644,8 @@ void main() {
   // ---------------------------------------------------------------------------
   group('onSearchChanged()', () {
     test('debounces: only one search triggered after rapid changes', () async {
-      when(() => mockRepo.searchCustomers(any(), activeOnly: any(named: 'activeOnly')))
-          .thenAnswer((_) async => []);
+      when(() => mockRepo.searchCustomers(any(),
+          activeOnly: any(named: 'activeOnly'))).thenAnswer((_) async => []);
       await controller.loadActiveCustomers(); // prime the active list
 
       controller.onSearchChanged('A');

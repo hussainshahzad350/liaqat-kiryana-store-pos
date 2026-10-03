@@ -17,7 +17,7 @@ void main() {
 
       final money3 = Money.fromRupeesString('0.05');
       expect(money3.paisas, 5);
-      
+
       final moneyEmpty = Money.fromRupeesString('');
       expect(moneyEmpty.paisas, 0);
     });
@@ -39,7 +39,7 @@ void main() {
     test('should support comparisons', () {
       const m1 = Money(100);
       const m2 = Money(200);
-      
+
       expect(m1 < m2, true);
       expect(m2 > m1, true);
       expect(m1 <= m1, true);
@@ -49,7 +49,7 @@ void main() {
 
     test('toString should format as currency', () {
       const money = Money(123450); // 1234.50
-      // Note: The actual formatting depends on locale, which might be tricky in unit tests 
+      // Note: The actual formatting depends on locale, which might be tricky in unit tests
       // without setting up locale. However, Money uses 'en_US' explicitly.
       // 1,234.50
       expect(money.toString(), 'Rs 1,234.50');
@@ -58,7 +58,7 @@ void main() {
     test('toRupeesString should return decimal string', () {
       const money = Money(1050);
       expect(money.toRupeesString(), '10.50');
-      
+
       const money2 = Money(5);
       expect(money2.toRupeesString(), '0.05');
     });

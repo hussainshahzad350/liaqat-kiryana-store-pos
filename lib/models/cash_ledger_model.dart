@@ -77,7 +77,8 @@ class CashLedger {
     return CashLedger(
       id: map['id'] as int?,
       transactionDate: map['transaction_date'] != null
-          ? DateTime.tryParse(map['transaction_date'] as String) ?? DateTime.now()
+          ? DateTime.tryParse(map['transaction_date'] as String) ??
+              DateTime.now()
           : DateTime.now(),
       transactionTime: map['transaction_time'] as String?,
       description: map['description'] as String? ?? '',
@@ -93,7 +94,8 @@ class CashLedger {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'transaction_date': transactionDate.toString().split(' ')[0], // YYYY-MM-DD format
+      'transaction_date':
+          transactionDate.toString().split(' ')[0], // YYYY-MM-DD format
       'transaction_time': transactionTime,
       'description': description,
       'type': type,
@@ -151,6 +153,5 @@ class CashLedger {
           amount == other.amount;
 
   @override
-  int get hashCode =>
-      id.hashCode ^ transactionDate.hashCode ^ amount.hashCode;
+  int get hashCode => id.hashCode ^ transactionDate.hashCode ^ amount.hashCode;
 }

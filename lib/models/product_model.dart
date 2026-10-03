@@ -18,6 +18,7 @@ class Product {
   final Money salePrice;
   final DateTime? expiryDate;
   final DateTime createdAt;
+
   /// Whether this product is active (not soft-deleted). Defaults to true.
   final bool isActive;
 
@@ -60,7 +61,9 @@ class Product {
       currentStock: (map['current_stock'] as num? ?? 0.0).toDouble(),
       avgCostPrice: Money((map['avg_cost_price'] as num?)?.toInt() ?? 0),
       salePrice: Money((map['sale_price'] as num?)?.toInt() ?? 0),
-      expiryDate: map['expiry_date'] != null ? DateTime.tryParse(map['expiry_date'] as String) : null,
+      expiryDate: map['expiry_date'] != null
+          ? DateTime.tryParse(map['expiry_date'] as String)
+          : null,
       createdAt: map['created_at'] != null
           ? DateTime.tryParse(map['created_at'] as String) ?? DateTime.now()
           : DateTime.now(),

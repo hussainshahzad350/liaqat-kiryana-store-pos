@@ -61,7 +61,8 @@ class _SupplierSearchBarState extends State<SupplierSearchBar> {
           padding: const EdgeInsets.all(AppTokens.cardPadding),
           child: TextField(
             focusNode: _focusNode,
-            onChanged: (val) => context.read<SupplierController>().onSearchChanged(val),
+            onChanged: (val) =>
+                context.read<SupplierController>().onSearchChanged(val),
             style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
             decoration: InputDecoration(
               hintText: loc.search,
@@ -69,7 +70,8 @@ class _SupplierSearchBarState extends State<SupplierSearchBar> {
               filled: true,
               fillColor: colorScheme.surfaceContainerHighest,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
+                borderRadius:
+                    BorderRadius.circular(AppTokens.buttonBorderRadius),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: AppTokens.spacingStandard,

@@ -351,7 +351,6 @@ class _SalesScreenState extends State<SalesScreen> {
     final loc = AppLocalizations.of(context)!;
     final bool isRTL = Directionality.of(context) == TextDirection.rtl;
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Shortcuts(
       shortcuts: SalesShortcuts.getShortcuts(),
@@ -412,8 +411,8 @@ class _SalesScreenState extends State<SalesScreen> {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                            "${loc.customerAdded}: '$quickLocalizedName'"),
+                        content:
+                            Text("${loc.customerAdded}: '$quickLocalizedName'"),
                         backgroundColor: colorScheme.primary,
                       ),
                     );
@@ -485,7 +484,8 @@ class _SalesScreenState extends State<SalesScreen> {
                                 }
 
                                 return Row(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     Expanded(
                                       child: SalesProductPanel(

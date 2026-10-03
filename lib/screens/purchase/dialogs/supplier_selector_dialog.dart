@@ -41,7 +41,8 @@ class _SupplierSelectorDialogState extends State<SupplierSelectorDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
-        constraints: const BoxConstraints(minWidth: 400, maxWidth: 500, maxHeight: 600),
+        constraints:
+            const BoxConstraints(minWidth: 400, maxWidth: 500, maxHeight: 600),
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -68,7 +69,7 @@ class _SupplierSelectorDialogState extends State<SupplierSelectorDialog> {
             const SizedBox(height: 8.0),
             const Divider(),
             const SizedBox(height: 16.0),
-            
+
             // Search TextField
             TextField(
               controller: _searchCtrl,
@@ -85,7 +86,7 @@ class _SupplierSelectorDialogState extends State<SupplierSelectorDialog> {
               },
             ),
             const SizedBox(height: 16.0),
-            
+
             // Scrollable Content
             Flexible(
               child: filtered.isEmpty
@@ -101,7 +102,8 @@ class _SupplierSelectorDialogState extends State<SupplierSelectorDialog> {
                       itemBuilder: (context, index) {
                         final supplier = filtered[index];
                         final name = supplier['name_english'] as String? ?? '';
-                        final contact = supplier['contact_primary'] as String? ?? '';
+                        final contact =
+                            supplier['contact_primary'] as String? ?? '';
                         return ListTile(
                           title: Text(name),
                           subtitle: contact.isNotEmpty ? Text(contact) : null,
@@ -114,11 +116,11 @@ class _SupplierSelectorDialogState extends State<SupplierSelectorDialog> {
                       },
                     ),
             ),
-            
+
             const SizedBox(height: 16.0),
             const Divider(),
             const SizedBox(height: 8.0),
-            
+
             // Actions
             Row(
               mainAxisAlignment: MainAxisAlignment.end,

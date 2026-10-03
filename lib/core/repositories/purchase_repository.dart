@@ -35,7 +35,8 @@ class PurchaseRepository {
     if (productRows.isEmpty) {
       throw Exception('PRODUCT_NOT_FOUND');
     }
-    final cachedStock = (productRows.first['current_stock'] as num?)?.toDouble() ?? 0.0;
+    final cachedStock =
+        (productRows.first['current_stock'] as num?)?.toDouble() ?? 0.0;
     final eventStock = await _getEventStock(txn, productId);
     if ((cachedStock - eventStock).abs() > 0.000001) {
       AppLogger.error(
@@ -251,7 +252,13 @@ class PurchaseRepository {
       // 3. Revert Stock by reversing original stock events
       final purchaseEvents = await txn.query(
         'stock_activities',
-        columns: ['id', 'product_id', 'quantity_change', 'batch_number', 'expiry_date'],
+        columns: [
+          'id',
+          'product_id',
+          'quantity_change',
+          'batch_number',
+          'expiry_date'
+        ],
         where:
             'ref_type = ? AND ref_id = ? AND transaction_type = ? AND reversal_of_stock_activity_id IS NULL',
         whereArgs: ['PURCHASE', purchaseId, 'PURCHASE'],

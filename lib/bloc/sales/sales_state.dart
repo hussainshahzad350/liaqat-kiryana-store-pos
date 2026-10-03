@@ -6,6 +6,7 @@ import '../../../../../domain/entities/money.dart';
 import '../../../../../models/cart_item_model.dart';
 
 enum SalesStatus { initial, loading, ready, success, error }
+
 enum CreditLimitUpdateStatus { idle, loading, success, error }
 
 class SalesState extends Equatable {
@@ -25,7 +26,7 @@ class SalesState extends Equatable {
   final bool showCustomerList;
   final Invoice? completedInvoice;
   final bool shouldShowCreditWarning;
-  final Money potentialBalance; 
+  final Money potentialBalance;
   final CreditLimitUpdateStatus creditLimitUpdateStatus;
   final int? creditLimitUpdateCustomerId;
   final String? creditLimitUpdateError;
@@ -88,17 +89,21 @@ class SalesState extends Equatable {
       filteredCustomers: filteredCustomers ?? this.filteredCustomers,
       recentInvoices: recentInvoices ?? this.recentInvoices,
       cartItems: cartItems ?? this.cartItems,
-      selectedCustomer: clearCustomer ? null : (selectedCustomer ?? this.selectedCustomer),
+      selectedCustomer:
+          clearCustomer ? null : (selectedCustomer ?? this.selectedCustomer),
       subtotal: subtotal ?? this.subtotal,
       discount: discount ?? this.discount,
       grandTotal: grandTotal ?? this.grandTotal,
       previousBalance: previousBalance ?? this.previousBalance,
-      shouldShowCreditWarning: shouldShowCreditWarning ?? this.shouldShowCreditWarning,
+      shouldShowCreditWarning:
+          shouldShowCreditWarning ?? this.shouldShowCreditWarning,
       potentialBalance: potentialBalance ?? this.potentialBalance,
       errorMessage: errorMessage,
       successMessage: successMessage,
       showCustomerList: showCustomerList ?? this.showCustomerList,
-      completedInvoice: clearCompletedInvoice ? null : (completedInvoice ?? this.completedInvoice),
+      completedInvoice: clearCompletedInvoice
+          ? null
+          : (completedInvoice ?? this.completedInvoice),
       creditLimitUpdateStatus:
           creditLimitUpdateStatus ?? this.creditLimitUpdateStatus,
       creditLimitUpdateCustomerId:

@@ -68,8 +68,8 @@ class SalesTotalsSection extends StatelessWidget {
                       vertical: AppTokens.spacingStandard,
                       horizontal: AppTokens.spacingStandard),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          AppTokens.buttonBorderRadius)),
+                      borderRadius:
+                          BorderRadius.circular(AppTokens.buttonBorderRadius)),
                   hintText: '0',
                 ),
                 style:
@@ -80,8 +80,7 @@ class SalesTotalsSection extends StatelessWidget {
           ]),
           if (previousBalance > const Money(0))
             Padding(
-              padding:
-                  const EdgeInsets.only(top: AppTokens.spacingStandard),
+              padding: const EdgeInsets.only(top: AppTokens.spacingStandard),
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -116,14 +115,13 @@ class SalesTotalsSection extends StatelessWidget {
                 foregroundColor: colorScheme.onPrimary,
                 elevation: AppTokens.cardElevation,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                        AppTokens.cardBorderRadius)),
+                    borderRadius:
+                        BorderRadius.circular(AppTokens.cardBorderRadius)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.payment,
-                      size: AppTokens.iconSizeXLarge),
+                  const Icon(Icons.payment, size: AppTokens.iconSizeXLarge),
                   const SizedBox(width: AppTokens.spacingStandard),
                   Text(
                     loc.checkoutButton.toUpperCase(),
@@ -137,8 +135,8 @@ class SalesTotalsSection extends StatelessWidget {
                         vertical: AppTokens.spacingXSmall),
                     decoration: BoxDecoration(
                       color: colorScheme.onPrimary.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(
-                          AppTokens.smallBorderRadius),
+                      borderRadius:
+                          BorderRadius.circular(AppTokens.smallBorderRadius),
                     ),
                     child: Text(
                       "F9",

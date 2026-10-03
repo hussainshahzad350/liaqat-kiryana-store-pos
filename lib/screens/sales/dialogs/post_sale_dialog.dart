@@ -78,18 +78,15 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
       canPop: false,
       child: Dialog(
         shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(AppTokens.dialogBorderRadius)),
+            borderRadius: BorderRadius.circular(AppTokens.dialogBorderRadius)),
         child: Container(
-          constraints:
-              const BoxConstraints(maxWidth: AppTokens.dialogWidth),
+          constraints: const BoxConstraints(maxWidth: AppTokens.dialogWidth),
           padding: const EdgeInsets.all(AppTokens.dialogPadding),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.check_circle,
-                  color: colorScheme.primary,
-                  size: AppTokens.aboutIconSize),
+                  color: colorScheme.primary, size: AppTokens.aboutIconSize),
               const SizedBox(height: AppTokens.spacingMedium),
               Text(loc.saleCompleted, style: textTheme.titleLarge),
               Text('${loc.bill} #${widget.invoice.invoiceNumber}',
@@ -122,8 +119,7 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                                loc.cannotSaveCancelledInvoiceAsPdf),
+                            content: Text(loc.cannotSaveCancelledInvoiceAsPdf),
                             backgroundColor: errorColor,
                           ),
                         );

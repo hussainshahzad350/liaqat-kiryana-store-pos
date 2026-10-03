@@ -83,14 +83,34 @@ class CustomersRepository {
     return Customer.fromMap(result.first);
   }
 
-  /// Add new customer
+  /// Adds a customer and their opening ledger entry atomically.
+  /// Duplicate identifiers are rejected to preserve existing customer history.
   Future<int> addCustomer(Customer customer) async {
     final db = await _dbHelper.database;
-    return await db.insert(
-      'customers',
-      customer.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    return await db.transaction((txn) async {
+      final customerId = await txn.insert(
+        'customers',
+        customer.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+      final openingBalance = customer.outstandingBalance;
+      if (openingBalance != 0) {
+        final openingDate = customer.createdAt.toUtc().toIso8601String();
+        await txn.insert('customer_ledger', {
+          'customer_id': customerId,
+          'transaction_date': openingDate,
+          'description': 'Opening balance',
+          'ref_type': 'ADJUSTMENT',
+          'ref_id': customerId,
+          'debit': openingBalance > 0 ? openingBalance : 0,
+          'credit': openingBalance < 0 ? -openingBalance : 0,
+          'balance': openingBalance,
+          'transaction_id': 'CUSTOMER:$customerId:INITIAL',
+          'created_at': openingDate,
+        });
+      }
+      return customerId;
+    });
   }
 
   /// Update customer details

@@ -22,7 +22,9 @@ class OptionSwitch extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       leading: icon != null ? Icon(icon, size: 20) : null,
       title: Text(title, style: const TextStyle(fontSize: 14)),
-      subtitle: subtitle != null ? Text(subtitle!, style: const TextStyle(fontSize: 12)) : null,
+      subtitle: subtitle != null
+          ? Text(subtitle!, style: const TextStyle(fontSize: 12))
+          : null,
       trailing: Switch(
         value: value,
         onChanged: onChanged,

@@ -24,7 +24,8 @@ class PurchaseState extends Equatable {
 
   Money get totalAmount {
     // Fix: Use totalAmount.paisas (int) instead of undefined totalCost or double calculations
-    int totalPaisas = cartItems.fold(0, (sum, item) => sum + item.totalAmount.paisas);
+    int totalPaisas =
+        cartItems.fold(0, (sum, item) => sum + item.totalAmount.paisas);
     return Money(totalPaisas);
   }
 
@@ -42,12 +43,15 @@ class PurchaseState extends Equatable {
       status: status ?? this.status,
       suppliers: suppliers ?? this.suppliers,
       products: products ?? this.products,
-      selectedSupplierId: clearSupplier ? null : (selectedSupplierId ?? this.selectedSupplierId),
+      selectedSupplierId: clearSupplier
+          ? null
+          : (selectedSupplierId ?? this.selectedSupplierId),
       cartItems: cartItems ?? this.cartItems,
       error: clearError ? null : (error ?? this.error),
     );
   }
 
   @override
-  List<Object?> get props => [status, suppliers, products, selectedSupplierId, cartItems, error];
+  List<Object?> get props =>
+      [status, suppliers, products, selectedSupplierId, cartItems, error];
 }

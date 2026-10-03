@@ -26,9 +26,10 @@ class KpiStripWidget extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                     horizontal: AppTokens.spacingMedium,
                     vertical: AppTokens.spacingSmall),
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                color:
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 child: const Row(children: [
-                   Expanded(child: SkeletonLoader(height: AppTokens.kpiHeight))
+                  Expanded(child: SkeletonLoader(height: AppTokens.kpiHeight))
                 ]),
               );
             }
@@ -138,7 +139,9 @@ class _KpiCard extends StatelessWidget {
         child: InkWell(
           onTap: statusFilter != null
               ? () {
-                  context.read<StockFilterBloc>().add(SetStatusFilter(statusFilter!));
+                  context
+                      .read<StockFilterBloc>()
+                      .add(SetStatusFilter(statusFilter!));
                 }
               : null,
           child: Container(

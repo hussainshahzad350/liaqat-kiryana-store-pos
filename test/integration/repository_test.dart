@@ -11,26 +11,10 @@ import 'package:liaqat_store/core/repositories/items_repository.dart';
 import 'package:liaqat_store/core/repositories/stock_repository.dart';
 import 'package:liaqat_store/domain/entities/money.dart';
 import 'package:liaqat_store/models/customer_model.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import '../support/test_database.dart';
 
 void main() {
-  late DatabaseFactory previousDatabaseFactory;
-
-  // Initialize FFI for desktop testing
-  setUpAll(() {
-    sqfliteFfiInit();
-    previousDatabaseFactory = databaseFactory;
-    databaseFactory = databaseFactoryFfi;
-  });
-
-  tearDownAll(() {
-    databaseFactory = previousDatabaseFactory;
-  });
-
-  setUp(() async {
-    // Reset database before each test
-    await DatabaseHelper.instance.resetDatabase();
-  });
+  useTestDatabase();
 
   group('Money Class Integration Tests', () {
     test('converts paisas to Money correctly', () {
@@ -243,29 +227,31 @@ void main() {
     });
 
     test('getTotalOutstandingBalance returns paisas', () async {
+      final initialTotal = await customersRepo.getTotalOutstandingBalance();
       // Add multiple customers with balances
       await customersRepo.addCustomer(Customer(
         nameEnglish: 'Customer 1',
-        contactPrimary: '0300-1111111',
+        contactPrimary: '0300-5550001',
         outstandingBalance: 50000,
       ));
 
       await customersRepo.addCustomer(Customer(
         nameEnglish: 'Customer 2',
-        contactPrimary: '0300-2222222',
+        contactPrimary: '0300-5550002',
         outstandingBalance: 75000,
       ));
 
       final total = await customersRepo.getTotalOutstandingBalance();
-      expect(total, equals(125000)); // 50000 + 75000
+      expect(total, equals(initialTotal + 125000)); // 50000 + 75000
     });
   });
 
   group('SalesRepository Tests', () {
     late InvoiceRepository invoiceRepo;
 
-    setUp(() {
+    setUp(() async {
       invoiceRepo = InvoiceRepository(ItemsRepository());
+      await setTestStock(1, 45);
     });
 
     test('createSale stores grand_total as paisas', () async {

@@ -45,19 +45,20 @@ class _UnitsScreenState extends State<UnitsScreen> {
                   Text(
                     loc.unitsManagement,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   ElevatedButton.icon(
-                    onPressed: state is UnitsLoaded 
-                      ? () => _showAddUnitDialog(context, state) 
-                      : null,
+                    onPressed: state is UnitsLoaded
+                        ? () => _showAddUnitDialog(context, state)
+                        : null,
                     icon: const Icon(Icons.add),
                     label: Text(loc.addItem),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primaryContainer,
                       foregroundColor: colorScheme.onPrimaryContainer,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
                     ),
                   ),
                 ],
@@ -79,7 +80,7 @@ class _UnitsScreenState extends State<UnitsScreen> {
     if (state is UnitsLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    
+
     if (state is UnitsLoaded) {
       if (state.categories.isEmpty) {
         final loc = AppLocalizations.of(context)!;

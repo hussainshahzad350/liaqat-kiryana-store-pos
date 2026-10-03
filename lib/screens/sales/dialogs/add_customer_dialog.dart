@@ -38,8 +38,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(AppTokens.dialogBorderRadius)),
+          borderRadius: BorderRadius.circular(AppTokens.dialogBorderRadius)),
       child: Container(
         constraints: RTLHelper.getDialogConstraints(
           context: context,
@@ -84,18 +83,21 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                     TextField(
                         controller: nameUrduCtrl,
                         textAlign: TextAlign.center,
-                        decoration: InputDecoration(labelText: '${loc.nameUrdu} *')),
+                        decoration:
+                            InputDecoration(labelText: '${loc.nameUrdu} *')),
                     const SizedBox(height: AppTokens.spacingLarge),
                     TextField(
                         controller: phoneCtrl,
                         textAlign: TextAlign.center,
                         keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(labelText: '${loc.phoneNum} *')),
+                        decoration:
+                            InputDecoration(labelText: '${loc.phoneNum} *')),
                     const SizedBox(height: AppTokens.spacingLarge),
                     TextField(
                         controller: addressCtrl,
                         textAlign: TextAlign.center,
-                        decoration: InputDecoration(labelText: '${loc.address} *')),
+                        decoration:
+                            InputDecoration(labelText: '${loc.address} *')),
                     const SizedBox(height: AppTokens.spacingLarge),
                     TextField(
                         controller: creditLimitCtrl,
@@ -148,13 +150,11 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                       final creditText = creditLimitCtrl.text.trim();
                       if (creditText.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(loc.creditLimitRequired)));
+                            SnackBar(content: Text(loc.creditLimitRequired)));
                         return;
                       }
 
-                      final creditLimit =
-                          Money.fromRupeesString(creditText);
+                      final creditLimit = Money.fromRupeesString(creditText);
 
                       context.read<SalesBloc>().add(
                             QuickCustomerAddRequested(

@@ -36,7 +36,7 @@ class StockItemEntity {
   // Domain Logic
   bool get isLowStock => currentStock > 0 && currentStock <= minStockThreshold;
   bool get isOutOfStock => currentStock <= 0;
-  
+
   // Valuation
   Money get totalCostValue => Money((costPrice.paisas * currentStock).round());
   Money get totalSalesValue => Money((salePrice.paisas * currentStock).round());
