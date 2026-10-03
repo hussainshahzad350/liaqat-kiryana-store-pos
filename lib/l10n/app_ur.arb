@@ -930,5 +930,19 @@
   "backupSubtitle": "ڈیٹا بیس بیک اپ، ری اسٹور اور مرمتی ٹولز",
   "receiptSubtitle": "پرنٹر کی قسم، فونٹ سائز اور ٹیمپلیٹ کے اختیارات",
   "preferencesSubtitle": "زبان، تھیم، سیکیورٹی اور نوٹیفیکیشنز",
-  "aboutSubtitle": "ایپ ورژن، سسٹم کی معلومات اور ڈویلپر سپورٹ"
+  "aboutSubtitle": "ایپ ورژن، سسٹم کی معلومات اور ڈویلپر سپورٹ",
+  "activity": "سرگرمی",
+  "codeInputLabel": "کوڈ (مثلاً BOX)",
+  "codeUniqueError": "کوڈ منفرد ہونا چاہیے",
+  "descriptionRequired": "تفصیل درکار ہے",
+  "greaterThanOneError": "1 سے زیادہ ہونا چاہیے",
+  "insufficientStockError": "کافی اسٹاک دستیاب نہیں",
+  "itemNegativePriceError": "شے کی قیمت منفی نہیں ہو سکتی",
+  "negativePriceError": "پروڈکٹ کی فروخت قیمت منفی نہیں ہو سکتی",
+  "numericError": "صرف اعداد درج کریں",
+  "outOfStockError": "پروڈکٹ اسٹاک میں نہیں ہے",
+  "stockLimitError": "اسٹاک کی حد پوری ہو گئی ہے",
+  "systemUnit": "سسٹم یونٹ",
+  "todaysCustomers": "آج کے گاہک",
+  "viewUnit": "یونٹ دیکھیں"
 }

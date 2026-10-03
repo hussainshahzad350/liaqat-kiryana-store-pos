@@ -29,16 +29,9 @@ Widget _buildLocalizedApp(Widget child) {
 }
 
 void main() {
-  late DatabaseFactory previousDatabaseFactory;
-
   setUpAll(() {
     sqfliteFfiInit();
-    previousDatabaseFactory = databaseFactory;
     databaseFactory = databaseFactoryFfi;
-  });
-
-  tearDownAll(() {
-    databaseFactory = previousDatabaseFactory;
   });
 
   group('Product screen tab routing', () {
