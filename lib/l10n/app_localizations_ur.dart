@@ -1779,7 +1779,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get numericError => 'صرف اعداد درج کریں';
 
   @override
-  String get greaterThanOneError => 'قدر 1 سے زیادہ ہونی چاہیے';
+  String get greaterThanOneError => 'Must be > 1';
 
   @override
   String get close => 'بند کریں';
@@ -2137,7 +2137,7 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get descriptionRequired => 'تفصیل درج کرنا ضروری ہے';
+  String get descriptionRequired => 'Description is required';
 
   @override
   String get activity => 'سرگرمی';
@@ -2149,16 +2149,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get shortcutF5 => 'F5';
 
   @override
-  String get insufficientStockError => 'مطلوبہ مقدار میں اسٹاک دستیاب نہیں';
+  String get insufficientStockError => 'Insufficient stock available';
 
   @override
-  String get outOfStockError => 'پروڈکٹ کا اسٹاک ختم ہو گیا ہے';
+  String get outOfStockError => 'Product is out of stock';
 
   @override
-  String get stockLimitError => 'دستیاب اسٹاک کی حد پوری ہو گئی ہے';
+  String get stockLimitError => 'Stock limit reached';
 
   @override
-  String get negativePriceError => 'پروڈکٹ کی فروخت کی قیمت منفی نہیں ہو سکتی';
+  String get negativePriceError => 'Product sale price cannot be negative';
 
   @override
   String get itemNegativePriceError => 'شے کی قیمت منفی نہیں ہو سکتی';

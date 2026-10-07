@@ -5,6 +5,7 @@ import '../../bloc/sales/sales_bloc.dart';
 import '../../bloc/sales/sales_event.dart';
 import '../../bloc/sales/sales_state.dart';
 import '../../core/repositories/receipt_repository.dart';
+import '../../core/res/app_layout.dart';
 import '../../core/res/app_tokens.dart';
 import '../../core/services/sales_kpi_service.dart';
 import '../../core/utils/error_handler.dart';
