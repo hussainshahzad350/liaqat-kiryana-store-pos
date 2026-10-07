@@ -135,15 +135,6 @@ class StockRepository {
     );
   }
 
-  /// Get a single stock item by ID
-  Future<StockItemEntity?> getStockItemById(int id) async {
-    final db = await _dbHelper.database;
-    final result = await db.query('products', where: 'id = ?', whereArgs: [id]);
-
-    if (result.isEmpty) return null;
-    return _mapToEntity(result.first);
-  }
-
   // --- Mapper ---
   StockItemEntity _mapToEntity(Map<String, dynamic> row) {
     return StockItemEntity(

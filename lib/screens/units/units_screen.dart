@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/unit_model.dart';
 import '../../core/repositories/units_repository.dart';
 import '../../core/utils/error_handler.dart';
+import '../../widgets/app_state_view.dart';
 import 'dialogs/add_unit_dialog.dart';
 import 'dialogs/edit_unit_dialog.dart';
 import 'dialogs/delete_unit_dialog.dart';
@@ -42,18 +43,19 @@ class _UnitsScreenState extends State<UnitsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  Expanded(
+                      child: Text(
                     loc.unitsManagement,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
-                  ),
+                  )),
                   ElevatedButton.icon(
                     onPressed: state is UnitsLoaded
                         ? () => _showAddUnitDialog(context, state)
                         : null,
                     icon: const Icon(Icons.add),
-                    label: Text(loc.addItem),
+                    label: Text(loc.addUnit),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primaryContainer,
                       foregroundColor: colorScheme.onPrimaryContainer,
@@ -77,14 +79,15 @@ class _UnitsScreenState extends State<UnitsScreen> {
   }
 
   Widget _buildContent(BuildContext context, UnitsState state) {
-    if (state is UnitsLoading) {
-      return const Center(child: CircularProgressIndicator());
+    if (state is UnitsLoading || state is UnitsInitial) {
+      return AppStateView.loading(
+          message: AppLocalizations.of(context)!.loading);
     }
 
     if (state is UnitsLoaded) {
       if (state.categories.isEmpty) {
         final loc = AppLocalizations.of(context)!;
-        return Center(child: Text(loc.noCategoriesFound));
+        return AppStateView.empty(message: loc.noCategoriesFound);
       }
 
       return ListView.builder(
@@ -105,7 +108,11 @@ class _UnitsScreenState extends State<UnitsScreen> {
       );
     }
 
-    return const SizedBox.shrink();
+    final loc = AppLocalizations.of(context)!;
+    return AppStateView.error(
+        message: loc.error,
+        actionLabel: loc.retry,
+        onRetry: () => context.read<UnitsBloc>().add(LoadUnits()));
   }
 
   void _showAddUnitDialog(BuildContext context, UnitsLoaded state) {

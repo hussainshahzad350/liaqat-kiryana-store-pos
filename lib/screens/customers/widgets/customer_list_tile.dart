@@ -33,20 +33,20 @@ class CustomerListTile extends StatelessWidget {
         : customer.nameEnglish;
 
     return Card(
-      elevation: AppTokens.cardElevation,
+      elevation: 0,
       margin: const EdgeInsets.symmetric(
-        horizontal: AppTokens.spacingMedium,
-        vertical: AppTokens.spacingSmall,
+        horizontal: 0,
+        vertical: 2,
       ),
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
-        side: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        side: BorderSide.none,
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppTokens.spacingStandard,
-          vertical: AppTokens.spacingSmall,
+          vertical: 4,
         ),
         dense: true,
         leading: CircleAvatar(
@@ -63,7 +63,7 @@ class CustomerListTile extends StatelessWidget {
         title: Text(
           name,
           style:
-              (isUrdu ? textTheme.titleLarge : textTheme.bodyMedium)?.copyWith(
+              (isUrdu ? textTheme.titleSmall : textTheme.bodyMedium)?.copyWith(
             color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontFamily: isUrdu ? 'NooriNastaleeq' : null,

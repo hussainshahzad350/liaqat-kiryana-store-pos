@@ -1,0 +1,786 @@
+[
+  {
+    "Path": "lib/main.dart",
+    "Hash": "3D330C069D9F47894D75B4108A3D9F3CAF5C4837D601663F733C2D803268CB20"
+  },
+  {
+    "Path": "lib/bloc/categories/categories_bloc.dart",
+    "Hash": "E3BBC6E4EBAAC1CBC66B0F61228B52F04B2B821B6488C2B97A06EAFA033E66A0"
+  },
+  {
+    "Path": "lib/bloc/categories/categories_event.dart",
+    "Hash": "FD6030DE410135B540CEE0CAED52813AF90409B4E8BF844EA1EA06968117E857"
+  },
+  {
+    "Path": "lib/bloc/categories/categories_state.dart",
+    "Hash": "47F3E451A1F7820FAB219B4152DB679A8503570216233AEE8671F8D422AB91E2"
+  },
+  {
+    "Path": "lib/bloc/purchase/purchase_bloc.dart",
+    "Hash": "BA606B031F467C518A2ED93EB67AA4F87C40062B95339AD4385AC90B8EE6938E"
+  },
+  {
+    "Path": "lib/bloc/purchase/purchase_event.dart",
+    "Hash": "5FF443F9F86B1EF1DB87956480C45D5365A11B15C1E7AD83BE150FF6C6C67285"
+  },
+  {
+    "Path": "lib/bloc/purchase/purchase_state.dart",
+    "Hash": "473DD0D04407FA9D48E32FE5352C8DE46A77B247B84F9A0A634D6B1C476ED973"
+  },
+  {
+    "Path": "lib/bloc/sales/sales_bloc.dart",
+    "Hash": "A629F977002CB04D61B2504D08D94B5BD4B7481B0B089BA384373CC8B53EFF63"
+  },
+  {
+    "Path": "lib/bloc/sales/sales_event.dart",
+    "Hash": "E9177C59F5D7F5B0C7C95374830238BE67B55AAC0FFA164DD67661391379B2DD"
+  },
+  {
+    "Path": "lib/bloc/sales/sales_state.dart",
+    "Hash": "E58EE5F111E13DF144F9FBC59D25E7FB845511568CE7E32E71D1790EEFC72BED"
+  },
+  {
+    "Path": "lib/bloc/settings/settings_cubit.dart",
+    "Hash": "D616F3E097DC55FEBD59E21D20CD0AFAEE5D10502C658B3B3A5E44458089BED5"
+  },
+  {
+    "Path": "lib/bloc/settings/settings_state.dart",
+    "Hash": "D76F3994EE9685CFCD6E60B1DFE8E66EF144C4D780FADA8C0D5F7B4AB634AA01"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_activity/stock_activity_bloc.dart",
+    "Hash": "F3EA1FB12D004693BBCF999007BD8114FB6BCBC0222C3B6B728A444D3DEDB976"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_activity/stock_activity_event.dart",
+    "Hash": "169B22B1143C2640F23C9A73DC49FD3A14B9DDC70CA69813406CC0709A150B3D"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_activity/stock_activity_state.dart",
+    "Hash": "A6B86E74172B11A7367CC6550E9A1428813B562584A6BBE91310521D9BA672AD"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_filter/stock_filter_bloc.dart",
+    "Hash": "49A99920D5F1DDE7115C8AC7F2087A719C911A4FE0FDF45C30408276CE4C6BCB"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_filter/stock_filter_event.dart",
+    "Hash": "035FA4230AD9D1DB0F65645C2B4DA3F1F408B337C119CB7B91C7E7DD4CF3F30F"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_filter/stock_filter_state.dart",
+    "Hash": "B84BD7800A0A4D6F0E9F02A313DAA4F81F1DF2C7223DA33FFCC8122102B44B94"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_overview/stock_overview_bloc.dart",
+    "Hash": "0D1F4D4FDE48E8A2F5E230DF6A515413804D35C7777B3B27DCD130D1F748881D"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_overview/stock_overview_event.dart",
+    "Hash": "8B3AE507B4C14737498EBB4729BB926699A37A66BDAC85D208A5BA3D74BF820F"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_overview/stock_overview_state.dart",
+    "Hash": "B3410C3CBD7C3AD407F8749E9C5675D6DDDD92092DAECA0AE12235C728233C2F"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_ui/stock_ui_cubit.dart",
+    "Hash": "4247FBD2C6A630BF92E69A91B7F02B4F6ADFD6CE83323BBEFB9A77AB5A3F4195"
+  },
+  {
+    "Path": "lib/bloc/stock/stock_ui/stock_ui_state.dart",
+    "Hash": "6D98E0F98606182A8E3E30FA548590FAF42FBF7BE9D7A7B9B556FF76D560DEC9"
+  },
+  {
+    "Path": "lib/bloc/units/units_bloc.dart",
+    "Hash": "CD4E077A441F9351066E8292DB9902154533911A76F3ADE7419306F408CBAD3B"
+  },
+  {
+    "Path": "lib/bloc/units/units_event.dart",
+    "Hash": "46CFD1050F5600BE941CC7086BFEED37F97B9B62AE2A34BF4A5C2BD250C136C2"
+  },
+  {
+    "Path": "lib/bloc/units/units_state.dart",
+    "Hash": "EB3355684CBF6686EEBFD4AA59C3E488FC0EEF105E0C8D68644123421788832D"
+  },
+  {
+    "Path": "lib/core/cubits/sidebar_cubit.dart",
+    "Hash": "8C8A1F98EA4367DD158E5ABD405F5B3C3CDAD3C7CE1611493C8C79CE2427E3CF"
+  },
+  {
+    "Path": "lib/core/database/database_helper.dart",
+    "Hash": "E4585C0340B302310824AB4DD9902A52DA3B31EB42EF54FCA33B3BBD0C674F78"
+  },
+  {
+    "Path": "lib/core/entity/purchase_bill_entity.dart",
+    "Hash": "6BC1F5C216FE1810D92367110EE3CFE03347F98375D56A6719DF69AC380C072D"
+  },
+  {
+    "Path": "lib/core/entity/stock_activity_entity.dart",
+    "Hash": "B55D935C8A34090E651C770819D182B272C2D559F0F74F0D6990CEDCDFB1CED5"
+  },
+  {
+    "Path": "lib/core/entity/stock_item_entity.dart",
+    "Hash": "EFF39413A0525867C073744AAB4D844DB91A8A7827184CBA44EC46469A76723F"
+  },
+  {
+    "Path": "lib/core/entity/stock_summary_entity.dart",
+    "Hash": "8E22C2C9A3F6AC6224B5C0EB85F20400FE69800EC7A270A51C84577BC3D34673"
+  },
+  {
+    "Path": "lib/core/repositories/cash_repository.dart",
+    "Hash": "A89F89D87BAA613BBE6224C687FC14011BA55D9344DD35BC0D07EF9C3B0FC446"
+  },
+  {
+    "Path": "lib/core/repositories/categories_repository.dart",
+    "Hash": "709263328D490BA40D589B30FE500B987FE6964C1C484FB29EEFCEFB21BF4936"
+  },
+  {
+    "Path": "lib/core/repositories/customers_repository.dart",
+    "Hash": "D09F7368CDA51CD44F6467EA51140DFC04FE1CD3033E9F8495D9AF8300FD4E81"
+  },
+  {
+    "Path": "lib/core/repositories/invoice_repository.dart",
+    "Hash": "56D944BA23D9C0DD9D8BA4E8C15E0EFAA15BACF3D1D6781C56E71C8B72428B6B"
+  },
+  {
+    "Path": "lib/core/repositories/items_repository.dart",
+    "Hash": "3A756CF72F5F90EF8DEB288D98AA4CFBD9013934ACF253B2C8C1F93AE7023A44"
+  },
+  {
+    "Path": "lib/core/repositories/purchase_repository.dart",
+    "Hash": "1D5282AE3AE827B3FB71B2CB9894A5BB162B43B7A7093602750A15A6BBD13F52"
+  },
+  {
+    "Path": "lib/core/repositories/receipt_repository.dart",
+    "Hash": "9D9975F700F2CFB386683CCFEA4424EB58C945E442091725F6A7694BE4CD07DF"
+  },
+  {
+    "Path": "lib/core/repositories/settings_repository.dart",
+    "Hash": "DE701F628BED71EF22C62755E1CDEE5EBBACC84194D2398E683B142CF167F892"
+  },
+  {
+    "Path": "lib/core/repositories/stock_activity_repository.dart",
+    "Hash": "109E4A51020AF992B354D839F0174369600D9C8EC6775F5BF319A5812C36116B"
+  },
+  {
+    "Path": "lib/core/repositories/stock_repository.dart",
+    "Hash": "53387A78171F333A148BAC401BA4EB62C2F2055A06DFCFEDB57470997A34D61E"
+  },
+  {
+    "Path": "lib/core/repositories/suppliers_repository.dart",
+    "Hash": "52A278064D162AE15E59C661E561EDD6F5FECFABD43DCA1AAE6AD34A6BFA07C4"
+  },
+  {
+    "Path": "lib/core/repositories/units_repository.dart",
+    "Hash": "A8C7C218871D5067CDF7D0A48B4A85138D540FAE5B4C93331DE0CCB8364650BA"
+  },
+  {
+    "Path": "lib/core/res/app_colors.dart",
+    "Hash": "5DF7B4B2D94662B2855AF5CE4244C3D5C479A65AF639B43C7BDFC33A04D731FD"
+  },
+  {
+    "Path": "lib/core/res/app_layout.dart",
+    "Hash": "6693F9A52544EBBC40985819BB76D71E68F716BB8E8C4F109729DA10B0BC1864"
+  },
+  {
+    "Path": "lib/core/res/app_tokens.dart",
+    "Hash": "A7E09AF375E193622FEB1DF0B28F028C0C930DFCC8376C450255959BEA8C220C"
+  },
+  {
+    "Path": "lib/core/routes/app_routes.dart",
+    "Hash": "8D82706C87AA90FBA478598A2A61FDCB5F02EB1D5D36EB03E1271F978624BCE9"
+  },
+  {
+    "Path": "lib/core/services/pin_auth_service.dart",
+    "Hash": "B5BAA4D73D89042357B3BA3421BA7CACD76DC2865F9CF8B3D2B1BF7F51A07848"
+  },
+  {
+    "Path": "lib/core/services/sales_kpi_service.dart",
+    "Hash": "E9E95766138803F5B490A41C1E56C6A72D9956FF3A16CE14B673818D1D802AAD"
+  },
+  {
+    "Path": "lib/core/theme/app_themes.dart",
+    "Hash": "3D217BCBF7260DF23DA90F0F3808D039A93A1DD6DC29E17489029A48ECA3C6D1"
+  },
+  {
+    "Path": "lib/core/theme/app_ui_theme.dart",
+    "Hash": "3C464EA6DB095C83ED2F4169744721D84310EB7950154DF4860B783489665169"
+  },
+  {
+    "Path": "lib/core/theme/theme_provider.dart",
+    "Hash": "BCD1AC5D8CCCE0C13A8906296AE0D79B6BED75269D0F13D13867AE2B5D52C8C7"
+  },
+  {
+    "Path": "lib/core/utils/error_handler.dart",
+    "Hash": "1AFF22F134F17D134C9E8443FCA97523BF0D90B46094ADB2E67D2202CCA1AC53"
+  },
+  {
+    "Path": "lib/core/utils/logger.dart",
+    "Hash": "837DBB13EB0EB3BA07186B6998A59DB694D8F1A81C7FE73A981BAEF7F6490283"
+  },
+  {
+    "Path": "lib/core/utils/receipt_pdf.dart",
+    "Hash": "64D48908B0C2504453953D558FC24B7DD3C1275F2146E863A4B920D5A1507181"
+  },
+  {
+    "Path": "lib/core/utils/rtl_helper.dart",
+    "Hash": "C03BDE21160F633809BB76235B53752C488BD965CA414383C3DF0A35B0AF8004"
+  },
+  {
+    "Path": "lib/core/utils/validators.dart",
+    "Hash": "047FFAEC1A2F433D87A086D5B416154359B89CA65BB6E7BA897021EC045DA8C3"
+  },
+  {
+    "Path": "lib/domain/entities/money.dart",
+    "Hash": "521FA7F57612FBBD56B88CA0579AC04F11EE453E9676BB3D8FEB3E3FCFF2186A"
+  },
+  {
+    "Path": "lib/features/sales/domain/entities/sale_status.dart",
+    "Hash": "D8A6CA3B66866A371F01A91C50631AE0E414721ECE3CEC2A3A1F6C42F6D69C52"
+  },
+  {
+    "Path": "lib/l10n/app_en.arb",
+    "Hash": "92211115407F2001F5F072FFC81E7385CF4011FD7B28F045FBE719ED3508F4A1"
+  },
+  {
+    "Path": "lib/l10n/app_localizations_en.dart",
+    "Hash": "BBD0C9AC3E0D10ABF8C21023759AE30DC2ECE3BF269D4EDD342B00E70AF414FF"
+  },
+  {
+    "Path": "lib/l10n/app_localizations_ur.dart",
+    "Hash": "25CAF003D5E612A1F9098FED6847EAF58CC9D2E7057F43BC922FB89404541C74"
+  },
+  {
+    "Path": "lib/l10n/app_localizations.dart",
+    "Hash": "11F86D0654B0CCD053FCDD424D8DF452DFA1D610EE43E51B00452498C81F3F93"
+  },
+  {
+    "Path": "lib/l10n/app_ur.arb",
+    "Hash": "79A23767A9A5EE6B31FBDF013CE39A158BB7869BC24EAF2CA8190B61E44BFC41"
+  },
+  {
+    "Path": "lib/models/cart_item_model.dart",
+    "Hash": "D55E6DD472877B39309A85626D974DC7680AA98A8A108171B770FD46D3B09E12"
+  },
+  {
+    "Path": "lib/models/cash_ledger_model.dart",
+    "Hash": "D9E16DCC2E491BF64B5C84F476C2E4DD3DB2ADDA997D5884C46131AADD0F936B"
+  },
+  {
+    "Path": "lib/models/category_models.dart",
+    "Hash": "8A9ABD7041D5675E4C24982B08026EA25F58B509DF5E01B8E035101854CF9663"
+  },
+  {
+    "Path": "lib/models/customer_model.dart",
+    "Hash": "BBBD29B65BA78D79121B5CC1BCC2139A79147D4F7B78C1DE5C082C61F5359FB5"
+  },
+  {
+    "Path": "lib/models/invoice_item_model.dart",
+    "Hash": "C8B0DFA7F88554E7A003286F600945774E73D9BDC797BF34906394865DBC0272"
+  },
+  {
+    "Path": "lib/models/invoice_model.dart",
+    "Hash": "20BEC7268FB53E5823E554E369821DB85133F77808641A93E1449FF8420D5C09"
+  },
+  {
+    "Path": "lib/models/product_model.dart",
+    "Hash": "E12A11D9F0A88D0B654C247CBC20301906496EF7703DE764CEC362DF1DEC468C"
+  },
+  {
+    "Path": "lib/models/receipt_model.dart",
+    "Hash": "0A9CAB94DF570132FA92C571FD7FB992346DC190B57DF78F0423CFC40EE87B8D"
+  },
+  {
+    "Path": "lib/models/stock_adjustment_model.dart",
+    "Hash": "EA67BF657257F9B045A24C6A8A4B14497DEF49CC2622F5C31D2FD322A6ECCA92"
+  },
+  {
+    "Path": "lib/models/supplier_model.dart",
+    "Hash": "75E33392EB7DE1726A6C69CF4759460B59686471BF4A3D4DF498335A458BA487"
+  },
+  {
+    "Path": "lib/models/unit_model.dart",
+    "Hash": "4BBA774B69F7999468DA1AD7810034976845B0CD02A4893F08516640B1A1A008"
+  },
+  {
+    "Path": "lib/screens/accounts/accounts_screen.dart",
+    "Hash": "067D9F737FA22F5F92D50D73E0AC2FC00138D5E19310B8A0ABD1CFC7E82B29D3"
+  },
+  {
+    "Path": "lib/screens/accounts/views/customers_management_view.dart",
+    "Hash": "89C96EF4F23C69E8FED89FDB893676B948EF3EC4F0BA52CCCE0B9472DE881E66"
+  },
+  {
+    "Path": "lib/screens/accounts/views/suppliers_management_view.dart",
+    "Hash": "E4D9C3D744B9700BD6809C28907B8EC9EC719B2EEEF32174187D1DA8D15B1B2C"
+  },
+  {
+    "Path": "lib/screens/auth/login_screen.dart",
+    "Hash": "505D9CFBF3CD0415A6757254BA70915636A61D036E0225EE638219684ADDEFDD"
+  },
+  {
+    "Path": "lib/screens/cash_ledger/cash_ledger_screen.dart",
+    "Hash": "70763ABA78C194086971CCD34D6A68BB95A92634154AC02A39121AAA0F3E9579"
+  },
+  {
+    "Path": "lib/screens/cash_ledger/controller/cash_ledger_controller.dart",
+    "Hash": "F35878F325F13CD466204CCAABD727F35F85502E9D081D2F841749EFCC2B4DB3"
+  },
+  {
+    "Path": "lib/screens/cash_ledger/dialogs/add_transaction_dialog.dart",
+    "Hash": "8B2F932EC3F44C920FA3E06D6C5A546C054D21AE9E7D6B8043FE3A437A998A06"
+  },
+  {
+    "Path": "lib/screens/cash_ledger/widgets/cash_ledger_kpi_section.dart",
+    "Hash": "E8D4652E151789211F50AB4545909A8613A004E7B115C735DB63C0C231541DFA"
+  },
+  {
+    "Path": "lib/screens/cash_ledger/widgets/cash_ledger_list_tile.dart",
+    "Hash": "1709BA2940E60A653BA70E3B3BDF25A29F4CECBF1B138E3FFBA624A262F81FAC"
+  },
+  {
+    "Path": "lib/screens/cash_ledger/widgets/cash_ledger_list.dart",
+    "Hash": "FDBD506F285AC565865880C918D1BD256CA719CD0C2E0F79A5B32441C8A14A48"
+  },
+  {
+    "Path": "lib/screens/cash_ledger/widgets/cash_ledger_search_bar.dart",
+    "Hash": "5278A0812D99C4A70174B01AA795AA815F6F1773F5808DFB87E9D4454D3D1DE4"
+  },
+  {
+    "Path": "lib/screens/categories/categories_screen.dart",
+    "Hash": "E3B5955113FE47CB89054DAD830931BEE02FFF0F1E29988EE14C313F341E14FC"
+  },
+  {
+    "Path": "lib/screens/categories/dialogs/category_dialog.dart",
+    "Hash": "EF53D5F8952B2FE5D7F4A3FEB27804BF4EC1DFA1A903A0A112F9E6298A7BE5FF"
+  },
+  {
+    "Path": "lib/screens/categories/dialogs/department_dialog.dart",
+    "Hash": "638252F89AD70931EF846AB5CC677233039EDEF682659A26E0EB04F51693B94E"
+  },
+  {
+    "Path": "lib/screens/categories/dialogs/sub_category_dialog.dart",
+    "Hash": "0CCBA5CFB55A9539753FE086CEB4BD45D5D9F794011128BC845421D7DE1E4DAB"
+  },
+  {
+    "Path": "lib/screens/categories/utils/category_ui_utils.dart",
+    "Hash": "1BA21AF457F1F240C291F18DF698BED494088E73C4B5F017B9008E96599509CF"
+  },
+  {
+    "Path": "lib/screens/categories/widgets/category_tree_widget.dart",
+    "Hash": "DDDE9E2DCEE2AD7DFBDAC070BBE2255CFFA31F5D47322B20941D92E2A5B6A546"
+  },
+  {
+    "Path": "lib/screens/categories/widgets/department_list_widget.dart",
+    "Hash": "9EAEC3E6CF14BB7C20F90DBADD4B7C1067515371E898F183424EFCD45B0DD7DF"
+  },
+  {
+    "Path": "lib/screens/categories/widgets/details_panel_widget.dart",
+    "Hash": "6ED6F1A8429C77EB6A994904CBA02FFA8C764E1103342988E565CEAD71D95CFE"
+  },
+  {
+    "Path": "lib/screens/customers/customers_screen.dart",
+    "Hash": "7602726A5FE7C5180D835189984D6F1DE2BE6C7FABCD3C63CF3649D72AA84F07"
+  },
+  {
+    "Path": "lib/screens/customers/controller/customer_controller.dart",
+    "Hash": "11DBBB419F6531490ED44955142456549CA36001E0505CBBFD064AF8A7C40AE9"
+  },
+  {
+    "Path": "lib/screens/customers/dialogs/add_customer_dialog.dart",
+    "Hash": "9173844D3201F71E3B712CBB907C3808B5384DE61C35BA33755E3C6FC35310D1"
+  },
+  {
+    "Path": "lib/screens/customers/dialogs/delete_customer_dialog.dart",
+    "Hash": "C4D9CB631E5846103828A4BBFD8256009D68586D6B3F67ADA0A63EF350583E6E"
+  },
+  {
+    "Path": "lib/screens/customers/dialogs/receive_payment_dialog.dart",
+    "Hash": "0775FA9C8E4CB16A696490D3109382C2B5225DC836A3F7EC8B165D3800B3FF66"
+  },
+  {
+    "Path": "lib/screens/customers/widgets/archived_customers_overlay.dart",
+    "Hash": "65D5E5353C61496BEA2CFAE67ABACDB0F3538308E08E00AAF4C2A9D8D392EF92"
+  },
+  {
+    "Path": "lib/screens/customers/widgets/customer_kpi_card.dart",
+    "Hash": "3700C880F3064A045B60F66DB5EBEBC73C7827A0877D1912AE627FC5C02A1F26"
+  },
+  {
+    "Path": "lib/screens/customers/widgets/customer_kpi_section.dart",
+    "Hash": "AFD317C1D00FA17DFD2CA81A7B0AA839E29559E857843BEFF20642F525DC285D"
+  },
+  {
+    "Path": "lib/screens/customers/widgets/customer_ledger_panel.dart",
+    "Hash": "C5D0C25D16D9BC1031277141DBE524E700EC932261CFDC38A34D84EA410CFC90"
+  },
+  {
+    "Path": "lib/screens/customers/widgets/customer_list_tile.dart",
+    "Hash": "622C8B8DC9C27DEFC58E5ADC757CD4B608158A67CCBEE2226A00F5D0E9246D69"
+  },
+  {
+    "Path": "lib/screens/customers/widgets/customer_list.dart",
+    "Hash": "50A5049D70CAF46524668BC04ACDD80D00503F5657D5CFFCBFCE8EC9F57DDA2E"
+  },
+  {
+    "Path": "lib/screens/customers/widgets/customer_search_bar.dart",
+    "Hash": "7D8B74AC2EAC3C33FC4BBC85B31EBFF6C30165CACD1AF379BE1BC8D4D811D7A2"
+  },
+  {
+    "Path": "lib/screens/items/items_screen.dart",
+    "Hash": "25D028EA475C44EE5329DD8E5CC432F1B20B90EBC1CF4C07680882570FF4F959"
+  },
+  {
+    "Path": "lib/screens/items/dialogs/item_form_dialog.dart",
+    "Hash": "61C5EDED1BA53C208544E8279E02E0DE957917B60A4C6DA6F992A7D99EE9123E"
+  },
+  {
+    "Path": "lib/screens/items/widgets/items_table.dart",
+    "Hash": "BE88DB9E3AFCEB9CD1F1D172ED71391777532C97B5130E35025ACE5A34B60ABE"
+  },
+  {
+    "Path": "lib/screens/items/widgets/items_toolbar.dart",
+    "Hash": "7AC81AFAFA24FB834FFB1AF6647922EBD99DF5CE27DD54B84B7D2B61B1C31CB3"
+  },
+  {
+    "Path": "lib/screens/product/product_screen.dart",
+    "Hash": "961E5B67B3165AA6B9205201D9E81507A9460F40C18B5893266FF9F66AE28268"
+  },
+  {
+    "Path": "lib/screens/product/views/categories_management_view.dart",
+    "Hash": "9B72F7E08AB4B6B8F2BE682BDD684E5235B939B0AE4F1396F1FB9BCAA4C29D2A"
+  },
+  {
+    "Path": "lib/screens/product/views/items_management_view.dart",
+    "Hash": "AA6F530C327E390DE61CCBAB473379599F8EDDE3AF750E99B3D3C5DF983BEEB4"
+  },
+  {
+    "Path": "lib/screens/product/views/units_management_view.dart",
+    "Hash": "D92EC35E32A5D0F5948A25C4DEF9ACB4D4A482C2EEE1611EBA5D13D48629F9C5"
+  },
+  {
+    "Path": "lib/screens/purchase/purchase_screen.dart",
+    "Hash": "252A1252299E22830F1B1E7F9D20BAB92AB0C52AA8A6B9361CC7CDB65940C11D"
+  },
+  {
+    "Path": "lib/screens/purchase/dialogs/add_purchase_item_dialog.dart",
+    "Hash": "26EBCABA56EA6193615218F9E9C90135E54CBE910689591D59853008C7EF8106"
+  },
+  {
+    "Path": "lib/screens/purchase/dialogs/supplier_selector_dialog.dart",
+    "Hash": "68323E643C4CA07ED4D96E227BA02D2079A7D6AE78B694F72BC5FB511E1C78CA"
+  },
+  {
+    "Path": "lib/screens/purchase/widgets/purchase_cart_widget.dart",
+    "Hash": "7071DC1A6DCE2BDE095DC23CF81BB6077898FF797D8DFD30CB3FAC0FD480CF97"
+  },
+  {
+    "Path": "lib/screens/purchase/widgets/purchase_item_list_widget.dart",
+    "Hash": "282C1A1F4906AF82642E3FB1833EAAC08F223D773823583D1C07C8E0A33FD23E"
+  },
+  {
+    "Path": "lib/screens/sales/sales_screen.dart",
+    "Hash": "D40480DE966184FCBB370ABDECFDEA83E7D78D6F6E8638BE837BBF6D89C563C1"
+  },
+  {
+    "Path": "lib/screens/sales/dialogs/add_customer_dialog.dart",
+    "Hash": "843337AD202966475A84BF9D097BD9F01B0A85B0A2C2241BC2375725EA5093D0"
+  },
+  {
+    "Path": "lib/screens/sales/dialogs/cancel_sale_dialog.dart",
+    "Hash": "E9A9B605B877C689D91BD53F8D0C31B340F1578FCED3A4D17BB82BD32ACE6816"
+  },
+  {
+    "Path": "lib/screens/sales/dialogs/checkout_payment_dialog.dart",
+    "Hash": "016116935D9BA2948206456C445AB6155E26B403998C688E9C3FC070D99DF7CA"
+  },
+  {
+    "Path": "lib/screens/sales/dialogs/clear_cart_dialog.dart",
+    "Hash": "84F189FDDFB480CFB0061559D5BAB68458383476261D733CF8DBACB722D6B198"
+  },
+  {
+    "Path": "lib/screens/sales/dialogs/credit_limit_warning_dialog.dart",
+    "Hash": "595F9621263A740BFB82CF3448F9FEB185AADB4D5782F7D8BEB7AA736CDB762E"
+  },
+  {
+    "Path": "lib/screens/sales/dialogs/exit_confirmation_dialog.dart",
+    "Hash": "DEFA102E2840AAFCA8EA9389DD21D55A159720B1EC51D80B62D8B8703EA9EE8D"
+  },
+  {
+    "Path": "lib/screens/sales/dialogs/increase_limit_dialog.dart",
+    "Hash": "5748EF755CB3D003F957BE6DE5255FBC9BA72F6267AB25003058C40A70617254"
+  },
+  {
+    "Path": "lib/screens/sales/dialogs/post_sale_dialog.dart",
+    "Hash": "EA2480A00593D193F5D7A428CC18D7E001F3113EDB0B450CC798230AA85ECB95"
+  },
+  {
+    "Path": "lib/screens/sales/utils/receipt_printer.dart",
+    "Hash": "4B6ED3F7BB83953AAAF4F5AE64BB8CBBF0C16C22AA76B606E4B3E360E230D656"
+  },
+  {
+    "Path": "lib/screens/sales/utils/sales_dialogs.dart",
+    "Hash": "F42319C87ED138E8E6A22A4AC0D338FF5588788D2B21D57749015A91CBF05C81"
+  },
+  {
+    "Path": "lib/screens/sales/utils/sales_shortcuts.dart",
+    "Hash": "C4BB4F62609F2129A4CADE67E6CA21F3593388F189993A95F65A08851C039B87"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/cart_item_row.dart",
+    "Hash": "C6D54D6C2A9C8027D8EF0E00470B0C7463753933F933E430EC255FF363F3B76B"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/customer_section.dart",
+    "Hash": "15B9FDBB39DADA2DE1728A6DB58FFF2AFF80172FCCE45A2E4AD51B44DF662C0D"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/product_card.dart",
+    "Hash": "379DA6848975C7328E60C3B18D72BF113B5EF90D101E358AD59DBFB8070907DE"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/recent_sales_section.dart",
+    "Hash": "DCC07B3386222027BACF3AE3E7E446274D244B4C23BA6F00964FD964F0F9F7C7"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/sales_actions_toolbar.dart",
+    "Hash": "43B52D4B65C2186C8DEB9C6230A419415E8F6A9CE02929E47791EB72AD66EA13"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/sales_cart_panel.dart",
+    "Hash": "04026D5ECC32208313FCDFB69207AAE49CD412862E4486B9C78D8BF6C21241F7"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/sales_feedback_listener.dart",
+    "Hash": "A80FC0A502E693AB638D328EFD95B12965C8D0D514333C8A473ADD246C373990"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/sales_kpi_header.dart",
+    "Hash": "D7D96951F0A770382C720990BC8DD7B540D6975EB00B36E8C8C2422ABB635FDC"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/sales_product_panel.dart",
+    "Hash": "DC0F06EE229E98D2A55450C0DB9E97D6826CCB3A50C2CB3CD878909ED73B7982"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/sales_totals_section.dart",
+    "Hash": "BA6A604E1A1EEFD8DF0D6526A2A0F6922FA55DCECE548EA10F1EEDB4D1AE0932"
+  },
+  {
+    "Path": "lib/screens/sales/widgets/sales_workspace.dart",
+    "Hash": "A48DBEF71C5DF5FDA2330E219D7B0172F3998BEECAD3327082C9BE17AA72DBA6"
+  },
+  {
+    "Path": "lib/screens/settings/settings_screen.dart",
+    "Hash": "59E53028F61EC39F18B0A267A7DF17DA572D014F827FA526E2A0B8C0385B23B4"
+  },
+  {
+    "Path": "lib/screens/settings/pages/backup_page.dart",
+    "Hash": "99E0C7DC8AB297143629686EDEDFF1601FD567395E3E7EF13765B9828400DE8D"
+  },
+  {
+    "Path": "lib/screens/settings/pages/preferences_page.dart",
+    "Hash": "E2FB1CB5CECB0391BDBE15EA7E6B3C3FCA7C67B3F544FC576248E39EEFCA647B"
+  },
+  {
+    "Path": "lib/screens/settings/pages/profile_page.dart",
+    "Hash": "08497D4C910555A3CDA80118B819E9063BC8D87684BDF8BB56129383139679A8"
+  },
+  {
+    "Path": "lib/screens/settings/pages/receipt_page.dart",
+    "Hash": "F2308FE1C4A7448C6A8B84AB9BF48016B48C6E2A1CE9AB466F578B90F5FD34A7"
+  },
+  {
+    "Path": "lib/screens/settings/pages/security_page.dart",
+    "Hash": "3EAA8EAC7F6B869F9918AF7DFB6995DE6E76CE03B8795F2BE6F75B2C0039AD52"
+  },
+  {
+    "Path": "lib/screens/settings/widgets/option_switch.dart",
+    "Hash": "32A2C7FDD08231082885BC2F3FA8DE22722E17439F2381FCF7ADF2DF8EFED628"
+  },
+  {
+    "Path": "lib/screens/settings/widgets/setting_section.dart",
+    "Hash": "BDB142C5C1DC9441227776D68E4A355384BB7643385466C1D676A0C9ED8B47C8"
+  },
+  {
+    "Path": "lib/screens/settings/widgets/settings_tile.dart",
+    "Hash": "840EDAA7F09C71BD03350F09AAEAB7AB06E3587D482B63ADB0C6905252490512"
+  },
+  {
+    "Path": "lib/screens/stock/stock_screen.dart",
+    "Hash": "25E43B160C05F2C9093744B41AE1308266133383F85406280A29B8CDE931D36F"
+  },
+  {
+    "Path": "lib/screens/stock/dialogs/adjust_stock_dialog.dart",
+    "Hash": "FA24522AE81B5A57BD4502CF4242BCB6192CAE6BE812FAA72D689D12BCA87AAA"
+  },
+  {
+    "Path": "lib/screens/stock/dialogs/cancel_activity_dialog.dart",
+    "Hash": "862F2AC6304DCFE3BFCF04494E3B3543E5E84357CB0C20503652A25BF724BB92"
+  },
+  {
+    "Path": "lib/screens/stock/utils/stock_shortcuts.dart",
+    "Hash": "178110998D2F13545DA2C3A56B2EDD2EB8FCB6B899F99F483F76FBBDAA0D6582"
+  },
+  {
+    "Path": "lib/screens/stock/utils/stock_sort_util.dart",
+    "Hash": "54D30B2ABD297E460428D8C0227964C42DEC4C4C26F845841311198C9FE93805"
+  },
+  {
+    "Path": "lib/screens/stock/widgets/activity_detail_panel_widget.dart",
+    "Hash": "67AC8039193FFE77BF58F69CA457FE83AF0A7F31174CE45FC3CB7EB5C873B9A5"
+  },
+  {
+    "Path": "lib/screens/stock/widgets/activity_table_skeleton_widget.dart",
+    "Hash": "03EAC8E0441A32F9EA3F2EA1F82364DEB0BC55B56FB2F67A8C31E11361AC6C0F"
+  },
+  {
+    "Path": "lib/screens/stock/widgets/filter_panel_widget.dart",
+    "Hash": "8D7CABE81DAA893D87B765CB277D10995A5C0E0A3F0AD908FAC515FF74150AF2"
+  },
+  {
+    "Path": "lib/screens/stock/widgets/kpi_strip_widget.dart",
+    "Hash": "CDD2559913B0BFE9BEBE2D8F0031659EB8D82671075BB0C022FB50032291361C"
+  },
+  {
+    "Path": "lib/screens/stock/widgets/recent_activities_table_widget.dart",
+    "Hash": "8F659AB0F0D44B253B47A95A7F74934097C8ADADFA6F95EFC38E095E49D624BD"
+  },
+  {
+    "Path": "lib/screens/stock/widgets/stock_table_skeleton_widget.dart",
+    "Hash": "705C5AF2CE8ACBF21C33C71C6C466986A64207E9D558DF31B2B64FE8D8671793"
+  },
+  {
+    "Path": "lib/screens/stock/widgets/stock_table_widget.dart",
+    "Hash": "8941423AFAA520F8AECC0259E576CA4869AF430F8D7D3F178B06C484DD356DDB"
+  },
+  {
+    "Path": "lib/screens/suppliers/suppliers_screen.dart",
+    "Hash": "4C0F7C45EEFE2AC44CD7E23D8093DB578465041BD81C781416E7FAEBA28FF965"
+  },
+  {
+    "Path": "lib/screens/suppliers/controller/supplier_controller.dart",
+    "Hash": "57241AFDD0F8E2FC77EABE617F4BFA529807BF7E8F2F956451F9DEA98B8C8164"
+  },
+  {
+    "Path": "lib/screens/suppliers/dialogs/add_supplier_dialog.dart",
+    "Hash": "D45AC47DFA1E7CCDFBE09166356984BD3E5E7A3B207303CF8EE70CBD805C06FD"
+  },
+  {
+    "Path": "lib/screens/suppliers/dialogs/receive_supplier_payment_dialog.dart",
+    "Hash": "300DD200FE5205B3056369D3558943391FECFF6D92C8D7FC24EAE7AAF378AB96"
+  },
+  {
+    "Path": "lib/screens/suppliers/widgets/archived_suppliers_overlay.dart",
+    "Hash": "12C96AF16E524141877F7A78CDC02206BAC45FE125990A53D2671692AB9DFDDF"
+  },
+  {
+    "Path": "lib/screens/suppliers/widgets/supplier_kpi_card.dart",
+    "Hash": "0652B0582829FB40B6AA9E4ACA4D5AC8F2697D68D0A3E769B3972D72CA079975"
+  },
+  {
+    "Path": "lib/screens/suppliers/widgets/supplier_kpi_section.dart",
+    "Hash": "0B443227C9148CAA389905C2FD125C2BB5EED25490DB8B08CEEE2DE8790F5C27"
+  },
+  {
+    "Path": "lib/screens/suppliers/widgets/supplier_ledger_panel.dart",
+    "Hash": "5097D83D4452F1591DF0636896657623A1C79954629A01620AAE28DF3EE0E408"
+  },
+  {
+    "Path": "lib/screens/suppliers/widgets/supplier_list_tile.dart",
+    "Hash": "BFEAFC9A476135E1900B92D6359DCF6C0B51395D53263A0306F40FCFCD8D33BE"
+  },
+  {
+    "Path": "lib/screens/suppliers/widgets/supplier_list.dart",
+    "Hash": "DCDD12A2C31FD5912AEC412A5821AB641F08EC46728FBE83C97312861AD6966B"
+  },
+  {
+    "Path": "lib/screens/suppliers/widgets/supplier_search_bar.dart",
+    "Hash": "4607B66C57BAA7CD7C7DA768D6E2DA49C9996DD405BA7CC4D2EC2307FCB5B441"
+  },
+  {
+    "Path": "lib/screens/units/units_screen.dart",
+    "Hash": "1589A6B19DA30C1FACD661E1806240DEFAD68CF6E5500441CEC0C8C8751A8D27"
+  },
+  {
+    "Path": "lib/screens/units/dialogs/add_unit_dialog.dart",
+    "Hash": "3A8C44DB0E58200A2B5ACE8CBA94B79B3E3D2B4FF92F30C5F18B928D215DE2E3"
+  },
+  {
+    "Path": "lib/screens/units/dialogs/delete_unit_dialog.dart",
+    "Hash": "48865800DE81E61358783547ED2C53582793A76742726D3C0200AA0B2F092232"
+  },
+  {
+    "Path": "lib/screens/units/dialogs/edit_unit_dialog.dart",
+    "Hash": "228E248A5174B197EFBE3527EFC00932FB6A10FC2FDE3E8297E7F207B3B84CF6"
+  },
+  {
+    "Path": "lib/screens/units/utils/unit_converter.dart",
+    "Hash": "B1D60BA60DD4428AECB0BEE56EE02464917DF8E505B931B8903EBCC74C86B691"
+  },
+  {
+    "Path": "lib/screens/units/utils/unit_validator.dart",
+    "Hash": "80FC9B1E8888D7CE074FA98E516CEA1D0834816B5FC081007B7E18F1ED0D4A99"
+  },
+  {
+    "Path": "lib/screens/units/widgets/base_unit_indicator.dart",
+    "Hash": "7DB0631D25AED31D38408CBAD4E0276C5D1B0B5A95745B65A86151CA292F6842"
+  },
+  {
+    "Path": "lib/screens/units/widgets/unit_category_section.dart",
+    "Hash": "5E0F5DC1B8C63D3D007FB722FE55175BA9341A94C0147983AD4BEFD35E03461D"
+  },
+  {
+    "Path": "lib/screens/units/widgets/unit_list_item.dart",
+    "Hash": "FE1BD3B91B0C54E7CAE7E5E64D6E780406BD6B0DED4254C91D7A3720F3BC5AA9"
+  },
+  {
+    "Path": "lib/services/ledger_export_service.dart",
+    "Hash": "5AB1DFC84DA37670C375434503130E131DCE6974501C759EF35051C2BD26BAE0"
+  },
+  {
+    "Path": "lib/services/pdf_export_service.dart",
+    "Hash": "EC61323E9688015830013974DEE6A078D5C3FBE89E0604592A97649B6002D4DB"
+  },
+  {
+    "Path": "lib/widgets/app_feature_theme.dart",
+    "Hash": "7627F4605CBDDD995BE276F40B5750CC39B22C0840F5C3AA5CEBF373E96EF582"
+  },
+  {
+    "Path": "lib/widgets/app_header.dart",
+    "Hash": "0642E6BD9C1F2A499941E9599CED7EF2B71B5A8DA7D5A7BCB37475AA189A2C76"
+  },
+  {
+    "Path": "lib/widgets/app_management_tabs.dart",
+    "Hash": "1D76ADA37A167061664565E6E1442D934390624D33F2479C05F0D0F99E5EBFCA"
+  },
+  {
+    "Path": "lib/widgets/app_navigation_sidebar.dart",
+    "Hash": "06224DE0EA2A35885D88273175A11D42E979D2F0308C192D6A595F2BD722AAD3"
+  },
+  {
+    "Path": "lib/widgets/app_pane_viewport.dart",
+    "Hash": "9F8A62D126AC2294F802671A89B6A09E901A3E723780BF631E2C68F5F0FA7586"
+  },
+  {
+    "Path": "lib/widgets/app_search_card.dart",
+    "Hash": "91752BAD590EA489C5B92AB39933F580A43F6603BB356F7E45541E05746C77A1"
+  },
+  {
+    "Path": "lib/widgets/app_shell.dart",
+    "Hash": "55513E7741DAAD336E95E1746604070570EB18E7BA415FD35159F61B5C95DEF3"
+  },
+  {
+    "Path": "lib/widgets/app_state_view.dart",
+    "Hash": "5FE30171652E110BB9492A6D06DB7C513FD4C2CE41E629FBCAA2CEE6CEEF3880"
+  },
+  {
+    "Path": "lib/widgets/loading_overlay.dart",
+    "Hash": "D4A71F4295F23E9BCDF8CBD45CEF37B842821E48AE8FEDD090C62633302C8032"
+  },
+  {
+    "Path": "lib/widgets/skeleton_loader.dart",
+    "Hash": "2E4A6BB37EC1613D6A5CBA54F520224F645048E44E5B4B2D045AAEF4F046FF39"
+  }
+]

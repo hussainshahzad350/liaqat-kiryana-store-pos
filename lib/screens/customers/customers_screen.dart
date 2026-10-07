@@ -97,25 +97,25 @@ class _CustomersScreenContentState extends State<_CustomersScreenContent> {
           children: [
             // ── Main content ───────────────────────────────────
             Padding(
-              padding: const EdgeInsets.all(AppTokens.spacingLarge),
+              padding: const EdgeInsets.all(AppTokens.surfacePadding),
               child: Column(
                 children: [
                   // Toolbar
                   _buildToolbar(loc, colorScheme),
-                  const SizedBox(height: AppTokens.spacingMedium),
+                  const SizedBox(height: AppTokens.relatedGap),
 
                   // KPI cards
                   const CustomerKpiSection(),
-                  const SizedBox(height: AppTokens.spacingMedium),
+                  const SizedBox(height: AppTokens.relatedGap),
 
                   // Search bar
                   const CustomerSearchBar(),
-                  const SizedBox(height: AppTokens.spacingMedium),
+                  const SizedBox(height: AppTokens.relatedGap),
 
                   // Customer list
                   Expanded(
                     child: Card(
-                      elevation: AppTokens.cardElevation,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius:
                             BorderRadius.circular(AppTokens.cardBorderRadius),

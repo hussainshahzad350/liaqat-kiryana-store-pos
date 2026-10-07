@@ -2419,4 +2419,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutSubtitle => 'App Version, System Info, and Developer Support';
+
+  @override
+  String get allDates => 'All dates';
+
+  @override
+  String get addUnit => 'Add unit';
+
+  @override
+  String get editUnit => 'Edit unit';
+
+  @override
+  String get makePayment => 'Make payment';
+
+  @override
+  String get makeSupplierPayment => 'Make payment to supplier';
+
+  @override
+  String get archiveSupplierConfirmation =>
+      'Deactivate this supplier? Their existing transactions will remain available.';
+
+  @override
+  String get finalPayable => 'Final payable';
+
+  @override
+  String get otherPaymentOptions => 'Other payment options';
+
+  @override
+  String get proceedPayment => 'Proceed';
+
+  @override
+  String get onScreenKeyboard => 'On-screen keyboard';
+
+  @override
+  String get mouseInputHint => 'Click a field to use the on-screen keyboard';
+
+  @override
+  String get clearInput => 'Clear';
+
+  @override
+  String get applyInput => 'Apply';
+
+  @override
+  String get keyboardSpace => 'Space';
+
+  @override
+  String get keyboardShift => 'Uppercase / lowercase';
+
+  @override
+  String get keyboardBackspace => 'Backspace';
+
+  @override
+  String get increaseQuantity => 'Increase quantity';
+
+  @override
+  String get decreaseQuantity => 'Decrease quantity';
 }

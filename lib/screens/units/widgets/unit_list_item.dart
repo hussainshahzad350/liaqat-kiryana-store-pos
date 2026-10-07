@@ -29,7 +29,8 @@ class UnitListItem extends StatelessWidget {
       onTap: unit.isSystem ? null : onEdit,
       hoverColor: colorScheme.primaryContainer.withValues(alpha: 0.1),
       child: Container(
-        height: AppTokens.buttonHeight,
+        constraints:
+            const BoxConstraints(minHeight: AppTokens.controlMinHeight),
         padding: const EdgeInsets.symmetric(
           horizontal: AppTokens.spacingLarge,
           vertical: AppTokens.spacingSmall,
@@ -40,7 +41,8 @@ class UnitListItem extends StatelessWidget {
             Container(
               width: 32,
               height: 32,
-              margin: const EdgeInsets.only(right: AppTokens.spacingStandard),
+              margin:
+                  const EdgeInsetsDirectional.only(end: AppTokens.relatedGap),
               decoration: BoxDecoration(
                 color: unit.isSystem
                     ? colorScheme.surfaceContainerHighest

@@ -1,3 +1,4 @@
+import 'app_feature_theme.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -36,32 +37,29 @@ class AppHeader extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AppFeatureTheme(builder: _buildFeature);
+
+  Widget _buildFeature(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final screenTitle = _getScreenTitle(context, currentRoute);
 
     return Container(
-      height: AppTokens.headerHeight,
+      constraints: const BoxConstraints(minHeight: AppTokens.headerHeight),
       padding: const EdgeInsets.symmetric(horizontal: AppTokens.spacingLarge),
       decoration: BoxDecoration(
-        color: colorScheme.primary,
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: colorScheme.surface,
+        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
           // CENTER: Screen Title
           Expanded(
-            child: Center(
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
               child: Text(
                 screenTitle,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onPrimary,
+                      color: colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                 maxLines: 1,
@@ -119,10 +117,9 @@ class _LiveClockState extends State<LiveClock> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: colorScheme.onPrimary.withValues(alpha: 0.15),
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-            color: colorScheme.onPrimary.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: colorScheme.outlineVariant, width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -132,13 +129,12 @@ class _LiveClockState extends State<LiveClock> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.access_time,
-                  size: 12,
-                  color: colorScheme.onPrimary.withValues(alpha: 0.9)),
+                  size: 12, color: colorScheme.onSurfaceVariant),
               const SizedBox(width: 4),
               Text(
                 _currentTime,
                 style: textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onPrimary,
+                  color: colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -148,7 +144,7 @@ class _LiveClockState extends State<LiveClock> {
           Text(
             _currentDate,
             style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onPrimary.withValues(alpha: 0.8),
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],

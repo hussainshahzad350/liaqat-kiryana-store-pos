@@ -16,7 +16,7 @@ class SupplierKpiSection extends StatelessWidget {
     return Consumer<SupplierController>(
       builder: (context, controller, child) {
         return ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 115.0),
+          constraints: const BoxConstraints(minHeight: 0),
           child: Row(
             children: [
               Expanded(

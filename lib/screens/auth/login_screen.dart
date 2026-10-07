@@ -1,3 +1,4 @@
+import '../../widgets/app_feature_theme.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -35,6 +36,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  BuildContext? _presentationContext;
   // ── controllers ──────────────────────────────────────────────────────────
   final _pinController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -226,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _showRecoveryCodeDialog(String code) async {
     final loc = AppLocalizations.of(context)!;
     await showDialog<void>(
-      context: context,
+      context: _presentationContext ?? context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: Text(loc.recoveryCodeTitle),
@@ -276,7 +278,11 @@ class _LoginScreenState extends State<LoginScreen> {
   // ── build ─────────────────────────────────────────────────────────────────
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AppFeatureTheme(builder: _buildFeature);
+
+  Widget _buildFeature(BuildContext context) {
+    _presentationContext = context;
+
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;

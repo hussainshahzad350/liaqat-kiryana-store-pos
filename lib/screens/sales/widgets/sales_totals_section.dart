@@ -45,19 +45,26 @@ class SalesTotalsSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(loc.subtotal, style: textTheme.bodyLarge),
-            Text(subtotal.toString(),
-                style: textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ))
-          ]),
+          SizedBox(
+              width: double.infinity,
+              child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    Text(loc.subtotal, style: textTheme.bodyLarge),
+                    Text(subtotal.toString(),
+                        textDirection: TextDirection.ltr,
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ))
+                  ])),
           const SizedBox(height: AppTokens.spacingStandard),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text(loc.discount, style: textTheme.bodyLarge),
             SizedBox(
               width: 120,
-              height: AppTokens.buttonHeight,
+              height: AppTokens.controlMinHeight,
               child: TextField(
                 controller: discountController,
                 keyboardType: TextInputType.number,
@@ -81,67 +88,84 @@ class SalesTotalsSection extends StatelessWidget {
           if (previousBalance > const Money(0))
             Padding(
               padding: const EdgeInsets.only(top: AppTokens.spacingStandard),
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(loc.prevBalance,
-                        style: textTheme.bodyLarge
-                            ?.copyWith(color: colorScheme.error)),
-                    Text(previousBalance.toString(),
-                        style: textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.error,
-                            fontWeight: FontWeight.bold))
-                  ]),
+              child: SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        Text(loc.prevBalance,
+                            style: textTheme.bodyLarge
+                                ?.copyWith(color: colorScheme.error)),
+                        Text(previousBalance.toString(),
+                            textDirection: TextDirection.ltr,
+                            style: textTheme.bodyLarge?.copyWith(
+                                color: colorScheme.error,
+                                fontWeight: FontWeight.bold))
+                      ])),
             ),
           const SizedBox(height: AppTokens.spacingStandard),
           const Divider(),
           const SizedBox(height: AppTokens.spacingStandard),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(loc.grandTotal.toUpperCase(),
-                style: textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w800)),
-            Text(grandTotal.toString(),
-                style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900, color: colorScheme.primary))
-          ]),
-          const SizedBox(height: AppTokens.spacingMedium),
           SizedBox(
-            width: double.infinity,
-            height: AppTokens.buttonHeight * 1.4,
+              width: double.infinity,
+              child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    Text(loc.grandTotal.toUpperCase(),
+                        style: textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w800)),
+                    Text(grandTotal.toString(),
+                        textDirection: TextDirection.ltr,
+                        textAlign: TextAlign.end,
+                        style: textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: colorScheme.primary))
+                  ])),
+          const SizedBox(height: AppTokens.spacingMedium),
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+                minWidth: double.infinity,
+                minHeight: AppTokens.controlMinHeight),
             child: ElevatedButton(
               onPressed: isCheckoutEnabled ? onCheckout : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                elevation: AppTokens.cardElevation,
-                shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.cardBorderRadius)),
-              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.payment, size: AppTokens.iconSizeXLarge),
+                  const Icon(Icons.payment, size: AppTokens.iconSizeLarge),
                   const SizedBox(width: AppTokens.spacingStandard),
-                  Text(
+                  Flexible(
+                      child: Text(
                     loc.checkoutButton.toUpperCase(),
-                    style: textTheme.titleLarge
-                        ?.copyWith(color: colorScheme.onPrimary),
-                  ),
+                    textAlign: TextAlign.center,
+                    style: textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isCheckoutEnabled
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurfaceVariant),
+                  )),
                   const SizedBox(width: AppTokens.spacingStandard),
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: AppTokens.spacingSmall,
                         vertical: AppTokens.spacingXSmall),
                     decoration: BoxDecoration(
-                      color: colorScheme.onPrimary.withValues(alpha: 0.2),
+                      color: (isCheckoutEnabled
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurface)
+                          .withValues(alpha: 0.12),
                       borderRadius:
                           BorderRadius.circular(AppTokens.smallBorderRadius),
                     ),
                     child: Text(
                       "F9",
-                      style: textTheme.bodySmall
-                          ?.copyWith(color: colorScheme.onPrimary),
+                      style: textTheme.bodySmall?.copyWith(
+                          color: isCheckoutEnabled
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurfaceVariant),
                     ),
                   ),
                 ],

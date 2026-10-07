@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-04",
+  "productionFilesCompared": 196,
+  "productionFilesChanged": [],
+  "screenshots": 400,
+  "feedbackConstructorSites": 68,
+  "feedbackLanguages": [
+    "en",
+    "ur"
+  ],
+  "nativeCaptureScenariosPassed": 3,
+  "observedOverflowCaptures": [
+    "en-light-min-customer-ledger.png",
+    "en-light-min-supplier-ledger.png",
+    "en-dark-min-customer-ledger.png",
+    "en-dark-min-supplier-ledger.png"
+  ],
+  "analyzer": "No issues found",
+  "normalWindowsDebugMainBuild": "passed; lib/main.dart restored",
+  "fullBusinessSuite": "not rerun; production code unchanged; capture/documentation task",
+  "artifactsVerified": "400 PNG files decode and match manifest dimensions; required screen/dialog/feedback coverage present",
+  "limitations": "Some modal and feedback captures are production-component specimens with inert callbacks/sample text; not all business failure paths executed. OS-native and physical printer dialogs not captured."
+}

@@ -68,7 +68,7 @@ class _EditUnitDialogState extends State<EditUnitDialog> {
     return AlertDialog(
       backgroundColor: colorScheme.surface,
       surfaceTintColor: colorScheme.surfaceTint,
-      title: Text(loc.editItem, style: textTheme.titleLarge),
+      title: Text(loc.editUnit, style: textTheme.titleLarge),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: _selectedCategory == null

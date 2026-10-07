@@ -1,3 +1,5 @@
+import '../../widgets/app_feature_theme.dart';
+import '../../core/res/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +22,7 @@ class PurchaseScreen extends StatefulWidget {
 }
 
 class _PurchaseScreenState extends State<PurchaseScreen> {
+  BuildContext? _presentationContext;
   final TextEditingController _invoiceCtrl = TextEditingController();
   final TextEditingController _notesCtrl = TextEditingController();
   DateTime _purchaseDate = DateTime.now();
@@ -45,7 +48,7 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
 
   void _onProductTapped(Product p) {
     showDialog(
-      context: context,
+      context: _presentationContext ?? context,
       builder: (_) => AddPurchaseItemDialog(
         product: p,
         onConfirm: (item) {
@@ -57,7 +60,11 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AppFeatureTheme(builder: _buildFeature);
+
+  Widget _buildFeature(BuildContext context) {
+    _presentationContext = context;
+
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -114,82 +121,94 @@ class _PurchaseScreenState extends State<PurchaseScreen> {
               builder: (context, state) {
                 return Stack(
                   children: [
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        double rightPanelWidth = 340;
-                        if (constraints.maxWidth >= 2560) {
-                          rightPanelWidth = 500;
-                        } else if (constraints.maxWidth >= 1920) {
-                          rightPanelWidth = 440;
-                        } else if (constraints.maxWidth >= 1366) {
-                          rightPanelWidth = 380;
-                        }
+                    Positioned.fill(
+                        child: ColoredBox(
+                            color: colorScheme.surfaceContainerLowest)),
+                    Padding(
+                      padding: const EdgeInsets.all(AppTokens.surfacePadding),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          double rightPanelWidth = 340;
+                          if (constraints.maxWidth >= 2560) {
+                            rightPanelWidth = 500;
+                          } else if (constraints.maxWidth >= 1920) {
+                            rightPanelWidth = 440;
+                          } else if (constraints.maxWidth >= 1366) {
+                            rightPanelWidth = 380;
+                          }
 
-                        return Row(
-                          children: [
-                            // LEFT PANEL
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // Toolbar equivalent
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 24.0, vertical: 16.0),
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.surface,
-                                      border: Border(
-                                        bottom: BorderSide(
-                                            color: colorScheme.outlineVariant),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      loc.purchaseScreenTitle,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
+                          return Row(
+                            children: [
+                              // LEFT PANEL
+                              Expanded(
+                                child: Card(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      // Toolbar equivalent
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16.0, vertical: 12.0),
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.surface,
+                                          border: Border(
+                                            bottom: BorderSide(
+                                                color:
+                                                    colorScheme.outlineVariant),
                                           ),
-                                    ),
+                                        ),
+                                        child: Text(
+                                          loc.purchaseScreenTitle,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: PurchaseItemListWidget(
+                                          cartItemIds: state.cartItems
+                                              .map((e) => e.productId)
+                                              .toList(),
+                                          onProductTapped: _onProductTapped,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Expanded(
-                                    child: PurchaseItemListWidget(
-                                      cartItemIds: state.cartItems
-                                          .map((e) => e.productId)
-                                          .toList(),
-                                      onProductTapped: _onProductTapped,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // DIVIDER
-                            Container(
-                                width: 0.5, color: colorScheme.outlineVariant),
-
-                            // RIGHT PANEL
-                            SizedBox(
-                              width: rightPanelWidth,
-                              child: Container(
-                                color: colorScheme.surface,
-                                child: PurchaseCartWidget(
-                                  invoiceCtrl: _invoiceCtrl,
-                                  notesCtrl: _notesCtrl,
-                                  purchaseDate: _purchaseDate,
-                                  onDateChanged: (val) {
-                                    setState(() {
-                                      _purchaseDate = val;
-                                    });
-                                  },
-                                  onSave: _save,
                                 ),
                               ),
-                            ),
-                          ],
-                        );
-                      },
+
+                              // DIVIDER
+                              const SizedBox(width: AppTokens.contentGap),
+
+                              // RIGHT PANEL
+                              SizedBox(
+                                width: rightPanelWidth,
+                                child: Card(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(
+                                        AppTokens.surfacePadding),
+                                    child: PurchaseCartWidget(
+                                      invoiceCtrl: _invoiceCtrl,
+                                      notesCtrl: _notesCtrl,
+                                      purchaseDate: _purchaseDate,
+                                      onDateChanged: (val) {
+                                        setState(() {
+                                          _purchaseDate = val;
+                                        });
+                                      },
+                                      onSave: _save,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                     if (state.status == PurchaseStatus.submitting)
                       const LoadingOverlay(),

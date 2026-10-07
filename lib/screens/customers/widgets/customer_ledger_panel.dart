@@ -1,3 +1,4 @@
+import '../../../core/utils/error_handler.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -409,7 +410,10 @@ class _FilterBar extends StatelessWidget {
         vertical: AppTokens.spacingSmall,
       ),
       color: colorScheme.surfaceContainerHighest,
-      child: Row(
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           OutlinedButton.icon(
             onPressed: onPickDate,
@@ -430,7 +434,6 @@ class _FilterBar extends StatelessWidget {
               color: colorScheme.onSurfaceVariant,
             ),
           ],
-          const SizedBox(width: AppTokens.spacingMedium),
           SegmentedButton<String>(
             segments: [
               ButtonSegment(value: 'ALL', label: Text(loc.all)),
@@ -444,9 +447,8 @@ class _FilterBar extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
-          const Spacer(),
           SizedBox(
-            width: AppTokens.sidebarWidthSmall,
+            width: 280,
             child: TextField(
               controller: searchCtrl,
               onChanged: onSearch,
@@ -640,8 +642,8 @@ class _LedgerRowState extends State<_LedgerRow> {
     } catch (e) {
       if (mounted) {
         final scaffoldMessenger = ScaffoldMessenger.of(context);
-        final errorMsg =
-            AppLocalizations.of(context)!.errorMessage(e.toString());
+        final errorMsg = ErrorHandler.getLocalizedMessage(
+            e.toString(), AppLocalizations.of(context)!);
         final errorColor = Theme.of(context).colorScheme.error;
         scaffoldMessenger.showSnackBar(SnackBar(
           content: Text(errorMsg),

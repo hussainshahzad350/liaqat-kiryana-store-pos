@@ -10,5 +10,6 @@
         "Roboto",
         "sqflite"
     ],
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "dart.flutterSdkPath": "C:\\src\\flutter"
 }

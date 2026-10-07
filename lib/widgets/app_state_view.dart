@@ -52,7 +52,8 @@ class AppStateView extends StatelessWidget {
         isError ? colorScheme.error : colorScheme.onSurfaceVariant;
 
     return Center(
-      child: Padding(
+      child: SingleChildScrollView(
+          child: Padding(
         padding: const EdgeInsets.all(AppTokens.spacingXLarge),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -84,7 +85,7 @@ class AppStateView extends StatelessWidget {
             ],
           ],
         ),
-      ),
+      )),
     );
   }
 }

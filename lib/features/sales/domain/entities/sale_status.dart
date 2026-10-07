@@ -12,12 +12,4 @@ enum SaleStatus {
         return 'CANCELLED';
     }
   }
-
-  /// Parse from database string value
-  static SaleStatus fromDbValue(String value) {
-    return SaleStatus.values.firstWhere(
-      (s) => s.dbValue == value,
-      orElse: () => SaleStatus.completed,
-    );
-  }
 }

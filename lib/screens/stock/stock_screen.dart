@@ -1,3 +1,4 @@
+import '../../widgets/app_feature_theme.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -39,6 +40,7 @@ class StockScreen extends StatefulWidget {
 }
 
 class _StockScreenState extends State<StockScreen> {
+  BuildContext? _presentationContext;
   @override
   void dispose() {
     _searchDebounce?.cancel();
@@ -53,7 +55,7 @@ class _StockScreenState extends State<StockScreen> {
 
   void _openAdjustStockPanel(StockItemEntity item) {
     showDialog<void>(
-      context: context,
+      context: _presentationContext ?? context,
       builder: (dialogContext) => AdjustStockDialog(
         item: item,
         onSave: (adjustment, reason) {
@@ -78,7 +80,7 @@ class _StockScreenState extends State<StockScreen> {
   void _openCancelConfirmationPanel(StockActivityEntity activity) {
     final loc = AppLocalizations.of(context)!;
     showDialog<void>(
-      context: context,
+      context: _presentationContext ?? context,
       builder: (_) => CancelActivityDialog(
         onConfirm: () {
           if (!context.mounted) return;
@@ -94,7 +96,11 @@ class _StockScreenState extends State<StockScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AppFeatureTheme(builder: _buildFeature);
+
+  Widget _buildFeature(BuildContext context) {
+    _presentationContext = context;
+
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -146,6 +152,9 @@ class _StockScreenState extends State<StockScreen> {
               listener: (context, state) {
                 if (!context.mounted) return;
                 if (state is StockActivityActionSuccess) {
+                  // A completed action invalidates the detail widget's snapshot.
+                  context.read<StockUiCubit>().closeSidePanel();
+                  _sidePanelContent = null;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -185,13 +194,15 @@ class _StockScreenState extends State<StockScreen> {
                         Expanded(
                           child: Padding(
                             padding:
-                                const EdgeInsets.all(AppTokens.spacingLarge),
+                                const EdgeInsets.all(AppTokens.surfacePadding),
                             child: Column(
                               children: [
                                 const KpiStripWidget(),
-                                const SizedBox(height: AppTokens.spacingLarge),
+                                const SizedBox(
+                                    height: AppTokens.surfacePadding),
                                 _buildFilterSection(),
-                                const SizedBox(height: AppTokens.spacingLarge),
+                                const SizedBox(
+                                    height: AppTokens.surfacePadding),
                                 Expanded(
                                     child: _buildMainContentArea(
                                         context, loc, colorScheme)),
@@ -223,6 +234,12 @@ class _StockScreenState extends State<StockScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          OutlinedButton.icon(
+            onPressed: () => AppShell.navigateTo(context, AppRoutes.product),
+            icon: const Icon(Icons.inventory_2_outlined),
+            label: Text(loc.items),
+          ),
+          const SizedBox(width: AppTokens.spacingSmall),
           ElevatedButton.icon(
             onPressed: () => AppShell.navigateTo(context, AppRoutes.purchase),
             icon: const Icon(Icons.add_shopping_cart),
@@ -235,14 +252,14 @@ class _StockScreenState extends State<StockScreen> {
           const SizedBox(width: AppTokens.spacingSmall),
           OutlinedButton(
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(loc.exportCsv)),
+              SnackBar(content: Text(loc.functionalityComingSoon)),
             ),
             child: Text(loc.exportCsv),
           ),
           const SizedBox(width: AppTokens.spacingXSmall),
           OutlinedButton(
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(loc.exportPdf)),
+              SnackBar(content: Text(loc.functionalityComingSoon)),
             ),
             child: Text(loc.exportPdf),
           ),
@@ -329,8 +346,8 @@ class _StockScreenState extends State<StockScreen> {
                               onAdjustStock: _openAdjustStockPanel,
                               onQuickPurchase: _navigateToPurchase,
                               onViewHistory: (title, item) {
-                                _sidePanelContent =
-                                    Center(child: Text(loc.noDataAvailable));
+                                _sidePanelContent = Center(
+                                    child: Text(loc.functionalityComingSoon));
                                 uiContext
                                     .read<StockUiCubit>()
                                     .openSidePanel(title);
@@ -358,7 +375,8 @@ class _StockScreenState extends State<StockScreen> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
-                                            content: Text(loc.bulkAdjustStock)),
+                                            content: Text(
+                                                loc.functionalityComingSoon)),
                                       );
                                     },
                               onBulkExportSelected: uiState.selectedIds.isEmpty
@@ -367,8 +385,8 @@ class _StockScreenState extends State<StockScreen> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
-                                            content:
-                                                Text(loc.bulkExportSelected)),
+                                            content: Text(
+                                                loc.functionalityComingSoon)),
                                       );
                                     },
                               onBulkOrderSelected: uiState.selectedIds.isEmpty
@@ -383,41 +401,48 @@ class _StockScreenState extends State<StockScreen> {
                     ),
                   ),
                   const SizedBox(height: AppTokens.spacingMedium),
-                  Expanded(
-                    flex: 1,
-                    child: BlocBuilder<StockActivityBloc, StockActivityState>(
-                      buildWhen: (previous, current) =>
-                          current is StockActivityLoading ||
-                          current is StockActivityLoaded ||
-                          current is StockActivityError,
-                      builder: (activityContext, state) {
-                        if (state is StockActivityLoading) {
-                          return ActivityTableSkeletonWidget(
-                              colorScheme: colorScheme);
-                        }
-                        if (state is StockActivityLoaded) {
-                          return RecentActivitiesTableWidget(
-                            activities: state.activities,
-                            hasReachedMax: state.hasReachedMax,
-                            onActivityView: (title, activity) {
-                              _sidePanelContent = ActivityDetailPanelWidget(
-                                activity: activity,
-                                onCancel: () =>
-                                    _openCancelConfirmationPanel(activity),
-                                pdfExportService: _pdfExportService,
+                  ExpansionTile(
+                    title: Text(loc.recentActivities),
+                    children: [
+                      SizedBox(
+                        height:
+                            (constraints.maxHeight * 0.35).clamp(100.0, 180.0),
+                        child:
+                            BlocBuilder<StockActivityBloc, StockActivityState>(
+                          buildWhen: (previous, current) =>
+                              current is StockActivityLoading ||
+                              current is StockActivityLoaded ||
+                              current is StockActivityError,
+                          builder: (activityContext, state) {
+                            if (state is StockActivityLoading) {
+                              return ActivityTableSkeletonWidget(
+                                  colorScheme: colorScheme);
+                            }
+                            if (state is StockActivityLoaded) {
+                              return RecentActivitiesTableWidget(
+                                activities: state.activities,
+                                hasReachedMax: state.hasReachedMax,
+                                onActivityView: (title, activity) {
+                                  _sidePanelContent = ActivityDetailPanelWidget(
+                                    activity: activity,
+                                    onCancel: () =>
+                                        _openCancelConfirmationPanel(activity),
+                                    pdfExportService: _pdfExportService,
+                                  );
+                                  activityContext
+                                      .read<StockUiCubit>()
+                                      .openSidePanel(title);
+                                },
+                                onLoadMore: () => activityContext
+                                    .read<StockActivityBloc>()
+                                    .add(const LoadMoreStockActivities()),
                               );
-                              activityContext
-                                  .read<StockUiCubit>()
-                                  .openSidePanel(title);
-                            },
-                            onLoadMore: () => activityContext
-                                .read<StockActivityBloc>()
-                                .add(const LoadMoreStockActivities()),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      )
+                    ],
                   ),
                 ],
               ),
@@ -474,7 +499,9 @@ class _StockScreenState extends State<StockScreen> {
                               const Divider(height: 1),
                               Expanded(
                                   child: _sidePanelContent ??
-                                      Center(child: Text(loc.noDataAvailable))),
+                                      Center(
+                                          child: Text(
+                                              loc.functionalityComingSoon))),
                             ],
                           ),
                         ),

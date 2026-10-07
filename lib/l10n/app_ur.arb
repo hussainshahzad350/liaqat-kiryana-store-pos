@@ -18,7 +18,9 @@
   "pinLockedOut": "بہت زیادہ کوششیں۔ {seconds} سیکنڈ بعد دوبارہ کوشش کریں۔",
   "@pinLockedOut": {
     "placeholders": {
-      "seconds": {"type": "int"}
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "recoveryCode": "ریکوری کوڈ",
@@ -40,7 +42,9 @@
   "attemptsRemaining": "{count} کوشش(یں) باقی",
   "@attemptsRemaining": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "home": "مرکزی صفحہ",
@@ -800,7 +804,13 @@
   "supplier": "سپلائر",
   "unknownError": "ایک نامعلوم خرابی پیش آئی",
   "fieldRequired": "{field} لازمی ہے",
-  "@fieldRequired": { "placeholders": { "field": { "type": "String" } } },
+  "@fieldRequired": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
   "invalidPhone": "فون نمبر غلط ہے",
   "processing": "کارروائی جاری ہے...",
   "newPurchaseBill": "نئی خریداری بِل",
@@ -832,7 +842,9 @@
   "itemsSelected": "{count} اشیاء منتخب",
   "@itemsSelected": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "clearSelection": "انتخاب صاف کریں",
@@ -851,7 +863,7 @@
   "derivedUnit": "ماخوذ یونٹ",
   "conversionFormula": "تبدیلی کا فارمولا",
   "multiplier": "ضرب کنندہ",
-  "noBaseUnitSet": "اس زمرے کے لیے کوئی بنیادی یونٹ سیٹ نہیں ہے",
+  "noBaseUnitSet": "کوئی بنیادی اکائی مقرر نہیں",
   "unitCodeFallback": "یونٹ",
   "isBaseUnitTitle": "کیا یہ بنیادی یونٹ ہے؟",
   "isBaseUnitPrimarySubtitle": "یہ اس زمرے کے لیے بنیادی پیمائش ہوگی۔",
@@ -894,33 +906,48 @@
   "isBaseUnitFor": "یہ {category} کی بنیادی اکائی ہے۔",
   "@isBaseUnitFor": {
     "placeholders": {
-      "category": { "type": "String" }
+      "category": {
+        "type": "String"
+      }
     }
   },
   "multiplierConversionLabel": "ضرب کار (بنیادی میں تبدیلی)",
   "baseUnitSubtitle": "بنیادی: {name} ({code})",
   "@baseUnitSubtitle": {
     "placeholders": {
-      "name": { "type": "String" },
-      "code": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
     }
   },
-  "noBaseUnitSet": "کوئی بنیادی اکائی مقرر نہیں",
   "noUnitsInCategory": "اس زمرے میں کوئی اکائی متعین نہیں",
   "softDeleteWarning": "نرم خاتمہ انتباہ",
   "unitInUseMessage": "یونٹ \"{name}\" ({code}) کو {count} مصنوعات یا دیگر یونٹس استعمال کر رہے ہیں۔",
   "@unitInUseMessage": {
     "placeholders": {
-      "name": { "type": "String" },
-      "code": { "type": "String" },
-      "count": { "type": "int" }
+      "name": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "confirmDeleteUnit": "کیا آپ واقعی \"{name}\" ({code}) کو حذف کرنا چاہتے ہیں؟",
   "@confirmDeleteUnit": {
     "placeholders": {
-      "name": { "type": "String" },
-      "code": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
     }
   },
   "unitArchiveNote": "موجودہ مصنوعات کا ڈیٹا محفوظ رکھنے کے لیے اسے حذف کی بجاے آرکائیو کیا جائے گا۔",
@@ -944,5 +971,23 @@
   "stockLimitError": "دستیاب اسٹاک کی حد پوری ہو گئی ہے",
   "systemUnit": "سسٹم یونٹ",
   "todaysCustomers": "آج کے گاہک",
-  "viewUnit": "یونٹ دیکھیں"
+  "viewUnit": "یونٹ دیکھیں",
+  "allDates": "تمام تاریخیں",
+  "addUnit": "اکائی شامل کریں",
+  "editUnit": "اکائی میں ترمیم",
+  "makePayment": "ادائیگی کریں",
+  "makeSupplierPayment": "سپلائر کو ادائیگی کریں",
+  "archiveSupplierConfirmation": "اس سپلائر کو غیر فعال کریں؟ اس کے سابقہ لین دین محفوظ رہیں گے۔",
+  "finalPayable": "کل واجب الادا",
+  "otherPaymentOptions": "ادائیگی کے دیگر طریقے",
+  "proceedPayment": "آگے بڑھیں",
+  "onScreenKeyboard": "اسکرین کی بورڈ",
+  "mouseInputHint": "اسکرین کی بورڈ کے لیے کسی خانے پر کلک کریں",
+  "clearInput": "صاف کریں",
+  "applyInput": "لاگو کریں",
+  "keyboardSpace": "فاصلہ",
+  "keyboardShift": "بڑے / چھوٹے حروف",
+  "keyboardBackspace": "پچھلا حرف مٹائیں",
+  "increaseQuantity": "مقدار بڑھائیں",
+  "decreaseQuantity": "مقدار کم کریں"
 }

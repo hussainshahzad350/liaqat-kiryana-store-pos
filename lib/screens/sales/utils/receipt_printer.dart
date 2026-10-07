@@ -35,7 +35,7 @@ class ReceiptPrinter {
     try {
       // Generate and print receipt
       final receiptData = await _receiptRepository.generateReceiptData(invoice);
-      await _receiptRepository.printReceipt(receiptData);
+      if (!await _receiptRepository.printReceipt(receiptData)) return false;
 
       // Track the print
       final invoiceId = invoice.id;

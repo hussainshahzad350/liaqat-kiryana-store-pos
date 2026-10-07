@@ -1,3 +1,4 @@
+import '../../../core/utils/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/res/app_tokens.dart';
@@ -31,7 +32,8 @@ class SupplierList extends StatelessWidget {
 
         if (controller.listErrorMessage != null) {
           return AppStateView.error(
-            message: controller.listErrorMessage!,
+            message: ErrorHandler.getLocalizedMessage(
+                controller.listErrorMessage, loc),
             actionLabel: loc.retry,
             onRetry: () {
               controller.clearError();

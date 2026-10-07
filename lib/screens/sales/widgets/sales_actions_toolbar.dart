@@ -22,10 +22,11 @@ class SalesActionsToolbar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppTokens.spacingMedium,
-        vertical: AppTokens.spacingSmall,
+        vertical: 0,
       ),
       color: colorScheme.surface,
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           IconButton(

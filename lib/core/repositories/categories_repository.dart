@@ -73,11 +73,6 @@ class CategoriesRepository {
   }
 
   // --- SubCategories ---
-  Future<List<SubCategory>> getAllSubCategories() async {
-    final db = await _dbHelper.database;
-    final result = await db.query('subcategories', orderBy: 'name_english');
-    return result.map((e) => SubCategory.fromMap(e)).toList();
-  }
 
   Future<List<SubCategory>> getSubCategoriesByCategory(int categoryId) async {
     final db = await _dbHelper.database;

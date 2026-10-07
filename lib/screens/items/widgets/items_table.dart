@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/res/app_tokens.dart';
+import '../../../widgets/app_state_view.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/product_model.dart';
 
@@ -16,6 +17,8 @@ class ItemsTable extends StatelessWidget {
     required this.hasNextPage,
     required this.onEditItem,
     required this.onDeleteItem,
+    this.errorMessage,
+    this.onRetry,
   });
 
   final List<Product> items;
@@ -27,6 +30,8 @@ class ItemsTable extends StatelessWidget {
   final bool hasNextPage;
   final ValueChanged<Product> onEditItem;
   final ValueChanged<int> onDeleteItem;
+  final String? errorMessage;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +40,16 @@ class ItemsTable extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     if (isInitialLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return AppStateView.loading(message: localizations.loading);
+    }
+    if (items.isEmpty && errorMessage != null) {
+      return AppStateView.error(
+          message: errorMessage!,
+          actionLabel: localizations.retry,
+          onRetry: onRetry);
     }
     if (items.isEmpty) {
-      return Center(
-        child: Text(localizations.noItemsFound, style: textTheme.bodyLarge),
-      );
+      return AppStateView.empty(message: localizations.noItemsFound);
     }
 
     return LayoutBuilder(
@@ -50,14 +59,21 @@ class ItemsTable extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (errorMessage != null)
+              MaterialBanner(content: Text(errorMessage!), actions: [
+                TextButton(onPressed: onRetry, child: Text(localizations.retry))
+              ]),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: ConstrainedBox(
                 constraints: BoxConstraints(minWidth: constraints.maxWidth),
                 child: DataTable(
-                  headingRowHeight: AppTokens.buttonHeight,
-                  dataRowMinHeight: AppTokens.buttonHeight,
-                  dataRowMaxHeight: AppTokens.buttonHeight,
+                  headingRowHeight:
+                      Directionality.of(context) == TextDirection.rtl
+                          ? 64
+                          : AppTokens.controlMinHeight,
+                  dataRowMinHeight: AppTokens.controlMinHeight,
+                  dataRowMaxHeight: double.infinity,
                   columnSpacing: AppTokens.spacingMedium,
                   horizontalMargin: AppTokens.spacingMedium,
                   headingRowColor:

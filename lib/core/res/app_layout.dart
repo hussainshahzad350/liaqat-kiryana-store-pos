@@ -7,23 +7,24 @@ import 'app_tokens.dart';
 class AppLayout {
   const AppLayout._();
 
+  static const double minimumDesktopWidth = 1024;
+  static const double minimumDesktopHeight = 720;
+
+  /// A settings/card grid uses its own available pane width, not the window.
+  static int settingsColumnCount(double availableWidth) =>
+      availableWidth < 900 ? 2 : 3;
+
   static const double desktopCompact = 1366;
   static const double desktopWide = 1920;
   static const double desktopUltraWide = 2560;
   static const double salesPanelStandard = 500;
 
-  static double salesSidePanelWidth(double viewportWidth) {
-    if (viewportWidth >= desktopUltraWide) {
-      return AppTokens.panelWidth2560;
-    }
-    if (viewportWidth >= desktopWide) {
-      return AppTokens.panelWidth1920;
-    }
-    if (viewportWidth >= desktopCompact) {
-      return salesPanelStandard;
-    }
-    return AppTokens.sidebarDefaultWidth;
-  }
+  /// Use a rail when navigation would crowd the task workspace.
+  static bool useNavigationRail(double clientWidth) => clientWidth < 1200;
+
+  /// Reserve most of the actual workspace for product selection.
+  static double salesSidePanelWidth(double availableWidth) =>
+      (availableWidth * 0.42).clamp(360.0, AppTokens.panelWidth2560);
 
   static int productGridColumnCount(
     double availableWidth, {

@@ -1,3 +1,4 @@
+import '../../widgets/app_feature_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../bloc/settings/settings_cubit.dart';
@@ -16,7 +17,9 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AppFeatureTheme(builder: _buildFeature);
+
+  Widget _buildFeature(BuildContext context) {
     return BlocProvider(
       create: (context) =>
           SettingsCubit(context.read<SettingsRepository>())..loadAll(),
@@ -83,7 +86,7 @@ class SettingsView extends StatelessWidget {
             children: [
               // Header
               Container(
-                padding: const EdgeInsets.all(AppTokens.spacingLarge),
+                padding: const EdgeInsets.all(AppTokens.surfacePadding),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
                   border: Border(
@@ -99,15 +102,16 @@ class SettingsView extends StatelessWidget {
                             .selectCategory(SettingsCategory.dashboard),
                       ),
                     const SizedBox(width: AppTokens.spacingSmall),
-                    Text(
+                    Expanded(
+                        child: Text(
                       isDashboard
                           ? loc.settings
                           : _getCategoryTitle(state.selectedCategory, loc),
                       style: Theme.of(context)
                           .textTheme
-                          .headlineSmall
+                          .titleMedium
                           ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
+                    )),
                   ],
                 ),
               ),
@@ -120,7 +124,13 @@ class SettingsView extends StatelessWidget {
                     duration: const Duration(milliseconds: 300),
                     child: isDashboard
                         ? _buildDashboard(context, loc)
-                        : _getPage(state.selectedCategory),
+                        : Align(
+                            alignment: AlignmentDirectional.topStart,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 800),
+                              child: _getPage(state.selectedCategory),
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -165,11 +175,8 @@ class SettingsView extends StatelessWidget {
   }
 
   Widget _buildDashboard(BuildContext context, AppLocalizations loc) {
-    return GridView.count(
-      padding: const EdgeInsets.all(AppTokens.spacingXLarge),
-      crossAxisCount: 3,
-      mainAxisSpacing: AppTokens.spacingLarge,
-      crossAxisSpacing: AppTokens.spacingLarge,
+    return ListView(
+      padding: const EdgeInsets.all(AppTokens.surfacePadding),
       children: [
         SettingsTile(
           icon: Icons.store_outlined,

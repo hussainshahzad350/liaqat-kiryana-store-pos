@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../core/res/app_tokens.dart';
+import '../../../widgets/app_state_view.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../models/invoice_model.dart';
 import '../../../models/product_model.dart';
@@ -40,12 +43,12 @@ class SalesProductPanel extends StatelessWidget {
     return Column(
       children: [
         Card(
-          elevation: AppTokens.cardElevation,
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
+            borderRadius: BorderRadius.circular(AppTokens.surfaceRadius),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(AppTokens.cardPadding),
+            padding: const EdgeInsets.all(AppTokens.surfacePadding),
             child: Focus(
               onFocusChange: (hasFocus) {
                 if (hasFocus) searchFocusNode.requestFocus();
@@ -59,17 +62,6 @@ class SalesProductPanel extends StatelessWidget {
                   prefixIcon: Icon(
                     Icons.search,
                     color: colorScheme.onSurfaceVariant,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppTokens.cardBorderRadius),
-                  ),
-                  filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.5),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                    horizontal: 12,
                   ),
                 ),
                 onChanged: onSearchChanged,
@@ -86,17 +78,56 @@ class SalesProductPanel extends StatelessWidget {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              int crossAxisCount = (constraints.maxWidth / 180).floor();
-              crossAxisCount = crossAxisCount.clamp(4, 8);
+              if (products.isEmpty) {
+                return AppStateView.empty(
+                    message: loc.noData, icon: Icons.search_off);
+              }
+              final availableWidth = constraints.maxWidth;
+              final crossAxisCount =
+                  ((availableWidth + AppTokens.spacingStandard) /
+                          (180 + AppTokens.spacingStandard))
+                      .floor()
+                      .clamp(1, 8);
+              final tileWidth = (availableWidth -
+                      (crossAxisCount - 1) * AppTokens.spacingStandard) /
+                  crossAxisCount;
+              final textTheme = Theme.of(context).textTheme;
+              final textScaler = MediaQuery.textScalerOf(context);
+              final direction = Directionality.of(context);
+              final price = TextPainter(
+                text: TextSpan(
+                    text: '0.00',
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    )),
+                textDirection: direction,
+                textScaler: textScaler,
+              )..layout();
+              final name = TextPainter(
+                text: TextSpan(
+                    text: '${loc.item}\n${loc.item}',
+                    style: textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
+                    )),
+                textDirection: direction,
+                textScaler: textScaler,
+              )..layout();
+              final minimumHeight = 2 * AppTokens.spacingSmall +
+                  math.max(AppTokens.iconSizeSmall, price.height) +
+                  AppTokens.spacingXSmall +
+                  name.height;
+              price.dispose();
+              name.dispose();
 
               return GridView.builder(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppTokens.spacingMedium,
+                  horizontal: 0,
                   vertical: AppTokens.spacingSmall,
                 ),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  childAspectRatio: 16 / 9,
+                  mainAxisExtent: math.max(tileWidth * 9 / 16, minimumHeight),
                   crossAxisSpacing: AppTokens.spacingStandard,
                   mainAxisSpacing: AppTokens.spacingStandard,
                 ),

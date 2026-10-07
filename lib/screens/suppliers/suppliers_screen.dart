@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/repositories/suppliers_repository.dart';
 import '../../core/res/app_tokens.dart';
+import '../../l10n/app_localizations.dart';
 import 'controller/supplier_controller.dart';
 import 'widgets/supplier_search_bar.dart';
 import 'widgets/supplier_kpi_section.dart';
@@ -33,25 +34,25 @@ class _SuppliersScreenContent extends StatelessWidget {
 
   Future<bool> _confirmDeleteSupplier(
       BuildContext context, ColorScheme colorScheme) async {
+    final loc = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Confirm Delete',
+        title: Text(loc.confirmation,
             style: Theme.of(context).textTheme.titleLarge),
-        content: Text(
-            'Are you sure you want to completely delete this supplier?',
+        content: Text(loc.archiveSupplierConfirmation,
             style: Theme.of(context).textTheme.bodyMedium),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
+              child: Text(loc.cancel)),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.error,
               foregroundColor: colorScheme.onError,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
+            child: Text(loc.archive),
           ),
         ],
       ),
@@ -62,6 +63,7 @@ class _SuppliersScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final loc = AppLocalizations.of(context)!;
     final controller = context.watch<SupplierController>();
     final repository = context.read<SuppliersRepository>();
 
@@ -69,7 +71,7 @@ class _SuppliersScreenContent extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(
-              horizontal: AppTokens.spacingLarge,
+              horizontal: AppTokens.surfacePadding,
               vertical: AppTokens.spacingMedium),
           child: Column(
             children: [
@@ -90,7 +92,7 @@ class _SuppliersScreenContent extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.add),
-                      label: const Text('Add Supplier'), // Standard fallback
+                      label: Text(loc.addSupplier),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primaryContainer,
                         foregroundColor: colorScheme.onPrimaryContainer,
@@ -102,11 +104,11 @@ class _SuppliersScreenContent extends StatelessWidget {
 
               // KPI Section
               const SupplierKpiSection(),
-              const SizedBox(height: AppTokens.spacingMedium),
+              const SizedBox(height: AppTokens.relatedGap),
 
               // Search Bar
               const SupplierSearchBar(),
-              const SizedBox(height: AppTokens.spacingMedium),
+              const SizedBox(height: AppTokens.relatedGap),
 
               // List
               Expanded(

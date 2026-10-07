@@ -3,13 +3,14 @@ import 'package:liaqat_store/core/res/app_layout.dart';
 
 void main() {
   group('AppLayout.salesSidePanelWidth', () {
-    test('uses the compact width below the desktop baseline', () {
-      expect(AppLayout.salesSidePanelWidth(1024), 450);
+    test('keeps the cart usable in constrained panes', () {
+      expect(AppLayout.salesSidePanelWidth(700), 360);
+      expect(AppLayout.salesSidePanelWidth(900), 378);
     });
 
-    test('uses progressively wider panels at desktop breakpoints', () {
-      expect(AppLayout.salesSidePanelWidth(1366), 500);
-      expect(AppLayout.salesSidePanelWidth(1920), 550);
+    test('allocates cart space from actual pane width and caps wide panes', () {
+      expect(AppLayout.salesSidePanelWidth(1100), 462);
+      expect(AppLayout.salesSidePanelWidth(1920), 600);
       expect(AppLayout.salesSidePanelWidth(2560), 600);
     });
   });

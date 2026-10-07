@@ -68,7 +68,7 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
           icon: const Icon(Icons.person_add),
           label: Text(loc.selectSupplier),
           style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
           ),
         ),
       );
@@ -123,7 +123,7 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
           children: [
             // SECTION 1: Supplier header
             _buildSupplierSelector(context, state, loc),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 12.0),
             Row(
               children: [
                 Expanded(
@@ -131,6 +131,9 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                     controller: widget.invoiceCtrl,
                     decoration: InputDecoration(
                       labelText: loc.supplierInvoiceNumber,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
                       border: const OutlineInputBorder(),
                     ),
                   ),
@@ -153,13 +156,18 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                     child: InputDecorator(
                       decoration: InputDecoration(
                         labelText: loc.purchaseDate,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
                         border: const OutlineInputBorder(),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(DateFormat('yyyy-MM-dd')
-                              .format(widget.purchaseDate)),
+                          Expanded(
+                              child: Text(DateFormat('yyyy-MM-dd')
+                                  .format(widget.purchaseDate))),
+                          const SizedBox(width: 4),
                           const Icon(Icons.calendar_today, size: 20),
                         ],
                       ),
@@ -168,15 +176,18 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                 ),
               ],
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 12.0),
             TextField(
               controller: widget.notesCtrl,
               decoration: InputDecoration(
                 labelText: loc.notesOptionalLabel,
+                isDense: true,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: const OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 24.0),
+            const SizedBox(height: 16.0),
 
             // SECTION 2: Bill items label + count
             Row(
@@ -209,7 +220,8 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
             Expanded(
               child: state.cartItems.isEmpty
                   ? Center(
-                      child: Column(
+                      child: SingleChildScrollView(
+                          child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
@@ -225,7 +237,7 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                                     .withValues(alpha: 0.5)),
                           ),
                         ],
-                      ),
+                      )),
                     )
                   : ListView.separated(
                       itemCount: state.cartItems.length,
@@ -238,12 +250,12 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                           title: Text(item.productName,
                               maxLines: 1, overflow: TextOverflow.ellipsis),
                           subtitle: Text(
-                              '${item.quantity} × Rs ${item.costPrice.formattedSmart}'),
+                              '${item.quantity} × ${item.costPrice.formattedSmart}'),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Rs ${item.totalAmount.formattedSmart}',
+                                item.totalAmount.formattedSmart,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold),
                               ),
@@ -273,30 +285,34 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(loc.totalItems, style: textTheme.bodyLarge),
+                    Text(loc.totalItems, style: textTheme.bodyMedium),
                     Text(state.cartItems.length.toString(),
-                        style: textTheme.bodyLarge),
+                        style: textTheme.bodyMedium),
                   ],
                 ),
                 const SizedBox(height: 8.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(loc.totalPayable,
-                        style: textTheme.titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold)),
-                    Text(
+                    Expanded(
+                        child: Text(loc.totalPayable,
+                            style: textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold))),
+                    const SizedBox(width: 8),
+                    Flexible(
+                        child: Text(
                       state.totalAmount.formatted,
+                      textAlign: TextAlign.end,
                       style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.primary,
                       ),
-                    ),
+                    )),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 24.0),
+            const SizedBox(height: 16.0),
 
             // SECTION 5: Footer
             Row(
@@ -310,7 +326,7 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                           : colorScheme.error,
                     ),
                     padding: const EdgeInsets.symmetric(
-                        vertical: 16.0, horizontal: 24.0),
+                        vertical: 12.0, horizontal: 12.0),
                   ),
                   onPressed:
                       state.cartItems.isEmpty ? null : () => _clearCart(state),
@@ -320,7 +336,7 @@ class _PurchaseCartWidgetState extends State<PurchaseCartWidget> {
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
                     ),
                     onPressed: state.status == PurchaseStatus.submitting
                         ? null

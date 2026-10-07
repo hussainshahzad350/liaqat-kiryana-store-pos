@@ -238,8 +238,8 @@ class _PinFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: AppTokens.inputHeight,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: AppTokens.controlMinHeight),
       child: TextField(
         controller: controller,
         obscureText: obscure,

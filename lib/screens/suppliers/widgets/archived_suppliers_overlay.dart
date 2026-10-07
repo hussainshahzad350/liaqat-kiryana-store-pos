@@ -46,8 +46,7 @@ class ArchivedSuppliersOverlay extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                        "Archived Suppliers", // loc.archivedSuppliers might not exist, using hardcoded english fallback safely
+                    Text('${loc.dashboardArchived} ${loc.suppliers}',
                         style: textTheme.titleLarge
                             ?.copyWith(fontWeight: FontWeight.bold)),
                     IconButton(
@@ -68,9 +67,12 @@ class ArchivedSuppliersOverlay extends StatelessWidget {
                             // Can't import SupplierListTile due to circular dependency issues potentially if not careful,
                             // but we can just use the same card mapping or manually render.
                             final s = suppliers[i];
-                            final name = s.nameUrdu?.isNotEmpty == true
-                                ? s.nameUrdu!
-                                : s.nameEnglish;
+                            final name =
+                                Localizations.localeOf(context).languageCode ==
+                                            'ur' &&
+                                        s.nameUrdu?.isNotEmpty == true
+                                    ? s.nameUrdu!
+                                    : s.nameEnglish;
                             return Card(
                               margin: const EdgeInsets.symmetric(vertical: 4),
                               child: ListTile(

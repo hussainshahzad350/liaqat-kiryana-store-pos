@@ -1,3 +1,4 @@
+import '../../widgets/app_feature_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -13,7 +14,9 @@ class CashLedgerScreen extends StatelessWidget {
   const CashLedgerScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => AppFeatureTheme(builder: _buildFeature);
+
+  Widget _buildFeature(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => CashLedgerController(CashRepository())..init(),
       child: const _CashLedgerScreenInternal(),

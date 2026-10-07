@@ -5,6 +5,7 @@ import '../../core/repositories/units_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/category_models.dart';
 import '../../models/product_model.dart';
+import '../../core/utils/error_handler.dart';
 import 'dialogs/item_form_dialog.dart';
 import 'widgets/items_table.dart';
 import 'widgets/items_toolbar.dart';
@@ -28,6 +29,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
   bool _hasNextPage = true;
   bool _isLoadMoreRunning = false;
   final int _limit = 20;
+  int _loadGeneration = 0;
+  String? _loadError;
 
   late ScrollController _scrollController;
   final TextEditingController searchController = TextEditingController();
@@ -46,6 +49,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     searchController.dispose();
+    _itemsRepository.dispose();
     super.dispose();
   }
 
@@ -105,24 +109,22 @@ class _ItemsScreenState extends State<ItemsScreen> {
   }
 
   Future<void> _firstLoad() async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isFirstLoadRunning = true;
       _hasNextPage = true;
       items = [];
+      _isLoadMoreRunning = false;
+      _loadError = null;
     });
 
     try {
       final String searchQuery = searchController.text.trim();
 
-      List<Product> result;
+      final result = await _itemsRepository.getCatalogProducts(
+          query: searchQuery, limit: _limit);
 
-      if (searchQuery.isNotEmpty) {
-        result = await _itemsRepository.searchProducts(searchQuery);
-      } else {
-        result = await _itemsRepository.getAllProducts();
-      }
-
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
 
       setState(() {
         items = result;
@@ -133,39 +135,49 @@ class _ItemsScreenState extends State<ItemsScreen> {
         }
       });
     } catch (e) {
-      if (mounted) setState(() => _isFirstLoadRunning = false);
+      if (mounted && generation == _loadGeneration) {
+        setState(() {
+          _isFirstLoadRunning = false;
+          _loadError = ErrorHandler.getLocalizedMessage(
+              e.toString(), AppLocalizations.of(context)!);
+        });
+      }
     }
   }
 
   Future<void> _loadMoreItems() async {
     if (_isLoadMoreRunning || !_hasNextPage) return;
 
-    setState(() => _isLoadMoreRunning = true);
+    final generation = _loadGeneration;
+    setState(() {
+      _isLoadMoreRunning = true;
+      _loadError = null;
+    });
 
     try {
       final String searchQuery = searchController.text.trim();
 
-      List<Product> result;
+      final result = await _itemsRepository.getCatalogProducts(
+          query: searchQuery, limit: _limit, offset: items.length);
 
-      if (searchQuery.isNotEmpty) {
-        result = await _itemsRepository.searchProducts(searchQuery);
-      } else {
-        result = await _itemsRepository.getAllProducts();
-      }
-
-      if (!mounted) return;
+      if (!mounted || generation != _loadGeneration) return;
 
       setState(() {
         if (result.isNotEmpty) {
           items.addAll(result);
-        } else {
-          _hasNextPage = false;
         }
+        _hasNextPage = result.length == _limit;
 
         _isLoadMoreRunning = false;
       });
     } catch (e) {
-      if (mounted) setState(() => _isLoadMoreRunning = false);
+      if (mounted && generation == _loadGeneration) {
+        setState(() {
+          _isLoadMoreRunning = false;
+          _loadError = ErrorHandler.getLocalizedMessage(
+              e.toString(), AppLocalizations.of(context)!);
+        });
+      }
     }
   }
 
@@ -199,6 +211,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
               hasNextPage: _hasNextPage,
               onEditItem: _showEditItemDialog,
               onDeleteItem: _deleteItem,
+              errorMessage: _loadError,
+              onRetry: items.isEmpty ? _firstLoad : _loadMoreItems,
             ),
           ),
         ],
@@ -287,7 +301,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('${localizations.error}: $e'),
+            content: Text(
+                ErrorHandler.getLocalizedMessage(e.toString(), localizations)),
             backgroundColor: colorScheme.error));
       }
     }

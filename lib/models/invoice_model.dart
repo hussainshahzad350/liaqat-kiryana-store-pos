@@ -68,16 +68,9 @@ class Invoice {
   }
 
   // Status Getters for convenience
-  bool get isDraft => status == statusDraft;
-  bool get isPosted => status == statusPosted;
-  bool get isVoid => status == statusVoid;
+
   bool get isCancelled => status == SaleStatus.cancelled.dbValue;
   bool get isCompleted => status == SaleStatus.completed.dbValue;
-
-  bool get isReadOnly =>
-      status == statusPosted ||
-      status == statusVoid ||
-      status == SaleStatus.cancelled.dbValue;
 
   bool get isMathematicallyValid {
     final sumItems = items.fold<int>(0, (sum, item) => sum + item.totalPrice);

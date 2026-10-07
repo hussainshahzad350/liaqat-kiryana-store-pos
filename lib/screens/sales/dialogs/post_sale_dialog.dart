@@ -9,10 +9,12 @@ import '../../../core/repositories/receipt_repository.dart';
 
 class PostSaleDialog extends StatefulWidget {
   final Invoice invoice;
+  final ReceiptRepository? receiptRepository;
 
   const PostSaleDialog({
     super.key,
     required this.invoice,
+    this.receiptRepository,
   });
 
   @override
@@ -20,7 +22,8 @@ class PostSaleDialog extends StatefulWidget {
 }
 
 class _PostSaleDialogState extends State<PostSaleDialog> {
-  final ReceiptRepository _receiptRepository = ReceiptRepository();
+  late final ReceiptRepository _receiptRepository =
+      widget.receiptRepository ?? ReceiptRepository();
 
   Future<void> _handlePrintReceipt(Invoice invoice) async {
     final loc = AppLocalizations.of(context)!;
@@ -34,7 +37,7 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
 
     try {
       final receiptData = await _receiptRepository.generateReceiptData(invoice);
-      await _receiptRepository.printReceipt(receiptData);
+      if (!await _receiptRepository.printReceipt(receiptData)) return;
       final invoiceId = invoice.id;
       if (invoiceId != null) {
         await _receiptRepository.trackPrint(invoiceId);
@@ -54,9 +57,6 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
               backgroundColor: colorScheme.error),
         );
       }
-    }
-    if (mounted) {
-      context.read<SalesBloc>().add(ReceiptPrintRequested(invoice));
     }
   }
 
@@ -98,6 +98,7 @@ class _PostSaleDialogState extends State<PostSaleDialog> {
                 width: double.infinity,
                 height: AppTokens.buttonHeight * 1.3,
                 child: OutlinedButton.icon(
+                  autofocus: true,
                   onPressed: () => _handlePrintReceipt(widget.invoice),
                   icon: const Icon(Icons.print),
                   label: FittedBox(

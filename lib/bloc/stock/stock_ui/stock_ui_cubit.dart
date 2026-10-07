@@ -9,8 +9,6 @@ class StockUiCubit extends Cubit<StockUiState> {
   void setSort(int columnIndex, bool ascending) => emit(
       state.copyWith(sortColumnIndex: columnIndex, isAscending: ascending));
 
-  void setFocusedIndex(int index) => emit(state.copyWith(focusedIndex: index));
-
   void moveFocusUp() {
     if (state.focusedIndex > 0) {
       emit(state.copyWith(focusedIndex: state.focusedIndex - 1));

@@ -70,16 +70,6 @@ class SalesKpiService {
     return snapshot.lowStockCount;
   }
 
-  Future<Invoice?> getLatestInvoice({bool forceRefresh = false}) async {
-    final snapshot = await getSnapshot(forceRefresh: forceRefresh);
-    return snapshot.latestInvoice;
-  }
-
-  Future<Money> getCashSnapshot({bool forceRefresh = false}) async {
-    final snapshot = await getSnapshot(forceRefresh: forceRefresh);
-    return snapshot.cashSnapshot;
-  }
-
   void clearCache() {
     _cache = null;
   }

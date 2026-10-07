@@ -5,6 +5,7 @@ import '../../../../core/res/app_tokens.dart';
 import '../../../../core/repositories/cash_repository.dart';
 import '../../../../domain/entities/money.dart';
 import '../../../../models/cash_ledger_model.dart';
+import '../../../../core/utils/error_handler.dart';
 
 class AddTransactionDialog extends StatefulWidget {
   final String initialType;
@@ -341,7 +342,9 @@ class _AddTransactionDialogState extends State<AddTransactionDialog> {
                                 setState(() => _isSaving = false);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content: Text("Error saving: $e"),
+                                        content: Text(
+                                            ErrorHandler.getLocalizedMessage(
+                                                e.toString(), loc)),
                                         backgroundColor: colorScheme.error));
                               }
                             } else if (_descCtrl.text.trim().isEmpty) {

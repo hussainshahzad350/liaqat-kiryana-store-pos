@@ -30,7 +30,7 @@ class BackupPage extends StatelessWidget {
                       contentPadding: EdgeInsets.zero,
                       leading:
                           Icon(Icons.file_present, color: colorScheme.primary),
-                      title: const Text("app_database.db"),
+                      title: const Text("liaqat_store.db"),
                       subtitle: Text(
                           '${loc.size}: ${state.databaseStats['databaseSize']?.toStringAsFixed(2) ?? '0.00'} MB'),
                       trailing: OutlinedButton.icon(

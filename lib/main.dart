@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:ffi' show DynamicLibrary;
+import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -19,12 +21,14 @@ import 'core/repositories/stock_repository.dart';
 import 'core/repositories/suppliers_repository.dart';
 import 'core/repositories/units_repository.dart';
 import 'core/routes/app_routes.dart';
+import 'core/res/app_layout.dart';
 import 'core/services/pin_auth_service.dart';
 import 'core/services/sales_kpi_service.dart';
 import 'core/theme/theme_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/auth/login_screen.dart';
 import 'widgets/app_shell.dart';
+import 'widgets/app_mouse_input.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,12 +36,19 @@ void main() async {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await windowManager.ensureInitialized();
 
+    if (Platform.isWindows) {
+      // Register the bundled runtime with Dart before SQLite native-asset
+      // resolution. Installed builds have no development package/cache paths.
+      DynamicLibrary.open(
+          p.join(p.dirname(Platform.resolvedExecutable), 'sqlite3.dll'));
+    }
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
 
     WindowOptions windowOptions = const WindowOptions(
       size: Size(1366, 768),
-      minimumSize: Size(1024, 720),
+      minimumSize:
+          Size(AppLayout.minimumDesktopWidth, AppLayout.minimumDesktopHeight),
       center: true,
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
@@ -151,6 +162,7 @@ class _LiaqatStoreAppState extends State<LiaqatStoreApp> {
             GlobalCupertinoLocalizations.delegate,
           ],
           initialRoute: '/',
+          builder: (context, child) => AppMouseInput(child: child!),
           routes: {
             '/': (context) => const LoginScreen(),
             // Single post-login shell route — feature navigation happens

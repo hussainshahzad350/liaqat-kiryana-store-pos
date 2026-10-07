@@ -8,6 +8,24 @@ Widget _buildApp(Widget child) {
 
 void main() {
   group('AppStateView', () {
+    testWidgets('loading and retry remain usable in a short pane',
+        (tester) async {
+      await tester.pumpWidget(
+          _buildApp(const SizedBox(height: 79, child: AppStateView.loading())));
+      expect(tester.takeException(), isNull);
+      var retries = 0;
+      await tester.pumpWidget(_buildApp(SizedBox(
+          height: 79,
+          child: AppStateView.error(
+              message: 'Small pane',
+              actionLabel: 'Retry',
+              onRetry: () => retries++))));
+      expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.text('Retry'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Retry'));
+      expect(retries, 1);
+    });
     testWidgets('renders an indeterminate loading state', (tester) async {
       await tester.pumpWidget(_buildApp(const AppStateView.loading()));
 
@@ -41,9 +59,11 @@ void main() {
       expect(find.text('Could not load records'), findsOneWidget);
 
       final icon = tester.widget<Icon>(find.byIcon(Icons.error_outline));
-      expect(icon.color, Theme.of(tester.element(find.byType(AppStateView)))
-          .colorScheme
-          .error);
+      expect(
+          icon.color,
+          Theme.of(tester.element(find.byType(AppStateView)))
+              .colorScheme
+              .error);
 
       await tester.tap(find.text('Retry'));
       expect(retryCount, 1);

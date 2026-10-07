@@ -24,65 +24,33 @@ class CustomerKpiCard extends StatelessWidget {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
-    final containerColor = isTertiary
-        ? colorScheme.tertiaryContainer
-        : colorScheme.primaryContainer;
-    final contentColor = isTertiary
-        ? colorScheme.onTertiaryContainer
-        : colorScheme.onPrimaryContainer;
-    final borderColor = isTertiary ? colorScheme.tertiary : colorScheme.primary;
-
     return Card(
-      elevation: AppTokens.cardElevation,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
-        side: BorderSide(color: borderColor, width: 1.2),
-      ),
-      color: containerColor,
+      elevation: 0,
+      color: colorScheme.surface,
       child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
-        child: Padding(
-          padding: const EdgeInsets.all(AppTokens.cardPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: contentColor,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Icon(Icons.people,
-                      size: AppTokens.iconSizeLarge, color: contentColor),
-                  Flexible(
-                    child: Text(
-                      '$count',
-                      style: textTheme.titleMedium?.copyWith(
-                        color: contentColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                loc.balanceShort(balance),
-                style: textTheme.bodyMedium?.copyWith(
-                  color: contentColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppTokens.controlRadius),
+          child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Expanded(child: Text(title, style: textTheme.bodySmall)),
+                      const SizedBox(width: 8),
+                      Text('$count',
+                          style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isTertiary
+                                  ? colorScheme.tertiary
+                                  : colorScheme.primary))
+                    ]),
+                    const SizedBox(height: 4),
+                    Text(loc.balanceShort(balance),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w600)),
+                  ]))),
     );
   }
 }

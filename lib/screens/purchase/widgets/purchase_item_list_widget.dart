@@ -1,3 +1,4 @@
+import '../../../widgets/app_state_view.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -65,7 +66,7 @@ class _PurchaseItemListWidgetState extends State<PurchaseItemListWidget> {
           children: [
             // Search Bar
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(16.0),
               child: TextField(
                 controller: _searchCtrl,
                 onChanged: _onSearchChanged,
@@ -82,7 +83,7 @@ class _PurchaseItemListWidgetState extends State<PurchaseItemListWidget> {
             // List View
             Expanded(
               child: filtered.isEmpty
-                  ? Center(child: Text(loc.noItemsFound))
+                  ? AppStateView.empty(message: loc.noItemsFound)
                   : ListView.separated(
                       itemCount: filtered.length,
                       separatorBuilder: (context, index) =>

@@ -1779,7 +1779,7 @@ class AppLocalizationsUr extends AppLocalizations {
   String get numericError => 'صرف اعداد درج کریں';
 
   @override
-  String get greaterThanOneError => 'Must be > 1';
+  String get greaterThanOneError => 'قدر 1 سے زیادہ ہونی چاہیے';
 
   @override
   String get close => 'بند کریں';
@@ -2137,7 +2137,7 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get descriptionRequired => 'Description is required';
+  String get descriptionRequired => 'تفصیل درج کرنا ضروری ہے';
 
   @override
   String get activity => 'سرگرمی';
@@ -2149,16 +2149,16 @@ class AppLocalizationsUr extends AppLocalizations {
   String get shortcutF5 => 'F5';
 
   @override
-  String get insufficientStockError => 'Insufficient stock available';
+  String get insufficientStockError => 'مطلوبہ مقدار میں اسٹاک دستیاب نہیں';
 
   @override
-  String get outOfStockError => 'Product is out of stock';
+  String get outOfStockError => 'پروڈکٹ کا اسٹاک ختم ہو گیا ہے';
 
   @override
-  String get stockLimitError => 'Stock limit reached';
+  String get stockLimitError => 'دستیاب اسٹاک کی حد پوری ہو گئی ہے';
 
   @override
-  String get negativePriceError => 'Product sale price cannot be negative';
+  String get negativePriceError => 'پروڈکٹ کی فروخت کی قیمت منفی نہیں ہو سکتی';
 
   @override
   String get itemNegativePriceError => 'شے کی قیمت منفی نہیں ہو سکتی';
@@ -2416,4 +2416,59 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get aboutSubtitle => 'ایپ ورژن، سسٹم کی معلومات اور ڈویلپر سپورٹ';
+
+  @override
+  String get allDates => 'تمام تاریخیں';
+
+  @override
+  String get addUnit => 'اکائی شامل کریں';
+
+  @override
+  String get editUnit => 'اکائی میں ترمیم';
+
+  @override
+  String get makePayment => 'ادائیگی کریں';
+
+  @override
+  String get makeSupplierPayment => 'سپلائر کو ادائیگی کریں';
+
+  @override
+  String get archiveSupplierConfirmation =>
+      'اس سپلائر کو غیر فعال کریں؟ اس کے سابقہ لین دین محفوظ رہیں گے۔';
+
+  @override
+  String get finalPayable => 'کل واجب الادا';
+
+  @override
+  String get otherPaymentOptions => 'ادائیگی کے دیگر طریقے';
+
+  @override
+  String get proceedPayment => 'آگے بڑھیں';
+
+  @override
+  String get onScreenKeyboard => 'اسکرین کی بورڈ';
+
+  @override
+  String get mouseInputHint => 'اسکرین کی بورڈ کے لیے کسی خانے پر کلک کریں';
+
+  @override
+  String get clearInput => 'صاف کریں';
+
+  @override
+  String get applyInput => 'لاگو کریں';
+
+  @override
+  String get keyboardSpace => 'فاصلہ';
+
+  @override
+  String get keyboardShift => 'بڑے / چھوٹے حروف';
+
+  @override
+  String get keyboardBackspace => 'پچھلا حرف مٹائیں';
+
+  @override
+  String get increaseQuantity => 'مقدار بڑھائیں';
+
+  @override
+  String get decreaseQuantity => 'مقدار کم کریں';
 }

@@ -4,6 +4,7 @@ import '../../../../domain/entities/money.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../models/supplier_model.dart';
 import '../../../../core/res/app_tokens.dart';
+import '../../../../core/utils/error_handler.dart';
 
 class ReceiveSupplierPaymentDialog extends StatefulWidget {
   final Supplier supplier;
@@ -78,7 +79,7 @@ class _ReceiveSupplierPaymentDialogState
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${loc.error}: $e'),
+            content: Text(ErrorHandler.getLocalizedMessage(e.toString(), loc)),
             backgroundColor: colorScheme.error,
           ),
         );
@@ -108,7 +109,7 @@ class _ReceiveSupplierPaymentDialogState
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Make Payment to Supplier", style: textTheme.titleLarge),
+                  Text(loc.makeSupplierPayment, style: textTheme.titleLarge),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: _isSaving ? null : () => Navigator.pop(context),

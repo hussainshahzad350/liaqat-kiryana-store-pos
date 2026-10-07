@@ -1,0 +1,17 @@
+{
+  "file": "en-light-wide-stock.png",
+  "element": "Expired KPI value",
+  "foreground": [
+    255,
+    218,
+    214
+  ],
+  "background": [
+    241,
+    245,
+    236
+  ],
+  "contrastRatio": 1.17,
+  "method": "solid interior screenshot pixel sampling; antialias pixels excluded",
+  "scope": "one observed value, not a complete application contrast audit"
+}

@@ -90,11 +90,7 @@ class Money {
 
   bool get isDebit => paisas > 0;
 
-  bool get isCredit => paisas < 0;
-
   bool get isNegative => paisas < 0;
-
-  bool get isPositive => paisas > 0;
 
   Money abs() => Money(paisas.abs());
 

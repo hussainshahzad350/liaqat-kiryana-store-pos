@@ -53,12 +53,12 @@ class _AppSearchCardState extends State<AppSearchCard> {
     return Focus(
       onKeyEvent: _handleKeyEvent,
       child: Card(
-        elevation: AppTokens.cardElevation,
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(AppTokens.cardPadding),
+          padding: EdgeInsets.zero,
           child: TextField(
             focusNode: _focusNode,
             onChanged: widget.onChanged,

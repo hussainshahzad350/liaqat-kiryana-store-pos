@@ -1,3 +1,5 @@
+import '../../../widgets/app_state_view.dart';
+import '../../../core/utils/error_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -37,33 +39,24 @@ class _CashLedgerListState extends State<CashLedgerList> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Consumer<CashLedgerController>(
       builder: (context, controller, child) {
         if (controller.state == CashLedgerState.loading &&
             controller.allEntries.isEmpty) {
-          return Center(
-              child: CircularProgressIndicator(color: colorScheme.primary));
+          return AppStateView.loading(message: loc.loading);
         }
 
         if (controller.state == CashLedgerState.error) {
-          return Center(
-            child: Text(
-              controller.errorMessage ?? "An error occurred",
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-            ),
-          );
+          return AppStateView.error(
+              message: ErrorHandler.getLocalizedMessage(
+                  controller.errorMessage ?? loc.unknownError, loc),
+              actionLabel: loc.retry,
+              onRetry: controller.refresh);
         }
 
         if (controller.allEntries.isEmpty) {
-          return Center(
-            child: Text(
-              loc.noData,
-              style: textTheme.bodyMedium
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
-          );
+          return AppStateView.empty(message: loc.noData);
         }
 
         return Card(

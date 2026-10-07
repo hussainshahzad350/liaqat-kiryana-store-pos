@@ -25,6 +25,8 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
   final cashCtrl = TextEditingController();
   final bankCtrl = TextEditingController();
   final creditCtrl = TextEditingController();
+  bool _showOtherPaymentOptions = false;
+  bool? _fullPaymentIsCash;
 
   Money safeMoney(String text) {
     return Money.tryParse(text) ?? Money.zero;
@@ -280,71 +282,120 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                         ),
                         const Divider(height: AppTokens.spacingLarge),
                       ],
-                      _infoRow(context, loc.billTotal, billTotal.toString(),
-                          isBold: true,
-                          size: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.fontSize ??
-                              24.0,
-                          color: colorScheme.onSurface),
-                      const Divider(),
-                      const SizedBox(height: AppTokens.spacingStandard),
-                      Text(loc.paymentLabel,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: AppTokens.spacingStandard),
-                      _input(context, loc.cashInput, cashCtrl, (v) {
-                        setDialogState(() {
-                          if (!isWalkIn) {
-                            Money cashValue = safeMoney(cashCtrl.text);
-                            Money bankValue = safeMoney(bankCtrl.text);
-                            Money remaining = billTotal - cashValue - bankValue;
-                            creditCtrl.text = remaining > const Money(0)
-                                ? remaining.toInputString()
-                                : '';
+                      Wrap(
+                        spacing: AppTokens.spacingLarge,
+                        runSpacing: AppTokens.spacingSmall,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(loc.finalPayable,
+                                  style:
+                                      Theme.of(context).textTheme.labelLarge),
+                              Text(billTotal.toString(),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          Wrap(
+                            spacing: AppTokens.spacingSmall,
+                            runSpacing: AppTokens.spacingSmall,
+                            children: [
+                              for (final isCash in [true, false])
+                                ChoiceChip(
+                                  key: ValueKey(isCash
+                                      ? 'checkout-cash'
+                                      : 'checkout-bank'),
+                                  label: Text(
+                                      isCash ? loc.cashInput : loc.bankInput),
+                                  selected: _fullPaymentIsCash == isCash,
+                                  onSelected: (_) => setDialogState(() {
+                                    _fullPaymentIsCash = isCash;
+                                    _showOtherPaymentOptions = false;
+                                    cashCtrl.text = isCash
+                                        ? billTotal.toInputString()
+                                        : '0';
+                                    bankCtrl.text = isCash
+                                        ? '0'
+                                        : billTotal.toInputString();
+                                    creditCtrl.text = '0';
+                                  }),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppTokens.spacingSmall),
+                      TextButton.icon(
+                        key: const ValueKey('checkout-other-payment-options'),
+                        onPressed: () => setDialogState(() {
+                          _showOtherPaymentOptions = !_showOtherPaymentOptions;
+                          if (_showOtherPaymentOptions) {
+                            _fullPaymentIsCash = null;
                           }
-                        });
-                      }, errorText: cashError),
-                      _input(context, loc.bankInput, bankCtrl, (v) {
-                        setDialogState(() {
-                          if (!isWalkIn) {
-                            Money cashValue = safeMoney(cashCtrl.text);
-                            Money bankValue = safeMoney(bankCtrl.text);
-                            Money remaining = billTotal - cashValue - bankValue;
-                            creditCtrl.text = remaining > const Money(0)
-                                ? remaining.toInputString()
-                                : '';
-                          }
-                        });
-                      }, errorText: bankError),
-                      if (!isWalkIn)
-                        _input(context, loc.creditInput, creditCtrl, (v) {
-                          setDialogState(() {});
-                        }, errorText: creditError),
-                      const SizedBox(height: AppTokens.spacingStandard),
-                      if (isWalkIn)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(loc.changeDue,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.copyWith(fontWeight: FontWeight.bold)),
-                            Text(change.toString(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: change >= const Money(0)
-                                            ? colorScheme.primary
-                                            : colorScheme.error)),
-                          ],
-                        ),
+                        }),
+                        icon: Icon(_showOtherPaymentOptions
+                            ? Icons.expand_less
+                            : Icons.expand_more),
+                        label: Text(loc.otherPaymentOptions),
+                      ),
+                      if (_showOtherPaymentOptions) ...[
+                        const SizedBox(height: AppTokens.spacingSmall),
+                        _input(context, loc.cashInput, cashCtrl, (v) {
+                          setDialogState(() {
+                            if (!isWalkIn) {
+                              Money cashValue = safeMoney(cashCtrl.text);
+                              Money bankValue = safeMoney(bankCtrl.text);
+                              Money remaining =
+                                  billTotal - cashValue - bankValue;
+                              creditCtrl.text = remaining > const Money(0)
+                                  ? remaining.toInputString()
+                                  : '';
+                            }
+                          });
+                        }, errorText: cashError),
+                        _input(context, loc.bankInput, bankCtrl, (v) {
+                          setDialogState(() {
+                            if (!isWalkIn) {
+                              Money cashValue = safeMoney(cashCtrl.text);
+                              Money bankValue = safeMoney(bankCtrl.text);
+                              Money remaining =
+                                  billTotal - cashValue - bankValue;
+                              creditCtrl.text = remaining > const Money(0)
+                                  ? remaining.toInputString()
+                                  : '';
+                            }
+                          });
+                        }, errorText: bankError),
+                        if (!isWalkIn)
+                          _input(context, loc.creditInput, creditCtrl, (v) {
+                            setDialogState(() {});
+                          }, errorText: creditError),
+                        const SizedBox(height: AppTokens.spacingStandard),
+                        if (isWalkIn)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(loc.changeDue,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(fontWeight: FontWeight.bold)),
+                              Text(change.toString(),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: change >= const Money(0)
+                                              ? colorScheme.primary
+                                              : colorScheme.error)),
+                            ],
+                          ),
+                      ],
                     ],
                   ),
                 ),
@@ -362,17 +413,22 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
                   ),
                   const SizedBox(width: AppTokens.spacingMedium),
                   SizedBox(
-                    height: AppTokens.buttonHeight * 1.5,
+                    height: AppTokens.controlMinHeight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
                         foregroundColor: colorScheme.onPrimary,
-                        minimumSize: const Size(120, 52),
+                        minimumSize:
+                            const Size(120, AppTokens.controlMinHeight),
                       ),
-                      onPressed: isValid ? checkCreditLimitAndProcess : null,
+                      onPressed: isValid &&
+                              (_fullPaymentIsCash != null ||
+                                  _showOtherPaymentOptions)
+                          ? checkCreditLimitAndProcess
+                          : null,
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Text(loc.savePrint),
+                        child: Text(loc.proceedPayment),
                       ),
                     ),
                   ),
@@ -383,40 +439,6 @@ class _CheckoutPaymentDialogState extends State<CheckoutPaymentDialog> {
         ),
       );
     });
-  }
-
-  Widget _infoRow(BuildContext context, String label, String value,
-      {bool isBold = false, double? size, Color? color}) {
-    final textTheme = Theme.of(context).textTheme;
-    final defaultColor = Theme.of(context).colorScheme.onSurface;
-
-    TextStyle? baseStyle;
-    if (size == null) {
-      baseStyle = textTheme.bodyMedium;
-    } else if (size >= 24.0) {
-      baseStyle = textTheme.titleMedium;
-    } else if (size >= (textTheme.bodyLarge?.fontSize ?? 16.0)) {
-      baseStyle = textTheme.bodyLarge;
-    } else {
-      baseStyle = textTheme.bodyMedium;
-    }
-
-    final finalStyle = baseStyle?.copyWith(
-      fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-      color: color ?? defaultColor,
-      fontSize: size,
-    );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppTokens.spacingXXSmall),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: finalStyle),
-          Text(value, style: finalStyle),
-        ],
-      ),
-    );
   }
 
   Widget _input(BuildContext context, String label, TextEditingController ctrl,

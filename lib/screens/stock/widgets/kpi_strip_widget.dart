@@ -38,7 +38,9 @@ class KpiStripWidget extends StatelessWidget {
               final summary = overviewState.summary;
               final currentFilter = filterState.statusFilter;
 
-              return Row(
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   _KpiCard(
                     label: loc.lowStock,
@@ -65,7 +67,7 @@ class KpiStripWidget extends StatelessWidget {
                     label: loc.expired,
                     value: '${summary.expiredOrNearExpiryCount}',
                     statusFilter: 'EXPIRED',
-                    accentColor: colorScheme.errorContainer,
+                    accentColor: colorScheme.error,
                     isActive: currentFilter == 'EXPIRED',
                   ),
                   _KpiCard(
@@ -122,9 +124,10 @@ class _KpiCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Expanded(
+    return SizedBox(
+      width: statusFilter == null ? 260 : 170,
       child: Card(
-        elevation: AppTokens.cardElevation,
+        elevation: 0,
         clipBehavior: Clip.antiAlias,
         margin: const EdgeInsets.symmetric(horizontal: AppTokens.spacingXSmall),
         shape: RoundedRectangleBorder(
@@ -146,14 +149,14 @@ class _KpiCard extends StatelessWidget {
               : null,
           child: Container(
             decoration: BoxDecoration(
-              border: Border(
-                left: BorderSide(
+              border: BorderDirectional(
+                start: BorderSide(
                   width: 3,
                   color: accentColor,
                 ),
               ),
             ),
-            padding: const EdgeInsets.all(AppTokens.cardPadding),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -167,11 +170,10 @@ class _KpiCard extends StatelessWidget {
                 const SizedBox(height: AppTokens.spacingXSmall),
                 Text(
                   value,
-                  style: textTheme.headlineSmall?.copyWith(
+                  style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: accentColor,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

@@ -21,39 +21,18 @@ class SettingsTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Card(
-      elevation: AppTokens.cardElevation,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
-        child: Padding(
-          padding: const EdgeInsets.all(AppTokens.spacingLarge),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 48, color: colorScheme.primary),
-              const SizedBox(height: AppTokens.spacingMedium),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: AppTokens.spacingSmall / 2),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+        elevation: 0,
+        margin: const EdgeInsets.only(bottom: AppTokens.relatedGap),
+        child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.surfacePadding,
+                vertical: AppTokens.relatedGap),
+            leading: Icon(icon, size: 24, color: colorScheme.primary),
+            title: Text(title,
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold)),
+            subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: onTap));
   }
 }

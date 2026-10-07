@@ -38,7 +38,7 @@ void useTestDatabase() {
 
   tearDownAll(() async {
     try {
-      await database?.close();
+      await DatabaseHelper.instance.close();
     } finally {
       if (factoryInstalled) {
         databaseFactoryOrNull = previousDatabaseFactory;

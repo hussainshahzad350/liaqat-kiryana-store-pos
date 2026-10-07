@@ -4,6 +4,26 @@
 class AppTokens {
   const AppTokens._();
 
+  // Semantic foundation for new presentation slices. Legacy values below stay
+  // available while individual features migrate to these roles.
+  static const double contentGap = space16;
+  static const double relatedGap = space8;
+  static const double sectionGap = space24;
+  static const double surfacePadding = space16;
+  static const double controlMinHeight = buttonHeightMedium;
+  static const double controlRadius = radius8;
+  static const double surfaceRadius = radius12;
+  static const double modalRadius = radius16;
+  static const double surfaceElevation = elevationLow;
+  static const double modalElevation = elevationHigh;
+  static const double borderWidth = 1;
+  static const double focusBorderWidth = 2;
+  static const double hoverOpacity = 0.08;
+  static const double activeOpacity = 0.12;
+  static const double disabledOpacity = 0.38;
+  static const double disabledFillOpacity = 0.12;
+  static const double compactLineHeight = 1.2;
+
   // Spacing
   static const double spacingXXSmall = 2.0;
   static const double spacingXSmall = 4.0;
@@ -54,11 +74,11 @@ class AppTokens {
   static const double actionBarHeight = 70.0;
   static const double appBarHeight = 64.0;
   static const double toolbarHeight = 56.0;
-  static const double sidebarHeaderHeight = 100.0;
+  static const double sidebarHeaderHeight = 72.0;
   static const double sidebarFooterHeight = 50.0;
 
   // Sidebar
-  static const double sidebarExpandedWidth = 250.0;
+  static const double sidebarExpandedWidth = 224.0;
   static const double sidebarCollapsedWidth = 64.0;
   static const double sidebarMinWidth = 300.0;
   static const double sidebarMaxWidth = 500.0;

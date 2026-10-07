@@ -584,7 +584,11 @@ class SalesBloc extends Bloc<SalesEvent, SalesState> {
       final receiptData = await _receiptRepository.generateReceiptData(
         event.invoice,
       );
-      await _receiptRepository.printReceipt(receiptData);
+      if (!await _receiptRepository.printReceipt(receiptData)) {
+        emit(state.copyWith(
+            status: SalesStatus.ready, clearCompletedInvoice: true));
+        return;
+      }
       final invoiceId = event.invoice.id;
       if (invoiceId != null) {
         await _receiptRepository.trackPrint(invoiceId);

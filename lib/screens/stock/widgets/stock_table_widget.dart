@@ -109,177 +109,232 @@ class _StockTableWidgetState extends State<StockTableWidget> {
                   ),
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Focus(
-                      focusNode: _tableFocusNode,
-                      child: DataTable(
-                        sortColumnIndex: widget.sortColumnIndex,
-                        sortAscending: widget.isAscending,
-                        headingRowHeight: AppTokens.tableHeaderHeight,
-                        dataRowMinHeight: AppTokens.tableDataRowHeight,
-                        dataRowMaxHeight: AppTokens.tableDataRowHeight,
-                        headingRowColor: WidgetStateProperty.all(
-                            colorScheme.primaryContainer),
-                        headingTextStyle: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onPrimaryContainer,
-                        ),
-                        columns: [
-                          DataColumn(
-                            label: Checkbox(
-                              value: widget.items.isNotEmpty &&
-                                  widget.items.every(
-                                      (i) => widget.selectedIds.contains(i.id)),
-                              tristate: true,
-                              onChanged: (val) {
-                                if (val == true) {
-                                  widget.onSelectAll();
-                                } else {
-                                  widget.onClearSelection();
-                                }
-                              },
-                            ),
-                          ),
-                          DataColumn(
-                              label: Text(loc.item), onSort: widget.onSort),
-                          DataColumn(
-                              label: Text(loc.category), onSort: widget.onSort),
-                          DataColumn(
-                              label: Text(loc.cost),
-                              onSort: widget.onSort,
-                              numeric: true),
-                          DataColumn(
-                              label: Text(loc.price),
-                              onSort: widget.onSort,
-                              numeric: true),
-                          DataColumn(
-                              label: Text(loc.quantity),
-                              onSort: widget.onSort,
-                              numeric: true),
-                          DataColumn(
-                              label: Text(loc.stockValue),
-                              onSort: widget.onSort,
-                              numeric: true),
-                          DataColumn(label: Text(loc.status)),
-                          DataColumn(label: Text(loc.actions)),
-                        ],
-                        showCheckboxColumn: false,
-                        rows: sortedItems.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final item = entry.value;
-                          bool isLow = item.isLowStock;
-                          bool isOut = item.isOutOfStock;
-                          final isSelected = index == widget.focusedIndex;
+                  child: LayoutBuilder(
+                      builder: (context, constraints) => SingleChildScrollView(
+                            child: Focus(
+                              focusNode: _tableFocusNode,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                        minWidth: constraints.maxWidth),
+                                    child: DataTable(
+                                      sortColumnIndex: widget.sortColumnIndex,
+                                      sortAscending: widget.isAscending,
+                                      headingRowHeight:
+                                          Directionality.of(context) ==
+                                                  TextDirection.rtl
+                                              ? 64
+                                              : AppTokens.controlMinHeight,
+                                      dataRowMinHeight:
+                                          AppTokens.controlMinHeight,
+                                      dataRowMaxHeight: double.infinity,
+                                      headingRowColor: WidgetStateProperty.all(
+                                          colorScheme.surfaceContainerHighest),
+                                      headingTextStyle:
+                                          textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                      columns: [
+                                        DataColumn(
+                                          label: Checkbox(
+                                            value: widget.items.isNotEmpty &&
+                                                widget.items.every((i) => widget
+                                                    .selectedIds
+                                                    .contains(i.id)),
+                                            tristate: true,
+                                            onChanged: (val) {
+                                              if (val == true) {
+                                                widget.onSelectAll();
+                                              } else {
+                                                widget.onClearSelection();
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                        DataColumn(
+                                            label: Text(loc.item),
+                                            onSort: widget.onSort),
+                                        DataColumn(
+                                            label: Text(loc.category),
+                                            onSort: widget.onSort),
+                                        DataColumn(
+                                            label: Text(loc.cost),
+                                            onSort: widget.onSort,
+                                            numeric: true),
+                                        DataColumn(
+                                            label: Text(loc.price),
+                                            onSort: widget.onSort,
+                                            numeric: true),
+                                        DataColumn(
+                                            label: Text(loc.quantity),
+                                            onSort: widget.onSort,
+                                            numeric: true),
+                                        DataColumn(
+                                            label: Text(loc.stockValue),
+                                            onSort: widget.onSort,
+                                            numeric: true),
+                                        DataColumn(label: Text(loc.status)),
+                                        DataColumn(label: Text(loc.actions)),
+                                      ],
+                                      showCheckboxColumn: false,
+                                      rows: sortedItems
+                                          .asMap()
+                                          .entries
+                                          .map((entry) {
+                                        final index = entry.key;
+                                        final item = entry.value;
+                                        bool isLow = item.isLowStock;
+                                        bool isOut = item.isOutOfStock;
+                                        final isSelected =
+                                            index == widget.focusedIndex;
 
-                          return DataRow(
-                            selected: isSelected ||
-                                widget.selectedIds.contains(item.id),
-                            onSelectChanged: (selected) {
-                              if (selected == true) {
-                                widget.onAdjustStock(item);
-                              }
-                            },
-                            color: WidgetStateProperty.resolveWith<Color?>(
-                                (states) {
-                              if (widget.selectedIds.contains(item.id)) {
-                                return colorScheme.primaryContainer
-                                    .withValues(alpha: 0.3);
-                              }
-                              if (isSelected) {
-                                return colorScheme.primaryContainer
-                                    .withValues(alpha: 0.3);
-                              }
-                              return null;
-                            }),
-                            cells: [
-                              DataCell(
-                                Checkbox(
-                                  value: widget.selectedIds.contains(item.id),
-                                  onChanged: (val) {
-                                    widget.onToggleSelection(item.id);
-                                  },
-                                ),
+                                        return DataRow(
+                                          selected: isSelected ||
+                                              widget.selectedIds
+                                                  .contains(item.id),
+                                          onSelectChanged: (selected) {
+                                            if (selected == true) {
+                                              widget.onAdjustStock(item);
+                                            }
+                                          },
+                                          color: WidgetStateProperty
+                                              .resolveWith<Color?>((states) {
+                                            if (widget.selectedIds
+                                                .contains(item.id)) {
+                                              return colorScheme
+                                                  .primaryContainer
+                                                  .withValues(alpha: 0.3);
+                                            }
+                                            if (isSelected) {
+                                              return colorScheme
+                                                  .primaryContainer
+                                                  .withValues(alpha: 0.3);
+                                            }
+                                            return null;
+                                          }),
+                                          cells: [
+                                            DataCell(
+                                              Checkbox(
+                                                value: widget.selectedIds
+                                                    .contains(item.id),
+                                                onChanged: (val) {
+                                                  widget.onToggleSelection(
+                                                      item.id);
+                                                },
+                                              ),
+                                            ),
+                                            DataCell(Text(item.nameEnglish,
+                                                style: textTheme.bodyMedium
+                                                    ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w500))),
+                                            DataCell(
+                                                Text(item.categoryName ?? '-')),
+                                            DataCell(Text(item
+                                                .costPrice.formattedNoDecimal)),
+                                            DataCell(Text(item
+                                                .salePrice.formattedNoDecimal)),
+                                            DataCell(Text(
+                                                item.currentStock.toString())),
+                                            DataCell(Text(item.totalSalesValue
+                                                .formattedNoDecimal)),
+                                            DataCell(
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: AppTokens
+                                                            .spacingSmall,
+                                                        vertical: AppTokens
+                                                            .spacingXSmall),
+                                                decoration: BoxDecoration(
+                                                  color: isOut
+                                                      ? colorScheme
+                                                          .errorContainer
+                                                      : (isLow
+                                                          ? colorScheme
+                                                              .tertiaryContainer
+                                                          : colorScheme
+                                                              .primaryContainer),
+                                                  borderRadius: BorderRadius
+                                                      .circular(AppTokens
+                                                          .extraSmallBorderRadius),
+                                                ),
+                                                child: Text(
+                                                  isOut
+                                                      ? loc.outOfStock
+                                                      : (isLow
+                                                          ? loc.lowStock
+                                                          : loc.ok),
+                                                  style: textTheme.labelSmall
+                                                      ?.copyWith(
+                                                    color: isOut
+                                                        ? colorScheme
+                                                            .onErrorContainer
+                                                        : (isLow
+                                                            ? colorScheme
+                                                                .onTertiaryContainer
+                                                            : colorScheme
+                                                                .onPrimaryContainer),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            DataCell(
+                                              PopupMenuButton<String>(
+                                                icon:
+                                                    const Icon(Icons.more_vert),
+                                                onSelected: (value) {
+                                                  if (value == 'adjust') {
+                                                    widget.onAdjustStock(item);
+                                                  } else if (value ==
+                                                      'purchase') {
+                                                    widget.onQuickPurchase(
+                                                        context, item);
+                                                  } else if (value ==
+                                                      'history') {
+                                                    widget.onViewHistory(
+                                                      '${loc.recentActivities}: ${item.nameEnglish}',
+                                                      item,
+                                                    );
+                                                  }
+                                                },
+                                                itemBuilder: (BuildContext
+                                                        context) =>
+                                                    <PopupMenuEntry<String>>[
+                                                  PopupMenuItem<String>(
+                                                      value: 'adjust',
+                                                      child: ListTile(
+                                                          leading: const Icon(
+                                                              Icons.tune),
+                                                          title: Text(loc
+                                                              .adjustStock))),
+                                                  PopupMenuItem<String>(
+                                                      value: 'purchase',
+                                                      child: ListTile(
+                                                          leading: const Icon(Icons
+                                                              .add_shopping_cart),
+                                                          title: Text(loc
+                                                              .newPurchase))),
+                                                  PopupMenuItem<String>(
+                                                      value: 'history',
+                                                      child: ListTile(
+                                                          leading: const Icon(
+                                                              Icons.history),
+                                                          title: Text(loc
+                                                              .recentActivities))),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }).toList(),
+                                    )),
                               ),
-                              DataCell(Text(item.nameEnglish,
-                                  style: textTheme.bodyMedium
-                                      ?.copyWith(fontWeight: FontWeight.w500))),
-                              DataCell(Text(item.categoryName ?? '-')),
-                              DataCell(Text(item.costPrice.formattedNoDecimal)),
-                              DataCell(Text(item.salePrice.formattedNoDecimal)),
-                              DataCell(Text(item.currentStock.toString())),
-                              DataCell(Text(
-                                  item.totalSalesValue.formattedNoDecimal)),
-                              DataCell(
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: AppTokens.spacingSmall,
-                                      vertical: AppTokens.spacingXSmall),
-                                  decoration: BoxDecoration(
-                                    color: isOut
-                                        ? colorScheme.errorContainer
-                                        : (isLow
-                                            ? colorScheme.tertiaryContainer
-                                            : colorScheme.primaryContainer),
-                                    borderRadius: BorderRadius.circular(
-                                        AppTokens.extraSmallBorderRadius),
-                                  ),
-                                  child: Text(
-                                    isOut
-                                        ? loc.outOfStock
-                                        : (isLow ? loc.lowStock : loc.ok),
-                                    style: textTheme.labelSmall?.copyWith(
-                                      color: isOut
-                                          ? colorScheme.onErrorContainer
-                                          : (isLow
-                                              ? colorScheme.onTertiaryContainer
-                                              : colorScheme.onPrimaryContainer),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              DataCell(
-                                PopupMenuButton<String>(
-                                  icon: const Icon(Icons.more_vert),
-                                  onSelected: (value) {
-                                    if (value == 'adjust') {
-                                      widget.onAdjustStock(item);
-                                    } else if (value == 'purchase') {
-                                      widget.onQuickPurchase(context, item);
-                                    } else if (value == 'history') {
-                                      widget.onViewHistory(
-                                        '${loc.recentActivities}: ${item.nameEnglish}',
-                                        item,
-                                      );
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) =>
-                                      <PopupMenuEntry<String>>[
-                                    PopupMenuItem<String>(
-                                        value: 'adjust',
-                                        child: ListTile(
-                                            leading: const Icon(Icons.tune),
-                                            title: Text(loc.adjustStock))),
-                                    PopupMenuItem<String>(
-                                        value: 'purchase',
-                                        child: ListTile(
-                                            leading: const Icon(
-                                                Icons.add_shopping_cart),
-                                            title: Text(loc.newPurchase))),
-                                    PopupMenuItem<String>(
-                                        value: 'history',
-                                        child: ListTile(
-                                            leading: const Icon(Icons.history),
-                                            title: Text(loc.recentActivities))),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
+                            ),
+                          )),
                 ),
                 if (!widget.hasReachedMax)
                   Padding(

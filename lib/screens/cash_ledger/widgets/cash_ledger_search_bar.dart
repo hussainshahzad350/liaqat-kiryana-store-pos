@@ -66,8 +66,7 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
                   child: TextField(
                     controller: _searchCtrl,
                     decoration: InputDecoration(
-                      hintText:
-                          "Search ledger...", // Needs localization fallback
+                      hintText: loc.searchDocOrDescPlaceholder,
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: _searchCtrl.text.isNotEmpty
                           ? IconButton(
@@ -172,7 +171,7 @@ class _CashLedgerSearchBarState extends State<CashLedgerSearchBar> {
                             ? DateFormat.yMMMd(
                                     Localizations.localeOf(context).toString())
                                 .format(controller.selectedDate!)
-                            : 'All Dates',
+                            : loc.allDates,
                         style: textTheme.bodyMedium?.copyWith(
                           color: controller.selectedDate != null
                               ? colorScheme.onPrimaryContainer

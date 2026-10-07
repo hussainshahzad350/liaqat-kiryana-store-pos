@@ -1,3 +1,4 @@
+import '../../../core/utils/error_handler.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/repositories/suppliers_repository.dart';
 import '../../../../domain/entities/money.dart';
@@ -121,7 +122,7 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
       setState(() => _isSaving = false);
       scaffoldMessenger.showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceAll('Exception: ', '')),
+          content: Text(ErrorHandler.getLocalizedMessage(e.toString(), loc)),
           backgroundColor: colorScheme.error,
         ),
       );
@@ -209,6 +210,7 @@ class _AddSupplierDialogState extends State<AddSupplierDialog> {
                     _Field(
                       controller: _balanceCtrl,
                       label: loc.balance,
+                      readOnly: _isEdit,
                       icon: Icons.account_balance_wallet,
                       keyboardType: TextInputType.number,
                     ),

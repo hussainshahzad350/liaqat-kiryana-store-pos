@@ -26,12 +26,13 @@ class ProductCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       color: colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
+        borderRadius: BorderRadius.circular(AppTokens.surfaceRadius),
         side: BorderSide(
             color: isFocused
                 ? colorScheme.primary
                 : colorScheme.outlineVariant.withValues(alpha: 0.3),
-            width: isFocused ? 2 : 1),
+            width:
+                isFocused ? AppTokens.focusBorderWidth : AppTokens.borderWidth),
       ),
       child: InkWell(
         onTap: onTap,
@@ -102,7 +103,7 @@ class ProductCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: product.isLowStock
                         ? colorScheme.onErrorContainer
-                        : colorScheme.surfaceContainerHighest,
+                        : colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),

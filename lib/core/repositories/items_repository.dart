@@ -142,6 +142,24 @@ class ItemsRepository {
     return products;
   }
 
+  /// Page the management catalog without changing sales search or barcode caches.
+  Future<List<Product>> getCatalogProducts({
+    String query = '',
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final db = await _dbHelper.database;
+    final search = '%${query.trim().toLowerCase()}%';
+    final rows = await db.query('products',
+        where:
+            'is_active = 1 AND (LOWER(name_english) LIKE ? OR LOWER(name_urdu) LIKE ? OR LOWER(item_code) LIKE ?)',
+        whereArgs: [search, search, search],
+        orderBy: 'name_english ASC, id ASC',
+        limit: limit,
+        offset: offset);
+    return rows.map(Product.fromMap).toList();
+  }
+
   /// Get product by ID
   Future<Product?> getProductById(int id) async {
     final db = await _dbHelper.database;
@@ -149,20 +167,6 @@ class ItemsRepository {
       'products',
       where: 'id = ?',
       whereArgs: [id],
-      limit: 1,
-    );
-
-    if (result.isEmpty) return null;
-    return Product.fromMap(result.first);
-  }
-
-  /// Get product by item code
-  Future<Product?> getProductByItemCode(String itemCode) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'products',
-      where: 'item_code = ?',
-      whereArgs: [itemCode],
       limit: 1,
     );
 
@@ -212,6 +216,8 @@ class ItemsRepository {
     final db = await _dbHelper.database;
     final updates = product.toMap();
     updates.remove('current_stock');
+    updates.remove(
+        'created_at'); // Metadata edits preserve original creation time.
     updates.remove('is_active'); // is_active is managed only by deleteProduct()
     final result = await db.update(
       'products',
@@ -253,52 +259,6 @@ class ItemsRepository {
       [id],
     );
     return (result.first['stock_total'] as num?)?.toDouble() ?? 0.0;
-  }
-
-  /// Update product stock (for manual adjustments)
-  Future<int> updateProductStock(int id, double newStock) async {
-    final db = await _dbHelper.database;
-    final result = await db.transaction<int>((txn) async {
-      final productRes = await txn.query(
-        'products',
-        columns: ['id'],
-        where: 'id = ?',
-        whereArgs: [id],
-        limit: 1,
-      );
-      if (productRes.isEmpty) {
-        throw Exception('PRODUCT_NOT_FOUND');
-      }
-      final currentStock = await _getEventStock(txn, id);
-      final adjustment = newStock - currentStock;
-      if (adjustment == 0) {
-        return 0;
-      }
-      final adjustmentId = await txn.insert('stock_adjustments', {
-        'product_id': id,
-        'adjustment_date': DateTime.now().toIso8601String(),
-        'quantity_change': adjustment,
-        'reason': 'Manual stock set',
-        'reference': 'MANUAL_SET',
-        'user': 'SYSTEM',
-        'created_at': DateTime.now().toIso8601String(),
-      });
-      await _recordStockEvent(
-        txn,
-        productId: id,
-        quantityChange: adjustment,
-        transactionType: 'ADJUSTMENT',
-        refType: 'ADJUSTMENT',
-        refId: adjustmentId,
-        transactionId: 'ADJUSTMENT:$adjustmentId:SET',
-        user: 'SYSTEM',
-      );
-      return 1;
-    });
-    if (result > 0) {
-      notifyStockChanged();
-    }
-    return result;
   }
 
   /// Adjust stock (add or subtract)
@@ -351,48 +311,6 @@ class ItemsRepository {
     return result;
   }
 
-  /// Update average cost price (FIFO/Weighted Average)
-  Future<int> updateAverageCostPrice(
-    int id,
-    int newPurchasePrice,
-    num purchaseQuantity,
-  ) async {
-    final db = await _dbHelper.database;
-
-    return await db.transaction((txn) async {
-      final result = await txn.query(
-        'products',
-        columns: ['avg_cost_price'],
-        where: 'id = ?',
-        whereArgs: [id],
-        limit: 1,
-      );
-
-      if (result.isEmpty) {
-        throw Exception('PRODUCT_NOT_FOUND');
-      }
-
-      // Derive current stock from events (Rule 13 — cache is not source of truth)
-      final currentStock = await _getEventStock(txn, id);
-      final currentAvgPrice = (result.first['avg_cost_price'] as num).toInt();
-
-      // Calculate new weighted average
-      final totalValue = (currentStock * currentAvgPrice) +
-          (purchaseQuantity * newPurchasePrice);
-      final totalQuantity = currentStock + purchaseQuantity;
-      final newAvgPrice = totalQuantity > 0 ? totalValue / totalQuantity : 0.0;
-
-      return await txn.update(
-        'products',
-        {
-          'avg_cost_price': newAvgPrice.round(),
-        },
-        where: 'id = ?',
-        whereArgs: [id],
-      );
-    });
-  }
-
   // ========================================
   // SEARCH & FILTER
   // ========================================
@@ -433,25 +351,14 @@ class ItemsRepository {
       SELECT * FROM products
       WHERE (LOWER(name_english) LIKE ?
       OR LOWER(name_urdu) LIKE ?
-      OR LOWER(item_code) LIKE ?)
+      OR LOWER(item_code) LIKE ?
+      OR barcode = ?)
       AND is_active = 1
       ORDER BY name_english ASC
       LIMIT ?
-    ''', [q, q, q, limit]);
+    ''', [q, q, q, query.trim(), limit]);
 
     return result.map((map) => Product.fromMap(map)).toList();
-  }
-
-  /// Get products by category
-  Future<List<Map<String, dynamic>>> getProductsByCategory(
-      int categoryId) async {
-    final db = await _dbHelper.database;
-    return await db.query(
-      'products',
-      where: 'category_id = ? AND is_active = 1',
-      whereArgs: [categoryId],
-      orderBy: 'name_english ASC',
-    );
   }
 
   /// Get low stock items
@@ -478,28 +385,6 @@ class ItemsRepository {
     }
   }
 
-  /// Get out of stock items
-  Future<List<Map<String, dynamic>>> getOutOfStockItems() async {
-    final db = await _dbHelper.database;
-    return await db.query(
-      'products',
-      where: 'current_stock = 0 AND is_active = 1',
-      orderBy: 'name_english ASC',
-    );
-  }
-
-  /// Get products with stock above threshold
-  Future<List<Map<String, dynamic>>> getProductsAboveStock(
-      double threshold) async {
-    final db = await _dbHelper.database;
-    return await db.query(
-      'products',
-      where: 'current_stock >= ? AND is_active = 1',
-      whereArgs: [threshold],
-      orderBy: 'current_stock DESC',
-    );
-  }
-
   // ========================================
   // STATISTICS & ANALYTICS
   // ========================================
@@ -522,21 +407,6 @@ class ItemsRepository {
     return (result.first['total'] as num?)?.round() ?? 0;
   }
 
-  /// Get total stock value (sale price based)
-  Future<int> getTotalStockValueAtSalePrice() async {
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery(
-        'SELECT SUM(current_stock * sale_price) as total FROM products WHERE is_active = 1');
-    return (result.first['total'] as num?)?.round() ?? 0;
-  }
-
-  /// Get potential profit (difference between sale and cost)
-  Future<int> getPotentialProfit() async {
-    final saleValue = await getTotalStockValueAtSalePrice();
-    final costValue = await getTotalStockValue();
-    return saleValue - costValue;
-  }
-
   /// Get low stock count
   Future<int> getLowStockCount() async {
     final db = await _dbHelper.database;
@@ -548,252 +418,15 @@ class ItemsRepository {
     return (result.first['count'] as int?) ?? 0;
   }
 
-  /// Get out of stock count
-  Future<int> getOutOfStockCount() async {
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery(
-        'SELECT COUNT(*) as count FROM products WHERE current_stock = 0 AND is_active = 1');
-    return (result.first['count'] as int?) ?? 0;
-  }
-
-  /// Get product sales statistics
-  Future<Map<String, dynamic>> getProductSalesStats(int productId) async {
-    final db = await _dbHelper.database;
-
-    final result = await db.rawQuery('''
-      SELECT 
-        COUNT(*) as sale_count,
-        SUM(si.quantity) as total_sold,
-        SUM(si.total_price) as total_revenue,
-        AVG(si.unit_price) as avg_price
-        FROM invoice_items si
-        JOIN invoices s ON si.invoice_id = s.id
-        WHERE si.product_id = ? AND s.status = 'COMPLETED'
-      ''', [productId]);
-
-    if (result.isEmpty) {
-      return {
-        'saleCount': 0,
-        'totalSold': 0.0,
-        'totalRevenue': 0.0,
-        'avgPrice': 0.0,
-      };
-    }
-
-    final data = result.first;
-    return {
-      'saleCount': data['sale_count'] ?? 0,
-      'totalSold': (data['total_sold'] as num?)?.toDouble() ?? 0.0,
-      'totalRevenue': (data['total_revenue'] as num?)?.toInt() ?? 0,
-      'avgPrice': (data['avg_price'] as num?)?.round() ?? 0,
-    };
-  }
-
-  /// Get top selling products
-  Future<List<Map<String, dynamic>>> getTopSellingProducts({
-    int limit = 10,
-    String? dateFrom,
-    String? dateTo,
-  }) async {
-    final db = await _dbHelper.database;
-
-    String query = '''
-      SELECT 
-        p.*,
-        SUM(si.quantity) as total_sold,
-        SUM(si.total_price) as total_revenue,
-        COUNT(DISTINCT si.invoice_id) as sale_count
-        FROM products p
-        JOIN invoice_items si ON p.id = si.product_id
-        JOIN invoices s ON si.invoice_id = s.id
-        WHERE s.status = 'COMPLETED' AND p.is_active = 1
-      ''';
-
-    List<dynamic> args = [];
-
-    if (dateFrom != null) {
-      query += ' AND s.invoice_date >= ?';
-      args.add(dateFrom);
-    }
-
-    if (dateTo != null) {
-      query += ' AND s.invoice_date <= ?';
-      args.add(dateTo);
-    }
-
-    query += '''
-      GROUP BY p.id
-      ORDER BY total_sold DESC
-      LIMIT ?
-    ''';
-    args.add(limit);
-
-    return await db.rawQuery(query, args);
-  }
-
-  /// Get slow moving products (low sales)
-  Future<List<Map<String, dynamic>>> getSlowMovingProducts({
-    int limit = 10,
-    int daysBack = 30,
-  }) async {
-    final db = await _dbHelper.database;
-    final date = DateTime.now().subtract(Duration(days: daysBack));
-    final dateStr = date.toIso8601String().split('T')[0];
-
-    return await db.rawQuery('''
-      SELECT 
-        p.*,
-        COALESCE(SUM(si.quantity), 0) as total_sold
-      FROM products p
-      LEFT JOIN invoice_items si ON p.id = si.product_id
-      LEFT JOIN invoices s ON si.invoice_id = s.id AND s.invoice_date >= ? AND s.status = 'COMPLETED'
-      WHERE p.current_stock > 0 AND p.is_active = 1
-      GROUP BY p.id
-      ORDER BY total_sold ASC
-      LIMIT ?
-    ''', [dateStr, limit]);
-  }
-
   // ========================================
   // BARCODE MANAGEMENT
   // ========================================
-
-  Future<int?> getProductIdByBarcode(String barcode) async {
-    if (_barcodeIndex.isNotEmpty && _barcodeIndex.containsKey(barcode)) {
-      return _barcodeIndex[barcode];
-    }
-    // Fallback to DB if index not yet populated
-    final product = await getProductByBarcode(barcode);
-    return product?['id'] as int?;
-  }
-
-  /// Get product by barcode
-  Future<Map<String, dynamic>?> getProductByBarcode(String barcode) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'products',
-      where: 'barcode = ? AND is_active = 1',
-      whereArgs: [barcode],
-      limit: 1,
-    );
-
-    if (result.isEmpty) return null;
-    return result.first;
-  }
-
-  /// Update product barcode
-  Future<int> updateProductBarcode(int id, String barcode) async {
-    final db = await _dbHelper.database;
-
-    // Fetch product first to preserve itemCode in cache
-    final product = await getProductById(id);
-
-    final result = await db.update(
-      'products',
-      {'barcode': barcode},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (result > 0) {
-      // Sync barcode index
-      _barcodeIndex.removeWhere((key, value) => value == id);
-
-      // Re-add itemCode if it exists
-      if (product?.itemCode != null && product!.itemCode!.isNotEmpty) {
-        _barcodeIndex[product.itemCode!] = id;
-      }
-
-      // Add new barcode
-      if (barcode.trim().isNotEmpty) {
-        _barcodeIndex[barcode.trim()] = id;
-      }
-    }
-    return result;
-  }
-
-  /// Check if barcode exists
-  Future<bool> barcodeExists(String barcode) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'products',
-      columns: ['id'],
-      where: 'barcode = ?',
-      whereArgs: [barcode],
-      limit: 1,
-    );
-    return result.isNotEmpty;
-  }
 
   // ========================================
   // PRICING
   // ========================================
 
-  /// Update product prices
-  Future<int> updateProductPrices(
-    int id, {
-    int? costPrice,
-    int? salePrice,
-  }) async {
-    final db = await _dbHelper.database;
-
-    Map<String, dynamic> updates = {};
-    if (costPrice != null) updates['avg_cost_price'] = costPrice;
-    if (salePrice != null) updates['sale_price'] = salePrice;
-
-    if (updates.isEmpty) return 0;
-
-    return await db.update(
-      'products',
-      updates,
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
   // Stock Adjustments for product
 
-  Future<List<StockAdjustment>> getStockAdjustmentsForProduct(
-      int productId) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'stock_adjustments',
-      where: 'product_id = ?',
-      whereArgs: [productId],
-      orderBy: 'adjustment_date DESC',
-    );
-    return result.map((map) => StockAdjustment.fromMap(map)).toList();
-  }
-
   // Bulk update sale prices (by category or percentage)
-  Future<int> bulkUpdateSalePrices({
-    int? categoryId,
-    double? percentageIncrease,
-    int? fixedIncrease,
-  }) async {
-    if (percentageIncrease == null && fixedIncrease == null) {
-      throw Exception('INVALID_PRICE_ADJUSTMENT');
-    }
-
-    final db = await _dbHelper.database;
-
-    String updateClause;
-    if (percentageIncrease != null) {
-      updateClause =
-          'sale_price = CAST(ROUND(sale_price * (1 + ?)) AS INTEGER)';
-    } else {
-      updateClause = 'sale_price = sale_price + ?';
-    }
-
-    String whereClause = categoryId != null ? 'category_id = ?' : '1=1';
-    List<dynamic> args = [
-      percentageIncrease ?? fixedIncrease,
-      if (categoryId != null) categoryId,
-    ];
-
-    return await db.rawUpdate(
-      'UPDATE products SET $updateClause WHERE $whereClause',
-      args,
-    );
-  }
 }

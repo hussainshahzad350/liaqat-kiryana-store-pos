@@ -1,5 +1,8 @@
 include: package:flutter_lints/flutter.yaml
 analyzer:
+  exclude:
+    - build/**
+    - .local/**
   errors:
     avoid_print: ignore
     deprecated_member_use: ignore

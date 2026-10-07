@@ -20,88 +20,102 @@ class CashLedgerListTile extends StatelessWidget {
 
     return Column(
       children: [
-        ListTile(
-          leading: CircleAvatar(
-            backgroundColor: isIncome
-                ? colorScheme.primaryContainer
-                : colorScheme.errorContainer,
-            child: Icon(
-              isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-              color: isIncome ? colorScheme.primary : colorScheme.error,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(children: [
+            CircleAvatar(
+              backgroundColor: isIncome
+                  ? colorScheme.primaryContainer
+                  : colorScheme.errorContainer,
+              child: Icon(
+                isIncome ? Icons.arrow_downward : Icons.arrow_upward,
+                color: isIncome ? colorScheme.primary : colorScheme.error,
+              ),
             ),
-          ),
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  entry.description,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
+            const SizedBox(width: 16),
+            Expanded(
+                child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        entry.description,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppTokens.spacingSmall),
+                    // Payment Mode Chip
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTokens.spacingSmall,
+                        vertical: 2.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: entry.paymentMode.isCash
+                            ? colorScheme.tertiaryContainer
+                            : colorScheme.secondaryContainer,
+                        borderRadius:
+                            BorderRadius.circular(AppTokens.badgeBorderRadius),
+                      ),
+                      child: Text(
+                        entry.paymentMode.dbValue,
+                        style: textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: entry.paymentMode.isCash
+                              ? colorScheme.onTertiaryContainer
+                              : colorScheme.onSecondaryContainer,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: AppTokens.spacingSmall),
-              // Payment Mode Chip
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppTokens.spacingSmall,
-                  vertical: 2.0,
-                ),
-                decoration: BoxDecoration(
-                  color: entry.paymentMode.isCash
-                      ? colorScheme.tertiaryContainer
-                      : colorScheme.secondaryContainer,
-                  borderRadius:
-                      BorderRadius.circular(AppTokens.badgeBorderRadius),
-                ),
-                child: Text(
-                  entry.paymentMode.dbValue,
-                  style: textTheme.labelSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: entry.paymentMode.isCash
-                        ? colorScheme.onTertiaryContainer
-                        : colorScheme.onSecondaryContainer,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          subtitle: Text(
-            [
-              DateFormat.yMMMd(Localizations.localeOf(context).toString())
-                  .format(entry.transactionDate),
-              if (entry.transactionTime?.isNotEmpty ?? false)
-                entry.transactionTime!,
-            ].join(' | '),
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                isIncome
-                    ? loc.ledgerAmountIn(Money(entry.amount).formattedNoDecimal)
-                    : loc.ledgerAmountOut(
-                        Money(entry.amount).formattedNoDecimal),
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isIncome ? colorScheme.primary : colorScheme.error,
-                ),
-              ),
-              if (entry.balanceAfter != null)
                 Text(
-                  loc.balanceShort(
-                      Money(entry.balanceAfter!).formattedNoDecimal),
+                  [
+                    DateFormat.yMMMd(Localizations.localeOf(context).toString())
+                        .format(entry.transactionDate),
+                    if (entry.transactionTime?.isNotEmpty ?? false)
+                      entry.transactionTime!,
+                  ].join(' | '),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-            ],
-          ),
+              ],
+            )),
+            const SizedBox(width: 16),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  isIncome
+                      ? loc.ledgerAmountIn(
+                          Money(entry.amount).formattedNoDecimal)
+                      : loc.ledgerAmountOut(
+                          Money(entry.amount).formattedNoDecimal),
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isIncome ? colorScheme.primary : colorScheme.error,
+                  ),
+                ),
+                if (entry.balanceAfter != null)
+                  Text(
+                    loc.balanceShort(
+                        Money(entry.balanceAfter!).formattedNoDecimal),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ]),
         ),
         const Divider(height: 1),
       ],

@@ -82,7 +82,7 @@ class _AddUnitDialogState extends State<AddUnitDialog> {
     return AlertDialog(
       backgroundColor: colorScheme.surface,
       surfaceTintColor: colorScheme.surfaceTint,
-      title: Text(loc.addItem, style: textTheme.titleLarge),
+      title: Text(loc.addUnit, style: textTheme.titleLarge),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: Form(

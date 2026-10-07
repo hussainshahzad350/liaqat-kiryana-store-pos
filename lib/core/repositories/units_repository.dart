@@ -128,14 +128,4 @@ class UnitsRepository {
       );
     }
   }
-
-  Future<bool> isCodeUnique(String code, {int? excludeId}) async {
-    final db = await _dbHelper.database;
-    final where = excludeId != null ? 'code = ? AND id != ?' : 'code = ?';
-    final args = excludeId != null ? [code, excludeId] : [code];
-
-    final count = Sqflite.firstIntValue(await db.query('units',
-        columns: ['COUNT(*)'], where: where, whereArgs: args));
-    return count == 0;
-  }
 }

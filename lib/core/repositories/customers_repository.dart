@@ -45,19 +45,6 @@ class CustomersRepository {
   // CUSTOMER CRUD OPERATIONS
   // ========================================
 
-  /// Get all customers
-  Future<List<Customer>> getAllCustomers(
-      {int limit = 50, int offset = 0}) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'customers',
-      orderBy: 'name_english ASC',
-      limit: limit,
-      offset: offset,
-    );
-    return result.map((map) => Customer.fromMap(map)).toList();
-  }
-
   /// Get active customers
   Future<List<Customer>> getActiveCustomers() async {
     final db = await _dbHelper.database;
@@ -113,12 +100,12 @@ class CustomersRepository {
     });
   }
 
-  /// Update customer details
+  /// Update details without overwriting balances changed after a form opened.
   Future<int> updateCustomer(int id, Customer customer) async {
     final db = await _dbHelper.database;
     return await db.update(
       'customers',
-      customer.toMap(),
+      customer.toMap()..remove('outstanding_balance'),
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -186,22 +173,6 @@ class CustomersRepository {
       whereArgs: whereArgs,
     );
     return result.isEmpty;
-  }
-
-  /// Returns true if a customer with the exact phone number exists.
-  Future<bool> customerExistsByPhone(String phone) async {
-    final db = await _dbHelper.database;
-    final normalizedPhone = phone.trim();
-    if (normalizedPhone.isEmpty) return false;
-
-    final result = await db.query(
-      'customers',
-      columns: ['id'],
-      where: 'contact_primary = ?',
-      whereArgs: [normalizedPhone],
-      limit: 1,
-    );
-    return result.isNotEmpty;
   }
 
   // ========================================
@@ -302,10 +273,10 @@ class CustomersRepository {
         });
 
         // 2. Insert into Ledger
-        // Get current balance first (to ensure running balance integrity, though we calculate it)
-        // Actually, for running balance, we need the previous balance.
+        // Running balances follow append order, including backdated receipts.
+        // Dates can use mixed local/UTC formats and cannot identify the last event.
         final lastEntry = await txn.rawQuery(
-            'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+            'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY id DESC LIMIT 1',
             [customerId]);
 
         // Edge Case: Overpayment is allowed (results in negative balance)
@@ -373,36 +344,6 @@ class CustomersRepository {
       AppLogger.error('Error adding payment: $e', tag: 'CustomersRepo');
       throw Exception('PAYMENT_FAILED');
     }
-  }
-
-  /// Get all payments for a customer
-  Future<List<Map<String, dynamic>>> getCustomerPayments(int customerId) async {
-    final db = await _dbHelper.database;
-    return await db.query(
-      'receipts',
-      where: 'customer_id = ?',
-      whereArgs: [customerId],
-      orderBy: 'receipt_date DESC',
-    );
-  }
-
-  /// Get payments by date range
-  Future<List<Map<String, dynamic>>> getPaymentsByDateRange(
-    String startDate,
-    String endDate,
-  ) async {
-    final db = await _dbHelper.database;
-    return await db.rawQuery('''
-      SELECT 
-        p.*,
-        c.name_english,
-        c.name_urdu,
-        c.contact_primary
-      FROM receipts p
-      JOIN customers c ON p.customer_id = c.id
-      WHERE p.receipt_date BETWEEN ? AND ?
-      ORDER BY p.receipt_date DESC
-    ''', [startDate, endDate]);
   }
 
   // ========================================
@@ -536,51 +477,6 @@ class CustomersRepository {
     return finalLedger.reversed.toList();
   }
 
-  /// Get customer summary (total sales, payments, balance)
-  Future<Map<String, dynamic>> getCustomerSummary(int customerId) async {
-    final db = await _dbHelper.database;
-
-    // Get customer info
-    final customer = await getCustomerById(customerId);
-    if (customer == null) {
-      return {
-        'error': 'Customer not found',
-      };
-    }
-
-    // Get total sales
-    final salesResult = await db.rawQuery('''
-      SELECT 
-        COUNT(*) as sale_count,
-        SUM(grand_total) as total_sales
-      FROM invoices
-      WHERE customer_id = ? AND status = 'COMPLETED'
-    ''', [customerId]);
-
-    // Get total payments
-    final paymentsResult = await db.rawQuery('''
-      SELECT 
-        COUNT(*) as payment_count,
-        SUM(amount) as total_payments
-      FROM receipts
-      WHERE customer_id = ?
-    ''', [customerId]);
-
-    final sales = salesResult.first;
-    final payments = paymentsResult.first;
-
-    return {
-      'customer': customer,
-      'saleCount': sales['sale_count'] ?? 0,
-      'totalSales': (sales['total_sales'] as num?)?.toInt() ?? 0,
-      'totalCredit': 0, // Deprecated concept, use balance
-      'paymentCount': payments['payment_count'] ?? 0,
-      'totalPayments': (payments['total_payments'] as num?)?.toInt() ?? 0,
-      'currentBalance': customer.outstandingBalance,
-      'creditLimit': customer.creditLimit,
-    };
-  }
-
   // ========================================
   // DASHBOARD QUERIES
   // ========================================
@@ -612,60 +508,9 @@ class CustomersRepository {
     }
   }
 
-  /// Get customers with outstanding balance
-  Future<List<Map<String, dynamic>>> getCustomersWithBalance() async {
-    final db = await _dbHelper.database;
-    return await db.query(
-      'customers',
-      where: 'outstanding_balance > 0',
-      orderBy: 'outstanding_balance DESC',
-    );
-  }
-
-  /// Get customers near credit limit
-  Future<List<Map<String, dynamic>>> getCustomersNearLimit({
-    double threshold = 0.8,
-  }) async {
-    final db = await _dbHelper.database;
-    return await db.rawQuery('''
-      SELECT 
-        *,
-        (outstanding_balance * 1.0 / credit_limit) as usage_ratio
-      FROM customers
-      WHERE credit_limit > 0 
-      AND outstanding_balance > 0
-      AND (outstanding_balance * 1.0 / credit_limit) >= ?
-      ORDER BY usage_ratio DESC
-    ''', [threshold]);
-  }
-
   // ========================================
   // STATISTICS
   // ========================================
-
-  /// Get total customer count
-  Future<int> getTotalCustomerCount() async {
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM customers');
-    return (result.first['count'] as int?) ?? 0;
-  }
-
-  /// Get active customer count (with recent purchases)
-  Future<int> getActiveCustomerCount({int daysBack = 30}) async {
-    final db = await _dbHelper.database;
-    final date = DateTime.now().subtract(Duration(days: daysBack));
-    final dateStr = DateFormat('yyyy-MM-dd').format(date);
-
-    final result = await db.rawQuery('''
-      SELECT COUNT(DISTINCT customer_id) as count
-      FROM invoices
-      WHERE invoice_date >= ? AND status = 'COMPLETED'
-    ''', [
-      dateStr
-    ]); // Note: invoice_date is datetime string, might need substring for date comparison if not careful, but >= works for ISO8601
-
-    return (result.first['count'] as int?) ?? 0;
-  }
 
   /// Get total outstanding balance across all customers
   Future<int> getTotalOutstandingBalance() async {

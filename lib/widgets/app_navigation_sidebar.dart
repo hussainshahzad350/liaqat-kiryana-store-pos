@@ -1,3 +1,4 @@
+import 'app_feature_theme.dart';
 // lib/widgets/app_navigation_sidebar.dart
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../core/routes/app_routes.dart';
 import '../core/cubits/sidebar_cubit.dart';
 import '../core/res/app_tokens.dart';
+import '../core/res/app_layout.dart';
 import 'app_shell.dart';
 
 class AppNavigationSidebar extends StatelessWidget {
@@ -17,13 +19,15 @@ class AppNavigationSidebar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final isExpanded = context.watch<SidebarCubit>().isExpanded;
+  Widget build(BuildContext context) => AppFeatureTheme(builder: _buildFeature);
+
+  Widget _buildFeature(BuildContext context) {
+    final isExpanded = context.watch<SidebarCubit>().isExpanded &&
+        !AppLayout.useNavigationRail(MediaQuery.sizeOf(context).width);
     final localizations = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
+    return Container(
       width: isExpanded
           ? AppTokens.sidebarExpandedWidth
           : AppTokens.sidebarCollapsedWidth,
@@ -35,13 +39,6 @@ class AppNavigationSidebar extends StatelessWidget {
             width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(2, 0),
-          ),
-        ],
       ),
       child: ClipRect(
         child: Column(
@@ -65,6 +62,7 @@ class AppNavigationSidebar extends StatelessWidget {
                     icon: Icons.warehouse,
                     title: localizations.productsAndStock,
                     route: AppRoutes.stock,
+                    activeRoutes: const {AppRoutes.product},
                   ),
                   _buildMenuItem(
                     context,
@@ -83,6 +81,13 @@ class AppNavigationSidebar extends StatelessWidget {
                       AppRoutes.customers,
                       AppRoutes.suppliers
                     },
+                  ),
+                  _buildMenuItem(
+                    context,
+                    isExpanded: isExpanded,
+                    icon: Icons.payments_outlined,
+                    title: localizations.cashLedger,
+                    route: AppRoutes.cashLedger,
                   ),
                   _buildMenuItem(
                     context,
@@ -123,51 +128,34 @@ class AppNavigationSidebar extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       height: AppTokens.sidebarHeaderHeight,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            colorScheme.primary,
-            colorScheme.primary.withValues(alpha: 0.8),
-          ],
-        ),
-      ),
-      child: Column(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: colorScheme.surface),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: isExpanded ? 55 : 35,
-            height: isExpanded ? 55 : 35,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: colorScheme.surface,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(AppTokens.radius8),
             ),
             child: Icon(
               Icons.store,
-              size: isExpanded ? 28 : 20,
-              color: colorScheme.primary,
+              size: 22,
+              color: colorScheme.onPrimaryContainer,
             ),
           ),
           if (isExpanded) ...[
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppTokens.spacingMedium),
+            const SizedBox(width: 12),
+            Expanded(
               child: Text(
                 localizations.appTitle,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: colorScheme.onPrimary,
+                      color: colorScheme.onSurface,
                     ),
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.start,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -192,70 +180,81 @@ class AppNavigationSidebar extends StatelessWidget {
         (activeRoutes != null && activeRoutes.contains(currentRoute));
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppTokens.spacingSmall,
-          vertical: AppTokens.spacingSmall / 2),
-      child: Material(
-        color: isActive
-            ? colorScheme.primary.withValues(alpha: 0.12)
-            : Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppTokens.radius8),
-          side: isActive
-              ? BorderSide(color: colorScheme.primary, width: 1)
-              : BorderSide.none,
-        ),
-        child: InkWell(
-          onTap: onTap ??
-              () {
-                if (!isActive) {
-                  AppShell.navigateTo(context, route);
-                }
-              },
-          borderRadius: BorderRadius.circular(AppTokens.radius8),
-          child: SizedBox(
-            height: AppTokens.menuItemHeight,
-            child: Row(
-              mainAxisAlignment: isExpanded
-                  ? MainAxisAlignment.start
-                  : MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: isExpanded ? 12.0 : 0),
-                  child: Icon(
-                    icon,
-                    size: AppTokens.menuItemIconSize,
-                    color: color ??
-                        (isActive
-                            ? colorScheme.primary
-                            : colorScheme.onSurfaceVariant),
-                  ),
+    return Tooltip(
+        message: title,
+        child: Semantics(
+            selected: isActive,
+            label: isExpanded ? null : title,
+            button: true,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppTokens.spacingSmall,
+                  vertical: AppTokens.spacingSmall / 2),
+              child: Material(
+                color: isActive
+                    ? colorScheme.primary.withValues(alpha: 0.12)
+                    : Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppTokens.radius8),
+                  side: isActive
+                      ? BorderSide(color: colorScheme.primary, width: 1)
+                      : BorderSide.none,
                 ),
-                if (isExpanded) ...[
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            fontWeight:
-                                isActive ? FontWeight.bold : FontWeight.normal,
+                child: InkWell(
+                  onTap: onTap ??
+                      () {
+                        if (currentRoute != route) {
+                          AppShell.navigateTo(context, route);
+                        }
+                      },
+                  borderRadius: BorderRadius.circular(AppTokens.radius8),
+                  child: SizedBox(
+                    height: AppTokens.menuItemHeight,
+                    child: Row(
+                      mainAxisAlignment: isExpanded
+                          ? MainAxisAlignment.start
+                          : MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: EdgeInsetsDirectional.only(
+                              start: isExpanded ? 12.0 : 0),
+                          child: Icon(
+                            icon,
+                            size: AppTokens.menuItemIconSize,
                             color: color ??
                                 (isActive
                                     ? colorScheme.primary
-                                    : colorScheme.onSurface),
+                                    : colorScheme.onSurfaceVariant),
                           ),
+                        ),
+                        if (isExpanded) ...[
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(
+                                    fontWeight: isActive
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: color ??
+                                        (isActive
+                                            ? colorScheme.primary
+                                            : colorScheme.onSurface),
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+                ),
+              ),
+            )));
   }
 
   Widget _buildSidebarFooter(
@@ -321,27 +320,28 @@ class AppNavigationSidebar extends StatelessWidget {
               ),
             ),
           ],
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => context.read<SidebarCubit>().toggle(),
-              child: Container(
-                height: AppTokens.sidebarFooterHeight,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  border: Border(
-                    top:
-                        BorderSide(color: colorScheme.outlineVariant, width: 1),
+          if (!AppLayout.useNavigationRail(MediaQuery.sizeOf(context).width))
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => context.read<SidebarCubit>().toggle(),
+                child: Container(
+                  height: AppTokens.sidebarFooterHeight,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                          color: colorScheme.outlineVariant, width: 1),
+                    ),
                   ),
-                ),
-                child: Icon(
-                  isExpanded ? Icons.chevron_left : Icons.chevron_right,
-                  size: 20,
-                  color: colorScheme.onSurfaceVariant,
+                  child: Icon(
+                    isExpanded ? Icons.chevron_left : Icons.chevron_right,
+                    size: 20,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

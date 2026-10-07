@@ -1,3 +1,4 @@
+import '../../../core/utils/error_handler.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -270,7 +271,8 @@ class _SupplierLedgerPanelState extends State<SupplierLedgerPanel> {
                                   const SizedBox(
                                       height: AppTokens.spacingMedium),
                                   Text(
-                                    loc.errorMessage(_loadError!),
+                                    ErrorHandler.getLocalizedMessage(
+                                        _loadError, loc),
                                     style: textTheme.bodyMedium
                                         ?.copyWith(color: colorScheme.error),
                                     textAlign: TextAlign.center,
@@ -477,7 +479,7 @@ class _Header extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text("Total Payable", // loc fallback
+              Text(loc.totalPayable,
                   style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.bold)),
@@ -502,7 +504,7 @@ class _Header extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onPayment,
                 icon: const Icon(Icons.add, size: AppTokens.iconSizeMedium),
-                label: const Text("Make Payment"),
+                label: Text(loc.makePayment),
               ),
               const SizedBox(width: AppTokens.spacingSmall),
               IconButton(
@@ -558,7 +560,10 @@ class _FilterBar extends StatelessWidget {
         vertical: AppTokens.spacingSmall,
       ),
       color: colorScheme.surfaceContainerHighest,
-      child: Row(
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           OutlinedButton.icon(
             onPressed: onPickDate,
@@ -579,7 +584,6 @@ class _FilterBar extends StatelessWidget {
               color: colorScheme.onSurfaceVariant,
             ),
           ],
-          const SizedBox(width: AppTokens.spacingMedium),
           SegmentedButton<String>(
             segments: [
               ButtonSegment(value: 'ALL', label: Text(loc.all)),
@@ -593,9 +597,8 @@ class _FilterBar extends StatelessWidget {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
           ),
-          const Spacer(),
           SizedBox(
-            width: AppTokens.sidebarWidthSmall,
+            width: 280,
             child: TextField(
               controller: searchCtrl,
               onChanged: onSearch,

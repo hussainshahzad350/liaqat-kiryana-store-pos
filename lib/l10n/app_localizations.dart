@@ -4705,6 +4705,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App Version, System Info, and Developer Support'**
   String get aboutSubtitle;
+
+  /// No description provided for @allDates.
+  ///
+  /// In en, this message translates to:
+  /// **'All dates'**
+  String get allDates;
+
+  /// No description provided for @addUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Add unit'**
+  String get addUnit;
+
+  /// No description provided for @editUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit unit'**
+  String get editUnit;
+
+  /// No description provided for @makePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Make payment'**
+  String get makePayment;
+
+  /// No description provided for @makeSupplierPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Make payment to supplier'**
+  String get makeSupplierPayment;
+
+  /// No description provided for @archiveSupplierConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate this supplier? Their existing transactions will remain available.'**
+  String get archiveSupplierConfirmation;
+
+  /// No description provided for @finalPayable.
+  ///
+  /// In en, this message translates to:
+  /// **'Final payable'**
+  String get finalPayable;
+
+  /// No description provided for @otherPaymentOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Other payment options'**
+  String get otherPaymentOptions;
+
+  /// No description provided for @proceedPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed'**
+  String get proceedPayment;
+
+  /// No description provided for @onScreenKeyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'On-screen keyboard'**
+  String get onScreenKeyboard;
+
+  /// No description provided for @mouseInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Click a field to use the on-screen keyboard'**
+  String get mouseInputHint;
+
+  /// No description provided for @clearInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearInput;
+
+  /// No description provided for @applyInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get applyInput;
+
+  /// No description provided for @keyboardSpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get keyboardSpace;
+
+  /// No description provided for @keyboardShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Uppercase / lowercase'**
+  String get keyboardShift;
+
+  /// No description provided for @keyboardBackspace.
+  ///
+  /// In en, this message translates to:
+  /// **'Backspace'**
+  String get keyboardBackspace;
+
+  /// No description provided for @increaseQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase quantity'**
+  String get increaseQuantity;
+
+  /// No description provided for @decreaseQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease quantity'**
+  String get decreaseQuantity;
 }
 
 class _AppLocalizationsDelegate

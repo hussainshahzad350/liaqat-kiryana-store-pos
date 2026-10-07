@@ -9,10 +9,10 @@ import 'package:liaqat_store/core/repositories/items_repository.dart';
 import 'package:liaqat_store/domain/entities/money.dart';
 import 'package:liaqat_store/models/customer_model.dart';
 import 'package:liaqat_store/models/product_model.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import '../support/test_database.dart';
 
 void main() {
-  late DatabaseFactory previousDatabaseFactory;
+  useTestDatabase();
   late ItemsRepository itemsRepository;
   late InvoiceRepository invoiceRepository;
   late int productId;
@@ -37,28 +37,19 @@ void main() {
     ];
   }
 
-  setUpAll(() {
-    sqfliteFfiInit();
-    previousDatabaseFactory = databaseFactory;
-    databaseFactory = databaseFactoryFfi;
-  });
-
-  tearDownAll(() {
-    databaseFactory = previousDatabaseFactory;
-  });
-
   setUp(() async {
-    await DatabaseHelper.instance.resetDatabase();
     itemsRepository = ItemsRepository();
     invoiceRepository = InvoiceRepository(itemsRepository);
 
     productId = await itemsRepository.addProduct(Product(
       itemCode: 'INVARIANT-PRODUCT',
       nameEnglish: 'Invariant Test Product',
+      nameUrdu: 'ٹیسٹ پروڈکٹ',
       currentStock: 20,
       avgCostPrice: const Money(3000),
       salePrice: const Money(unitPrice),
     ));
+    await setTestStock(productId, 20);
 
     creditCustomerId = await CustomersRepository().addCustomer(Customer(
       nameEnglish: 'Invariant Credit Customer',
@@ -68,6 +59,21 @@ void main() {
   });
 
   group('Invoice accounting invariants', () {
+    test('loaded invoice retains fractional units and posted amounts',
+        () async {
+      final id = await invoiceRepository.createInvoiceWithTransaction(
+          customerId: creditCustomerId,
+          items: saleItems(quantity: 1.5, total: 7500),
+          grandTotal: 7500,
+          cashAmount: 7500,
+          bankAmount: 0,
+          creditAmount: 0);
+      final saved = (await invoiceRepository.getInvoiceWithItems(id))!;
+      expect(saved.items.single.quantity, 1.5);
+      expect(saved.items.single.totalPrice, 7500);
+      expect(saved.totalAmount, 7500);
+      expect(saved.isMathematicallyValid, isTrue);
+    });
     test('mixed payment persists matching stock, cash, and customer ledgers',
         () async {
       final invoiceId = await invoiceRepository.createInvoiceWithTransaction(

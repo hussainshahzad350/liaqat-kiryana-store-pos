@@ -3,6 +3,39 @@ import 'package:liaqat_store/domain/entities/money.dart';
 
 void main() {
   group('Money Entity Tests', () {
+    test(
+        'input and decimal strings round-trip paisas including credit balances',
+        () {
+      for (final paisas in [
+        0,
+        1,
+        5,
+        10,
+        99,
+        100,
+        101,
+        123450,
+        -1,
+        -3333,
+        99999999
+      ]) {
+        final money = Money(paisas);
+        expect(Money.fromRupeesString(money.toInputString()), money);
+        expect(Money.fromRupeesString(money.toRupeesString()), money);
+      }
+    });
+
+    test('displayed totals retain cents, grouping and the credit sign', () {
+      expect(const Money(0).formatted, 'Rs 0.00');
+      expect(const Money(1).formattedSmart, 'Rs 0.01');
+      expect(const Money(123456).formattedSmart, 'Rs 1,234.56');
+      expect(const Money(-123456).formatted, '-Rs 1,234.56');
+      expect(const Money(123400).formattedSmart, 'Rs 1,234');
+      expect(
+          (const Money(3333) + const Money(3333) + const Money(3335)).formatted,
+          'Rs 100.01');
+    });
+
     test('should initialize with correct paisas', () {
       const money = Money(1050);
       expect(money.paisas, 1050);

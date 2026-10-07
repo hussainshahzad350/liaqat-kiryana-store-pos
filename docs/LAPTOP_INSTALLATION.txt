@@ -1,0 +1,35 @@
+LIAQAT KIRYANA STORE POS 1.0.0 - WINDOWS LAPTOP INSTALLATION
+Release date: 6 October 2026
+
+1. Copy Liaqat-Kiryana-POS-1.0.0-Windows-x64-Setup.exe to your laptop.
+2. Double-click it and follow the installation wizard.
+3. Open Liaqat Kiryana Store POS from the desktop or Start menu.
+4. On a new laptop, create your own PIN and keep the recovery code safe.
+
+Requires 64-bit Windows 10 or Windows 11. Flutter, VS Code, Visual Studio and
+an internet connection are not required. Required app/runtime DLLs are bundled.
+
+This is the normal store app. The performance-lab catalog, test customers,
+suppliers, transactions and PIN 2468 are NOT included. The application's usual
+first-run starter data still applies. Your database on the original computer
+has not been changed or copied into this installer.
+
+To move an existing store, first create a backup from Settings on the original
+computer. Transfer that backup separately and restore it from Settings on the
+laptop. Keep the original backup until you have checked the laptop's records.
+
+Installation is per Windows user and does not need administrator permission.
+The default location is:
+%LOCALAPPDATA%\Programs\LiaqatKiryanaStore
+Use the supplied shortcuts so the database working directory stays consistent.
+Keep the full installed folder together. Do not move just the EXE.
+Uninstalling removes the app files and keeps runtime-created database files.
+
+This local release is not code-signed. Windows may show an unknown-publisher
+notice. The SHA256.txt file identifies this exact installer.
+
+Verified on this computer: 522 automated tests passed (one optional skip),
+English/Urdu mouse-only checkout, existing keyboard shortcuts, static analysis
+and Windows release builds. Check your laptop's printer before live trading.
+
+Installer created with Inno Setup: https://jrsoftware.org/

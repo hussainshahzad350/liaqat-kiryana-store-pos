@@ -18,7 +18,9 @@
   "pinLockedOut": "Too many attempts. Try again in {seconds}s.",
   "@pinLockedOut": {
     "placeholders": {
-      "seconds": {"type": "int"}
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "recoveryCode": "Recovery Code",
@@ -40,7 +42,9 @@
   "attemptsRemaining": "{count} attempt(s) remaining",
   "@attemptsRemaining": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "home": "Home",
@@ -613,33 +617,49 @@
   "isBaseUnitFor": "This is the Base Unit for {category}.",
   "@isBaseUnitFor": {
     "placeholders": {
-      "category": { "type": "String" }
+      "category": {
+        "type": "String"
+      }
     }
   },
   "multiplierConversionLabel": "Multiplier (Conversion to Base)",
   "baseUnitSubtitle": "Base: {name} ({code})",
   "@baseUnitSubtitle": {
     "placeholders": {
-      "name": { "type": "String" },
-      "code": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
     }
   },
-  "noBaseUnitSet": "No base unit set",
+  "noBaseUnitSet": "No base unit set for this category",
   "noUnitsInCategory": "No units defined in this category",
   "softDeleteWarning": "Soft Delete Warning",
   "unitInUseMessage": "The unit \"{name}\" ({code}) is used by {count} products or other units.",
   "@unitInUseMessage": {
     "placeholders": {
-      "name": { "type": "String" },
-      "code": { "type": "String" },
-      "count": { "type": "int" }
+      "name": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "confirmDeleteUnit": "Are you sure you want to delete \"{name}\" ({code})?",
   "@confirmDeleteUnit": {
     "placeholders": {
-      "name": { "type": "String" },
-      "code": { "type": "String" }
+      "name": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
     }
   },
   "unitArchiveNote": "It will be archived instead of deleted to maintain data integrity for current products.",
@@ -856,7 +876,13 @@
   "supplier": "Supplier",
   "unknownError": "An unknown error occurred",
   "fieldRequired": "{field} is required",
-  "@fieldRequired": { "placeholders": { "field": { "type": "String" } } },
+  "@fieldRequired": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
   "invalidPhone": "Invalid phone number",
   "processing": "Processing...",
   "newPurchaseBill": "New Purchase Bill",
@@ -888,7 +914,9 @@
   "itemsSelected": "{count} items selected",
   "@itemsSelected": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "clearSelection": "Clear selection",
@@ -904,7 +932,6 @@
   "unitManagement": "Unit Management",
   "derivedUnit": "Derived Unit",
   "conversionFormula": "Conversion Formula",
-  "noBaseUnitSet": "No base unit set for this category",
   "unitCodeFallback": "Unit",
   "isBaseUnitTitle": "Is this a Base Unit?",
   "isBaseUnitPrimarySubtitle": "This will be the primary measurement for this category.",
@@ -942,5 +969,23 @@
   "backupSubtitle": "Database Backups, Restore, and Repair tools",
   "receiptSubtitle": "Printer Type, Font Size, and Template Options",
   "preferencesSubtitle": "Language, Theme, Security, and Notifications",
-  "aboutSubtitle": "App Version, System Info, and Developer Support"
+  "aboutSubtitle": "App Version, System Info, and Developer Support",
+  "allDates": "All dates",
+  "addUnit": "Add unit",
+  "editUnit": "Edit unit",
+  "makePayment": "Make payment",
+  "makeSupplierPayment": "Make payment to supplier",
+  "archiveSupplierConfirmation": "Deactivate this supplier? Their existing transactions will remain available.",
+  "finalPayable": "Final payable",
+  "otherPaymentOptions": "Other payment options",
+  "proceedPayment": "Proceed",
+  "onScreenKeyboard": "On-screen keyboard",
+  "mouseInputHint": "Click a field to use the on-screen keyboard",
+  "clearInput": "Clear",
+  "applyInput": "Apply",
+  "keyboardSpace": "Space",
+  "keyboardShift": "Uppercase / lowercase",
+  "keyboardBackspace": "Backspace",
+  "increaseQuantity": "Increase quantity",
+  "decreaseQuantity": "Decrease quantity"
 }

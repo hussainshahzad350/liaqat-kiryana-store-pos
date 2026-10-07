@@ -135,8 +135,10 @@ class DeleteUnitDialog extends StatelessWidget {
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: inUse ? Colors.orange : colorScheme.error,
-                  foregroundColor: inUse ? Colors.white : colorScheme.onError,
+                  backgroundColor:
+                      inUse ? colorScheme.tertiary : colorScheme.error,
+                  foregroundColor:
+                      inUse ? colorScheme.onTertiary : colorScheme.onError,
                 ),
                 child: Text(inUse ? loc.archive : loc.yesDelete),
               ),

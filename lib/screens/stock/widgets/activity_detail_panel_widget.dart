@@ -31,7 +31,8 @@ class _ActivityDetailPanelWidgetState extends State<ActivityDetailPanelWidget> {
     final colorScheme = theme.colorScheme;
     final isCancelled = widget.activity.isCancelled;
 
-    return Column(
+    return ListView(
+      padding: EdgeInsets.zero,
       children: [
         // Receipt Header
         Container(
@@ -88,9 +89,9 @@ class _ActivityDetailPanelWidgetState extends State<ActivityDetailPanelWidget> {
         const Divider(height: 1),
 
         // Details List
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(AppTokens.spacingMedium),
+        Padding(
+          padding: const EdgeInsets.all(AppTokens.spacingMedium),
+          child: Column(
             children: [
               _buildDetailRow(context, loc.date,
                   DateFormat('yyyy-MM-dd').format(widget.activity.timestamp)),

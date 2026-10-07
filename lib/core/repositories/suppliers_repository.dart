@@ -3,7 +3,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
-import '../../models/supplier_model.dart';
 
 class SuppliersRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -38,22 +37,40 @@ class SuppliersRepository {
     return result.first;
   }
 
-  /// Add new supplier
+  /// Add a supplier and signed opening ledger entry atomically.
   Future<int> addSupplier(Map<String, dynamic> supplierData) async {
     final db = await _dbHelper.database;
-    return await db.insert(
-      'suppliers',
-      supplierData,
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    return await db.transaction((txn) async {
+      final supplierId = await txn.insert('suppliers', supplierData,
+          conflictAlgorithm: ConflictAlgorithm.abort);
+      final opening =
+          (supplierData['outstanding_balance'] as num?)?.toInt() ?? 0;
+      if (opening != 0) {
+        final date = supplierData['created_at'] as String? ??
+            DateTime.now().toUtc().toIso8601String();
+        await txn.insert('supplier_ledger', {
+          'supplier_id': supplierId,
+          'transaction_date': date,
+          'description': 'Opening balance',
+          'ref_type': 'ADJUSTMENT',
+          'ref_id': supplierId,
+          'debit': opening > 0 ? opening : 0,
+          'credit': opening < 0 ? -opening : 0,
+          'balance': opening,
+          'transaction_id': 'SUPPLIER:$supplierId:INITIAL',
+          'created_at': date,
+        });
+      }
+      return supplierId;
+    });
   }
 
-  /// Update supplier
+  /// Update supplier details; payments and ledger events own the balance cache.
   Future<int> updateSupplier(int id, Map<String, dynamic> supplierData) async {
     final db = await _dbHelper.database;
     return await db.update(
       'suppliers',
-      supplierData,
+      Map<String, dynamic>.from(supplierData)..remove('outstanding_balance'),
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -95,37 +112,6 @@ class SuppliersRepository {
       $activeFilter
       ORDER BY name_english ASC
     ''', [q, q, query]);
-  }
-
-  /// Get paged suppliers with optional search
-  Future<List<Supplier>> getSuppliersPaged({
-    required int limit,
-    required int offset,
-    String? query,
-  }) async {
-    final db = await _dbHelper.database;
-    List<Map<String, dynamic>> maps;
-
-    if (query != null && query.isNotEmpty) {
-      final q = '%$query%';
-      maps = await db.query(
-        'suppliers',
-        where:
-            'name_english LIKE ? OR name_urdu LIKE ? OR contact_primary LIKE ?',
-        whereArgs: [q, q, q],
-        orderBy: 'name_english ASC',
-        limit: limit,
-        offset: offset,
-      );
-    } else {
-      maps = await db.query(
-        'suppliers',
-        orderBy: 'name_english ASC',
-        limit: limit,
-        offset: offset,
-      );
-    }
-    return maps.map((e) => Supplier.fromMap(e)).toList();
   }
 
   /// Get active suppliers only
@@ -197,7 +183,7 @@ class SuppliersRepository {
       });
 
       final lastSupplierLedger = await txn.rawQuery(
-        'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+        'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY id DESC LIMIT 1',
         [supplierId],
       );
       final previousSupplierBalance = lastSupplierLedger.isNotEmpty
@@ -249,16 +235,6 @@ class SuppliersRepository {
     });
   }
 
-  /// Get suppliers with outstanding balance
-  Future<List<Map<String, dynamic>>> getSuppliersWithBalance() async {
-    final db = await _dbHelper.database;
-    return await db.query(
-      'suppliers',
-      where: 'outstanding_balance > 0',
-      orderBy: 'outstanding_balance DESC',
-    );
-  }
-
   /// Get total outstanding balance to suppliers
   Future<int> getTotalOutstandingBalance() async {
     final db = await _dbHelper.database;
@@ -308,43 +284,6 @@ class SuppliersRepository {
   // STATISTICS
   // ========================================
 
-  /// Get total supplier count
-  Future<int> getTotalSupplierCount() async {
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery('SELECT COUNT(*) as count FROM suppliers');
-    return (result.first['count'] as int?) ?? 0;
-  }
-
-  /// Get active supplier count
-  Future<int> getActiveSupplierCount() async {
-    final db = await _dbHelper.database;
-    final result = await db.rawQuery(
-        'SELECT COUNT(*) as count FROM suppliers WHERE is_active = 1');
-    return (result.first['count'] as int?) ?? 0;
-  }
-
-  /// Get supplier summary
-  Future<Map<String, dynamic>> getSupplierSummary(int supplierId) async {
-    final supplier = await getSupplierById(supplierId);
-    if (supplier == null) {
-      return {
-        'error': 'SUPPLIER_NOT_FOUND',
-      };
-    }
-
-    // You can extend this with purchase history, payment history, etc.
-    // For now, returning basic info
-    return {
-      'supplier': supplier,
-      'totalBalance': (supplier['outstanding_balance'] as num).toInt(),
-      'isActive': (supplier['is_active'] as int) == 1,
-      // Add more metrics as needed:
-      // 'totalPurchases': ...,
-      // 'lastPurchaseDate': ...,
-      // 'paymentCount': ...,
-    };
-  }
-
   /// Get supplier statistics
   Future<Map<String, dynamic>> getSupplierStats() async {
     final db = await _dbHelper.database;
@@ -373,67 +312,9 @@ class SuppliersRepository {
   // BULK OPERATIONS
   // ========================================
 
-  /// Bulk activate suppliers
-  Future<int> bulkActivateSuppliers(List<int> supplierIds) async {
-    if (supplierIds.isEmpty) return 0;
-
-    final db = await _dbHelper.database;
-    final placeholders = List.filled(supplierIds.length, '?').join(',');
-
-    return await db.rawUpdate(
-      'UPDATE suppliers SET is_active = 1 WHERE id IN ($placeholders)',
-      supplierIds,
-    );
-  }
-
-  /// Bulk deactivate suppliers
-  Future<int> bulkDeactivateSuppliers(List<int> supplierIds) async {
-    if (supplierIds.isEmpty) return 0;
-
-    final db = await _dbHelper.database;
-    final placeholders = List.filled(supplierIds.length, '?').join(',');
-
-    return await db.rawUpdate(
-      'UPDATE suppliers SET is_active = 0 WHERE id IN ($placeholders)',
-      supplierIds,
-    );
-  }
-
-  /// Bulk soft-delete suppliers (Rule 8: hard deletes prohibited).
-  Future<int> bulkDeleteSuppliers(List<int> supplierIds) async {
-    if (supplierIds.isEmpty) return 0;
-
-    final db = await _dbHelper.database;
-    final placeholders = List.filled(supplierIds.length, '?').join(',');
-
-    return await db.rawUpdate(
-      'UPDATE suppliers SET is_active = 0 WHERE id IN ($placeholders)',
-      supplierIds,
-    );
-  }
-
   // ========================================
   // VALIDATION
   // ========================================
-
-  /// Check if supplier name exists
-  Future<bool> supplierNameExists(String name, {int? excludeId}) async {
-    final db = await _dbHelper.database;
-
-    String query =
-        'SELECT COUNT(*) as count FROM suppliers WHERE name_english = ?';
-    List<dynamic> args = [name];
-
-    if (excludeId != null) {
-      query += ' AND id != ?';
-      args.add(excludeId);
-    }
-
-    final result = await db.rawQuery(query, args);
-    final count = (result.first['count'] as int?) ?? 0;
-
-    return count > 0;
-  }
 
   /// Check if supplier contact exists
   Future<bool> supplierContactExists(String contact, {int? excludeId}) async {
@@ -457,32 +338,6 @@ class SuppliersRepository {
   // ========================================
   // FUTURE ENHANCEMENTS (Placeholder)
   // ========================================
-
-  /// Get purchase history for supplier
-  Future<List<Map<String, dynamic>>> getSupplierPurchaseHistory(
-    int supplierId,
-  ) async {
-    final db = await _dbHelper.database;
-    return await db.query(
-      'purchases',
-      where: 'supplier_id = ?',
-      whereArgs: [supplierId],
-      orderBy: 'purchase_date DESC',
-    );
-  }
-
-  /// Get payment history for supplier
-  Future<List<Map<String, dynamic>>> getSupplierPaymentHistory(
-    int supplierId,
-  ) async {
-    final db = await _dbHelper.database;
-    return await db.query(
-      'supplier_payments',
-      where: 'supplier_id = ?',
-      whereArgs: [supplierId],
-      orderBy: 'payment_date DESC',
-    );
-  }
 
   /// Get supplier ledger
   Future<List<Map<String, dynamic>>> getSupplierLedger(int supplierId,
@@ -522,22 +377,5 @@ class SuppliersRepository {
       WHERE $whereClause
       ORDER BY transaction_date DESC, id DESC
     ''', args);
-  }
-
-  /// Get items for a specific purchase bill
-  Future<List<Map<String, dynamic>>> getBillItems(int billId) async {
-    final db = await _dbHelper.database;
-    return await db.rawQuery('''
-        SELECT 
-          pi.quantity,
-          pi.cost_price,
-          pi.total_amount,
-          p.name_english,
-          p.name_urdu,
-          p.unit_type
-        FROM purchase_items pi
-        LEFT JOIN products p ON pi.product_id = p.id
-        WHERE pi.purchase_id = ?
-      ''', [billId]);
   }
 }

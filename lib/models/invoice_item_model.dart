@@ -5,7 +5,8 @@ class InvoiceItem {
   final int? invoiceId;
   final int productId;
   final String itemName; // Maps to item_name_snapshot
-  final int quantity; // Scaled integer (e.g., 1500 = 1.500)
+  final num
+      quantity; // Units as stored by invoice creation, including fractions.
   final int unitPrice; // Unit price in paisas (unit_price)
   final int totalPrice; // Total price in paisas (total_price)
 
@@ -24,7 +25,7 @@ class InvoiceItem {
     int? invoiceId,
     int? productId,
     String? itemName,
-    int? quantity,
+    num? quantity,
     int? unitPrice,
     int? totalPrice,
   }) {
@@ -57,7 +58,7 @@ class InvoiceItem {
       invoiceId: map['invoice_id'] as int?,
       productId: map['product_id'] as int,
       itemName: map['item_name_snapshot'] as String,
-      quantity: (map['quantity'] as num).toInt(),
+      quantity: map['quantity'] as num,
       unitPrice: (map['unit_price'] as num).toInt(),
       totalPrice: (map['total_price'] as num).toInt(),
     );

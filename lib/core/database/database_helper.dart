@@ -10,7 +10,7 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   Future<Database> get database async {
-    if (_database != null) return _database!;
+    if (_database != null && _database!.isOpen) return _database!;
     _database = await _initDB('liaqat_store.db');
     return _database!;
   }
@@ -28,8 +28,10 @@ class DatabaseHelper {
       onCreate: _createDB,
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
-          await db.execute(
-              'ALTER TABLE cash_ledger ADD COLUMN payment_mode TEXT DEFAULT "CASH"');
+          if (!await _hasColumn(db, 'cash_ledger', 'payment_mode')) {
+            await db.execute(
+                'ALTER TABLE cash_ledger ADD COLUMN payment_mode TEXT DEFAULT "CASH"');
+          }
           await db.execute('''
             CREATE UNIQUE INDEX IF NOT EXISTS idx_units_system_code
             ON units(code)
@@ -920,7 +922,10 @@ class DatabaseHelper {
   }
 
   Future<void> close() async {
-    final db = await instance.database;
-    await db.close();
+    final db = _database;
+    if (db != null && db.isOpen) {
+      await db.close();
+    }
+    _database = null;
   }
 }

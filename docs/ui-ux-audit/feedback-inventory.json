@@ -1,0 +1,410 @@
+[
+  {
+    "id": "feedback-01",
+    "source": "lib/core/utils/error_handler.dart",
+    "line": 16,
+    "snippet": "SnackBar(\r\n          content: Text(getLocalizedMessage(\r\n              error.toString(), AppLocalizations.of(context)!)),\r\n          backgroundColor: Theme.of(context).colorScheme.error,\r\n        )"
+  },
+  {
+    "id": "feedback-02",
+    "source": "lib/screens/cash_ledger/dialogs/add_transaction_dialog.dart",
+    "line": 317,
+    "snippet": "SnackBar(\r\n                                      content: Text(loc.invalidAmount),\r\n                                      backgroundColor: colorScheme.error)"
+  },
+  {
+    "id": "feedback-03",
+    "source": "lib/screens/cash_ledger/dialogs/add_transaction_dialog.dart",
+    "line": 343,
+    "snippet": "SnackBar(\r\n                                        content: Text(\"Error saving: $e\"),\r\n                                        backgroundColor: colorScheme.error)"
+  },
+  {
+    "id": "feedback-04",
+    "source": "lib/screens/cash_ledger/dialogs/add_transaction_dialog.dart",
+    "line": 349,
+    "snippet": "SnackBar(\r\n                                      content: Text(loc.descriptionRequired),\r\n                                      backgroundColor: colorScheme.error)"
+  },
+  {
+    "id": "feedback-05",
+    "source": "lib/screens/cash_ledger/dialogs/add_transaction_dialog.dart",
+    "line": 354,
+    "snippet": "SnackBar(\r\n                                      content: Text(loc.invalidAmount),\r\n                                      backgroundColor: colorScheme.error)"
+  },
+  {
+    "id": "feedback-06",
+    "source": "lib/screens/categories/dialogs/category_dialog.dart",
+    "line": 62,
+    "snippet": "SnackBar(\r\n            content: Text(loc.unknownError),\r\n            backgroundColor: Theme.of(context).colorScheme.error)"
+  },
+  {
+    "id": "feedback-07",
+    "source": "lib/screens/categories/dialogs/category_dialog.dart",
+    "line": 75,
+    "snippet": "SnackBar(\r\n            content: Text(loc.categoryExistsError),\r\n            backgroundColor: Theme.of(context).colorScheme.error)"
+  },
+  {
+    "id": "feedback-08",
+    "source": "lib/screens/categories/dialogs/department_dialog.dart",
+    "line": 56,
+    "snippet": "SnackBar(\r\n            content: Text(loc.unknownError),\r\n            backgroundColor: Theme.of(context).colorScheme.error)"
+  },
+  {
+    "id": "feedback-09",
+    "source": "lib/screens/categories/dialogs/department_dialog.dart",
+    "line": 69,
+    "snippet": "SnackBar(\r\n            content: Text(loc.departmentExistsError),\r\n            backgroundColor: Theme.of(context).colorScheme.error)"
+  },
+  {
+    "id": "feedback-10",
+    "source": "lib/screens/categories/dialogs/sub_category_dialog.dart",
+    "line": 66,
+    "snippet": "SnackBar(\r\n            content: Text(loc.unknownError),\r\n            backgroundColor: Theme.of(context).colorScheme.error)"
+  },
+  {
+    "id": "feedback-11",
+    "source": "lib/screens/categories/dialogs/sub_category_dialog.dart",
+    "line": 79,
+    "snippet": "SnackBar(\r\n            content: Text(loc.subcategoryExistsError),\r\n            backgroundColor: Theme.of(context).colorScheme.error)"
+  },
+  {
+    "id": "feedback-12",
+    "source": "lib/screens/customers/customers_screen.dart",
+    "line": 81,
+    "snippet": "SnackBar(\r\n          content: Text(loc.itemDeleted),\r\n          backgroundColor: colorScheme.primary,\r\n        )"
+  },
+  {
+    "id": "feedback-13",
+    "source": "lib/screens/customers/dialogs/add_customer_dialog.dart",
+    "line": 113,
+    "snippet": "SnackBar(\r\n          content: Text(e.toString().replaceAll('Exception: ', '')),\r\n          backgroundColor: colorScheme.error,\r\n        )"
+  },
+  {
+    "id": "feedback-14",
+    "source": "lib/screens/customers/dialogs/add_customer_dialog.dart",
+    "line": 124,
+    "snippet": "SnackBar(content: Text(msg), backgroundColor: color)"
+  },
+  {
+    "id": "feedback-15",
+    "source": "lib/screens/customers/dialogs/receive_payment_dialog.dart",
+    "line": 44,
+    "snippet": "SnackBar(\r\n          content: Text(loc.invalidAmount),\r\n          backgroundColor: colorScheme.error,\r\n        )"
+  },
+  {
+    "id": "feedback-16",
+    "source": "lib/screens/customers/dialogs/receive_payment_dialog.dart",
+    "line": 72,
+    "snippet": "SnackBar(\r\n          content: Text(e.toString().replaceAll('Exception: ', '')),\r\n          backgroundColor: colorScheme.error,\r\n        )"
+  },
+  {
+    "id": "feedback-17",
+    "source": "lib/screens/customers/widgets/customer_ledger_panel.dart",
+    "line": 176,
+    "snippet": "SnackBar(content: Text(loc.savedToPath(path)))"
+  },
+  {
+    "id": "feedback-18",
+    "source": "lib/screens/customers/widgets/customer_ledger_panel.dart",
+    "line": 634,
+    "snippet": "SnackBar(\r\n          content: Text(successMsg),\r\n          backgroundColor: successColor,\r\n        )"
+  },
+  {
+    "id": "feedback-19",
+    "source": "lib/screens/customers/widgets/customer_ledger_panel.dart",
+    "line": 646,
+    "snippet": "SnackBar(\r\n          content: Text(errorMsg),\r\n          backgroundColor: errorColor,\r\n        )"
+  },
+  {
+    "id": "feedback-20",
+    "source": "lib/screens/items/dialogs/item_form_dialog.dart",
+    "line": 275,
+    "snippet": "SnackBar(\r\n                  content: Text(\r\n                      localizations.fieldRequired(localizations.englishName)))"
+  },
+  {
+    "id": "feedback-21",
+    "source": "lib/screens/items/items_screen.dart",
+    "line": 236,
+    "snippet": "SnackBar(\r\n          content: Text(AppLocalizations.of(context)!.saveChangesSuccess),\r\n          backgroundColor: Theme.of(context).colorScheme.primary)"
+  },
+  {
+    "id": "feedback-22",
+    "source": "lib/screens/items/items_screen.dart",
+    "line": 256,
+    "snippet": "SnackBar(\r\n          content: Text(AppLocalizations.of(context)!.saveChangesSuccess),\r\n          backgroundColor: Theme.of(context).colorScheme.primary)"
+  },
+  {
+    "id": "feedback-23",
+    "source": "lib/screens/items/items_screen.dart",
+    "line": 298,
+    "snippet": "SnackBar(\r\n            content: Text(localizations.itemDeleted),\r\n            backgroundColor: colorScheme.primary)"
+  },
+  {
+    "id": "feedback-24",
+    "source": "lib/screens/items/items_screen.dart",
+    "line": 303,
+    "snippet": "SnackBar(\r\n            content: Text('${localizations.error}: $e'),\r\n            backgroundColor: colorScheme.error)"
+  },
+  {
+    "id": "feedback-25",
+    "source": "lib/screens/purchase/purchase_screen.dart",
+    "line": 100,
+    "snippet": "SnackBar(\n                    content: Text(loc.purchaseSavedSuccess),\n                    backgroundColor: colorScheme.primary,\n                  )"
+  },
+  {
+    "id": "feedback-26",
+    "source": "lib/screens/purchase/purchase_screen.dart",
+    "line": 112,
+    "snippet": "SnackBar(\n                    content: Text(msg),\n                    backgroundColor: colorScheme.error,\n                  )"
+  },
+  {
+    "id": "feedback-27",
+    "source": "lib/screens/sales/dialogs/add_customer_dialog.dart",
+    "line": 129,
+    "snippet": "SnackBar(content: Text(loc.nameRequired))"
+  },
+  {
+    "id": "feedback-28",
+    "source": "lib/screens/sales/dialogs/add_customer_dialog.dart",
+    "line": 134,
+    "snippet": "SnackBar(content: Text(loc.urduNameRequired))"
+  },
+  {
+    "id": "feedback-29",
+    "source": "lib/screens/sales/dialogs/add_customer_dialog.dart",
+    "line": 140,
+    "snippet": "SnackBar(content: Text(loc.phoneRequired))"
+  },
+  {
+    "id": "feedback-30",
+    "source": "lib/screens/sales/dialogs/add_customer_dialog.dart",
+    "line": 145,
+    "snippet": "SnackBar(content: Text(loc.addressRequired))"
+  },
+  {
+    "id": "feedback-31",
+    "source": "lib/screens/sales/dialogs/add_customer_dialog.dart",
+    "line": 153,
+    "snippet": "SnackBar(content: Text(loc.creditLimitRequired))"
+  },
+  {
+    "id": "feedback-32",
+    "source": "lib/screens/sales/dialogs/add_customer_dialog.dart",
+    "line": 171,
+    "snippet": "SnackBar(\r\n                          content: Text(loc.invalidAmount),\r\n                          backgroundColor: colorScheme.error)"
+  },
+  {
+    "id": "feedback-33",
+    "source": "lib/screens/sales/dialogs/increase_limit_dialog.dart",
+    "line": 60,
+    "snippet": "SnackBar(\r\n                content: Text(loc.creditLimitUpdated),\r\n                backgroundColor: colorScheme.primary,\r\n              )"
+  },
+  {
+    "id": "feedback-34",
+    "source": "lib/screens/sales/dialogs/increase_limit_dialog.dart",
+    "line": 71,
+    "snippet": "SnackBar(\r\n                content: Text(state.creditLimitUpdateError ?? loc.error),\r\n                backgroundColor: colorScheme.error,\r\n              )"
+  },
+  {
+    "id": "feedback-35",
+    "source": "lib/screens/sales/dialogs/increase_limit_dialog.dart",
+    "line": 166,
+    "snippet": "SnackBar(content: Text(loc.invalidLimit))"
+  },
+  {
+    "id": "feedback-36",
+    "source": "lib/screens/sales/dialogs/post_sale_dialog.dart",
+    "line": 33,
+    "snippet": "SnackBar(content: Text(loc.cannotPrintCancelled))"
+  },
+  {
+    "id": "feedback-37",
+    "source": "lib/screens/sales/dialogs/post_sale_dialog.dart",
+    "line": 47,
+    "snippet": "SnackBar(\r\n              content: Text(\r\n                  '${loc.receiptSentToPrinter} #${invoice.invoiceNumber}'))"
+  },
+  {
+    "id": "feedback-38",
+    "source": "lib/screens/sales/dialogs/post_sale_dialog.dart",
+    "line": 55,
+    "snippet": "SnackBar(\r\n              content: Text('${loc.printError}: $e'),\r\n              backgroundColor: colorScheme.error)"
+  },
+  {
+    "id": "feedback-39",
+    "source": "lib/screens/sales/dialogs/post_sale_dialog.dart",
+    "line": 122,
+    "snippet": "SnackBar(\r\n                            content: Text(loc.cannotSaveCancelledInvoiceAsPdf),\r\n                            backgroundColor: errorColor,\r\n                          )"
+  },
+  {
+    "id": "feedback-40",
+    "source": "lib/screens/sales/dialogs/post_sale_dialog.dart",
+    "line": 137,
+    "snippet": "SnackBar(content: Text(loc.receiptSavedTo(path)))"
+  },
+  {
+    "id": "feedback-41",
+    "source": "lib/screens/sales/dialogs/post_sale_dialog.dart",
+    "line": 144,
+    "snippet": "SnackBar(\r\n                              content: Text(errorMsg),\r\n                              backgroundColor: errorColor)"
+  },
+  {
+    "id": "feedback-42",
+    "source": "lib/screens/sales/sales_screen.dart",
+    "line": 224,
+    "snippet": "SnackBar(\n        content: Text(AppLocalizations.of(context)!.editFeatureComingSoon),\n        backgroundColor: colorScheme.primary,\n      )"
+  },
+  {
+    "id": "feedback-43",
+    "source": "lib/screens/sales/utils/receipt_printer.dart",
+    "line": 30,
+    "snippet": "SnackBar(content: Text(loc.cannotPrintCancelled))"
+  },
+  {
+    "id": "feedback-44",
+    "source": "lib/screens/sales/utils/receipt_printer.dart",
+    "line": 52,
+    "snippet": "SnackBar(\r\n            content: Text(\r\n              '${loc.receiptSentToPrinter} #${invoice.invoiceNumber}',\r\n            ),\r\n          )"
+  },
+  {
+    "id": "feedback-45",
+    "source": "lib/screens/sales/utils/receipt_printer.dart",
+    "line": 65,
+    "snippet": "SnackBar(\r\n            content: Text('${loc.printError}: $e'),\r\n            backgroundColor: colorScheme.error,\r\n          )"
+  },
+  {
+    "id": "feedback-46",
+    "source": "lib/screens/sales/widgets/sales_feedback_listener.dart",
+    "line": 51,
+    "snippet": "SnackBar(\n                  content: Text(\"${loc.customerAdded}: '$quickLocalizedName'\"),\n                  backgroundColor: colorScheme.primary,\n                )"
+  },
+  {
+    "id": "feedback-47",
+    "source": "lib/screens/sales/widgets/sales_feedback_listener.dart",
+    "line": 71,
+    "snippet": "SnackBar(\n                    content: Text(message),\n                    backgroundColor: colorScheme.primary,\n                  )"
+  },
+  {
+    "id": "feedback-48",
+    "source": "lib/screens/sales/widgets/sales_feedback_listener.dart",
+    "line": 85,
+    "snippet": "SnackBar(\n                  content: Text(err),\n                  backgroundColor: colorScheme.error,\n                  action: SnackBarAction(\n                    label: loc.retry,\n                    textColor: colorScheme.onError,\n                    onPressed: () =>\n                        context.read<SalesBloc>().add(SalesStarted()),\n                  ),\n                )"
+  },
+  {
+    "id": "feedback-49",
+    "source": "lib/screens/settings/pages/backup_page.dart",
+    "line": 143,
+    "snippet": "SnackBar(content: Text(loc.functionalityComingSoon))"
+  },
+  {
+    "id": "feedback-50",
+    "source": "lib/screens/settings/pages/security_page.dart",
+    "line": 85,
+    "snippet": "SnackBar(\r\n          content: Text(loc.pinChanged),\r\n          backgroundColor: Theme.of(context).colorScheme.primary,\r\n        )"
+  },
+  {
+    "id": "feedback-51",
+    "source": "lib/screens/settings/settings_screen.dart",
+    "line": 52,
+    "snippet": "SnackBar(\n              content: Text(localizedMessage),\n              backgroundColor:\n                  isError ? colorScheme.error : colorScheme.primary,\n            )"
+  },
+  {
+    "id": "feedback-52",
+    "source": "lib/screens/settings/settings_screen.dart",
+    "line": 64,
+    "snippet": "SnackBar(\n                content: Text(state.errorMessage!),\n                backgroundColor: colorScheme.error)"
+  },
+  {
+    "id": "feedback-53",
+    "source": "lib/screens/settings/settings_screen.dart",
+    "line": 73,
+    "snippet": "SnackBar(\n                content: Text(state.successMessage!),\n                backgroundColor: colorScheme.primary)"
+  },
+  {
+    "id": "feedback-54",
+    "source": "lib/screens/stock/stock_screen.dart",
+    "line": 159,
+    "snippet": "SnackBar(\n                      content: Text(\n                          ErrorHandler.getLocalizedMessage(state.message, loc)),\n                      backgroundColor: colorScheme.primary,\n                    )"
+  },
+  {
+    "id": "feedback-55",
+    "source": "lib/screens/stock/stock_screen.dart",
+    "line": 174,
+    "snippet": "SnackBar(\n                      content: Text(\n                          ErrorHandler.getLocalizedMessage(state.message, loc)),\n                      backgroundColor: colorScheme.error,\n                    )"
+  },
+  {
+    "id": "feedback-56",
+    "source": "lib/screens/stock/stock_screen.dart",
+    "line": 253,
+    "snippet": "SnackBar(content: Text(loc.exportCsv))"
+  },
+  {
+    "id": "feedback-57",
+    "source": "lib/screens/stock/stock_screen.dart",
+    "line": 260,
+    "snippet": "SnackBar(content: Text(loc.exportPdf))"
+  },
+  {
+    "id": "feedback-58",
+    "source": "lib/screens/stock/stock_screen.dart",
+    "line": 375,
+    "snippet": "SnackBar(\n                                            content: Text(loc.bulkAdjustStock))"
+  },
+  {
+    "id": "feedback-59",
+    "source": "lib/screens/stock/stock_screen.dart",
+    "line": 384,
+    "snippet": "SnackBar(\n                                            content:\n                                                Text(loc.bulkExportSelected))"
+  },
+  {
+    "id": "feedback-60",
+    "source": "lib/screens/stock/widgets/activity_detail_panel_widget.dart",
+    "line": 144,
+    "snippet": "SnackBar(content: Text(loc.saveAsPdf))"
+  },
+  {
+    "id": "feedback-61",
+    "source": "lib/screens/stock/widgets/activity_detail_panel_widget.dart",
+    "line": 149,
+    "snippet": "SnackBar(\r\n                          content: Text(loc.errorWithDetails(e.toString())),\r\n                          backgroundColor: colorScheme.error)"
+  },
+  {
+    "id": "feedback-62",
+    "source": "lib/screens/suppliers/dialogs/add_supplier_dialog.dart",
+    "line": 123,
+    "snippet": "SnackBar(\r\n          content: Text(e.toString().replaceAll('Exception: ', '')),\r\n          backgroundColor: colorScheme.error,\r\n        )"
+  },
+  {
+    "id": "feedback-63",
+    "source": "lib/screens/suppliers/dialogs/add_supplier_dialog.dart",
+    "line": 134,
+    "snippet": "SnackBar(content: Text(msg), backgroundColor: color)"
+  },
+  {
+    "id": "feedback-64",
+    "source": "lib/screens/suppliers/dialogs/receive_supplier_payment_dialog.dart",
+    "line": 35,
+    "snippet": "SnackBar(\r\n        content: Text(loc.invalidAmount),\r\n        backgroundColor: colorScheme.error,\r\n      )"
+  },
+  {
+    "id": "feedback-65",
+    "source": "lib/screens/suppliers/dialogs/receive_supplier_payment_dialog.dart",
+    "line": 80,
+    "snippet": "SnackBar(\r\n            content: Text('${loc.error}: $e'),\r\n            backgroundColor: colorScheme.error,\r\n          )"
+  },
+  {
+    "id": "feedback-66",
+    "source": "lib/screens/suppliers/widgets/supplier_ledger_panel.dart",
+    "line": 190,
+    "snippet": "SnackBar(content: Text(loc.savedToPath(path)))"
+  },
+  {
+    "id": "feedback-67",
+    "source": "lib/screens/units/dialogs/add_unit_dialog.dart",
+    "line": 231,
+    "snippet": "SnackBar(\r\n                    content: Text(validationError),\r\n                    backgroundColor: Theme.of(context).colorScheme.error,\r\n                  )"
+  },
+  {
+    "id": "feedback-68",
+    "source": "lib/screens/units/dialogs/edit_unit_dialog.dart",
+    "line": 213,
+    "snippet": "SnackBar(\r\n                          content: Text(validationError),\r\n                          backgroundColor: Theme.of(context).colorScheme.error,\r\n                        )"
+  }
+]

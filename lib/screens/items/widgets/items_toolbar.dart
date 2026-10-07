@@ -45,11 +45,6 @@ class ItemsToolbar extends StatelessWidget {
                   ),
                   onPressed: onSearch,
                 ),
-                border: _border(colorScheme.outline),
-                enabledBorder: _border(colorScheme.outline),
-                focusedBorder: _border(colorScheme.primary),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest,
                 suffixIcon: IconButton(
                   icon: Icon(
                     Icons.clear,
@@ -65,30 +60,9 @@ class ItemsToolbar extends StatelessWidget {
             onPressed: onAddItem,
             icon: const Icon(Icons.add, size: AppTokens.iconSizeLarge),
             label: Text(localizations.addItem),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.primary,
-              foregroundColor: colorScheme.onPrimary,
-              minimumSize: const Size(0, AppTokens.buttonHeight),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTokens.spacingMedium,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),
-              ),
-              textStyle: textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ),
         ],
       ),
-    );
-  }
-
-  OutlineInputBorder _border(Color color) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(AppTokens.buttonBorderRadius),
-      borderSide: BorderSide(color: color),
     );
   }
 }

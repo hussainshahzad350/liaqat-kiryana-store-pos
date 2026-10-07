@@ -7,6 +7,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../models/category_models.dart';
 import '../../../models/product_model.dart';
 import '../../../models/unit_model.dart';
+import '../../../core/utils/error_handler.dart';
 
 class ItemFormDialog extends StatefulWidget {
   final Product? product;
@@ -25,6 +26,8 @@ class ItemFormDialog extends StatefulWidget {
 }
 
 class _ItemFormDialogState extends State<ItemFormDialog> {
+  String? _nameError;
+  late final Future<List<dynamic>> _formData;
   late TextEditingController _nameEngCtrl;
   late TextEditingController _nameUrduCtrl;
   late TextEditingController _brandCtrl;
@@ -40,6 +43,10 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
   @override
   void initState() {
     super.initState();
+    _formData = Future.wait<dynamic>([
+      widget.categoriesRepository.getAllCategories(),
+      widget.unitsRepository.getUnits(),
+    ]);
     _nameEngCtrl = TextEditingController(text: widget.product?.nameEnglish);
     _nameUrduCtrl = TextEditingController(text: widget.product?.nameUrdu);
     _brandCtrl = TextEditingController(text: widget.product?.brand);
@@ -126,15 +133,12 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
       backgroundColor: colorScheme.surface,
       title: Text(
         isEdit ? localizations.editItem : localizations.addItem,
-        style: textTheme.headlineSmall,
+        style: textTheme.titleLarge,
       ),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: AppTokens.dialogWidth),
         child: FutureBuilder(
-          future: Future.wait([
-            widget.categoriesRepository.getAllCategories(),
-            widget.unitsRepository.getUnits(),
-          ]),
+          future: _formData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const SizedBox(
@@ -144,7 +148,9 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
             if (snapshot.hasError) {
               return SizedBox(
                   height: AppTokens.dialogHeight,
-                  child: Center(child: Text('Error: ${snapshot.error}')));
+                  child: Center(
+                      child: Text(ErrorHandler.getLocalizedMessage(
+                          snapshot.error.toString(), localizations))));
             }
 
             final categories = snapshot.data?[0] as List<Category>? ?? [];
@@ -159,10 +165,16 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                     Expanded(
                         child: TextField(
                       controller: _nameEngCtrl,
+                      onChanged: (_) {
+                        if (_nameError != null) {
+                          setState(() => _nameError = null);
+                        }
+                      },
                       style: textTheme.bodyLarge,
                       decoration: _buildInputDecoration(
-                          localizations.englishName,
-                          Icons.inventory_2_outlined),
+                              localizations.englishName,
+                              Icons.inventory_2_outlined)
+                          .copyWith(errorText: _nameError),
                     )),
                     const SizedBox(width: AppTokens.spacingMedium),
                     Expanded(
@@ -178,6 +190,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                   Row(children: [
                     Expanded(
                         child: DropdownButtonFormField<int>(
+                      isExpanded: true,
                       value: _selectedCategoryId,
                       decoration: _buildInputDecoration(
                           localizations.category, Icons.category_outlined),
@@ -197,6 +210,7 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                     const SizedBox(width: AppTokens.spacingMedium),
                     Expanded(
                         child: DropdownButtonFormField<int>(
+                      isExpanded: true,
                       value: _subCategories
                               .any((s) => s.id == _selectedSubCategoryId)
                           ? _selectedSubCategoryId
@@ -233,13 +247,16 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
                   Row(children: [
                     Expanded(
                         child: DropdownButtonFormField<int>(
+                      isExpanded: true,
                       value: _selectedUnitId,
                       decoration: _buildInputDecoration(
                           localizations.unit, Icons.straighten),
                       items: units
                           .map((u) => DropdownMenuItem(
                               value: u.id,
-                              child: Text('${u.name} (${u.code})')))
+                              child: Text('${u.name} (${u.code})',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis)))
                           .toList(),
                       onChanged: (val) => setState(() {
                         _selectedUnitId = val;
@@ -266,21 +283,18 @@ class _ItemFormDialogState extends State<ItemFormDialog> {
             child: Text(localizations.cancel)),
         ElevatedButton(
           onPressed: () {
-            if (_nameEngCtrl.text.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                      localizations.fieldRequired(localizations.englishName))));
+            if (_nameEngCtrl.text.trim().isEmpty) {
+              setState(() => _nameError =
+                  localizations.fieldRequired(localizations.englishName));
               return;
             }
             final product =
                 (widget.product ?? Product(nameEnglish: '')).copyWith(
-              nameEnglish: _nameEngCtrl.text,
-              nameUrdu: _nameUrduCtrl.text,
+              nameEnglish: _nameEngCtrl.text.trim(),
+              nameUrdu: _nameUrduCtrl.text.trim(),
               categoryId: _selectedCategoryId,
               subCategoryId: _selectedSubCategoryId,
-              brand: _brandCtrl.text.trim().isEmpty
-                  ? null
-                  : _brandCtrl.text.trim(),
+              brand: _brandCtrl.text.trim(),
               unitId: _selectedUnitId,
               unitType: _selectedUnitType,
               packingType: _packingCtrl.text,

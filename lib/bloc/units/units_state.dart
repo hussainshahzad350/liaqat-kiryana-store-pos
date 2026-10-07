@@ -25,8 +25,6 @@ class UnitsLoaded extends UnitsState {
     required this.baseUnitByCategory,
   });
 
-  bool hasBaseUnit(int categoryId) => baseUnitByCategory[categoryId] != null;
-
   @override
   List<Object?> get props =>
       [units, categories, unitsByCategory, baseUnitByCategory];

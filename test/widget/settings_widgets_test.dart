@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liaqat_store/screens/settings/widgets/info_item.dart';
 import 'package:liaqat_store/screens/settings/widgets/option_switch.dart';
 import 'package:liaqat_store/screens/settings/widgets/setting_section.dart';
 import 'package:liaqat_store/screens/settings/widgets/settings_tile.dart';
@@ -13,52 +12,6 @@ Widget buildTestApp(Widget child) {
 }
 
 void main() {
-  // ── InfoItem ─────────────────────────────────────────────────────────────
-
-  group('InfoItem', () {
-    testWidgets('renders label and value texts', (tester) async {
-      await tester.pumpWidget(buildTestApp(
-        const InfoItem(label: 'Total Items', value: '42'),
-      ));
-      expect(find.text('Total Items'), findsOneWidget);
-      expect(find.text('42'), findsOneWidget);
-    });
-
-    testWidgets('renders without optional icon when icon is null',
-        (tester) async {
-      await tester.pumpWidget(buildTestApp(
-        const InfoItem(label: 'DB Size', value: '1.5 MB'),
-      ));
-      expect(find.byType(Icon), findsNothing);
-      expect(find.text('DB Size'), findsOneWidget);
-    });
-
-    testWidgets('renders icon when provided', (tester) async {
-      await tester.pumpWidget(buildTestApp(
-        const InfoItem(
-          label: 'Version',
-          value: '1.0.0',
-          icon: Icons.info_outline,
-        ),
-      ));
-      expect(find.byIcon(Icons.info_outline), findsOneWidget);
-    });
-
-    testWidgets('label and value are laid out in a Row', (tester) async {
-      await tester.pumpWidget(buildTestApp(
-        const InfoItem(label: 'Products', value: '100'),
-      ));
-      expect(find.byType(Row), findsWidgets);
-    });
-
-    testWidgets('renders empty string value without error', (tester) async {
-      await tester.pumpWidget(buildTestApp(
-        const InfoItem(label: 'Address', value: ''),
-      ));
-      expect(find.text('Address'), findsOneWidget);
-    });
-  });
-
   // ── OptionSwitch ──────────────────────────────────────────────────────────
 
   group('OptionSwitch', () {
@@ -322,7 +275,7 @@ void main() {
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('icon size is 48', (tester) async {
+    testWidgets('compact tile retains its category icon', (tester) async {
       await tester.pumpWidget(buildTestApp(
         SettingsTile(
           icon: Icons.receipt_long_outlined,
@@ -331,8 +284,8 @@ void main() {
           onTap: () {},
         ),
       ));
-      final iconWidget = tester.widget<Icon>(find.byType(Icon));
-      expect(iconWidget.size, 48);
+      expect(find.byIcon(Icons.receipt_long_outlined), findsOneWidget);
+      expect(find.byType(ListTile), findsOneWidget);
     });
   });
 }

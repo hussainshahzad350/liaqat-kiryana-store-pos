@@ -19,27 +19,26 @@ class StockTableSkeletonWidget extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppTokens.spacingMedium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
             const SkeletonLoader(width: 200, height: 24.0),
             const SizedBox(height: AppTokens.spacingLarge),
-            Expanded(
-              child: ListView.separated(
-                itemCount: 10,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppTokens.spacingMedium),
-                itemBuilder: (_, __) => const Row(
-                  children: [
-                    Expanded(flex: 2, child: SkeletonLoader(height: 14.0)),
-                    SizedBox(width: AppTokens.spacingMedium),
-                    Expanded(flex: 1, child: SkeletonLoader(height: 14.0)),
-                    SizedBox(width: AppTokens.spacingMedium),
-                    Expanded(flex: 1, child: SkeletonLoader(height: 14.0)),
-                    SizedBox(width: AppTokens.spacingMedium),
-                    Expanded(flex: 1, child: SkeletonLoader(height: 14.0)),
-                  ],
-                ),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 10,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppTokens.spacingMedium),
+              itemBuilder: (_, __) => const Row(
+                children: [
+                  Expanded(flex: 2, child: SkeletonLoader(height: 14.0)),
+                  SizedBox(width: AppTokens.spacingMedium),
+                  Expanded(flex: 1, child: SkeletonLoader(height: 14.0)),
+                  SizedBox(width: AppTokens.spacingMedium),
+                  Expanded(flex: 1, child: SkeletonLoader(height: 14.0)),
+                  SizedBox(width: AppTokens.spacingMedium),
+                  Expanded(flex: 1, child: SkeletonLoader(height: 14.0)),
+                ],
               ),
             ),
           ],

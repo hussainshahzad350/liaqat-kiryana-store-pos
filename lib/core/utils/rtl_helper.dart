@@ -36,62 +36,6 @@ class RTLHelper {
     return nameEnglish;
   }
 
-  /// Returns RTL-safe insets using directional start/end.
-  /// Flutter automatically maps start→left in LTR and start→right in RTL.
-  static EdgeInsetsDirectional directionalInsets({
-    double start = 0,
-    double top = 0,
-    double end = 0,
-    double bottom = 0,
-  }) {
-    return EdgeInsetsDirectional.fromSTEB(start, top, end, bottom);
-  }
-
-  /// Get EdgeInsets with RTL-aware horizontal values
-  ///
-  /// In RTL mode, left and right are swapped automatically by Flutter,
-  /// but you can use this for explicit RTL-aware padding.
-  @Deprecated(
-      'Use EdgeInsetsDirectional.fromSTEB() directly or RTLHelper.directionalInsets(). '
-      'Flutter handles RTL start/end automatically.')
-  static EdgeInsets edgeInsets({
-    required BuildContext context,
-    double? all,
-    double? horizontal,
-    double? vertical,
-    double? left,
-    double? top,
-    double? right,
-    double? bottom,
-  }) {
-    if (all != null) {
-      return EdgeInsets.all(all);
-    }
-
-    final isRtl = isRTL(context);
-
-    return EdgeInsets.only(
-      left: isRtl ? (right ?? horizontal ?? 0) : (left ?? horizontal ?? 0),
-      top: top ?? vertical ?? 0,
-      right: isRtl ? (left ?? horizontal ?? 0) : (right ?? horizontal ?? 0),
-      bottom: bottom ?? vertical ?? 0,
-    );
-  }
-
-  /// Returns an icon that is horizontally mirrored in RTL mode.
-  /// Use for directional icons like arrows, chevrons.
-  static Widget directionalIcon(
-    BuildContext context, {
-    required IconData icon,
-    double? size,
-    Color? color,
-  }) {
-    return Transform.scale(
-      scaleX: isRTL(context) ? -1.0 : 1.0,
-      child: Icon(icon, size: size, color: color),
-    );
-  }
-
   /// Get Alignment with RTL support
   ///
   /// Example: RTLHelper.alignment(context, Alignment.centerLeft)
@@ -166,14 +110,6 @@ class RTLHelper {
     return ltrAlignment;
   }
 
-  /// Get icon rotation for RTL
-  /// Returns 180 degrees for directional icons in RTL mode
-  static double iconRotation(BuildContext context,
-      {bool isDirectional = true}) {
-    if (!isDirectional) return 0;
-    return isRTL(context) ? 3.14159 : 0; // 180 degrees in radians
-  }
-
   /// Get dialog constraints based on size and text direction
   static BoxConstraints getDialogConstraints({
     required BuildContext context,
@@ -198,39 +134,6 @@ class RTLHelper {
         );
     }
   }
-
-  /// Get responsive panel width based on screen size
-  static double getResponsivePanelWidth(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    if (screenWidth >= 2560) {
-      return AppTokens.panelWidth2560;
-    } else if (screenWidth >= 1920) {
-      return AppTokens.panelWidth1920;
-    } else {
-      return AppTokens.panelWidth1366;
-    }
-  }
-
-  /// Get EdgeInsets with RTL-aware horizontal padding
-  static EdgeInsets getContentPadding({
-    required BuildContext context,
-    bool isInput = false,
-  }) {
-    final isRtl = isRTL(context);
-
-    if (isInput) {
-      return EdgeInsets.symmetric(
-        horizontal: isRtl ? 16.0 : 12.0, // More padding for Urdu
-        vertical: isRtl ? 16.0 : 14.0,
-      );
-    }
-
-    return EdgeInsets.symmetric(
-      horizontal: isRtl ? 20.0 : 16.0,
-      vertical: isRtl ? 12.0 : 8.0,
-    );
-  }
 }
 
 /// Dialog size enum for type-safe dialog constraint selection
@@ -244,7 +147,4 @@ enum DialogSize {
 extension RTLExtension on BuildContext {
   /// Quick check if current context is RTL
   bool get isRTL => Directionality.of(this) == TextDirection.rtl;
-
-  /// Quick check if current context is LTR
-  bool get isLTR => Directionality.of(this) == TextDirection.ltr;
 }

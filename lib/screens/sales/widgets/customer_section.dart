@@ -14,6 +14,7 @@ class CustomerSection extends StatelessWidget {
   final VoidCallback onSearchTap;
   final Function(Customer?) onSelectCustomer;
   final VoidCallback onAddCustomer;
+  final double maxListHeight;
 
   const CustomerSection({
     super.key,
@@ -25,6 +26,7 @@ class CustomerSection extends StatelessWidget {
     required this.onSearchTap,
     required this.onSelectCustomer,
     required this.onAddCustomer,
+    this.maxListHeight = 200,
   });
 
   @override
@@ -33,11 +35,11 @@ class CustomerSection extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
-      elevation: AppTokens.cardElevation,
+      elevation: 0,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius)),
       child: Padding(
-        padding: const EdgeInsets.all(AppTokens.cardPadding),
+        padding: const EdgeInsets.all(AppTokens.surfacePadding),
         child: Column(
           children: [
             Row(
@@ -55,11 +57,6 @@ class CustomerSection extends StatelessWidget {
                               icon: const Icon(Icons.clear),
                               onPressed: () => onSelectCustomer(null))
                           : null,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                              AppTokens.cardBorderRadius / 2)),
-                      filled: true,
-                      fillColor: colorScheme.surfaceContainerHighest,
                     ),
                     onChanged: onSearchChanged,
                     onTap: onSearchTap,
@@ -67,8 +64,8 @@ class CustomerSection extends StatelessWidget {
                 ),
                 const SizedBox(width: AppTokens.spacingSmall),
                 SizedBox(
-                  height: AppTokens.buttonHeight,
-                  width: AppTokens.buttonHeight,
+                  height: AppTokens.controlMinHeight,
+                  width: AppTokens.controlMinHeight,
                   child: ElevatedButton(
                     onPressed: onAddCustomer,
                     style: ElevatedButton.styleFrom(
@@ -86,7 +83,7 @@ class CustomerSection extends StatelessWidget {
             ),
             if (showCustomerList)
               Container(
-                constraints: const BoxConstraints(maxHeight: 200),
+                constraints: BoxConstraints(maxHeight: maxListHeight),
                 margin: const EdgeInsets.only(top: AppTokens.spacingXSmall),
                 decoration: BoxDecoration(
                   color: colorScheme.surface,
@@ -115,25 +112,28 @@ class CustomerSection extends StatelessWidget {
                         separatorBuilder: (c, i) => const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final c = filteredCustomers[index];
-                          return ListTile(
-                            dense: true,
-                            title: Text(
-                              RTLHelper.getLocalizedName(
-                                context: context,
-                                nameEnglish: c.nameEnglish,
-                                nameUrdu: c.nameUrdu,
+                          return Material(
+                            type: MaterialType.transparency,
+                            child: ListTile(
+                              dense: true,
+                              title: Text(
+                                RTLHelper.getLocalizedName(
+                                  context: context,
+                                  nameEnglish: c.nameEnglish,
+                                  nameUrdu: c.nameUrdu,
+                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
+                              subtitle: Text(c.contactPrimary ?? ''),
+                              trailing: Text(
+                                  '${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),
+                              onTap: () => onSelectCustomer(c),
+                              hoverColor: colorScheme.primaryContainer
+                                  .withValues(alpha: 0.1),
                             ),
-                            subtitle: Text(c.contactPrimary ?? ''),
-                            trailing: Text(
-                                '${loc.currBal}: ${Money(c.outstandingBalance).toString()}'),
-                            onTap: () => onSelectCustomer(c),
-                            hoverColor: colorScheme.primaryContainer
-                                .withValues(alpha: 0.1),
                           );
                         },
                       ),

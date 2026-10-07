@@ -1,3 +1,6 @@
+> Historical document-shape test summary. Replaced by the live source-audit
+> checks in Phase 5; see README.md in this directory.
+
 # Test Summary for repository_audit_tasks.md
 
 ## Overview

@@ -84,6 +84,7 @@ class ErrorHandler {
     if (sentinelResult != null) return sentinelResult;
 
     final errorMap = {
+      'Please select a supplier': loc.selectSupplier,
       'Cannot print cancelled invoice': loc.cannotPrintCancelled,
       'Phone already exists': loc.phoneExistsError,
       'Phone number is required': loc.phoneRequired,

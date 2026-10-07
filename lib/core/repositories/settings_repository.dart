@@ -1,6 +1,5 @@
 // lib/core/repositories/settings_repository.dart
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../database/database_helper.dart';
 import '../utils/logger.dart';
@@ -8,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class SecureStorageException implements Exception {
   final String operation;
@@ -28,10 +28,17 @@ class SettingsRepository {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   static const String _legacyPasswordKey = 'app_password';
   static const String _legacyPasswordMigratedKey = 'legacy_password_migrated';
+  static bool _restoreInProgress = false;
 
   // ========================================
   // BACKUP MANAGEMENT
   // ========================================
+
+  bool _isBackupFile(File file) {
+    final name = p.basename(file.path);
+    return name.endsWith('.backup.db') ||
+        RegExp(r'^manual_backup_\d{8}_\d{6}(?:_\d+)?\.db$').hasMatch(name);
+  }
 
   /// Get list of all backup files
   /// Moved from DatabaseHelper.getBackupFiles()
@@ -48,7 +55,7 @@ class SettingsRepository {
         final files = await dir.list().toList();
 
         for (var file in files) {
-          if (file is File && file.path.contains('.backup.db')) {
+          if (file is File && _isBackupFile(file)) {
             final stat = await file.stat();
             backups.add({
               'path': file.path,
@@ -73,21 +80,26 @@ class SettingsRepository {
   /// Create manual backup
   /// Moved from DatabaseHelper.createManualBackup()
   Future<String?> createManualBackup([int maxBackups = 5]) async {
+    if (maxBackups < 1) {
+      throw ArgumentError.value(maxBackups, 'maxBackups', 'Must be at least 1');
+    }
     final db = await _dbHelper.database;
     try {
       final String dbPath = db.path;
+      final now = DateTime.now();
       final String timestamp =
-          DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+          '${DateFormat('yyyyMMdd_HHmmss').format(now)}_${now.microsecondsSinceEpoch}';
       final String backupFileName = 'manual_backup_$timestamp.db';
       final String backupPath = p.join(p.dirname(dbPath), backupFileName);
 
       AppLogger.info('Creating manual backup: $backupPath',
           tag: 'SettingsRepo');
 
-      // Create backup
+      // SQLite writes a consistent standalone snapshot, including committed
+      // WAL data that a direct copy of the main database file would miss.
       final file = File(dbPath);
       if (await file.exists()) {
-        await file.copy(backupPath);
+        await db.execute('VACUUM INTO ?', [backupPath]);
         AppLogger.info('Manual backup created: $backupPath',
             tag: 'SettingsRepo');
 
@@ -107,10 +119,8 @@ class SettingsRepository {
     try {
       if (await backupDir.exists()) {
         final files = await backupDir.list().toList();
-        final backupFiles = files
-            .whereType<File>()
-            .where((file) => file.path.contains('.backup.db'))
-            .toList();
+        final backupFiles =
+            files.whereType<File>().where(_isBackupFile).toList();
 
         // Sort by modified date (oldest first)
         backupFiles.sort((a, b) {
@@ -136,30 +146,115 @@ class SettingsRepository {
   /// Restore database from backup
   /// Moved from DatabaseHelper.restoreBackup()
   Future<bool> restoreBackup(String backupPath) async {
+    if (_restoreInProgress) return false;
+    _restoreInProgress = true;
+    String? currentDbPath;
+    String? emergencyBackup;
+    File? stagedBackup;
+    var databaseClosed = false;
     try {
       final db = await _dbHelper.database;
-      final String currentDbPath = db.path;
+      currentDbPath = db.path;
+      final sourceFile = File(backupPath);
+      if (!await sourceFile.exists() ||
+          p.equals(await sourceFile.resolveSymbolicLinks(),
+              await File(currentDbPath).resolveSymbolicLinks())) {
+        return false;
+      }
 
-      // 1. Close current database
-      await db.close();
+      final timestamp = DateTime.now().microsecondsSinceEpoch;
+      stagedBackup = File('$currentDbPath.restore.$timestamp.tmp');
+      final source = await databaseFactory.openDatabase(backupPath,
+          options: OpenDatabaseOptions(readOnly: true, singleInstance: false));
+      try {
+        await _validateRestoreSource(source, db);
+        // Snapshot the source first so its WAL is included and the selected
+        // backup remains unchanged during restore and any upgrade.
+        await source.execute('VACUUM INTO ?', [stagedBackup.path]);
+      } finally {
+        await source.close();
+      }
 
-      // 2. Backup current database first (emergency backup)
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final String emergencyBackup = '$currentDbPath.emergency.$timestamp.bak';
-      await File(currentDbPath).copy(emergencyBackup);
-
-      // 3. Copy backup file over current database
-      await File(backupPath).copy(currentDbPath);
-
-      // 4. Re-open database
-      // Note: You'll need to handle database reinitialization in your app
+      emergencyBackup = '$currentDbPath.emergency.$timestamp.bak';
+      await db.execute('VACUUM INTO ?', [emergencyBackup]);
+      await _dbHelper.close();
+      databaseClosed = true;
+      await stagedBackup.copy(currentDbPath);
+      await _dbHelper.database;
 
       AppLogger.info('Database restored from: $backupPath',
           tag: 'SettingsRepo');
       return true;
     } catch (e) {
       AppLogger.error('Restore Failed: $e', tag: 'SettingsRepo');
+      if (databaseClosed && currentDbPath != null && emergencyBackup != null) {
+        try {
+          await _dbHelper.close();
+          await File(emergencyBackup).copy(currentDbPath);
+          await _dbHelper.database;
+        } catch (rollbackError) {
+          AppLogger.error(
+              'Restore rollback failed; emergency backup retained at '
+              '$emergencyBackup: $rollbackError',
+              tag: 'SettingsRepo');
+        }
+      }
       return false;
+    } finally {
+      try {
+        if (stagedBackup != null && await stagedBackup.exists()) {
+          await stagedBackup.delete();
+        }
+      } catch (e) {
+        AppLogger.error('Restore staging cleanup failed: $e',
+            tag: 'SettingsRepo');
+      }
+      _restoreInProgress = false;
+    }
+  }
+
+  Future<void> _validateRestoreSource(Database source, Database current) async {
+    final integrity = await source.rawQuery('PRAGMA integrity_check');
+    if (integrity.length != 1 || integrity.single.values.single != 'ok') {
+      throw StateError('Backup integrity check failed');
+    }
+    final version = await source.getVersion();
+    final currentVersion = await current.getVersion();
+    if (version < 1 || version > currentVersion) {
+      throw StateError('Unsupported backup database version: $version');
+    }
+    final tables = await current.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'");
+    final sourceTables = (await source
+            .rawQuery("SELECT name FROM sqlite_master WHERE type = 'table'"))
+        .map((row) => row['name'])
+        .toSet();
+    // Older backups go through the existing upgrade callbacks after replacement.
+    // Verify their core tables now; upgrade failures restore the emergency copy.
+    final requiredTables = version == currentVersion
+        ? tables.map((row) => row['name'] as String)
+        : [
+            'shop_profile',
+            'products',
+            'customers',
+            'invoices',
+            'units',
+            'unit_categories'
+          ];
+    for (final table in requiredTables) {
+      if (!sourceTables.contains(table)) {
+        throw StateError('Backup is missing table: $table');
+      }
+      if (version == currentVersion) {
+        final quoted = '"${table.replaceAll('"', '""')}"';
+        final expected = await current.rawQuery('PRAGMA table_info($quoted)');
+        final actual = (await source.rawQuery('PRAGMA table_info($quoted)'))
+            .map((row) => row['name'])
+            .toSet();
+        if (expected.any((column) => !actual.contains(column['name']))) {
+          throw StateError('Backup has incompatible columns in: $table');
+        }
+      }
     }
   }
 
@@ -176,40 +271,6 @@ class SettingsRepository {
     } catch (e) {
       AppLogger.error('Error deleting backup: $e', tag: 'SettingsRepo');
       return false;
-    }
-  }
-
-  /// Get backup file size in MB
-  Future<double> getBackupSize(String backupPath) async {
-    try {
-      final file = File(backupPath);
-      if (await file.exists()) {
-        final stat = await file.stat();
-        return stat.size / (1024 * 1024); // Convert to MB
-      }
-      return 0.0;
-    } catch (e) {
-      AppLogger.error('Error getting backup size: $e', tag: 'SettingsRepo');
-      return 0.0;
-    }
-  }
-
-  /// Get total backup storage used
-  Future<double> getTotalBackupStorage() async {
-    try {
-      final backups = await getBackupFiles();
-      double total = 0.0;
-
-      for (var backup in backups) {
-        final size = backup['size'] as int;
-        total += size;
-      }
-
-      return total / (1024 * 1024); // Convert to MB
-    } catch (e) {
-      AppLogger.error('Error getting total backup storage: $e',
-          tag: 'SettingsRepo');
-      return 0.0;
     }
   }
 
@@ -328,43 +389,6 @@ class SettingsRepository {
   // DATA EXPORT
   // ========================================
 
-  /// Export data to CSV (placeholder - implement based on requirements)
-  Future<String?> exportToCSV(String tableName) async {
-    try {
-      final db = await _dbHelper.database;
-      final data = await db.query(tableName);
-
-      if (data.isEmpty) return null;
-
-      // Create CSV content
-      final keys = data.first.keys.toList();
-      final csv = StringBuffer();
-
-      // Header
-      csv.writeln(keys.join(','));
-
-      // Data rows
-      for (var row in data) {
-        final values = keys.map((key) => row[key]?.toString() ?? '').toList();
-        csv.writeln(values.join(','));
-      }
-
-      // Save to file
-      final directory = await getApplicationDocumentsDirectory();
-      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final filePath = p.join(directory.path, '${tableName}_$timestamp.csv');
-
-      final file = File(filePath);
-      await file.writeAsString(csv.toString());
-
-      AppLogger.info('Data exported to: $filePath', tag: 'SettingsRepo');
-      return filePath;
-    } catch (e) {
-      AppLogger.error('Error exporting to CSV: $e', tag: 'SettingsRepo');
-      return null;
-    }
-  }
-
   // ========================================
   // CATEGORIES & UNITS MANAGEMENT
   // ========================================
@@ -400,18 +424,6 @@ class SettingsRepository {
       where: 'id = ?',
       whereArgs: [id],
     );
-  }
-
-  /// Get expense categories
-  Future<List<Map<String, dynamic>>> getExpenseCategories() async {
-    final db = await _dbHelper.database;
-    return await db.query('expense_categories', orderBy: 'name_english ASC');
-  }
-
-  /// Add expense category
-  Future<int> addExpenseCategory(Map<String, dynamic> data) async {
-    final db = await _dbHelper.database;
-    return await db.insert('expense_categories', data);
   }
 
   // ========================================

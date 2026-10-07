@@ -1,0 +1,50 @@
+[
+  {
+    "id": "inline-01",
+    "source": "lib/screens/auth/login_screen.dart",
+    "line": 233,
+    "snippet": "AlertDialog(\n        title: Text(loc.recoveryCodeTitle),\n        content: Column(\n          mainAxisSize: MainAxisSize.min,\n          children: [\n            Text(loc.recoveryCodeInstructions),\n            const SizedBox(height: AppTokens.spacingLarge),\n            Container(\n              padding: const EdgeInsets.symmetric(\n                vertical: AppTokens.spacingMedium,\n                horizontal: AppTokens.spacingLarge,\n              ),\n              decoration: BoxDecoration(\n                color: Theme.of(ctx).colorScheme.surfaceContainerHighest,\n                borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),\n              ),\n              child: SelectableText(\n                code,\n                style: const TextStyle(\n                  fontFamily: 'monospace',\n                  fontSize: 20,\n                  fontWeight: FontWeight.bold,\n                  letterSpacing: 2,\n                ),\n                textAlign: TextAlign.center,\n              ),\n            ),\n            const SizedBox(height: AppTokens.spacingMedium),\n            TextButton.icon(\n              icon: const Icon(Icons.copy, size: 16),\n              label: Text(loc.copyCode),\n              onPressed: () => Clipboard.setData(ClipboardData(text: code)),\n            ),\n          ],\n        ),\n        actions: [\n          FilledButton(\n            onPressed: () => Navigator.of(ctx).pop(),\n            child: Text(loc.save),\n          ),\n        ],\n      )"
+  },
+  {
+    "id": "inline-02",
+    "source": "lib/screens/categories/categories_screen.dart",
+    "line": 333,
+    "snippet": "AlertDialog(\n              title: Text(loc.confirmDeleteTitle),\n              content: Text(loc.confirmDeleteMessage),\n              actions: [\n                TextButton(\n                    onPressed: () => Navigator.pop(ctx, false),\n                    child: Text(loc.no)),\n                ElevatedButton(\n                  style: ElevatedButton.styleFrom(\n                      backgroundColor: Theme.of(ctx).colorScheme.error),\n                  onPressed: () => Navigator.pop(ctx, true),\n                  child: Text(loc.yesDelete,\n                      style:\n                          TextStyle(color: Theme.of(ctx).colorScheme.onError)),\n                ),\n              ],\n            )"
+  },
+  {
+    "id": "inline-03",
+    "source": "lib/screens/customers/widgets/customer_ledger_panel.dart",
+    "line": 576,
+    "snippet": "Dialog(\r\n        shape: RoundedRectangleBorder(\r\n            borderRadius: BorderRadius.circular(AppTokens.dialogBorderRadius)),\r\n        child: Container(\r\n          constraints: const BoxConstraints(minWidth: 400, maxWidth: 500),\r\n          padding: const EdgeInsets.all(AppTokens.dialogPadding),\r\n          child: Column(\r\n            mainAxisSize: MainAxisSize.min,\r\n            crossAxisAlignment: CrossAxisAlignment.start,\r\n            children: [\r\n              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [\r\n                Text(loc.confirmCancellationTitle, style: textTheme.titleLarge),\r\n                IconButton(\r\n                    icon: const Icon(Icons.close),\r\n                    onPressed: () => Navigator.pop(context, false),\r\n                    padding: EdgeInsets.zero,\r\n                    constraints: const BoxConstraints()),\r\n              ]),\r\n              const Divider(),\r\n              const SizedBox(height: AppTokens.spacingMedium),\r\n              Text(loc.confirmCancelInvoiceMessage,\r\n                  style: textTheme.bodyMedium),\r\n              const SizedBox(height: AppTokens.spacingLarge),\r\n              Row(mainAxisAlignment: MainAxisAlignment.end, children: [\r\n                TextButton(\r\n                    onPressed: () => Navigator.pop(context, false),\r\n                    child: Text(loc.no)),\r\n                const SizedBox(width: AppTokens.spacingMedium),\r\n                ElevatedButton(\r\n                  onPressed: () => Navigator.pop(context, true),\r\n                  style: ElevatedButton.styleFrom(\r\n                    backgroundColor: colorScheme.error,\r\n                    foregroundColor: colorScheme.onError,\r\n                  ),\r\n                  child: Text(loc.yesCancelButton),\r\n                ),\r\n              ]),\r\n            ],\r\n          ),\r\n        ),\r\n      )"
+  },
+  {
+    "id": "inline-04",
+    "source": "lib/screens/items/items_screen.dart",
+    "line": 268,
+    "snippet": "AlertDialog(\r\n        backgroundColor: colorScheme.surface,\r\n        title: Text(localizations.confirm),\r\n        content: Text(localizations.confirmDeleteItem),\r\n        actions: [\r\n          TextButton(\r\n              onPressed: () => Navigator.pop(context, false),\r\n              child: Text(localizations.no,\r\n                  style: Theme.of(context)\r\n                      .textTheme\r\n                      .bodyMedium\r\n                      ?.copyWith(color: colorScheme.onSurface))),\r\n          ElevatedButton(\r\n            onPressed: () => Navigator.pop(context, true),\r\n            style: ElevatedButton.styleFrom(\r\n                backgroundColor: colorScheme.error,\r\n                foregroundColor: colorScheme.onError),\r\n            child: Text(localizations.yesDelete),\r\n          ),\r\n        ],\r\n      )"
+  },
+  {
+    "id": "inline-05",
+    "source": "lib/screens/settings/pages/backup_page.dart",
+    "line": 151,
+    "snippet": "AlertDialog(\r\n        title: Text(loc.restoreBackup),\r\n        content: Text(loc.restoreConfirm),\r\n        actions: [\r\n          TextButton(\r\n              onPressed: () => Navigator.pop(context, false),\r\n              child: Text(loc.cancel)),\r\n          ElevatedButton(\r\n            onPressed: () => Navigator.pop(context, true),\r\n            style: ElevatedButton.styleFrom(\r\n                backgroundColor: Theme.of(context).colorScheme.error),\r\n            child:\r\n                Text(loc.restore, style: const TextStyle(color: Colors.white)),\r\n          ),\r\n        ],\r\n      )"
+  },
+  {
+    "id": "inline-06",
+    "source": "lib/screens/settings/pages/backup_page.dart",
+    "line": 178,
+    "snippet": "AlertDialog(\r\n        title: Text(loc.deleteBackup),\r\n        content: Text(loc.deleteConfirm),\r\n        actions: [\r\n          TextButton(\r\n              onPressed: () => Navigator.pop(context, false),\r\n              child: Text(loc.cancel)),\r\n          ElevatedButton(\r\n            onPressed: () => Navigator.pop(context, true),\r\n            style: ElevatedButton.styleFrom(\r\n                backgroundColor: Theme.of(context).colorScheme.error),\r\n            child:\r\n                Text(loc.delete, style: const TextStyle(color: Colors.white)),\r\n          ),\r\n        ],\r\n      )"
+  },
+  {
+    "id": "inline-07",
+    "source": "lib/screens/settings/pages/security_page.dart",
+    "line": 98,
+    "snippet": "AlertDialog(\r\n        title: Text(loc.recoveryCodeTitle),\r\n        content: Column(\r\n          mainAxisSize: MainAxisSize.min,\r\n          children: [\r\n            Text(loc.recoveryCodeInstructions),\r\n            const SizedBox(height: AppTokens.spacingLarge),\r\n            Container(\r\n              padding: const EdgeInsets.symmetric(\r\n                vertical: AppTokens.spacingMedium,\r\n                horizontal: AppTokens.spacingLarge,\r\n              ),\r\n              decoration: BoxDecoration(\r\n                color: Theme.of(ctx).colorScheme.surfaceContainerHighest,\r\n                borderRadius: BorderRadius.circular(AppTokens.cardBorderRadius),\r\n              ),\r\n              child: SelectableText(\r\n                code,\r\n                style: const TextStyle(\r\n                  fontFamily: 'monospace',\r\n                  fontSize: 20,\r\n                  fontWeight: FontWeight.bold,\r\n                  letterSpacing: 2,\r\n                ),\r\n                textAlign: TextAlign.center,\r\n              ),\r\n            ),\r\n            const SizedBox(height: AppTokens.spacingMedium),\r\n            TextButton.icon(\r\n              icon: const Icon(Icons.copy, size: 16),\r\n              label: Text(loc.copyCode),\r\n              onPressed: () => Clipboard.setData(ClipboardData(text: code)),\r\n            ),\r\n          ],\r\n        ),\r\n        actions: [\r\n          FilledButton(\r\n            onPressed: () => Navigator.of(ctx).pop(),\r\n            child: Text(loc.save),\r\n          ),\r\n        ],\r\n      )"
+  },
+  {
+    "id": "inline-08",
+    "source": "lib/screens/suppliers/suppliers_screen.dart",
+    "line": 39,
+    "snippet": "AlertDialog(\r\n        title: Text('Confirm Delete',\r\n            style: Theme.of(context).textTheme.titleLarge),\r\n        content: Text(\r\n            'Are you sure you want to completely delete this supplier?',\r\n            style: Theme.of(context).textTheme.bodyMedium),\r\n        actions: [\r\n          TextButton(\r\n              onPressed: () => Navigator.pop(ctx, false),\r\n              child: const Text('Cancel')),\r\n          ElevatedButton(\r\n            style: ElevatedButton.styleFrom(\r\n              backgroundColor: colorScheme.error,\r\n              foregroundColor: colorScheme.onError,\r\n            ),\r\n            onPressed: () => Navigator.pop(ctx, true),\r\n            child: const Text('Delete'),\r\n          ),\r\n        ],\r\n      )"
+  }
+]

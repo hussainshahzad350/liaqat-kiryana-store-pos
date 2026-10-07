@@ -59,54 +59,62 @@ class SalesCartPanel extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final loc = AppLocalizations.of(context)!;
 
-    return ColoredBox(
-      color: colorScheme.surface,
-      child: Column(
-        children: [
-          CustomerSection(
-            searchController: customerSearchController,
-            filteredCustomers: filteredCustomers,
-            showCustomerList: showCustomerList,
-            selectedCustomerId: selectedCustomerId,
-            onSearchChanged: onCustomerSearchChanged,
-            onSearchTap: onCustomerSearchTap,
-            onSelectCustomer: onSelectCustomer,
-            onAddCustomer: onAddCustomer,
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          _CartHeader(loc: loc, colorScheme: colorScheme),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          Expanded(
-            child: cartItems.isEmpty
-                ? _EmptyCart(loc: loc, colorScheme: colorScheme)
-                : ListView.separated(
-                    itemCount: cartItems.length,
-                    separatorBuilder: (context, index) =>
-                        const Divider(height: 1, thickness: 0.5),
-                    itemBuilder: (context, index) => CartItemRow(
-                      item: cartItems[index],
-                      index: index,
-                      isRTL: isRTL,
-                      colorScheme: colorScheme,
-                      onRemove: onRemoveCartItem,
-                      onUpdate: onUpdateCartItem,
-                    ),
+    return LayoutBuilder(
+        builder: (context, constraints) => ColoredBox(
+              color: colorScheme.surface,
+              child: Column(
+                children: [
+                  CustomerSection(
+                    searchController: customerSearchController,
+                    filteredCustomers: filteredCustomers,
+                    showCustomerList: showCustomerList,
+                    selectedCustomerId: selectedCustomerId,
+                    onSearchChanged: onCustomerSearchChanged,
+                    onSearchTap: onCustomerSearchTap,
+                    onSelectCustomer: onSelectCustomer,
+                    onAddCustomer: onAddCustomer,
+                    maxListHeight:
+                        (constraints.maxHeight / 6).clamp(56.0, 200.0),
                   ),
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          SalesTotalsSection(
-            discountController: discountController,
-            subtotal: subtotal,
-            discount: discount,
-            previousBalance: previousBalance,
-            grandTotal: grandTotal,
-            isCheckoutEnabled: cartItems.isNotEmpty,
-            onCheckout: onCheckout,
-            onDiscountChanged: onDiscountChanged,
-          ),
-        ],
-      ),
-    );
+                  Divider(height: 1, color: colorScheme.outlineVariant),
+                  _CartHeader(loc: loc, colorScheme: colorScheme),
+                  Divider(height: 1, color: colorScheme.outlineVariant),
+                  Expanded(
+                    child: cartItems.isEmpty
+                        ? _EmptyCart(loc: loc, colorScheme: colorScheme)
+                        : ListView.separated(
+                            itemCount: cartItems.length,
+                            separatorBuilder: (context, index) =>
+                                const Divider(height: 1, thickness: 0.5),
+                            itemBuilder: (context, index) => CartItemRow(
+                              item: cartItems[index],
+                              index: index,
+                              isRTL: isRTL,
+                              colorScheme: colorScheme,
+                              onRemove: onRemoveCartItem,
+                              onUpdate: onUpdateCartItem,
+                            ),
+                          ),
+                  ),
+                  Divider(height: 1, color: colorScheme.outlineVariant),
+                  ConstrainedBox(
+                    constraints:
+                        BoxConstraints(maxHeight: constraints.maxHeight / 2),
+                    child: SingleChildScrollView(
+                        child: SalesTotalsSection(
+                      discountController: discountController,
+                      subtotal: subtotal,
+                      discount: discount,
+                      previousBalance: previousBalance,
+                      grandTotal: grandTotal,
+                      isCheckoutEnabled: cartItems.isNotEmpty,
+                      onCheckout: onCheckout,
+                      onDiscountChanged: onDiscountChanged,
+                    )),
+                  ),
+                ],
+              ),
+            ));
   }
 }
 
@@ -166,24 +174,46 @@ class _EmptyCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.shopping_cart_outlined,
-            size: 64,
-            color: colorScheme.outline.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: AppTokens.spacingMedium),
-          Text(
-            loc.cartEmpty,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+    return LayoutBuilder(builder: (context, constraints) {
+      final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          );
+      final message = TextPainter(
+        text: TextSpan(text: loc.cartEmpty, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+      )..layout(maxWidth: constraints.maxWidth);
+      final iconSpace =
+          constraints.maxHeight - message.height - AppTokens.spacingMedium;
+      final iconSize = iconSpace >= 64
+          ? 64.0
+          : iconSpace >= 32
+              ? 32.0
+              : 0.0;
+      message.dispose();
+      return Center(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (iconSize > 0) ...[
+                Icon(
+                  Icons.shopping_cart_outlined,
+                  size: iconSize,
+                  color: colorScheme.outline.withValues(alpha: 0.5),
                 ),
+                const SizedBox(height: AppTokens.spacingMedium),
+              ],
+              Text(
+                loc.cartEmpty,
+                style: style,
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 }

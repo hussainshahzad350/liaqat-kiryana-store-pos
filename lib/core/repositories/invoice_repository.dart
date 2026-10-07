@@ -287,7 +287,7 @@ class InvoiceRepository {
       int newBalance = 0;
       if (creditAmount > 0) {
         final lastEntry = await txn.rawQuery(
-          'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+          'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY id DESC LIMIT 1',
           [customerId],
         );
         int prevBalance = lastEntry.isNotEmpty
@@ -530,7 +530,7 @@ class InvoiceRepository {
 
       if (creditedAmount > 0) {
         final lastEntry = await txn.rawQuery(
-          'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+          'SELECT balance FROM customer_ledger WHERE customer_id = ? ORDER BY id DESC LIMIT 1',
           [customerId],
         );
         int prevBalance = lastEntry.isNotEmpty
@@ -645,44 +645,6 @@ class InvoiceRepository {
     );
   }
 
-  /// Get recent invoices
-  Future<List<Invoice>> getRecentInvoices({int limit = 20}) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'invoices',
-      orderBy: 'created_at DESC',
-      limit: limit,
-    );
-    return result.map((map) => Invoice.fromMap(map)).toList();
-  }
-
-  /// Get invoices by date range
-  Future<List<Invoice>> getInvoicesByDateRange(
-    String startDate,
-    String endDate,
-  ) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'invoices',
-      where: 'invoice_date BETWEEN ? AND ?',
-      whereArgs: [startDate, endDate],
-      orderBy: 'invoice_date DESC',
-    );
-    return result.map((map) => Invoice.fromMap(map)).toList();
-  }
-
-  /// Get invoices by customer
-  Future<List<Invoice>> getInvoicesByCustomer(int customerId) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'invoices',
-      where: 'customer_id = ?',
-      whereArgs: [customerId],
-      orderBy: 'invoice_date DESC',
-    );
-    return result.map((map) => Invoice.fromMap(map)).toList();
-  }
-
   /// Get recent invoices with customer names.
   Future<List<Invoice>> getRecentInvoicesWithCustomer({int limit = 20}) async {
     final db = await _dbHelper.database;
@@ -712,27 +674,6 @@ class InvoiceRepository {
       [today, SaleStatus.completed.dbValue],
     );
     return (result.first['total'] as num?)?.toInt() ?? 0;
-  }
-
-  /// Delete invoice (and items)
-  Future<void> deleteInvoice(int invoiceId) async {
-    final db = await _dbHelper.database;
-    await db.transaction((txn) async {
-      await txn.delete('invoice_items',
-          where: 'invoice_id = ?', whereArgs: [invoiceId]);
-      await txn.delete('invoices', where: 'id = ?', whereArgs: [invoiceId]);
-    });
-  }
-
-  /// Update invoice (without items)
-  Future<void> updateInvoice(Invoice invoice) async {
-    final db = await _dbHelper.database;
-    await db.update(
-      'invoices',
-      invoice.toMap(),
-      where: 'id = ?',
-      whereArgs: [invoice.id],
-    );
   }
 
   /// Validate stock before creating invoice

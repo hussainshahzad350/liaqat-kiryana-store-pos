@@ -6,6 +6,8 @@ import '../../bloc/categories/categories_event.dart';
 import '../../bloc/categories/categories_state.dart';
 import '../../core/repositories/categories_repository.dart';
 import '../../core/res/app_tokens.dart';
+import '../../widgets/app_pane_viewport.dart';
+import '../../widgets/app_state_view.dart';
 import '../../core/utils/error_handler.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/category_models.dart';
@@ -72,11 +74,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         },
         builder: (context, state) {
           if (state is CategoriesLoading || state is CategoriesInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return AppStateView.loading(message: loc.loading);
           }
 
           if (state is! CategoriesReady) {
-            return Center(child: Text(loc.error));
+            return AppStateView.error(
+                message: loc.error,
+                actionLabel: loc.retry,
+                onRetry: () =>
+                    context.read<CategoriesBloc>().add(LoadCategories()));
           }
 
           return Padding(
@@ -89,100 +95,105 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
                 // Main Content Area
                 Expanded(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Pane 1: Departments
-                      SizedBox(
-                        width: AppTokens.sidebarWidthSmall,
-                        child: Card(
-                          elevation: AppTokens.cardElevation,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppTokens.cardBorderRadius)),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                                AppTokens.cardBorderRadius),
-                            child: DepartmentListWidget(
-                              departments: state.departments,
-                              selectedDepartment: state.selectedDepartment,
-                              searchResults: state.searchResults,
-                              searchQuery: state.searchQuery,
-                              onSelect: (dept) => context
-                                  .read<CategoriesBloc>()
-                                  .add(SelectDepartment(dept)),
-                              onAdd: () => _showAddDepartment(context),
+                  child: AppPaneViewport(
+                      minimumWidth: 1050,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Pane 1: Departments
+                          SizedBox(
+                            width: AppTokens.sidebarWidthSmall,
+                            child: Card(
+                              elevation: AppTokens.cardElevation,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.cardBorderRadius)),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.cardBorderRadius),
+                                child: DepartmentListWidget(
+                                  departments: state.departments,
+                                  selectedDepartment: state.selectedDepartment,
+                                  searchResults: state.searchResults,
+                                  searchQuery: state.searchQuery,
+                                  onSelect: (dept) => context
+                                      .read<CategoriesBloc>()
+                                      .add(SelectDepartment(dept)),
+                                  onAdd: () => _showAddDepartment(context),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: AppTokens.spacingMedium),
+                          const SizedBox(width: AppTokens.spacingMedium),
 
-                      // Pane 2: Taxonomy (Categories & Subcategories)
-                      Expanded(
-                        flex: 3,
-                        child: Card(
-                          elevation: AppTokens.cardElevation,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppTokens.cardBorderRadius)),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                                AppTokens.cardBorderRadius),
-                            child: CategoryTreeWidget(
-                              categories: state.categories,
-                              selectedDepartment: state.selectedDepartment,
-                              selectedCategory: state.selectedCategory,
-                              selectedSubCategory: state.selectedSubCategory,
-                              subCategoryCache: state.subCategoryCache,
-                              searchResults: state.searchResults,
-                              searchQuery: state.searchQuery,
-                              onCategorySelect: (cat) => context
-                                  .read<CategoriesBloc>()
-                                  .add(SelectCategory(cat)),
-                              onPreloadSubCategories: (categoryId) => context
-                                  .read<CategoriesBloc>()
-                                  .add(
-                                      PreloadCategorySubCategories(categoryId)),
-                              onSubCategorySelect: (sub) => context
-                                  .read<CategoriesBloc>()
-                                  .add(SelectSubCategory(sub)),
-                              onAddCategory: () =>
-                                  _showAddCategory(context, state),
-                              onAddSubCategory: (cat) =>
-                                  _showAddSubCategory(context, state, cat),
+                          // Pane 2: Taxonomy (Categories & Subcategories)
+                          Expanded(
+                            flex: 3,
+                            child: Card(
+                              elevation: AppTokens.cardElevation,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.cardBorderRadius)),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.cardBorderRadius),
+                                child: CategoryTreeWidget(
+                                  categories: state.categories,
+                                  selectedDepartment: state.selectedDepartment,
+                                  selectedCategory: state.selectedCategory,
+                                  selectedSubCategory:
+                                      state.selectedSubCategory,
+                                  subCategoryCache: state.subCategoryCache,
+                                  searchResults: state.searchResults,
+                                  searchQuery: state.searchQuery,
+                                  onCategorySelect: (cat) => context
+                                      .read<CategoriesBloc>()
+                                      .add(SelectCategory(cat)),
+                                  onPreloadSubCategories: (categoryId) =>
+                                      context.read<CategoriesBloc>().add(
+                                          PreloadCategorySubCategories(
+                                              categoryId)),
+                                  onSubCategorySelect: (sub) => context
+                                      .read<CategoriesBloc>()
+                                      .add(SelectSubCategory(sub)),
+                                  onAddCategory: () =>
+                                      _showAddCategory(context, state),
+                                  onAddSubCategory: (cat) =>
+                                      _showAddSubCategory(context, state, cat),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: AppTokens.spacingMedium),
+                          const SizedBox(width: AppTokens.spacingMedium),
 
-                      // Pane 3: Details & Management
-                      Expanded(
-                        flex: 2,
-                        child: Card(
-                          elevation: AppTokens.cardElevation,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppTokens.cardBorderRadius)),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                                AppTokens.cardBorderRadius),
-                            child: DetailsPanelWidget(
-                              selectionLevel: state.selectionLevel,
-                              selectedDepartment: state.selectedDepartment,
-                              selectedCategory: state.selectedCategory,
-                              selectedSubCategory: state.selectedSubCategory,
-                              detailsItemCount: state.detailsItemCount,
-                              detailsSubCount: state.detailsSubCount,
-                              onEdit: () => _showEditDialog(context, state),
-                              onDelete: () => _confirmDelete(context, state),
+                          // Pane 3: Details & Management
+                          Expanded(
+                            flex: 2,
+                            child: Card(
+                              elevation: AppTokens.cardElevation,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      AppTokens.cardBorderRadius)),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                    AppTokens.cardBorderRadius),
+                                child: DetailsPanelWidget(
+                                  selectionLevel: state.selectionLevel,
+                                  selectedDepartment: state.selectedDepartment,
+                                  selectedCategory: state.selectedCategory,
+                                  selectedSubCategory:
+                                      state.selectedSubCategory,
+                                  detailsItemCount: state.detailsItemCount,
+                                  detailsSubCount: state.detailsSubCount,
+                                  onEdit: () => _showEditDialog(context, state),
+                                  onDelete: () =>
+                                      _confirmDelete(context, state),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
+                        ],
+                      )),
                 ),
               ],
             ),

@@ -1,6 +1,5 @@
 import 'items_repository.dart';
 import '../database/database_helper.dart';
-import '../../models/purchase_models.dart';
 import '../utils/logger.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -159,7 +158,7 @@ class PurchaseRepository {
 
       // 3. Update Supplier Ledger
       final lastEntry = await txn.rawQuery(
-        'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+        'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY id DESC LIMIT 1',
         [supplierId],
       );
       int prevBalance =
@@ -311,7 +310,7 @@ class PurchaseRepository {
       }
 
       final lastEntry = await txn.rawQuery(
-        'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY transaction_date DESC, id DESC LIMIT 1',
+        'SELECT balance FROM supplier_ledger WHERE supplier_id = ? ORDER BY id DESC LIMIT 1',
         [supplierId],
       );
       final prevBalance = lastEntry.isNotEmpty
@@ -352,61 +351,4 @@ class PurchaseRepository {
   // ========================================
   // QUERIES
   // ========================================
-  Future<Purchase?> getPurchaseWithItems(int purchaseId) async {
-    final db = await _dbHelper.database;
-    final purchaseMap = await db.query(
-      'purchases',
-      where: 'id = ?',
-      whereArgs: [purchaseId],
-      limit: 1,
-    );
-
-    if (purchaseMap.isEmpty) return null;
-
-    final purchase = Purchase.fromMap(purchaseMap.first);
-
-    return Purchase(
-      id: purchase.id,
-      supplierId: purchase.supplierId,
-      invoiceNumber: purchase.invoiceNumber,
-      purchaseDate: purchase.purchaseDate,
-      totalAmount: purchase.totalAmount,
-      notes: purchase.notes,
-      status: purchase.status,
-      createdAt: purchase.createdAt,
-    );
-  }
-
-  Future<List<Purchase>> getRecentPurchases({int limit = 20}) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'purchases',
-      orderBy: 'created_at DESC',
-      limit: limit,
-    );
-    return result.map((map) => Purchase.fromMap(map)).toList();
-  }
-
-  Future<List<Purchase>> getPurchasesBySupplier(int supplierId) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'purchases',
-      where: 'supplier_id = ?',
-      whereArgs: [supplierId],
-      orderBy: 'purchase_date DESC',
-    );
-    return result.map((map) => Purchase.fromMap(map)).toList();
-  }
-
-  Future<List<Purchase>> getPurchasesByDateRange(
-      String startDate, String endDate) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      'purchases',
-      where: 'purchase_date BETWEEN ? AND ?',
-      whereArgs: [startDate, endDate],
-      orderBy: 'purchase_date DESC',
-    );
-    return result.map((map) => Purchase.fromMap(map)).toList();
-  }
 }

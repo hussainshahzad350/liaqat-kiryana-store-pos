@@ -218,6 +218,7 @@ class _AppShellState extends State<AppShell> {
       _refreshCounts[route] = (_refreshCounts[route] ?? 0) + 1;
       _screenCache.remove(index);
     }
+    ScaffoldMessenger.of(context).clearSnackBars();
     setState(() => _currentIndex = index);
   }
 
